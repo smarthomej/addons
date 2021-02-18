@@ -5,22 +5,22 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.openhab.addons</groupId>
-    <artifactId>org.openhab.addons.reactor</artifactId>
+    <groupId>org.smarthomej.addons</groupId>
+    <artifactId>org.smarthomej.addons.reactor</artifactId>
     <version>3.1.0-SNAPSHOT</version>
   </parent>
 
-  <groupId>org.openhab.addons.bom</groupId>
-  <artifactId>org.openhab.addons.reactor.bom</artifactId>
+  <groupId>org.smarthomej.addons.bom</groupId>
+  <artifactId>org.smarthomej.addons.reactor.bom</artifactId>
   <packaging>pom</packaging>
 
-  <name>openHAB Add-ons :: BOM</name>
+  <name>SmartHome/J Add-ons :: BOM</name>
 
   <modules>
     <module>runtime-index</module>
     <module>test-index</module>
     <module>openhab-core-index</module>
-    <module>openhab-addons</module>
+    <module>smarthomej-addons</module>
   </modules>
 
   <build>
@@ -40,42 +40,42 @@
               <configuration>
                 <target>
                   <copy file="${basedirRoot}/../../bundles/pom.xml" overwrite="true"
-                    tofile="${basedirRoot}/../../bom/openhab-addons/pom.xml"/>
+                    tofile="${basedirRoot}/../../bom/smarthomej-addons/pom.xml"/>
                   <!-- rewrite footer -->
-                  <replaceregexp file="${basedirRoot}/../../bom/openhab-addons/pom.xml"
+                  <replaceregexp file="${basedirRoot}/../../bom/smarthomej-addons/pom.xml"
                     match="/modules[\s\S]*dependencies&gt;" replace="/dependencies&gt;"/>
                   <!-- rewrite header -->
-                  <replaceregexp file="${basedirRoot}/../../bom/openhab-addons/pom.xml"
+                  <replaceregexp file="${basedirRoot}/../../bom/smarthomej-addons/pom.xml"
                     match="\S*parent[\s\S]*modules&gt;\S*" replace="header"/>
-                  <replace file="{basedirRoot}/../../bom/openhab-addons/pom.xml">
+                  <replace file="{basedirRoot}/../../bom/smarthomej-addons/pom.xml">
                     <replacetoken>header</replacetoken>
                     <replacevalue><![CDATA[<parent>
-    <groupId>org.openhab.addons.bom</groupId>
-    <artifactId>org.openhab.addons.reactor.bom</artifactId>
+    <groupId>org.smarthomej.addons.bom</groupId>
+    <artifactId>org.smarthomej.addons.reactor.bom</artifactId>
     <version>${project.version}</version>
   </parent>
 
-  <artifactId>org.openhab.addons.bom.openhab-addons</artifactId>
+  <artifactId>org.smarthomej.addons.bom.smarthomej-addons</artifactId>
   <packaging>pom</packaging>
 
-  <name>openHAB Add-ons :: BOM :: openHAB Add-ons</name>
+  <name>SmartHome/J Add-ons :: BOM :: SmartHome/J Add-ons</name>
 
   <dependencies>]]></replacevalue>
                   </replace>
                   <!-- rewrite content -->
-                  <replace file="{basedirRoot}/../../bom/openhab-addons/pom.xml">
+                  <replace file="{basedirRoot}/../../bom/smarthomej-addons/pom.xml">
                     <replacetoken><![CDATA[<module>]]></replacetoken>
                     <replacevalue><![CDATA[<dependency>
-      <groupId>org.openhab.addons.bundles</groupId>
+      <groupId>org.smarthomej.addons.bundles</groupId>
       <artifactId>]]></replacevalue>
                   </replace>
-                  <replace file="{basedirRoot}/../../bom/openhab-addons/pom.xml">
+                  <replace file="{basedirRoot}/../../bom/smarthomej-addons/pom.xml">
                     <replacetoken><![CDATA[</module>]]></replacetoken>
                     <replacevalue><![CDATA[</artifactId>
       <version>@dollar{project.version}</version>
     </dependency>]]></replacevalue>
                   </replace>
-                  <replace file="{basedirRoot}/../../bom/openhab-addons/pom.xml">
+                  <replace file="{basedirRoot}/../../bom/smarthomej-addons/pom.xml">
                     <replacetoken>@dollar</replacetoken>
                     <replacevalue>$</replacevalue>
                   </replace>

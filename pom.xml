@@ -9,18 +9,18 @@
     <version>[1.0, 2.0)</version>
   </parent>
 
-  <groupId>org.openhab.addons</groupId>
-  <artifactId>org.openhab.addons.reactor</artifactId>
+  <groupId>org.smarthomej.addons</groupId>
+  <artifactId>org.smarthomej.addons.reactor</artifactId>
   <version>3.1.0-SNAPSHOT</version>
 
   <packaging>pom</packaging>
 
-  <name>openHAB Add-ons</name>
-  <description>This project contains the official add-ons of openHAB</description>
+  <name>SmartHome/J Add-ons</name>
+  <description>This project contains the add-ons of SmartHome/J</description>
 
   <organization>
-    <name>openHAB.org</name>
-    <url>http://www.openhab.org</url>
+    <name>SmartHome/J</name>
+    <url>http://www.smarthomej.org</url>
   </organization>
 
   <licenses>
@@ -30,34 +30,44 @@
     </license>
   </licenses>
 
-  <modules>
-    <module>bom</module>
-    <module>bundles</module>
-    <module>features</module>
-  </modules>
+  <developers>
+    <developer>
+      <id>smarthomej</id>
+      <name>SmartHome/J</name>
+      <email>info@smarthomej.org</email>
+      <organization>SmartHome/J</organization>
+      <organizationUrl>https://www.smarthomej.org</organizationUrl>
+    </developer>
+  </developers>
 
   <scm>
-    <connection>scm:git:https://github.com/openhab/openhab-addons.git</connection>
-    <developerConnection>scm:git:https://github.com/openhab/openhab-addons.git</developerConnection>
+    <connection>scm:git:https://github.com/smarthomej/addons.git</connection>
+    <developerConnection>scm:git:https://github.com/smarthomej/addons.git</developerConnection>
     <tag>HEAD</tag>
-    <url>https://github.com/openhab/openhab-addons</url>
+    <url>https://github.com/smarthomej/addons</url>
   </scm>
 
   <issueManagement>
     <system>GitHub</system>
-    <url>https://github.com/openhab/openhab-addons/issues</url>
+    <url>https://github.com/smarthomej/addons/issues</url>
   </issueManagement>
 
   <distributionManagement>
     <repository>
       <id>bintray</id>
-      <url>${oh.repo.distBaseUrl}/openhab-addons/;publish=1</url>
+      <url>${oh.repo.distBaseUrl}/addons/;publish=1</url>
     </repository>
     <snapshotRepository>
       <id>jfrog</id>
       <url>${oh.repo.snapshotBaseUrl}/libs-snapshot-local</url>
     </snapshotRepository>
   </distributionManagement>
+
+  <modules>
+    <module>bom</module>
+    <module>bundles</module>
+    <module>features</module>
+  </modules>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -138,19 +148,21 @@
           <configuration>
             <bnd><![CDATA[Bundle-SymbolicName: ${project.artifactId}
 Automatic-Module-Name: ${def;bsn}
+Bundle-DocURL: https://github.com/smarthomej/addons/tree/main/bundles/${bsn}
 Import-Package: \\
   io.swagger.v3.oas.annotations.*;resolution:=optional,\\
   javax.annotation.security.*;resolution:=optional,\\
   org.eclipse.jdt.annotation.*;resolution:=optional,\\
   org.openhab.core.automation.annotation.*;resolution:=optional;version=!,\\
   org.openhab.*;version=!,\\
+  org.smarthomej.*;version=!,\\
   com.google.common.*;version="14.0",\\
   ${bnd.importpackage},\\
   *
 -exportcontents: \\
   !*.internal.*,\\
   !*.impl.*, \\
-  org.openhab.*, \\
+  org.smarthomej.*, \\
   ${bnd.exportpackage}
 -noimportjava: true
 -sources: false
@@ -403,7 +415,7 @@ Import-Package: \\
               <headerDefinition>licenses/epl-2.0/xml-header-style.xml</headerDefinition>
             </headerDefinitions>
             <includes>
-              <include>**/org/openhab/**/*.java</include>
+              <include>**/org/smarthomej/**/*.java</include>
               <include>**/features/**/header.xml</include>
             </includes>
             <excludes>
@@ -637,8 +649,8 @@ Import-Package: \\
             <configuration>
               <property>basedirRoot</property>
               <project>
-                <groupId>org.openhab.addons</groupId>
-                <artifactId>org.openhab.addons.reactor</artifactId>
+                <groupId>org.smarthomej.addons</groupId>
+                <artifactId>org.smarthomej.addons.reactor</artifactId>
               </project>
             </configuration>
           </execution>

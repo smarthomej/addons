@@ -5,33 +5,33 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.openhab.addons</groupId>
-    <artifactId>org.openhab.addons.reactor</artifactId>
+    <groupId>org.smarthomej.addons</groupId>
+    <artifactId>org.smarthomej.addons.reactor</artifactId>
     <version>3.1.0-SNAPSHOT</version>
   </parent>
 
-  <groupId>org.openhab.addons.bundles</groupId>
-  <artifactId>org.openhab.addons.reactor.bundles</artifactId>
+  <groupId>org.smarthomej.addons.bundles</groupId>
+  <artifactId>org.smarthomej.addons.reactor.bundles</artifactId>
   <packaging>pom</packaging>
 
-  <name>openHAB Add-ons :: Bundles</name>
+  <name>SmartHome/J Add-ons :: Bundles</name>
 
   <modules>
     <!-- transformations -->
-    <module>org.openhab.transform.exec</module>
+    <module>org.smarthomej.transform.exec</module>
     <!-- bindings -->
-    <module>org.openhab.binding.amazonechocontrol</module>
-    <module>org.openhab.binding.deconz</module>
-    <module>org.openhab.binding.dmx</module>
-    <module>org.openhab.binding.http</module>
-    <module>org.openhab.binding.irobot</module>
-    <module>org.openhab.binding.mail</module>
-    <module>org.openhab.binding.mpd</module>
-    <module>org.openhab.binding.onewire</module>
-    <module>org.openhab.binding.snmp</module>
-    <module>org.openhab.binding.tr064</module>
+    <module>org.smarthomej.binding.amazonechocontrol</module>
+    <module>org.smarthomej.binding.deconz</module>
+    <module>org.smarthomej.binding.dmx</module>
+    <module>org.smarthomej.binding.http</module>
+    <module>org.smarthomej.binding.irobot</module>
+    <module>org.smarthomej.binding.mail</module>
+    <module>org.smarthomej.binding.mpd</module>
+    <module>org.smarthomej.binding.onewire</module>
+    <module>org.smarthomej.binding.snmp</module>
+    <module>org.smarthomej.binding.tr064</module>
     <!-- persistence -->
-    <module>org.openhab.persistence.influxdb</module>
+    <module>org.smarthomej.persistence.influxdb</module>
   </modules>
 
   <properties>
@@ -40,6 +40,7 @@
   </properties>
 
   <dependencies>
+    <!-- Annotations -->
     <dependency>
       <groupId>org.lastnpe.eea</groupId>
       <artifactId>eea-all</artifactId>
