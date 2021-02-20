@@ -54,12 +54,12 @@
 
   <distributionManagement>
     <repository>
-      <id>bintray</id>
-      <url>${oh.repo.distBaseUrl}/addons/;publish=1</url>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
     </repository>
     <snapshotRepository>
-      <id>jfrog</id>
-      <url>${oh.repo.snapshotBaseUrl}/libs-snapshot-local</url>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
     </snapshotRepository>
   </distributionManagement>
 
@@ -757,6 +757,27 @@ Import-Package: \\
             </plugin>
           </plugins>
         </pluginManagement>
+      </build>
+    </profile>
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.6</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+                <phase>verify</phase>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
       </build>
     </profile>
   </profiles>
