@@ -17,8 +17,6 @@
   <name>SmartHome/J Add-ons :: Bundles</name>
 
   <modules>
-    <!-- transformations -->
-    <module>org.smarthomej.transform.exec</module>
     <!-- bindings -->
     <module>org.smarthomej.binding.amazonechocontrol</module>
     <module>org.smarthomej.binding.deconz</module>
