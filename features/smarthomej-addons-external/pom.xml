@@ -31,11 +31,6 @@
             <configuration>
               <artifacts>
                 <artifact>
-                  <file>src/main/resources/conf/exec.whitelist</file>
-                  <type>cfg</type>
-                  <classifier>exec.whitelist</classifier>
-                </artifact>
-                <artifact>
                   <file>src/main/resources/conf/influxdb.cfg</file>
                   <type>cfg</type>
                   <classifier>influxdb</classifier>

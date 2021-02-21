@@ -71,11 +71,6 @@
       <artifactId>org.smarthomej.persistence.influxdb</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>org.smarthomej.addons.bundles</groupId>
-      <artifactId>org.smarthomej.transform.exec</artifactId>
-      <version>${project.version}</version>
-    </dependency>
   </dependencies>
 
 </project>
