@@ -61,6 +61,7 @@ public class MavenRepoManager {
         logger.debug("MavenRepoManager started.");
     }
 
+    @SuppressWarnings("unused")
     @Deactivate
     public void deactivate() {
         logger.debug("MavenRepoManager stopped.");
@@ -92,7 +93,7 @@ public class MavenRepoManager {
                         return true;
                     } else {
                         logger.info("Removing maven repository with id '{}'", id);
-                        mavenRepos = Arrays.asList(mavenRepos.split(",")).stream().filter(r -> !r.contains(id))
+                        mavenRepos = Arrays.stream(mavenRepos.split(",")).filter(r -> !r.contains(id))
                                 .collect(Collectors.joining(","));
                     }
                     break;
@@ -144,7 +145,7 @@ public class MavenRepoManager {
             Configuration configuration = configurationAdmin.getConfiguration(KARAF_MAVEN_REPO_PID);
             Dictionary<String, Object> properties = configuration.getProperties();
             String mavenRepos = (String) properties.get(KARAF_MAVEN_REPO_CONFIG_ID);
-            String url = Arrays.asList(mavenRepos.split(",")).stream().filter(r -> r.contains(repoId)).findAny()
+            String url = Arrays.stream(mavenRepos.split(",")).filter(r -> r.contains(repoId)).findAny()
                     .orElseThrow(IllegalArgumentException::new).split("@")[0];
             if (!url.endsWith("/")) {
                 url += "/";

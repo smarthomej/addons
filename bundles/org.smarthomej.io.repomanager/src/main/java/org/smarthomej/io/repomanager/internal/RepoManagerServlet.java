@@ -15,19 +15,17 @@ package org.smarthomej.io.repomanager.internal;
 import java.io.IOException;
 import java.util.Map;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.core.io.http.servlet.OpenHABServlet;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.http.HttpService;
-import org.osgi.service.http.NamespaceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +36,7 @@ import org.slf4j.LoggerFactory;
  */
 @Component(immediate = true)
 @NonNullByDefault
-public class RepoManagerServlet extends HttpServlet {
+public class RepoManagerServlet extends OpenHABServlet {
     private static final String SERVLET_URL = "/repomanager";
     private static final long serialVersionUID = 1L;
 
@@ -55,22 +53,18 @@ public class RepoManagerServlet extends HttpServlet {
 
     private final Logger logger = LoggerFactory.getLogger(RepoManagerServlet.class);
 
-    private final HttpService httpService;
     private final MavenRepoManager mavenRepoManager;
     private final AddonProvider addonProvider;
 
     @Activate
     public RepoManagerServlet(@Reference HttpService httpService, @Reference MavenRepoManager mavenRepoManager,
             @Reference AddonProvider addonProvider) {
-        this.httpService = httpService;
+        super(httpService, httpService.createDefaultHttpContext());
+
         this.mavenRepoManager = mavenRepoManager;
         this.addonProvider = addonProvider;
 
-        try {
-            httpService.registerServlet(SERVLET_URL, this, null, httpService.createDefaultHttpContext());
-        } catch (ServletException | NamespaceException e) {
-            logger.warn("Failed to install JSmartHome Connector servlet: {}", e.getMessage());
-        }
+        activate(SERVLET_URL);
     }
 
     @SuppressWarnings("unused")
