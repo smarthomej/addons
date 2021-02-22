@@ -1,6 +1,6 @@
-This content is produced and maintained by the openHAB project.
+This content is produced and maintained by the SmartHome/J project.
 
-* Project home: https://www.openhab.org
+* Project home: https://www.smarthomej.org
 
 == Declared Project Licenses
 
@@ -10,4 +10,6 @@ https://www.eclipse.org/legal/epl-2.0/.
 
 == Source Code
 
-https://github.com/openhab/openhab2-addons
+https://github.com/smarthomej/addons
+
+Parts of this code have been forked from https://github.com/openhab/openhab-addons
