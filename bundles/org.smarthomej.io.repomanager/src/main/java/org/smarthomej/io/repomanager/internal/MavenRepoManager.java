@@ -10,7 +10,7 @@
  * <p>
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.smarthomej.io.connector.internal;
+package org.smarthomej.io.repomanager.internal;
 
 import java.io.IOException;
 import java.net.URI;

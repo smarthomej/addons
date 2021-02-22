@@ -30,6 +30,8 @@
     <module>org.smarthomej.binding.tr064</module>
     <!-- persistence -->
     <module>org.smarthomej.persistence.influxdb</module>
+    <!-- manager -->
+    <module>org.smarthomej.io.repomanager</module>
   </modules>
 
   <properties>

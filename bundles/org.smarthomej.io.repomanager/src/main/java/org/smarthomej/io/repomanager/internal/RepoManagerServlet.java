@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.smarthomej.io.connector.internal;
+package org.smarthomej.io.repomanager.internal;
 
 import java.io.IOException;
 import java.util.Map;
@@ -32,14 +32,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The {@link ConnectorServlet} provides a Servlet for controlling the connector
+ * The {@link RepoManagerServlet} provides a Servlet for controlling the repo manager
  *
  * @author Jan N. Klug - Initial contribution
  */
 @Component(immediate = true)
 @NonNullByDefault
-public class ConnectorServlet extends HttpServlet {
-    private static final String SERVLET_URL = "/smarthomej";
+public class RepoManagerServlet extends HttpServlet {
+    private static final String SERVLET_URL = "/repomanager";
     private static final long serialVersionUID = 1L;
 
     private static final String SNAPSHOT_REPO_ID = "@snapshots@id=smarthomej-snapshot";
@@ -53,14 +53,14 @@ public class ConnectorServlet extends HttpServlet {
     public static final String KARAF_FEATURE_GROUP_ID = "org.smarthomej.addons.features.karaf";
     public static final String KARAF_FEATURE_ARTIFACT_ID = "org.smarthomej.addons.features.karaf.smarthomej-addons";
 
-    private final Logger logger = LoggerFactory.getLogger(ConnectorServlet.class);
+    private final Logger logger = LoggerFactory.getLogger(RepoManagerServlet.class);
 
     private final HttpService httpService;
     private final MavenRepoManager mavenRepoManager;
     private final AddonProvider addonProvider;
 
     @Activate
-    public ConnectorServlet(@Reference HttpService httpService, @Reference MavenRepoManager mavenRepoManager,
+    public RepoManagerServlet(@Reference HttpService httpService, @Reference MavenRepoManager mavenRepoManager,
             @Reference AddonProvider addonProvider) {
         this.httpService = httpService;
         this.mavenRepoManager = mavenRepoManager;
@@ -99,8 +99,8 @@ public class ConnectorServlet extends HttpServlet {
         }
 
         StringBuilder html = new StringBuilder();
-        html.append("<html><head><title>SmartHome/J Connector</title><head><body>");
-        html.append("<h1>SmartHome/J Connector Configuration</h1>");
+        html.append("<html><head><title>SmartHome/J Repository Manager</title><head><body>");
+        html.append("<h1>SmartHome/J Repository Manager Configuration</h1>");
 
         buildRepoEntry(html, "Snapshot", SNAPSHOT_REPO_ID);
         buildRepoEntry(html, "Release", RELEASE_REPO_ID);

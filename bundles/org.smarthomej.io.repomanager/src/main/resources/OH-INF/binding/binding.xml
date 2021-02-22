@@ -3,7 +3,7 @@
 	xmlns:binding="https://openhab.org/schemas/binding/v1.0.0"
 	xsi:schemaLocation="https://openhab.org/schemas/binding/v1.0.0 https://openhab.org/schemas/binding-1.0.0.xsd">
 
-	<name>JSmartHome Marketplace</name>
-	<description>This is the JSmartHome marketplace connector.</description>
+	<name>SmartHome/J Repository Manager</name>
+	<description>This is the SmartHome/J Repository Manager.</description>
 
 </binding:binding>
