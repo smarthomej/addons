@@ -6,7 +6,7 @@
     <suppress files=".+DTO\.java" checks="JavadocType|JavadocVariable|JavadocMethod|MissingJavadocFilterCheck|NullAnnotationsCheck"/>
     <suppress files=".+[\\/]dto[\\/].+\.java" checks="JavadocType|JavadocVariable|JavadocMethod|MissingJavadocFilterCheck|NullAnnotationsCheck"/>
     <suppress files=".+Impl\.java" checks="JavadocType|JavadocVariable|JavadocMethod|MissingJavadocFilterCheck"/>
-
+    <suppress files=".+[\\/]io[\\/]repomanager.+\.java" checks="ParameterizedRegexpHeaderCheck"/>
     <suppress files=".+.test[\\/].+" checks="RequireBundleCheck"/>
     <suppress files=".+[\\/]pom\.xml" checks="OnlyTabIndentationCheck|OnlyTabIndentationInXmlFilesCheck"/>
 </suppressions>
