@@ -23,7 +23,6 @@ import org.openhab.core.library.types.PlayPauseType;
 import org.openhab.core.library.types.RewindFastforwardType;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.State;
-import org.openhab.core.types.UnDefType;
 import org.smarthomej.binding.http.internal.config.HttpChannelConfig;
 import org.smarthomej.binding.http.internal.transform.ValueTransformation;
 
