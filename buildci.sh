@@ -38,7 +38,7 @@ CHANGED_BUNDLE_DIR=`git diff --dirstat=files,0 ${COMMITS} bundles/ | sed 's/^[ 0
 CDIR=`pwd`
 
 # if a bundle and (optionally the linked itests) where changed build the module and its tests
-if [[ ! -z "$CHANGED_BUNDLE_DIR"  && -e "bundles/$CHANGED_BUNDLE_DIR"  ]];
+if [[ ! -z "$CHANGED_BUNDLE_DIR"  && -e "bundles/$CHANGED_BUNDLE_DIR"  ]]; then
 # && ( "$CHANGED_BUNDLE_DIR" == "$CHANGED_ITEST_DIR" || -z "$CHANGED_ITEST_DIR" ) ]]; then
     CHANGED_DIR="$CHANGED_BUNDLE_DIR"
 fi
