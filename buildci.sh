@@ -34,18 +34,19 @@ COMMITS=${1:-"master...HEAD"}
 CHANGED_BUNDLE_DIR=`git diff --dirstat=files,0 ${COMMITS} bundles/ | sed 's/^[ 0-9.]\+% bundles\///g' | grep -o -P "^([^/]*)" | uniq`
 # Determine if this is a single changed itest -> Perform build with tests + integration tests and all SAT checks
 # for this we have to remove '.tests' from the folder name.
-CHANGED_ITEST_DIR=`git diff --dirstat=files,0 ${COMMITS} itests/ | sed 's/^[ 0-9.]\+% itests\///g' | sed 's/\.tests\///g' | uniq`
+# CHANGED_ITEST_DIR=`git diff --dirstat=files,0 ${COMMITS} itests/ | sed 's/^[ 0-9.]\+% itests\///g' | sed 's/\.tests\///g' | uniq`
 CDIR=`pwd`
 
 # if a bundle and (optionally the linked itests) where changed build the module and its tests
-if [[ ! -z "$CHANGED_BUNDLE_DIR"  && -e "bundles/$CHANGED_BUNDLE_DIR"  && ( "$CHANGED_BUNDLE_DIR" == "$CHANGED_ITEST_DIR" || -z "$CHANGED_ITEST_DIR" ) ]]; then
+if [[ ! -z "$CHANGED_BUNDLE_DIR"  && -e "bundles/$CHANGED_BUNDLE_DIR"  ]];
+# && ( "$CHANGED_BUNDLE_DIR" == "$CHANGED_ITEST_DIR" || -z "$CHANGED_ITEST_DIR" ) ]]; then
     CHANGED_DIR="$CHANGED_BUNDLE_DIR"
 fi
 
 # if no bundle was changed but only itests
-if [[ -z "$CHANGED_BUNDLE_DIR" ]] && [[ -e "bundles/$CHANGED_ITEST_DIR" ]]; then
-   CHANGED_DIR="$CHANGED_ITEST_DIR"
-fi
+#if [[ -z "$CHANGED_BUNDLE_DIR" ]] && [[ -e "bundles/$CHANGED_ITEST_DIR" ]]; then
+#   CHANGED_DIR="$CHANGED_ITEST_DIR"
+#fi
 
 if [[ ! -z "$CHANGED_DIR" ]] && [[ -e "bundles/$CHANGED_DIR" ]]; then
     echo "Single addon pull request: Building $CHANGED_DIR"
@@ -60,17 +61,17 @@ if [[ ! -z "$CHANGED_DIR" ]] && [[ -e "bundles/$CHANGED_DIR" ]]; then
     fi
 
     # add the postfix to make sure we actually find the correct itest
-    if [[ -e "itests/$CHANGED_DIR.tests" ]]; then
-        echo "Single addon pull request: Building itest $CHANGED_DIR"
-        cd "itests/$CHANGED_DIR.tests"
-        mvn clean install -B 2>&1 |
-	      stdbuf -o0 grep -vE "Download(ed|ing) from [a-z.]+: https:" | # Filter out Download(s)
-	      stdbuf -o0 grep -v "target/code-analysis" | # filter out some debug code from reporting utility
-	      tee -a ${CDIR}/.build.log
-        if [[ $? -ne 0 ]]; then
-            exit 1
-        fi
-    fi
+    #if [[ -e "itests/$CHANGED_DIR.tests" ]]; then
+    #    echo "Single addon pull request: Building itest $CHANGED_DIR"
+    #    cd "itests/$CHANGED_DIR.tests"
+    #    mvn clean install -B 2>&1 |
+	  #    stdbuf -o0 grep -vE "Download(ed|ing) from [a-z.]+: https:" | # Filter out Download(s)
+	  #    stdbuf -o0 grep -v "target/code-analysis" | # filter out some debug code from reporting utility
+	  #    tee -a ${CDIR}/.build.log
+    #    if [[ $? -ne 0 ]]; then
+    #        exit 1
+    #    fi
+    #fi
 else
     echo "Build all"
     echo "MAVEN_OPTS='-Xms1g -Xmx2g -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn'" > ~/.mavenrc
