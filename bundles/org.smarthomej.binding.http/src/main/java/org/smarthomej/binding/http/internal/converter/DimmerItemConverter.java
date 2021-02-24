@@ -14,6 +14,7 @@
 package org.smarthomej.binding.http.internal.converter;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -64,7 +65,7 @@ public class DimmerItemConverter extends AbstractTransformingItemConverter {
     }
 
     @Override
-    public State toState(String string) {
+    public Optional<State> toState(String string) {
         State newState = UnDefType.UNDEF;
 
         if (string.equals(channelConfig.onValue)) {
@@ -99,6 +100,6 @@ public class DimmerItemConverter extends AbstractTransformingItemConverter {
         }
 
         state = newState;
-        return newState;
+        return Optional.of(newState);
     }
 }

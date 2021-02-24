@@ -13,6 +13,7 @@
  */
 package org.smarthomej.binding.http.internal.converter;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -81,7 +82,8 @@ public class PlayerItemConverter extends AbstractTransformingItemConverter {
     }
 
     @Override
-    public State toState(String string) {
-        return UnDefType.UNDEF;
+    public Optional<State> toState(String string) {
+        // no value - we ignore state updates
+        return Optional.empty();
     }
 }
