@@ -13,6 +13,7 @@
  */
 package org.smarthomej.binding.http.internal.converter;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -58,7 +59,7 @@ public abstract class AbstractTransformingItemConverter implements ItemValueConv
                 if (command != null) {
                     postCommand.accept(command);
                 } else {
-                    updateState.accept(toState(transformedValue));
+                    toState(transformedValue).ifPresent(updateState);
                 }
             });
         } else {
@@ -90,7 +91,7 @@ public abstract class AbstractTransformingItemConverter implements ItemValueConv
      * @param value the value
      * @return the state that represents the value of UNDEF if conversion failed
      */
-    protected abstract State toState(String value);
+    protected abstract Optional<State> toState(String value);
 
     /**
      * convert a command to a string

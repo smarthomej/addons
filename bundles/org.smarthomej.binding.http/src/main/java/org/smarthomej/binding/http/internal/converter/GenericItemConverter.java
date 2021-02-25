@@ -13,6 +13,7 @@
  */
 package org.smarthomej.binding.http.internal.converter;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -41,11 +42,11 @@ public class GenericItemConverter extends AbstractTransformingItemConverter {
         this.toState = toState;
     }
 
-    protected State toState(String value) {
+    protected Optional<State> toState(String value) {
         try {
-            return toState.apply(value);
+            return Optional.of(toState.apply(value));
         } catch (IllegalArgumentException e) {
-            return UnDefType.UNDEF;
+            return Optional.of(UnDefType.UNDEF);
         }
     }
 

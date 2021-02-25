@@ -13,6 +13,7 @@
  */
 package org.smarthomej.binding.http.internal.converter;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -45,27 +46,28 @@ public class NumberItemConverter extends AbstractTransformingItemConverter {
     }
 
     @Override
-    protected State toState(String value) {
+    protected Optional<State> toState(String value) {
         String trimmedValue = value.trim();
+        State newState = UnDefType.UNDEF;
         if (!trimmedValue.isEmpty()) {
             try {
                 if (channelConfig.unit != null) {
                     // we have a given unit - use that
-                    return new QuantityType<>(trimmedValue + " " + channelConfig.unit);
+                    newState = new QuantityType<>(trimmedValue + " " + channelConfig.unit);
                 } else {
                     try {
                         // try if we have a simple number
-                        return new DecimalType(trimmedValue);
+                        newState = new DecimalType(trimmedValue);
                     } catch (IllegalArgumentException e1) {
                         // not a plain number, maybe with unit?
-                        return new QuantityType<>(trimmedValue);
+                        newState = new QuantityType<>(trimmedValue);
                     }
                 }
             } catch (IllegalArgumentException e) {
                 // finally failed
             }
         }
-        return UnDefType.UNDEF;
+        return Optional.of(newState);
     }
 
     @Override

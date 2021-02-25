@@ -13,6 +13,8 @@
  */
 package org.smarthomej.binding.http.internal.converter;
 
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -55,9 +57,9 @@ public class FixedValueMappingItemConverter extends AbstractTransformingItemConv
     }
 
     @Override
-    public State toState(String string) {
+    public Optional<State> toState(String string) {
         State state = channelConfig.fixedValueToState(string);
 
-        return state != null ? state : UnDefType.UNDEF;
+        return Optional.of(Objects.requireNonNullElse(state, UnDefType.UNDEF));
     }
 }

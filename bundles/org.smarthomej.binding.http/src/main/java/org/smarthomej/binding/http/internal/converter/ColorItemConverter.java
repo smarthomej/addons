@@ -14,6 +14,7 @@
 package org.smarthomej.binding.http.internal.converter;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -76,7 +77,7 @@ public class ColorItemConverter extends AbstractTransformingItemConverter {
     }
 
     @Override
-    public State toState(String string) {
+    public Optional<State> toState(String string) {
         State newState = UnDefType.UNDEF;
         if (string.equals(channelConfig.onValue)) {
             if (state instanceof HSBType) {
@@ -123,7 +124,7 @@ public class ColorItemConverter extends AbstractTransformingItemConverter {
         }
 
         state = newState;
-        return newState;
+        return Optional.of(newState);
     }
 
     private String hsbToString(HSBType state) {

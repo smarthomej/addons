@@ -14,6 +14,7 @@
 package org.smarthomej.binding.http.internal.converter;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -83,19 +84,20 @@ public class RollershutterItemConverter extends AbstractTransformingItemConverte
     }
 
     @Override
-    public State toState(String string) {
+    public Optional<State> toState(String string) {
+        State newState = UnDefType.UNDEF;
         try {
             BigDecimal value = new BigDecimal(string);
             if (value.compareTo(PercentType.HUNDRED.toBigDecimal()) > 0) {
-                return PercentType.HUNDRED;
+                newState = PercentType.HUNDRED;
             }
             if (value.compareTo(PercentType.ZERO.toBigDecimal()) < 0) {
-                return PercentType.ZERO;
+                newState = PercentType.ZERO;
             }
         } catch (NumberFormatException e) {
             // ignore
         }
 
-        return UnDefType.UNDEF;
+        return Optional.of(newState);
     }
 }

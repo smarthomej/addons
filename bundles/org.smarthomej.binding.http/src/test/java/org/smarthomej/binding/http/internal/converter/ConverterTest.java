@@ -13,21 +13,28 @@
  */
 package org.smarthomej.binding.http.internal.converter;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.openhab.core.library.types.DecimalType;
-import org.openhab.core.library.types.PointType;
-import org.openhab.core.library.types.QuantityType;
-import org.openhab.core.library.types.StringType;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.openhab.core.library.types.*;
 import org.openhab.core.library.unit.SIUnits;
 import org.openhab.core.library.unit.Units;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.State;
 import org.openhab.core.types.UnDefType;
 import org.smarthomej.binding.http.internal.config.HttpChannelConfig;
+import org.smarthomej.binding.http.internal.http.Content;
 import org.smarthomej.binding.http.internal.transform.NoOpValueTransformation;
 
 /**
@@ -38,70 +45,95 @@ import org.smarthomej.binding.http.internal.transform.NoOpValueTransformation;
 @NonNullByDefault
 public class ConverterTest {
 
+    @Mock
+    private @NonNullByDefault({}) Consumer<String> sendHttpValue;
+
+    @Mock
+    private @NonNullByDefault({}) Consumer<State> updateState;
+
+    @Mock
+    private @NonNullByDefault({}) Consumer<Command> postCommand;
+
+    private @NonNullByDefault({}) AutoCloseable closeable;
+
+    @BeforeEach
+    public void init() {
+        closeable = MockitoAnnotations.openMocks(this);
+    }
+
+    @AfterEach
+    public void close() throws Exception {
+        closeable.close();
+    }
+
     @Test
     public void numberItemConverter() {
-        NumberItemConverter converter = new NumberItemConverter(this::updateState, this::postCommand,
-                this::sendHttpValue, NoOpValueTransformation.getInstance(), NoOpValueTransformation.getInstance(),
-                new HttpChannelConfig());
+        NumberItemConverter converter = new NumberItemConverter(updateState, postCommand, sendHttpValue,
+                NoOpValueTransformation.getInstance(), NoOpValueTransformation.getInstance(), new HttpChannelConfig());
 
         // without unit
-        Assertions.assertEquals(new DecimalType(1234), converter.toState("1234"));
+        Assertions.assertEquals(Optional.of(new DecimalType(1234)), converter.toState("1234"));
 
         // unit in transformation result
-        Assertions.assertEquals(new QuantityType<>(100, SIUnits.CELSIUS), converter.toState("100°C"));
+        Assertions.assertEquals(Optional.of(new QuantityType<>(100, SIUnits.CELSIUS)), converter.toState("100°C"));
 
         // no valid value
-        Assertions.assertEquals(UnDefType.UNDEF, converter.toState("W"));
-        Assertions.assertEquals(UnDefType.UNDEF, converter.toState(""));
+        Assertions.assertEquals(Optional.of(UnDefType.UNDEF), converter.toState("W"));
+        Assertions.assertEquals(Optional.of(UnDefType.UNDEF), converter.toState(""));
     }
 
     @Test
     public void numberItemConverterWithUnit() {
         HttpChannelConfig channelConfig = new HttpChannelConfig();
         channelConfig.unit = "W";
-        NumberItemConverter converter = new NumberItemConverter(this::updateState, this::postCommand,
-                this::sendHttpValue, NoOpValueTransformation.getInstance(), NoOpValueTransformation.getInstance(),
-                channelConfig);
+        NumberItemConverter converter = new NumberItemConverter(updateState, postCommand, sendHttpValue,
+                NoOpValueTransformation.getInstance(), NoOpValueTransformation.getInstance(), channelConfig);
 
         // without unit
-        Assertions.assertEquals(new QuantityType<>(500, Units.WATT), converter.toState("500"));
+        Assertions.assertEquals(Optional.of(new QuantityType<>(500, Units.WATT)), converter.toState("500"));
 
         // no valid value
-        Assertions.assertEquals(UnDefType.UNDEF, converter.toState("100°C"));
-        Assertions.assertEquals(UnDefType.UNDEF, converter.toState("foo"));
-        Assertions.assertEquals(UnDefType.UNDEF, converter.toState(""));
+        Assertions.assertEquals(Optional.of(UnDefType.UNDEF), converter.toState("100°C"));
+        Assertions.assertEquals(Optional.of(UnDefType.UNDEF), converter.toState("foo"));
+        Assertions.assertEquals(Optional.of(UnDefType.UNDEF), converter.toState(""));
     }
 
     @Test
     public void stringTypeConverter() {
         GenericItemConverter converter = createConverter(StringType::new);
-        Assertions.assertEquals(new StringType("Test"), converter.toState("Test"));
+        Assertions.assertEquals(Optional.of(new StringType("Test")), converter.toState("Test"));
     }
 
     @Test
     public void decimalTypeConverter() {
         GenericItemConverter converter = createConverter(DecimalType::new);
-        Assertions.assertEquals(new DecimalType(15.6), converter.toState("15.6"));
+        Assertions.assertEquals(Optional.of(new DecimalType(15.6)), converter.toState("15.6"));
     }
 
     @Test
     public void pointTypeConverter() {
         GenericItemConverter converter = createConverter(PointType::new);
-        Assertions.assertEquals(new PointType(new DecimalType(51.1), new DecimalType(7.2), new DecimalType(100)),
+        Assertions.assertEquals(
+                Optional.of(new PointType(new DecimalType(51.1), new DecimalType(7.2), new DecimalType(100))),
                 converter.toState("51.1, 7.2, 100"));
     }
 
-    private void sendHttpValue(String value) {
-    }
+    @Test
+    public void playerItemTypeConverter() {
+        HttpChannelConfig cfg = new HttpChannelConfig();
+        cfg.playValue = "PLAY";
+        Content content = new Content("PLAY".getBytes(StandardCharsets.UTF_8), "UTF-8", null);
+        PlayerItemConverter converter = new PlayerItemConverter(updateState, postCommand, sendHttpValue,
+                NoOpValueTransformation.getInstance(), NoOpValueTransformation.getInstance(), cfg);
+        converter.process(content);
+        converter.process(content);
 
-    private void updateState(State state) {
-    }
-
-    public void postCommand(Command command) {
+        Mockito.verify(postCommand, Mockito.atMostOnce()).accept(PlayPauseType.PLAY);
+        Mockito.verify(updateState, Mockito.never()).accept(ArgumentMatchers.any());
     }
 
     public GenericItemConverter createConverter(Function<String, State> fcn) {
-        return new GenericItemConverter(fcn, this::updateState, this::postCommand, this::sendHttpValue,
+        return new GenericItemConverter(fcn, updateState, postCommand, sendHttpValue,
                 NoOpValueTransformation.getInstance(), NoOpValueTransformation.getInstance(), new HttpChannelConfig());
     }
 }

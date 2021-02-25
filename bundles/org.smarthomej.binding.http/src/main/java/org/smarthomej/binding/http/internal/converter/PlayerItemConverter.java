@@ -13,6 +13,7 @@
  */
 package org.smarthomej.binding.http.internal.converter;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -22,7 +23,6 @@ import org.openhab.core.library.types.PlayPauseType;
 import org.openhab.core.library.types.RewindFastforwardType;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.State;
-import org.openhab.core.types.UnDefType;
 import org.smarthomej.binding.http.internal.config.HttpChannelConfig;
 import org.smarthomej.binding.http.internal.transform.ValueTransformation;
 
@@ -81,7 +81,8 @@ public class PlayerItemConverter extends AbstractTransformingItemConverter {
     }
 
     @Override
-    public State toState(String string) {
-        return UnDefType.UNDEF;
+    public Optional<State> toState(String string) {
+        // no value - we ignore state updates
+        return Optional.empty();
     }
 }
