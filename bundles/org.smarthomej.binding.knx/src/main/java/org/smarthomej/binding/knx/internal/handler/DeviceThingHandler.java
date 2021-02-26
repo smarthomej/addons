@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -70,11 +71,11 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
     private final Logger logger = LoggerFactory.getLogger(DeviceThingHandler.class);
 
     private final KNXTypeMapper typeHelper = new KNXCoreTypeMapper();
-    private final Set<GroupAddress> groupAddresses = new HashSet<>();
-    private final Set<GroupAddress> groupAddressesWriteBlockedOnce = new HashSet<>();
-    private final Set<OutboundSpec> groupAddressesRespondingSpec = new HashSet<>();
-    private final Map<GroupAddress, ScheduledFuture<?>> readFutures = new HashMap<>();
-    private final Map<ChannelUID, ScheduledFuture<?>> channelFutures = new HashMap<>();
+    private final Set<GroupAddress> groupAddresses = ConcurrentHashMap.newKeySet();
+    private final Set<GroupAddress> groupAddressesWriteBlockedOnce = ConcurrentHashMap.newKeySet();
+    private final Set<OutboundSpec> groupAddressesRespondingSpec = ConcurrentHashMap.newKeySet();
+    private final Map<GroupAddress, ScheduledFuture<?>> readFutures = new ConcurrentHashMap<>();
+    private final Map<ChannelUID, ScheduledFuture<?>> channelFutures = new ConcurrentHashMap<>();
     private int readInterval;
 
     public DeviceThingHandler(Thing thing) {
