@@ -14,9 +14,7 @@ package org.smarthomej.io.repomanager.internal;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.Arrays;
-import java.util.Dictionary;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
@@ -29,10 +27,7 @@ import org.eclipse.jetty.client.HttpClient;
 import org.openhab.core.io.net.http.HttpClientFactory;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
-import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,47 +36,87 @@ import org.slf4j.LoggerFactory;
  *
  * @author Jan N. Klug - Initial contribution
  */
-@Component(service = MavenRepoManager.class)
+@Component(service = MavenRepoManager.class, configurationPid = MavenRepoManager.CONFIGURATION_PID, configurationPolicy = ConfigurationPolicy.OPTIONAL)
 @NonNullByDefault
 public class MavenRepoManager {
+    public static final String CONFIGURATION_PID = "smarthomej.MavenRepoManager";
     private static final String KARAF_MAVEN_REPO_PID = "org.ops4j.pax.url.mvn";
     private static final String KARAF_MAVEN_REPO_CONFIG_ID = "org.ops4j.pax.url.mvn.repositories";
     private static final Pattern METADATA_VERSION_PATTERN = Pattern.compile("<version>(.*?)</version>");
+    private static final String MAVEN_REPO_CONFIG_ID = "enabledRepos";
 
     private final Logger logger = LoggerFactory.getLogger(MavenRepoManager.class);
 
     private final ConfigurationAdmin configurationAdmin;
     private final HttpClient httpClient;
+    private Map<String, String> installedRepositories = new HashMap<>();
 
     @Activate
     public MavenRepoManager(@Reference ConfigurationAdmin configurationAdmin,
-            @Reference HttpClientFactory httpClientFactory) {
+            @Reference HttpClientFactory httpClientFactory, Map<String, Object> configuration) {
         this.configurationAdmin = configurationAdmin;
         this.httpClient = httpClientFactory.getCommonHttpClient();
-        logger.debug("MavenRepoManager started.");
+
+        // configure repos
+        processRepoList(deserializeRepoMap((String) configuration.get(MAVEN_REPO_CONFIG_ID)));
+
+        logger.debug("Maven repository manager started.");
     }
 
     @SuppressWarnings("unused")
     @Deactivate
     public void deactivate() {
-        logger.debug("MavenRepoManager stopped.");
+        try {
+            Configuration configuration = configurationAdmin.getConfiguration(CONFIGURATION_PID);
+            Dictionary<String, Object> properties = configuration.getProperties();
+            properties.put(MAVEN_REPO_CONFIG_ID, serializeRepoMap(installedRepositories));
+            configurationAdmin.getConfiguration(CONFIGURATION_PID).update(properties);
+        } catch (IOException e) {
+            logger.warn("Could not store configuration: {}", e.getMessage());
+        }
+
+        logger.debug("Maven repository manager stopped.");
     }
 
-    private boolean modifyRepo(String id, @Nullable String url, RepoAction repoAction) {
+    /**
+     * process new repo configuration and add/remove repos if necessary
+     *
+     * @param newRepositoryConfig map containing the new repository config
+     */
+    private void processRepoList(Map<String, String> newRepositoryConfig) {
+        logger.trace("Old repository config: {}", installedRepositories);
+
+        // find repos that need to be uninstalled
+        Map<String, String> toBeRemoved = new HashMap<>(installedRepositories);
+        toBeRemoved.entrySet().removeAll(newRepositoryConfig.entrySet());
+        logger.trace("Removing repositories: {}", toBeRemoved);
+        toBeRemoved.forEach((k, v) -> modifyRepo(k, v, RepoAction.REMOVE));
+
+        // find repos that need to be installed
+        Map<String, String> toBeAdded = new HashMap<>(newRepositoryConfig);
+        toBeAdded.entrySet().removeAll(installedRepositories.entrySet());
+        logger.trace("Adding repositories: {}", toBeAdded);
+        toBeAdded.forEach((k, v) -> modifyRepo(k, v, RepoAction.ADD));
+
+        logger.trace("New repository config: {}", newRepositoryConfig);
+        this.installedRepositories = newRepositoryConfig;
+    }
+
+    private void modifyRepo(String id, @Nullable String url, RepoAction repoAction) {
         try {
-            Configuration configuration = configurationAdmin.getConfiguration(KARAF_MAVEN_REPO_PID);
-            Dictionary<String, Object> properties = configuration.getProperties();
+            Configuration karafConfiguration = configurationAdmin.getConfiguration(KARAF_MAVEN_REPO_PID);
+            Dictionary<String, Object> properties = karafConfiguration.getProperties();
             String mavenRepos = (String) properties.get(KARAF_MAVEN_REPO_CONFIG_ID);
             logger.trace("Configured maven repositories: {}", mavenRepos);
             switch (repoAction) {
                 case ADD:
                     if (url == null) {
                         logger.warn("Adding maven repository with id '{}' not possible with url=null", id);
-                        return false;
+                        return;
                     }
                     if (mavenRepos.contains(id)) {
                         logger.debug("Maven repository with id '{}' already present.", id);
-                        return true;
+                        return;
                     } else {
                         logger.info("Adding maven repository with id '{}' and URL '{}'", id, url);
                         mavenRepos += "," + url + id;
@@ -90,23 +125,19 @@ public class MavenRepoManager {
                 case REMOVE:
                     if (!mavenRepos.contains(id)) {
                         logger.debug("Maven repository with id '{}' not present.", id);
-                        return true;
+                        return;
                     } else {
                         logger.info("Removing maven repository with id '{}'", id);
                         mavenRepos = Arrays.stream(mavenRepos.split(",")).filter(r -> !r.contains(id))
                                 .collect(Collectors.joining(","));
                     }
                     break;
-                case STATUS:
-                    return mavenRepos.contains(id);
             }
             properties.put(KARAF_MAVEN_REPO_CONFIG_ID, mavenRepos);
-            configuration.update(properties);
-            return true;
+            karafConfiguration.update(properties);
         } catch (IOException e) {
             logger.warn("Could not {} maven repository with id '{}' and URL '{}': {}", repoAction, id, url,
                     e.getMessage());
-            return false;
         }
     }
 
@@ -114,20 +145,31 @@ public class MavenRepoManager {
      * Add Maven repository
      *
      * @param id repository id
-     * @return true if successful, false if failes
      */
-    public boolean addRepository(String id, String url) {
-        return modifyRepo(id, url, RepoAction.ADD);
+    public void addRepository(String id, String url) {
+        Map<String, String> newRepositories = new HashMap<>(installedRepositories);
+        String oldUrl = newRepositories.putIfAbsent(id, url);
+        if (oldUrl != null) {
+            logger.warn("Tried adding repository with id {} and URL {} but id is already present with URL {}", id, url,
+                    oldUrl);
+        } else {
+            processRepoList(newRepositories);
+        }
     }
 
     /**
      * Remove Maven repository
      *
      * @param id repository id
-     * @return true if successful, false if failes
      */
-    public boolean removeRepository(String id) {
-        return modifyRepo(id, null, RepoAction.REMOVE);
+    public void removeRepository(String id) {
+        Map<String, String> newRepositories = new HashMap<>(installedRepositories);
+        String oldUrl = newRepositories.remove(id);
+        if (oldUrl == null) {
+            logger.warn("Tried removing repository with id {} but id not found", id);
+        } else {
+            processRepoList(newRepositories);
+        }
     }
 
     /**
@@ -137,7 +179,7 @@ public class MavenRepoManager {
      * @return true if present, false of not present
      */
     public boolean repositoryStatus(String id) {
-        return modifyRepo(id, null, RepoAction.STATUS);
+        return installedRepositories.get(id) != null;
     }
 
     public List<String> getAvailableVersions(String repoId, String groupId, String artifactId) {
@@ -165,9 +207,32 @@ public class MavenRepoManager {
         return List.of();
     }
 
+    /**
+     * deserialize the map of the enabled maven repositories
+     *
+     * @param string a nullable String containing the repo configuration
+     * @return a HashMap from the input string
+     */
+    private HashMap<String, String> deserializeRepoMap(@Nullable String string) {
+        if (string == null || string.isEmpty()) {
+            return new HashMap<>();
+        }
+        return Arrays.stream(string.split(",")).map(s -> s.split("\\|")).filter(a -> a.length == 2)
+                .collect(Collectors.toMap(a -> a[0], a -> a[1], (prev, next) -> next, HashMap::new));
+    }
+
+    /**
+     * serialize the map of the enabled maven repositories
+     *
+     * @param map a Map containing the repo configuration
+     * @return a string from the input map
+     */
+    private String serializeRepoMap(Map<String, String> map) {
+        return map.entrySet().stream().map(e -> e.getKey() + "|" + e.getValue()).collect(Collectors.joining(","));
+    }
+
     private enum RepoAction {
         ADD,
-        REMOVE,
-        STATUS
+        REMOVE
     }
 }
