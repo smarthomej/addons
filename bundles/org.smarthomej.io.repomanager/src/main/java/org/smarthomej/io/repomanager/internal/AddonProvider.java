@@ -57,8 +57,8 @@ public class AddonProvider implements AddonService {
     private final ScheduledExecutorService scheduler;
 
     private Map<String, Addon> availableAddons = Map.of();
-    private Set<String> installedAddons = Set.of();
-    private Set<URI> installedFeatureRepos = Set.of();
+    private Set<String> installedAddons = new HashSet<>();
+    private Set<URI> installedFeatureRepos = new HashSet<>();
 
     @Activate
     public AddonProvider(@Reference FeaturesService featuresService, @Reference EventPublisher eventPublisher,
@@ -71,25 +71,38 @@ public class AddonProvider implements AddonService {
 
         // install all feature repositories (if necessary)
         String featureRepoString = Objects.requireNonNullElse((String) configuration.get(FEATURE_REPO_CONFIG_ID), "");
-        processFeatureRepoList(
-                Arrays.stream(featureRepoString.split(",")).map(URI::create).collect(Collectors.toSet()));
+        processFeatureRepoList(Arrays.stream(featureRepoString.split(",")).filter(s -> !s.isEmpty()).map(URI::create)
+                .collect(Collectors.toSet()));
 
         // install all addons (if necessary)
-        String addonsString = Objects.requireNonNullElse((String) configuration.get(ADDON_CONFIG_ID), "");
-        processAddonList(Set.of(addonsString.split(",")));
-
+        String addonsString = (String) configuration.get(ADDON_CONFIG_ID);
+        if (addonsString != null && !addonsString.isEmpty()) {
+            processAddonList(Set.of(addonsString.split(",")));
+        }
         buildAddonList();
 
         logger.debug("Addon provider started.");
+        logger.trace("Configuration: {}", configuration);
+    }
+
+    @SuppressWarnings("unused")
+    @Modified
+    public void modified(Map<String, Object> cfg) {
+        // ignore configuration update, we already handle it by ourself
     }
 
     @SuppressWarnings("unused")
     @Deactivate
     public void deactivate() {
+        logger.debug("Addon provider stopped.");
+    }
+
+    private void storeConfiguration() {
         try {
             // store current configuration
             Configuration configuration = configurationAdmin.getConfiguration(CONFIGURATION_PID);
-            Dictionary<String, Object> properties = configuration.getProperties();
+            Dictionary<String, Object> properties = Objects.requireNonNullElse(configuration.getProperties(),
+                    new Hashtable<>());
             properties.put(ADDON_CONFIG_ID, installedAddons.stream().collect(Collectors.joining(",")));
             properties.put(FEATURE_REPO_CONFIG_ID,
                     installedFeatureRepos.stream().map(URI::toString).collect(Collectors.joining(",")));
@@ -97,7 +110,6 @@ public class AddonProvider implements AddonService {
         } catch (IOException e) {
             logger.warn("Could not store configuration: {}", e.getMessage());
         }
-        logger.debug("Addon provider stopped.");
     }
 
     /**
@@ -112,6 +124,7 @@ public class AddonProvider implements AddonService {
         try {
             featuresService.addRepository(repoUri);
             installedFeatureRepos.add(repoUri);
+            storeConfiguration();
             logger.debug("Added feature repository '{}'", repoUri);
 
             buildAddonList();
@@ -132,6 +145,7 @@ public class AddonProvider implements AddonService {
         try {
             featuresService.removeRepository(repoUri, true);
             installedFeatureRepos.remove(repoUri);
+            storeConfiguration();
             logger.debug("Removed feature repository '{}'", repoUri);
 
             buildAddonList();
@@ -185,7 +199,7 @@ public class AddonProvider implements AddonService {
                         e.getMessage());
             }
         });
-        installedFeatureRepos = featureRepos;
+        installedFeatureRepos = new HashSet<>(featureRepos);
     }
 
     private void processAddonList(Set<String> addons) {
@@ -208,7 +222,7 @@ public class AddonProvider implements AddonService {
             logger.warn("Failed to install all addons. Retrying. {}", e.getMessage());
         }
 
-        installedAddons = addons;
+        installedAddons = new HashSet<>(addons);
     }
 
     @Override
@@ -241,8 +255,11 @@ public class AddonProvider implements AddonService {
                             EnumSet.of(FeaturesService.Option.Upgrade, FeaturesService.Option.NoFailOnFeatureNotFound));
 
                     eventPublisher.post(AddonEventFactory.createAddonInstalledEvent(id));
-                    logger.info("Installed {}", id);
                     addon.setInstalled(true);
+                    installedAddons.add(id);
+                    storeConfiguration();
+
+                    logger.info("Installed {}", id);
                 } catch (Exception e) {
                     logger.warn("Failed to install {}: {}", id, e.getMessage());
                 }
@@ -260,8 +277,12 @@ public class AddonProvider implements AddonService {
                         throw new IllegalArgumentException("No addon with found with id" + id);
                     }
                     featuresService.uninstallFeature(featureIdFromAddonId(addon.getId()), addon.getVersion());
+
                     addon.setInstalled(false);
                     eventPublisher.post(AddonEventFactory.createAddonUninstalledEvent(id));
+                    installedAddons.remove(id);
+                    storeConfiguration();
+
                     logger.info("Uninstalled {}", id);
                 } catch (Exception e) {
                     logger.warn("Failed to uninstall {}: {}", id, e.getMessage());

@@ -61,21 +61,31 @@ public class MavenRepoManager {
         processRepoList(deserializeRepoMap((String) configuration.get(MAVEN_REPO_CONFIG_ID)));
 
         logger.debug("Maven repository manager started.");
+        logger.trace("Configuration: {}", configuration);
+    }
+
+    @SuppressWarnings("unused")
+    @Modified
+    public void modified(Map<String, Object> cfg) {
+        // ignore configuration update, we already handle it by ourself
     }
 
     @SuppressWarnings("unused")
     @Deactivate
     public void deactivate() {
+        logger.debug("Maven repository manager stopped.");
+    }
+
+    private void storeConfiguration() {
         try {
             Configuration configuration = configurationAdmin.getConfiguration(CONFIGURATION_PID);
-            Dictionary<String, Object> properties = configuration.getProperties();
+            Dictionary<String, Object> properties = Objects.requireNonNullElse(configuration.getProperties(),
+                    new Hashtable<>());
             properties.put(MAVEN_REPO_CONFIG_ID, serializeRepoMap(installedRepositories));
             configurationAdmin.getConfiguration(CONFIGURATION_PID).update(properties);
         } catch (IOException e) {
             logger.warn("Could not store configuration: {}", e.getMessage());
         }
-
-        logger.debug("Maven repository manager stopped.");
     }
 
     /**
@@ -84,14 +94,6 @@ public class MavenRepoManager {
      * @param newRepositoryConfig map containing the new repository config
      */
     private void processRepoList(Map<String, String> newRepositoryConfig) {
-        logger.trace("Old repository config: {}", installedRepositories);
-
-        // find repos that need to be uninstalled
-        Map<String, String> toBeRemoved = new HashMap<>(installedRepositories);
-        toBeRemoved.entrySet().removeAll(newRepositoryConfig.entrySet());
-        logger.trace("Removing repositories: {}", toBeRemoved);
-        toBeRemoved.forEach((k, v) -> modifyRepo(k, v, RepoAction.REMOVE));
-
         // find repos that need to be installed
         Map<String, String> toBeAdded = new HashMap<>(newRepositoryConfig);
         toBeAdded.entrySet().removeAll(installedRepositories.entrySet());
@@ -154,6 +156,7 @@ public class MavenRepoManager {
                     oldUrl);
         } else {
             processRepoList(newRepositories);
+            storeConfiguration();
         }
     }
 
@@ -169,6 +172,7 @@ public class MavenRepoManager {
             logger.warn("Tried removing repository with id {} but id not found", id);
         } else {
             processRepoList(newRepositories);
+            storeConfiguration();
         }
     }
 
