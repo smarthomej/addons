@@ -13,7 +13,8 @@
  */
 package org.smarthomej.binding.knx.internal.config;
 
-import java.math.BigDecimal;
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 
 /**
  * Configuration object for the device thing handler.
@@ -21,26 +22,27 @@ import java.math.BigDecimal;
  * @author Karel Goderis - Initial contribution
  * @author Simon Kaufmann - refactoring & cleanup
  */
+@NonNullByDefault
 public class DeviceConfig {
 
-    private String address;
-    private boolean fetch;
-    private BigDecimal pingInterval;
-    private BigDecimal readInterval;
+    private @Nullable String address;
+    private boolean fetch = false;
+    private int pingInterval = 600;
+    private int readInterval = 0;
 
-    public String getAddress() {
+    public @Nullable String getAddress() {
         return address;
     }
 
-    public Boolean getFetch() {
+    public boolean getFetch() {
         return fetch;
     }
 
-    public BigDecimal getPingInterval() {
+    public int getPingInterval() {
         return pingInterval;
     }
 
-    public BigDecimal getReadInterval() {
+    public int getReadInterval() {
         return readInterval;
     }
 }

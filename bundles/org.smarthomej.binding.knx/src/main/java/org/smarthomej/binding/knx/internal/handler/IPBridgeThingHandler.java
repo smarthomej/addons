@@ -67,13 +67,13 @@ public class IPBridgeThingHandler extends KNXBridgeBaseThingHandler {
         }
         String localSource = config.getLocalSourceAddr();
         String connectionTypeString = config.getType();
-        int port = config.getPortNumber().intValue();
+        int port = config.getPortNumber();
         String ip = config.getIpAddress();
         InetSocketAddress localEndPoint = null;
         boolean useNAT = false;
         int ipConnectionType;
         if (MODE_TUNNEL.equalsIgnoreCase(connectionTypeString)) {
-            useNAT = config.getUseNAT() != null ? config.getUseNAT() : false;
+            useNAT = config.getUseNAT();
             ipConnectionType = CustomKNXNetworkLinkIP.TUNNELING;
         } else if (MODE_ROUTER.equalsIgnoreCase(connectionTypeString)) {
             useNAT = false;
@@ -93,26 +93,29 @@ public class IPBridgeThingHandler extends KNXBridgeBaseThingHandler {
             return;
         }
 
-        if (config.getLocalIp() != null && !config.getLocalIp().isEmpty()) {
-            localEndPoint = new InetSocketAddress(config.getLocalIp(), 0);
+        String localIp = config.getLocalIp();
+        if (localIp != null && !localIp.isEmpty()) {
+            localEndPoint = new InetSocketAddress(localIp, 0);
         } else {
             localEndPoint = new InetSocketAddress(networkAddressService.getPrimaryIpv4HostAddress(), 0);
         }
 
         updateStatus(ThingStatus.UNKNOWN);
-        client = new IPClient(ipConnectionType, ip, localSource, port, localEndPoint, useNAT, autoReconnectPeriod,
-                thing.getUID(), config.getResponseTimeout().intValue(), config.getReadingPause().intValue(),
-                config.getReadRetriesLimit().intValue(), getScheduler(), this);
-
+        IPClient client = new IPClient(ipConnectionType, ip, localSource, port, localEndPoint, useNAT,
+                autoReconnectPeriod, thing.getUID(), config.getResponseTimeout(), config.getReadingPause(),
+                config.getReadRetriesLimit(), getScheduler(), this);
         client.initialize();
+
+        this.client = client;
     }
 
     @Override
     public void dispose() {
         super.dispose();
+        IPClient client = this.client;
         if (client != null) {
             client.dispose();
-            client = null;
+            this.client = null;
         }
     }
 

@@ -13,35 +13,34 @@
  */
 package org.smarthomej.binding.knx.internal.config;
 
-import java.math.BigDecimal;
-
-import org.smarthomej.binding.knx.internal.handler.KNXBridgeBaseThingHandler;
+import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
- * {@link KNXBridgeBaseThingHandler} configuration
+ * {@link org.smarthomej.binding.knx.internal.handler.KNXBridgeBaseThingHandler} configuration
  *
  * @author Simon Kaufmann - initial contribution and API
  *
  */
+@NonNullByDefault
 public class BridgeConfiguration {
     private int autoReconnectPeriod;
-    private BigDecimal readingPause;
-    private BigDecimal readRetriesLimit;
-    private BigDecimal responseTimeout;
+    private int readingPause = 50;
+    private int readRetriesLimit = 3;
+    private int responseTimeout = 10;
 
     public int getAutoReconnectPeriod() {
         return autoReconnectPeriod;
     }
 
-    public BigDecimal getReadingPause() {
+    public int getReadingPause() {
         return readingPause;
     }
 
-    public BigDecimal getReadRetriesLimit() {
+    public int getReadRetriesLimit() {
         return readRetriesLimit;
     }
 
-    public BigDecimal getResponseTimeout() {
+    public int getResponseTimeout() {
         return responseTimeout;
     }
 

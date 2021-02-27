@@ -84,7 +84,7 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
     public void initialize() {
         super.initialize();
         DeviceConfig config = getConfigAs(DeviceConfig.class);
-        readInterval = config.getReadInterval().intValue();
+        readInterval = config.getReadInterval();
         initializeGroupAddresses();
     }
 
@@ -387,7 +387,7 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
                         && (type instanceof UnDefType || type instanceof IncreaseDecreaseType) && frequency > 0) {
                     // continuous dimming by the binding
                     if (UnDefType.UNDEF.equals(type)) {
-                        channelFutures.computeIfPresent(channelUID, (k,v) -> {
+                        channelFutures.computeIfPresent(channelUID, (k, v) -> {
                             v.cancel(false);
                             return null;
                         });

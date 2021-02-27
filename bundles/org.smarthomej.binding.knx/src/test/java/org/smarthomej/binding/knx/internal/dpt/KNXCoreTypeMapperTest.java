@@ -15,6 +15,7 @@ package org.smarthomej.binding.knx.internal.dpt;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.Test;
 import org.openhab.core.library.types.DecimalType;
 
@@ -23,10 +24,11 @@ import org.openhab.core.library.types.DecimalType;
  * @author Simon Kaufmann - initial contribution and API
  *
  */
+@NonNullByDefault
 public class KNXCoreTypeMapperTest {
 
     @Test
-    public void testToDPTValue_trailingZeroesStrippedOff() {
+    public void testToDPTValueTrailingZeroesStrippedOff() {
         assertEquals("3", new KNXCoreTypeMapper().toDPTValue(new DecimalType("3"), "17.001"));
         assertEquals("3", new KNXCoreTypeMapper().toDPTValue(new DecimalType("3.0"), "17.001"));
     }

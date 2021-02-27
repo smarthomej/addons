@@ -14,6 +14,7 @@
 package org.smarthomej.binding.knx.internal.dpt;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -26,6 +27,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.DateTimeType;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.HSBType;
@@ -83,12 +86,13 @@ import tuwien.auto.calimero.dptxlator.TranslatorTypes;
  * If for a 'MainType' there is currently no specific mapping registered,
  * you can find a commented example line, with it's correct 'DPTXlator' class.
  *
- * @author Kai Kreuzer
- * @author Volker Daube
- * @author Jan N. Klug
+ * @author Kai Kreuzer - Initial contribution
+ * @author Volker Daube - improvements
+ * @author Jan N. Klug - improvements
  * @author Helmut Lehmeyer - Java8, generic DPT Mapper
  */
 @Component
+@NonNullByDefault
 public class KNXCoreTypeMapper implements KNXTypeMapper {
 
     private final Logger logger = LoggerFactory.getLogger(KNXCoreTypeMapper.class);
@@ -572,7 +576,7 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
     }
 
     @Override
-    public String toDPTValue(Type type, String dptID) {
+    public @Nullable String toDPTValue(Type type, @Nullable String dptID) {
         DPT dpt;
         int mainNumber = getMainNumber(dptID);
         if (mainNumber == -1) {
@@ -672,7 +676,7 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
     }
 
     @Override
-    public Type toType(Datapoint datapoint, byte[] data) {
+    public @Nullable Type toType(Datapoint datapoint, byte[] data) {
         try {
             DPTXlator translator = TranslatorTypes.createTranslator(datapoint.getMainNumber(), datapoint.getDPT());
             translator.setData(data);
@@ -830,8 +834,8 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
 
             if (typeClass.equals(DateTimeType.class)) {
                 String date = formatDateTime(value, datapoint.getDPT());
-                if ((date == null) || (date.isEmpty())) {
-                    logger.debug("toType: KNX clock msg ignored: date object null or empty {}.", date);
+                if (date.isEmpty()) {
+                    logger.debug("toType: KNX clock msg ignored: date object empty {}.", date);
                     return null;
                 } else {
                     return DateTimeType.valueOf(date);
@@ -867,7 +871,7 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
      * @return the openHAB type (command or state) class or {@code null} if the datapoint type id is not supported.
      */
     @Override
-    public Class<? extends Type> toTypeClass(String dptId) {
+    public @Nullable Class<? extends Type> toTypeClass(@Nullable String dptId) {
         Class<? extends Type> ohClass = dptTypeMap.get(dptId);
         if (ohClass == null) {
             int mainNumber = getMainNumber(dptId);
@@ -886,7 +890,7 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
      * @param typeClass the openHAB type class
      * @return the datapoint type id
      */
-    public String toDPTid(Class<? extends Type> typeClass) {
+    public @Nullable String toDPTid(Class<? extends Type> typeClass) {
         return defaultDptMap.get(typeClass);
     }
 
@@ -944,7 +948,7 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
      * @throws IllegalArgumentException if none of the datapoint types DPT_DATE or
      *             DPT_TIMEOFDAY has been used.
      */
-    private static String formatDateTime(DateTimeType dateType, String dpt) {
+    private static String formatDateTime(DateTimeType dateType, @Nullable String dpt) {
         if (DPTXlatorDate.DPT_DATE.getID().equals(dpt)) {
             return dateType.format("%tF");
         } else if (DPTXlatorTime.DPT_TIMEOFDAY.getID().equals(dpt)) {
@@ -962,7 +966,7 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
      * @param dptID String with DPT ID
      * @return sub number or -1
      */
-    private int getSubNumber(String dptID) {
+    private int getSubNumber(@Nullable String dptID) {
         int result = -1;
         if (dptID == null) {
             throw new IllegalArgumentException("Parameter dptID cannot be null");
@@ -989,7 +993,7 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
      * @param dptID String with DPT ID
      * @return main number or -1
      */
-    private int getMainNumber(String dptID) {
+    private int getMainNumber(@Nullable String dptID) {
         int result = -1;
         if (dptID == null) {
             throw new IllegalArgumentException("Parameter dptID cannot be null");
@@ -1018,6 +1022,6 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
      */
     private int convertPercentToByte(PercentType percent) {
         return percent.toBigDecimal().multiply(BigDecimal.valueOf(255))
-                .divide(BigDecimal.valueOf(100), 2, BigDecimal.ROUND_HALF_UP).intValue();
+                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP).intValue();
     }
 }
