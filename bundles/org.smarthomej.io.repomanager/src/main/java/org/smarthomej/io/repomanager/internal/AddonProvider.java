@@ -77,7 +77,8 @@ public class AddonProvider implements AddonService {
         // install all addons (if necessary)
         String addonsString = (String) configuration.get(ADDON_CONFIG_ID);
         if (addonsString != null && !addonsString.isEmpty()) {
-            processAddonList(Set.of(addonsString.split(",")));
+            processAddonList(
+                    Arrays.stream(addonsString.split(",")).filter(s -> !s.isEmpty()).collect(Collectors.toSet()));
         }
         buildAddonList();
 
@@ -168,11 +169,15 @@ public class AddonProvider implements AddonService {
     }
 
     private String addonIdFromFeature(Feature f) {
-        return f.getName() + "_" + f.getVersion().replace(".", "-");
+        return f.getName() + "_" + f.getVersion().replace(".", "_");
     }
 
     private String featureIdFromAddonId(String addonId) {
         return addonId.substring(0, addonId.indexOf("_"));
+    }
+
+    private String featureVersionFromAddonId(String addonId) {
+        return addonId.substring(addonId.indexOf("_") + 1).replace("_", ".");
     }
 
     private void buildAddonList() {
@@ -215,12 +220,14 @@ public class AddonProvider implements AddonService {
         Set<String> toBeInstalled = new HashSet<>(addons);
         toBeInstalled.removeAll(installedFeatures);
 
-        try {
-            featuresService.installFeatures(toBeInstalled,
-                    EnumSet.of(FeaturesService.Option.NoFailOnFeatureNotFound, FeaturesService.Option.Upgrade));
-        } catch (Exception e) {
-            logger.warn("Failed to install all addons. Retrying. {}", e.getMessage());
-        }
+        toBeInstalled.forEach(addonId -> {
+            try {
+                featuresService.installFeature(featureIdFromAddonId(addonId), featureVersionFromAddonId(addonId),
+                        EnumSet.of(FeaturesService.Option.NoFailOnFeatureNotFound, FeaturesService.Option.Upgrade));
+            } catch (Exception e) {
+                logger.warn("Failed to install addons {}: {}", e.getMessage());
+            }
+        });
 
         installedAddons = new HashSet<>(addons);
     }
