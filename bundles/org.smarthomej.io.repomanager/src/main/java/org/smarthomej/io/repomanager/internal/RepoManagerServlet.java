@@ -21,6 +21,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.io.http.servlet.OpenHABServlet;
+import org.osgi.framework.FrameworkUtil;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -55,6 +56,7 @@ public class RepoManagerServlet extends OpenHABServlet {
 
     private final MavenRepoManager mavenRepoManager;
     private final AddonProvider addonProvider;
+    private final String bundleVersion;
 
     @Activate
     public RepoManagerServlet(@Reference HttpService httpService, @Reference MavenRepoManager mavenRepoManager,
@@ -63,6 +65,8 @@ public class RepoManagerServlet extends OpenHABServlet {
 
         this.mavenRepoManager = mavenRepoManager;
         this.addonProvider = addonProvider;
+
+        bundleVersion = FrameworkUtil.getBundle(getClass()).getVersion().toString();
 
         activate(SERVLET_URL);
     }
@@ -99,7 +103,8 @@ public class RepoManagerServlet extends OpenHABServlet {
         buildRepoEntry(html, "Snapshot", SNAPSHOT_REPO_ID);
         buildRepoEntry(html, "Release", RELEASE_REPO_ID);
 
-        html.append("<hr/></body></html>");
+        html.append("<hr/><div style=\"float: right; position:relative;\">RepoManager-Version: ").append(bundleVersion)
+                .append("</div></body></html>");
         resp.addHeader("content-type", "text/html;charset=UTF-8");
         try {
             resp.getWriter().write(html.toString());
