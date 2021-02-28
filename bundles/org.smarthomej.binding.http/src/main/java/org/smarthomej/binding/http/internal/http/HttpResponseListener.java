@@ -67,6 +67,13 @@ public class HttpResponseListener extends BufferingResponseListener {
         } else {
             switch (response.getStatus()) {
                 case HttpStatus.OK_200:
+                case HttpStatus.CREATED_201:
+                case HttpStatus.ACCEPTED_202:
+                case HttpStatus.NON_AUTHORITATIVE_INFORMATION_203:
+                case HttpStatus.NO_CONTENT_204:
+                case HttpStatus.RESET_CONTENT_205:
+                case HttpStatus.PARTIAL_CONTENT_206:
+                case HttpStatus.MULTI_STATUS_207:
                     byte[] content = getContent();
                     String encoding = getEncoding();
                     if (content != null) {
