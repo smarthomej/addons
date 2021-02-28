@@ -225,7 +225,7 @@ public class AddonProvider implements AddonService {
                 featuresService.installFeature(featureIdFromAddonId(addonId), featureVersionFromAddonId(addonId),
                         EnumSet.of(FeaturesService.Option.NoFailOnFeatureNotFound, FeaturesService.Option.Upgrade));
             } catch (Exception e) {
-                logger.warn("Failed to install addons {}: {}", e.getMessage());
+                logger.warn("Failed to install addon {}: {}", addonId, e.getMessage());
             }
         });
 
