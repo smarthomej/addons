@@ -13,7 +13,8 @@
  */
 package org.smarthomej.binding.knx.internal.config;
 
-import java.math.BigDecimal;
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 
 /**
  * IP Bridge handler configuration object.
@@ -21,32 +22,33 @@ import java.math.BigDecimal;
  * @author Simon Kaufmann - initial contribution and API
  *
  */
+@NonNullByDefault
 public class IPBridgeConfiguration extends BridgeConfiguration {
 
-    private boolean useNAT;
-    private String type;
-    private String ipAddress;
-    private BigDecimal portNumber;
-    private String localIp;
-    private String localSourceAddr;
+    private boolean useNAT = false;
+    private @Nullable String type;
+    private @Nullable String ipAddress;
+    private int portNumber = 3671;
+    private @Nullable String localIp;
+    private String localSourceAddr = "0.0.0";
 
     public Boolean getUseNAT() {
         return useNAT;
     }
 
-    public String getType() {
+    public @Nullable String getType() {
         return type;
     }
 
-    public String getIpAddress() {
+    public @Nullable String getIpAddress() {
         return ipAddress;
     }
 
-    public BigDecimal getPortNumber() {
+    public int getPortNumber() {
         return portNumber;
     }
 
-    public String getLocalIp() {
+    public @Nullable String getLocalIp() {
         return localIp;
     }
 

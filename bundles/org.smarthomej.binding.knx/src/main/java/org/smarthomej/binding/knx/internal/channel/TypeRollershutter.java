@@ -13,12 +13,10 @@
  */
 package org.smarthomej.binding.knx.internal.channel;
 
-import static java.util.stream.Collectors.toSet;
 import static org.smarthomej.binding.knx.internal.KNXBindingConstants.*;
 
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
@@ -54,6 +52,6 @@ class TypeRollershutter extends KNXChannelType {
 
     @Override
     protected Set<String> getAllGAKeys() {
-        return Stream.of(UP_DOWN_GA, STOP_MOVE_GA, POSITION_GA).collect(toSet());
+        return Set.of(UP_DOWN_GA, STOP_MOVE_GA, POSITION_GA);
     }
 }

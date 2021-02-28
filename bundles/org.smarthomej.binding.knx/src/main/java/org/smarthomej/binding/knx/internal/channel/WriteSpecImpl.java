@@ -13,6 +13,7 @@
  */
 package org.smarthomej.binding.knx.internal.channel;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.types.Type;
 import org.smarthomej.binding.knx.internal.client.OutboundSpec;
@@ -26,6 +27,7 @@ import tuwien.auto.calimero.KNXFormatException;
  * @author Simon Kaufmann - initial contribution and API.
  *
  */
+@NonNullByDefault
 public class WriteSpecImpl extends AbstractSpec implements OutboundSpec {
 
     private final Type type;

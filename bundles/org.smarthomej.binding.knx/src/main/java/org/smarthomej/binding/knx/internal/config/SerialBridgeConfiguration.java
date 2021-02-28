@@ -13,17 +13,21 @@
  */
 package org.smarthomej.binding.knx.internal.config;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
+
 /**
  * Serial Bridge configuration object.
  *
  * @author Simon Kaufmann - initial contribution and API.
  *
  */
+@NonNullByDefault
 public class SerialBridgeConfiguration extends BridgeConfiguration {
 
-    private String serialPort;
+    private @Nullable String serialPort;
 
-    public String getSerialPort() {
+    public @Nullable String getSerialPort() {
         return serialPort;
     }
 }

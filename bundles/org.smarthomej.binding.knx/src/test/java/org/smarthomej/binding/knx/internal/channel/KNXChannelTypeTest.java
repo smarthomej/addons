@@ -18,18 +18,19 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.Collections;
 import java.util.Set;
 
-import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
  *
- * @author Simon Kaufmann - initial contribution and API.
+ * @author Simon Kaufmann - Initial contribution
  *
  */
+@NonNullByDefault
 public class KNXChannelTypeTest {
 
-    private KNXChannelType ct;
+    private @NonNullByDefault({}) KNXChannelType ct;
 
     @BeforeEach
     public void setup() {
@@ -37,7 +38,7 @@ public class KNXChannelTypeTest {
     }
 
     @Test
-    public void testParse_withDPT_multiple_withRead() {
+    public void testParseWithDPTMultipleWithRead() {
         ChannelConfiguration res = ct.parse("5.001:<1/3/22+0/3/22+<0/8/15");
 
         assertEquals("5.001", res.getDPT());
@@ -48,7 +49,7 @@ public class KNXChannelTypeTest {
     }
 
     @Test
-    public void testParse_withDPT_multiple_withoutRead() {
+    public void testParseWithDPTMultipleWithoutRead() {
         ChannelConfiguration res = ct.parse("5.001:1/3/22+0/3/22+0/8/15");
 
         assertEquals("5.001", res.getDPT());
@@ -59,7 +60,7 @@ public class KNXChannelTypeTest {
     }
 
     @Test
-    public void testParse_withoutDPT_single_withoutRead() {
+    public void testParseWithoutDPTSingleWithoutRead() {
         ChannelConfiguration res = ct.parse("1/3/22");
 
         assertNull(res.getDPT());
@@ -70,7 +71,7 @@ public class KNXChannelTypeTest {
     }
 
     @Test
-    public void testParse_withoutDPT_single_witRead() {
+    public void testParseWithoutDPTSingleWithRead() {
         ChannelConfiguration res = ct.parse("<1/3/22");
 
         assertNull(res.getDPT());
@@ -81,7 +82,7 @@ public class KNXChannelTypeTest {
     }
 
     @Test
-    public void testParse_twoLevel() {
+    public void testParseTwoLevel() {
         ChannelConfiguration res = ct.parse("5.001:<3/1024+<4/1025");
         assertEquals("3/1024", res.getMainGA().getGA());
         assertEquals(2, res.getListenGAs().size());
@@ -89,7 +90,7 @@ public class KNXChannelTypeTest {
     }
 
     @Test
-    public void testParse_freeLevel() {
+    public void testParseFreeLevel() {
         ChannelConfiguration res = ct.parse("5.001:<4610+<4611");
         assertEquals("4610", res.getMainGA().getGA());
         assertEquals(2, res.getListenGAs().size());
@@ -102,12 +103,12 @@ public class KNXChannelTypeTest {
         }
 
         @Override
-        protected @NonNull Set<@NonNull String> getAllGAKeys() {
+        protected Set<String> getAllGAKeys() {
             return Collections.emptySet();
         }
 
         @Override
-        protected @NonNull String getDefaultDPT(@NonNull String gaConfigKey) {
+        protected String getDefaultDPT(String gaConfigKey) {
             return "";
         }
     }

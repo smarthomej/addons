@@ -20,7 +20,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.thing.Bridge;
@@ -53,7 +52,7 @@ public abstract class AbstractKNXThingHandler extends BaseThingHandler implement
     private final Logger logger = LoggerFactory.getLogger(AbstractKNXThingHandler.class);
 
     protected @Nullable IndividualAddress address;
-    private @Nullable Future<?> descriptionJob;
+    private @Nullable ScheduledFuture<?> descriptionJob;
     private boolean filledDescription = false;
     private final Random random = new Random();
 
@@ -119,7 +118,7 @@ public abstract class AbstractKNXThingHandler extends BaseThingHandler implement
     }
 
     @Override
-    public void bridgeStatusChanged(@NonNull ThingStatusInfo bridgeStatusInfo) {
+    public void bridgeStatusChanged(ThingStatusInfo bridgeStatusInfo) {
         if (bridgeStatusInfo.getStatus() == ThingStatus.ONLINE) {
             attachToClient();
         } else if (bridgeStatusInfo.getStatus() == ThingStatus.OFFLINE) {
@@ -153,7 +152,7 @@ public abstract class AbstractKNXThingHandler extends BaseThingHandler implement
                     if (!filledDescription && config.getFetch()) {
                         Future<?> descriptionJob = this.descriptionJob;
                         if (descriptionJob == null || descriptionJob.isCancelled()) {
-                            long initialDelay = Math.round(config.getPingInterval().longValue() * random.nextFloat());
+                            long initialDelay = Math.round(config.getPingInterval() * random.nextFloat());
                             this.descriptionJob = getBackgroundScheduler().schedule(() -> {
                                 filledDescription = describeDevice(address);
                             }, initialDelay, TimeUnit.SECONDS);
@@ -180,7 +179,7 @@ public abstract class AbstractKNXThingHandler extends BaseThingHandler implement
                 updateStatus(ThingStatus.UNKNOWN);
                 address = new IndividualAddress(config.getAddress());
 
-                long pingInterval = config.getPingInterval().longValue();
+                long pingInterval = config.getPingInterval();
                 long initialPingDelay = Math.round(INITIAL_PING_DELAY * random.nextFloat());
 
                 ScheduledFuture<?> pollingJob = this.pollingJob;
@@ -201,13 +200,16 @@ public abstract class AbstractKNXThingHandler extends BaseThingHandler implement
     }
 
     protected void detachFromClient() {
+        ScheduledFuture<?> pollingJob = this.pollingJob;
         if (pollingJob != null) {
             pollingJob.cancel(true);
-            pollingJob = null;
+            this.pollingJob = null;
         }
+
+        ScheduledFuture<?> descriptionJob = this.descriptionJob;
         if (descriptionJob != null) {
             descriptionJob.cancel(true);
-            descriptionJob = null;
+            this.descriptionJob = null;
         }
         cancelReadFutures();
         Bridge bridge = getBridge();

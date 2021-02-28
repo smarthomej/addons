@@ -14,9 +14,12 @@
 package org.smarthomej.binding.knx.internal.handler;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.ThingStatus;
-import org.smarthomej.binding.knx.internal.client.AbstractKNXClient;
+import org.openhab.core.thing.ThingStatusDetail;
+import org.smarthomej.binding.knx.internal.client.KNXClient;
+import org.smarthomej.binding.knx.internal.client.NoOpClient;
 import org.smarthomej.binding.knx.internal.client.SerialClient;
 import org.smarthomej.binding.knx.internal.config.SerialBridgeConfiguration;
 
@@ -32,18 +35,22 @@ import org.smarthomej.binding.knx.internal.config.SerialBridgeConfiguration;
 @NonNullByDefault
 public class SerialBridgeThingHandler extends KNXBridgeBaseThingHandler {
 
-    private final SerialClient client;
+    private @Nullable SerialClient client;
 
     public SerialBridgeThingHandler(Bridge bridge) {
         super(bridge);
-        SerialBridgeConfiguration config = getConfigAs(SerialBridgeConfiguration.class);
-        client = new SerialClient(config.getAutoReconnectPeriod(), thing.getUID(),
-                config.getResponseTimeout().intValue(), config.getReadingPause().intValue(),
-                config.getReadRetriesLimit().intValue(), getScheduler(), config.getSerialPort(), this);
     }
 
     @Override
     public void initialize() {
+        SerialBridgeConfiguration config = getConfigAs(SerialBridgeConfiguration.class);
+        String serialPort = config.getSerialPort();
+        if (serialPort == null || serialPort.isEmpty()) {
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "serial port not configured");
+            return;
+        }
+        client = new SerialClient(config.getAutoReconnectPeriod(), thing.getUID(), config.getResponseTimeout(),
+                config.getReadingPause(), config.getReadRetriesLimit(), getScheduler(), serialPort, this);
         updateStatus(ThingStatus.UNKNOWN);
         client.initialize();
     }
@@ -51,11 +58,18 @@ public class SerialBridgeThingHandler extends KNXBridgeBaseThingHandler {
     @Override
     public void dispose() {
         super.dispose();
-        client.dispose();
+        SerialClient client = this.client;
+        if (client != null) {
+            client.dispose();
+        }
     }
 
     @Override
-    protected AbstractKNXClient getClient() {
-        return client;
+    protected KNXClient getClient() {
+        KNXClient ret = client;
+        if (ret == null) {
+            return new NoOpClient();
+        }
+        return ret;
     }
 }
