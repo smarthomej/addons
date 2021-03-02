@@ -25,6 +25,8 @@ import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.types.State;
 import org.openhab.core.types.UnDefType;
+import org.smarthomej.binding.snmp.internal.types.SnmpChannelMode;
+import org.smarthomej.binding.snmp.internal.types.SnmpDatatype;
 import org.snmp4j.PDU;
 import org.snmp4j.event.ResponseEvent;
 import org.snmp4j.smi.Counter64;

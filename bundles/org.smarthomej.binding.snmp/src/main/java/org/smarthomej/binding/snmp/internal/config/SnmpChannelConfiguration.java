@@ -15,8 +15,8 @@ package org.smarthomej.binding.snmp.internal.config;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.smarthomej.binding.snmp.internal.SnmpChannelMode;
-import org.smarthomej.binding.snmp.internal.SnmpDatatype;
+import org.smarthomej.binding.snmp.internal.types.SnmpChannelMode;
+import org.smarthomej.binding.snmp.internal.types.SnmpDatatype;
 
 /**
  * The {@link SnmpChannelConfiguration} class contains fields mapping channel configuration parameters.

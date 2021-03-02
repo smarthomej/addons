@@ -6,8 +6,11 @@ Currently protocol version 1 and 2c are supported.
 
 ## Supported Things
 
-Only one thing is supported: `target`.
-It represents a single network device. 
+There are two supported things: 
+ - `target` for SNMP v1/v2c agents
+ - `target3` for SNMP v3 agents
+
+Both represent a single network device. 
 Things can be extended with `number`, `string` and `switch` channels.
 
 ## Binding Configuration
@@ -41,22 +44,13 @@ port=8162
 
 ## Thing Configuration
 
-The `target` thing has one mandatory parameter: `hostname`.
-It can be set as FQDN or IP address. 
+### Common parameters for all thing-types
 
-Optional configuration parameters are `community`, `version` and `refresh`.
+The `hostname` is mandatory and can be set as FQDN or IP address. 
 
-The SNMP community can be set with the `community` parameter.
-It defaults to `public`.
-
-Currently two protocol versions are supported.
-The protocol version can be set with the `protocol` parameter.
-The allowed values are `v1` or `V1`for v1 and `v2c` or `V2C` for v2c.
-The default is `v1`.
-
+Optional configuration parameters is `refresh`.
 By using the `refresh` parameter the time between two subsequent GET requests to the target can be set.
 The default is `60` for 60s.
-
 
 Three advanced parameters are available `port`, `timeout`, `retries`
 Usually these do not need to be changed.
@@ -68,6 +62,42 @@ By using the `timeout` and `retries` parameters the timeout/error behaviour can 
 A single request times out after `timeout` ms.
 After `retries` timeouts the refresh operation is considered to be fails and the status of the thing set accordingly.
 The default values are `timeout=1500` and `retries=2`.
+
+### `target`
+
+The `target` thing has two optional configuration parameters: `community` and `version`.
+
+The SNMP community for SNMP version 2c can be set with the `community` parameter.
+It defaults to `public`.
+
+Currently two protocol versions are supported.
+The protocol version can be set with the `protocol` parameter.
+The allowed values are `v1` or `V1` for v1 and `v2c` or `V2C` for v2c.
+The default is `v1`.
+
+### `target3`
+
+The `target3` thing has additional mandatory parameters: `engineId` and `user`.
+
+The `engineId` must be given in hexadecimal notation (case insensitive) without separators (e.g. `80000009035c710dbcd9e6`).
+The allowed length is 11 to 32 bytes (22 to 64 hex characters).
+
+The `user` parameter is named "securityName" or "userName" in most agents.
+
+Optional configuration parameters are: `securityModel`, `authProtocol`, `authPassphrase`, `privProtocol` and `privPassphrase`.
+
+The `securityModel` can be set to 
+- `NO_AUTH_NO_PRIV` (default) - no encryption on authentication data, no encryption on transmitted data
+- `AUTH_NO_PRIV` - encryption on authentication data, no encryption on transmitted data 
+- `AUTH_PRIV` - encryption on authentication data, encryption on transmitted data
+
+Depending on the `securityModel` some of the other parameters are also mandatory.
+
+If authentication encryption is required, at least `authPassphrase` needs to be set, while `authProtocol` has a default of `MD5`.
+Other possible values for `authProtocol` are `SHA`, `HMAC128SHA224`, `HMAC192SHA256`, `HMAC256SHA384` and `HMAC384SHA512`.
+
+If encryption of transmitted data (privacy encryption) is rquired, at least `privPassphrase` needs to be set, while `privProtocol` defaults to `DES`.
+Other possible values for `privProtocol` are `AES128`, `AES192` and `AES256`.
 
 ## Channels
 

@@ -11,27 +11,20 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.smarthomej.binding.snmp.internal;
+package org.smarthomej.binding.snmp.internal.types;
 
 /**
- * The {@link SnmpProtocolVersion} enum defines the datatype of SNMP channels
+ * The {@link SnmpDatatype} enum defines the datatype of SNMP channels
  *
  * @author Jan N. Klug - Initial contribution
  */
 
-public enum SnmpProtocolVersion {
-    v1(0),
-    V1(0),
-    v2c(1),
-    V2C(1);
-
-    private final int value;
-
-    private SnmpProtocolVersion(int value) {
-        this.value = value;
-    }
-
-    public int toInteger() {
-        return value;
-    }
+public enum SnmpDatatype {
+    INT32,
+    UINT32,
+    COUNTER64,
+    FLOAT,
+    STRING,
+    HEXSTRING,
+    IPADDRESS
 }

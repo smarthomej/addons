@@ -24,6 +24,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.thing.ThingStatus;
+import org.smarthomej.binding.snmp.internal.types.SnmpChannelMode;
+import org.smarthomej.binding.snmp.internal.types.SnmpDatatype;
 import org.snmp4j.PDU;
 import org.snmp4j.event.ResponseEvent;
 import org.snmp4j.smi.*;

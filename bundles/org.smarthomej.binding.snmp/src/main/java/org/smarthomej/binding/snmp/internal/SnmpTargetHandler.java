@@ -43,18 +43,17 @@ import org.openhab.core.types.Command;
 import org.openhab.core.types.RefreshType;
 import org.openhab.core.types.State;
 import org.openhab.core.types.UnDefType;
+import org.openhab.core.util.HexUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.snmp.internal.config.SnmpChannelConfiguration;
 import org.smarthomej.binding.snmp.internal.config.SnmpInternalChannelConfiguration;
 import org.smarthomej.binding.snmp.internal.config.SnmpTargetConfiguration;
-import org.snmp4j.AbstractTarget;
-import org.snmp4j.CommandResponder;
-import org.snmp4j.CommandResponderEvent;
-import org.snmp4j.CommunityTarget;
-import org.snmp4j.PDU;
-import org.snmp4j.PDUv1;
-import org.snmp4j.Snmp;
+import org.smarthomej.binding.snmp.internal.types.SnmpChannelMode;
+import org.smarthomej.binding.snmp.internal.types.SnmpDatatype;
+import org.smarthomej.binding.snmp.internal.types.SnmpProtocolVersion;
+import org.smarthomej.binding.snmp.internal.types.SnmpSecurityModel;
+import org.snmp4j.*;
 import org.snmp4j.event.ResponseEvent;
 import org.snmp4j.event.ResponseListener;
 import org.snmp4j.mp.SnmpConstants;
@@ -102,7 +101,9 @@ public class SnmpTargetHandler extends BaseThingHandler implements ResponseListe
                 SnmpInternalChannelConfiguration channel = readChannelSet.stream()
                         .filter(c -> channelUID.equals(c.channelUID)).findFirst()
                         .orElseThrow(() -> new IllegalArgumentException("no writable channel found"));
-                PDU pdu = new PDU(PDU.GET, Collections.singletonList(new VariableBinding(channel.oid)));
+                PDU pdu = getPDU();
+                pdu.setType(PDU.GET);
+                pdu.add(new VariableBinding(channel.oid));
                 snmpService.send(pdu, target, null, this);
             } else if (command instanceof DecimalType || command instanceof StringType
                     || command instanceof OnOffType) {
@@ -119,7 +120,9 @@ public class SnmpTargetHandler extends BaseThingHandler implements ResponseListe
                 } else {
                     variable = convertDatatype(command, channel.datatype);
                 }
-                PDU pdu = new PDU(PDU.SET, Collections.singletonList(new VariableBinding(channel.oid, variable)));
+                PDU pdu = getPDU();
+                pdu.setType(PDU.SET);
+                pdu.add(new VariableBinding(channel.oid, variable));
                 snmpService.send(pdu, target, null, this);
             }
         } catch (IllegalArgumentException e) {
@@ -135,20 +138,59 @@ public class SnmpTargetHandler extends BaseThingHandler implements ResponseListe
 
         generateChannelConfigs();
 
+        if (thing.getThingTypeUID().equals(THING_TYPE_TARGET3)) {
+            // override default for target3 things
+            config.protocol = SnmpProtocolVersion.v3;
+        }
+
         if (config.protocol.toInteger() == SnmpConstants.version1
                 || config.protocol.toInteger() == SnmpConstants.version2c) {
             CommunityTarget target = new CommunityTarget();
             target.setCommunity(new OctetString(config.community));
-            target.setRetries(config.retries);
-            target.setTimeout(config.timeout);
-            target.setVersion(config.protocol.toInteger());
-            target.setAddress(null);
             this.target = target;
-            snmpService.addCommandResponder(this);
+        } else if (config.protocol.toInteger() == SnmpConstants.version3) {
+            String userName = config.user;
+            if (userName == null) {
+                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "user not set");
+                return;
+            }
+            String engineIdHexString = config.engineId;
+            if (engineIdHexString == null) {
+                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "engineId not set");
+                return;
+            }
+            if ((config.securityModel == SnmpSecurityModel.AUTH_PRIV
+                    || config.securityModel == SnmpSecurityModel.AUTH_NO_PRIV)
+                    && (config.authPassphrase == null || config.authPassphrase.isEmpty())) {
+                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
+                        "Authentication passphrase not configured");
+                return;
+            }
+            if (config.securityModel == SnmpSecurityModel.AUTH_PRIV
+                    && (config.privPassphrase == null || config.privPassphrase.isEmpty())) {
+                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
+                        "Privacy passphrase not configured");
+                return;
+            }
+            byte[] engineId = HexUtils.hexToBytes(engineIdHexString);
+            snmpService.addUser(userName, config.authProtocol, config.authPassphrase, config.privProtocol,
+                    config.privPassphrase, engineId);
+            UserTarget target = new UserTarget();
+            target.setAuthoritativeEngineID(engineId);
+            target.setSecurityName(new OctetString(config.user));
+            target.setSecurityLevel(config.securityModel.getSecurityLevel());
+            this.target = target;
         } else {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "SNMP version not supported");
             return;
         }
+
+        snmpService.addCommandResponder(this);
+
+        target.setRetries(config.retries);
+        target.setTimeout(config.timeout);
+        target.setVersion(config.protocol.toInteger());
+        target.setAddress(null);
 
         timeoutCounter = 0;
 
@@ -461,14 +503,23 @@ public class SnmpTargetHandler extends BaseThingHandler implements ResponseListe
                 return;
             }
         }
-        PDU pdu = new PDU(PDU.GET,
-                readChannelSet.stream().map(c -> new VariableBinding(c.oid)).collect(Collectors.toList()));
+        PDU pdu = getPDU();
+        pdu.setType(PDU.GET);
+        readChannelSet.stream().map(c -> new VariableBinding(c.oid)).forEach(pdu::add);
         if (!pdu.getVariableBindings().isEmpty()) {
             try {
                 snmpService.send(pdu, target, null, this);
             } catch (IOException e) {
                 logger.info("Could not send PDU", e);
             }
+        }
+    }
+
+    private PDU getPDU() {
+        if (config.protocol == SnmpProtocolVersion.v3 || config.protocol == SnmpProtocolVersion.V3) {
+            return new ScopedPDU();
+        } else {
+            return new PDU();
         }
     }
 }

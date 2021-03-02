@@ -42,6 +42,8 @@ import org.openhab.core.thing.binding.builder.ThingBuilder;
 import org.openhab.core.thing.type.ChannelTypeUID;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.State;
+import org.smarthomej.binding.snmp.internal.types.SnmpChannelMode;
+import org.smarthomej.binding.snmp.internal.types.SnmpDatatype;
 import org.snmp4j.PDU;
 import org.snmp4j.event.ResponseEvent;
 import org.snmp4j.smi.OID;
