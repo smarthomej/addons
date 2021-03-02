@@ -184,6 +184,24 @@
 			serviceId="urn:WANCIfConfig-com:serviceId:WANCommonInterfaceConfig1"/>
 		<getAction name="GetTotalBytesSent" argument="NewTotalBytesSent"/>
 	</channel>
+	<channel name="wanCurrentDownstreamBitrate" label="Current Downstream Rate">
+		<item type="Number:DataTransferRate" unit="kbit/s" statePattern="%.1f Mbit/s"/>
+		<service deviceType="urn:dslforum-org:device:WANDevice:1"
+			serviceId="urn:WANCIfConfig-com:serviceId:WANCommonInterfaceConfig1"/>
+		<getAction name="X_AVM-DE_GetOnlineMonitor" argument="Newds_current_bps"
+			postProcessor="processCurrentBitrate">
+			<parameter name="NewSyncGroupIndex" fixedValue="0"/>
+		</getAction>
+	</channel>
+	<channel name="wanCurrentUpstreamBitrate" label="Current Upstream Rate">
+		<item type="Number:DataTransferRate" unit="kbit/s" statePattern="%.1f Mbit/s"/>
+		<service deviceType="urn:dslforum-org:device:WANDevice:1"
+			serviceId="urn:WANCIfConfig-com:serviceId:WANCommonInterfaceConfig1"/>
+		<getAction name="X_AVM-DE_GetOnlineMonitor" argument="Newus_current_bps"
+			postProcessor="processCurrentBitrate">
+			<parameter name="NewSyncGroupIndex" fixedValue="0"/>
+		</getAction>
+	</channel>
 	<channel name="dslEnable" label="DSL Enable">
 		<item type="Switch"/>
 		<service deviceType="urn:dslforum-org:device:WANDevice:1"

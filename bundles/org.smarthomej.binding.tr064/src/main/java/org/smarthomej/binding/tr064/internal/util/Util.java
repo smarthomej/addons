@@ -19,7 +19,6 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.time.Duration;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -192,6 +191,7 @@ public class Util {
                                 deviceService);
 
                         // get
+                        boolean fixedValue = false;
                         ActionType getAction = channelTypeDescription.getGetAction();
                         if (getAction != null) {
                             String actionName = getAction.getName();
@@ -201,7 +201,9 @@ public class Util {
                             SCPDStateVariableType relatedStateVariable = getStateVariable(serviceRoot, scpdArgument);
                             parameters.addAll(
                                     getAndCheckParameters(channelId, getAction, scpdAction, serviceRoot, thingConfig));
-
+                            if (getAction.getParameter() != null && getAction.getParameter().getFixedValue() != null) {
+                                fixedValue = true;
+                            }
                             channelConfig.setGetAction(scpdAction);
                             channelConfig.setDataType(relatedStateVariable.getDataType());
                         }
@@ -228,14 +230,18 @@ public class Util {
                         // everything is available, create the channel
                         ChannelTypeUID channelTypeUID = new ChannelTypeUID(BINDING_ID,
                                 channelTypeDescription.getName());
-                        if (parameters.isEmpty()) {
+                        if (parameters.isEmpty() || fixedValue) {
                             // we have no parameters, so create a single channel
                             ChannelUID channelUID = new ChannelUID(thing.getUID(), channelId);
                             ChannelBuilder channelBuilder = ChannelBuilder
                                     .create(channelUID, channelTypeDescription.getItem().getType())
                                     .withType(channelTypeUID);
                             thingBuilder.withChannel(channelBuilder.build());
-                            channels.put(channelUID, channelConfig);
+                            Tr064ChannelConfig channelConfig1 = new Tr064ChannelConfig(channelConfig);
+                            if (fixedValue) {
+                                channelConfig1.setParameter(parameters.iterator().next());
+                            }
+                            channels.put(channelUID, channelConfig1);
                         } else {
                             // create a channel for each parameter
                             parameters.forEach(parameter -> {
@@ -265,8 +271,12 @@ public class Util {
             SCPDScpdType serviceRoot, Tr064BaseThingConfiguration thingConfig) throws ChannelConfigException {
         ParameterType parameter = action.getParameter();
         if (parameter == null) {
-            return Collections.emptySet();
+            return Set.of();
         }
+        if (parameter.getFixedValue() != null) {
+            return Set.of(parameter.getFixedValue());
+        }
+        // process list of thing parameters
         try {
             Set<String> parameters = new HashSet<>();
 
