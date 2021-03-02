@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -56,6 +58,7 @@ import org.snmp4j.smi.VariableBinding;
  *
  * @author Jan N. Klug - Initial contribution
  */
+@NonNullByDefault
 public abstract class AbstractSnmpTargetHandlerTest extends JavaTest {
     protected static final ThingUID THING_UID = new ThingUID(THING_TYPE_TARGET, "testthing");
     protected static final ChannelUID CHANNEL_UID = new ChannelUID(THING_UID, "testchannel");
@@ -63,20 +66,20 @@ public abstract class AbstractSnmpTargetHandlerTest extends JavaTest {
     protected static final String TEST_ADDRESS = "192.168.0.1";
     protected static final String TEST_STRING = "foo.";
 
-    protected @Mock SnmpServiceImpl snmpService;
-    protected @Mock ThingHandlerCallback thingHandlerCallback;
+    protected @Mock @NonNullByDefault({}) SnmpServiceImpl snmpService;
+    protected @Mock @NonNullByDefault({}) ThingHandlerCallback thingHandlerCallback;
 
-    protected Thing thing;
-    protected SnmpTargetHandler thingHandler;
-    private AutoCloseable mocks;
+    protected @NonNullByDefault({}) Thing thing;
+    protected @NonNullByDefault({}) SnmpTargetHandler thingHandler;
+    private @NonNullByDefault({}) AutoCloseable mocks;
 
     @AfterEach
     public void after() throws Exception {
         mocks.close();
     }
 
-    protected VariableBinding handleCommandSwitchChannel(SnmpDatatype datatype, Command command, String onValue,
-            String offValue, boolean refresh) throws IOException {
+    protected @Nullable VariableBinding handleCommandSwitchChannel(SnmpDatatype datatype, Command command,
+            String onValue, @Nullable String offValue, boolean refresh) throws IOException {
         setup(SnmpBindingConstants.CHANNEL_TYPE_UID_SWITCH, SnmpChannelMode.WRITE, datatype, onValue, offValue);
         thingHandler.handleCommand(CHANNEL_UID, command);
 
@@ -90,8 +93,8 @@ public abstract class AbstractSnmpTargetHandlerTest extends JavaTest {
         }
     }
 
-    protected VariableBinding handleCommandNumberStringChannel(ChannelTypeUID channelTypeUID, SnmpDatatype datatype,
-            Command command, boolean refresh) throws IOException {
+    protected @Nullable VariableBinding handleCommandNumberStringChannel(ChannelTypeUID channelTypeUID,
+            SnmpDatatype datatype, Command command, boolean refresh) throws IOException {
         setup(channelTypeUID, SnmpChannelMode.WRITE, datatype);
         thingHandler.handleCommand(CHANNEL_UID, command);
 
@@ -121,8 +124,8 @@ public abstract class AbstractSnmpTargetHandlerTest extends JavaTest {
         }
     }
 
-    protected State onResponseSwitchChannel(SnmpChannelMode channelMode, SnmpDatatype datatype, String onValue,
-            String offValue, Variable value, boolean refresh) {
+    protected @Nullable State onResponseSwitchChannel(SnmpChannelMode channelMode, SnmpDatatype datatype,
+            String onValue, String offValue, Variable value, boolean refresh) {
         setup(SnmpBindingConstants.CHANNEL_TYPE_UID_SWITCH, channelMode, datatype, onValue, offValue);
 
         PDU responsePDU = new PDU(PDU.RESPONSE,
@@ -162,17 +165,17 @@ public abstract class AbstractSnmpTargetHandlerTest extends JavaTest {
         setup(channelTypeUID, channelMode, null);
     }
 
-    protected void setup(ChannelTypeUID channelTypeUID, SnmpChannelMode channelMode, SnmpDatatype datatype) {
+    protected void setup(ChannelTypeUID channelTypeUID, SnmpChannelMode channelMode, @Nullable SnmpDatatype datatype) {
         setup(channelTypeUID, channelMode, datatype, null, null);
     }
 
-    protected void setup(ChannelTypeUID channelTypeUID, SnmpChannelMode channelMode, SnmpDatatype datatype,
-            String onValue, String offValue) {
+    protected void setup(ChannelTypeUID channelTypeUID, SnmpChannelMode channelMode, @Nullable SnmpDatatype datatype,
+            @Nullable String onValue, @Nullable String offValue) {
         setup(channelTypeUID, channelMode, datatype, onValue, offValue, null);
     }
 
-    protected void setup(ChannelTypeUID channelTypeUID, SnmpChannelMode channelMode, SnmpDatatype datatype,
-            String onValue, String offValue, String exceptionValue) {
+    protected void setup(ChannelTypeUID channelTypeUID, SnmpChannelMode channelMode, @Nullable SnmpDatatype datatype,
+            @Nullable String onValue, @Nullable String offValue, @Nullable String exceptionValue) {
         Map<String, Object> channelConfig = new HashMap<>();
         Map<String, Object> thingConfig = new HashMap<>();
         mocks = MockitoAnnotations.openMocks(this);
@@ -182,26 +185,24 @@ public abstract class AbstractSnmpTargetHandlerTest extends JavaTest {
         ThingBuilder thingBuilder = ThingBuilder.create(THING_TYPE_TARGET, THING_UID).withLabel("Test thing")
                 .withConfiguration(new Configuration(thingConfig));
 
-        if (channelTypeUID != null && channelMode != null) {
-            String itemType = SnmpBindingConstants.CHANNEL_TYPE_UID_NUMBER.equals(channelTypeUID) ? "Number" : "String";
-            channelConfig.put("oid", TEST_OID);
-            channelConfig.put("mode", channelMode.name());
-            if (datatype != null) {
-                channelConfig.put("datatype", datatype.name());
-            }
-            if (onValue != null) {
-                channelConfig.put("onvalue", onValue);
-            }
-            if (offValue != null) {
-                channelConfig.put("offvalue", offValue);
-            }
-            if (exceptionValue != null) {
-                channelConfig.put("exceptionValue", exceptionValue);
-            }
-            Channel channel = ChannelBuilder.create(CHANNEL_UID, itemType).withType(channelTypeUID)
-                    .withConfiguration(new Configuration(channelConfig)).build();
-            thingBuilder.withChannel(channel);
+        String itemType = SnmpBindingConstants.CHANNEL_TYPE_UID_NUMBER.equals(channelTypeUID) ? "Number" : "String";
+        channelConfig.put("oid", TEST_OID);
+        channelConfig.put("mode", channelMode.name());
+        if (datatype != null) {
+            channelConfig.put("datatype", datatype.name());
         }
+        if (onValue != null) {
+            channelConfig.put("onvalue", onValue);
+        }
+        if (offValue != null) {
+            channelConfig.put("offvalue", offValue);
+        }
+        if (exceptionValue != null) {
+            channelConfig.put("exceptionValue", exceptionValue);
+        }
+        Channel channel = ChannelBuilder.create(CHANNEL_UID, itemType).withType(channelTypeUID)
+                .withConfiguration(new Configuration(channelConfig)).build();
+        thingBuilder.withChannel(channel);
 
         thing = thingBuilder.build();
         thingHandler = new SnmpTargetHandler(thing, snmpService);

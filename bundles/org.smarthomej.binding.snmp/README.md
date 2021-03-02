@@ -6,7 +6,8 @@ Currently protocol version 1 and 2c are supported.
 
 ## Supported Things
 
-There are two supported things: 
+There are two supported things:
+
  - `target` for SNMP v1/v2c agents
  - `target3` for SNMP v3 agents
 
@@ -86,7 +87,8 @@ The `user` parameter is named "securityName" or "userName" in most agents.
 
 Optional configuration parameters are: `securityModel`, `authProtocol`, `authPassphrase`, `privProtocol` and `privPassphrase`.
 
-The `securityModel` can be set to 
+The `securityModel` can be set to
+
 - `NO_AUTH_NO_PRIV` (default) - no encryption on authentication data, no encryption on transmitted data
 - `AUTH_NO_PRIV` - encryption on authentication data, no encryption on transmitted data 
 - `AUTH_PRIV` - encryption on authentication data, encryption on transmitted data

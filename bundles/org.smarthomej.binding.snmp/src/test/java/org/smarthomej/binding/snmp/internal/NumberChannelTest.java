@@ -20,6 +20,7 @@ import static org.mockito.Mockito.verify;
 
 import java.util.List;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.openhab.core.library.types.DecimalType;
@@ -35,6 +36,7 @@ import org.snmp4j.smi.*;
  *
  * @author Jan N. Klug - Initial contribution
  */
+@NonNullByDefault
 public class NumberChannelTest extends AbstractSnmpTargetHandlerTest {
 
     @Test

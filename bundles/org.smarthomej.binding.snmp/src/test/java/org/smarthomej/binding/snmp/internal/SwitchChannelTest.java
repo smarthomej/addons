@@ -20,6 +20,7 @@ import static org.mockito.Mockito.*;
 import java.io.IOException;
 import java.util.Collections;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.Test;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.thing.ThingStatus;
@@ -41,18 +42,22 @@ import org.snmp4j.smi.VariableBinding;
  *
  * @author Jan N. Klug - Initial contribution
  */
+@NonNullByDefault
 public class SwitchChannelTest extends AbstractSnmpTargetHandlerTest {
 
     @Test
+    @SuppressWarnings("null")
     public void testCommandsAreProperlyHandledBySwitchChannel() throws IOException {
         VariableBinding variable;
 
         variable = handleCommandSwitchChannel(SnmpDatatype.STRING, OnOffType.ON, "on", "off", true);
+        assertNotNull(variable);
         assertEquals(new OID(TEST_OID), variable.getOid());
         assertTrue(variable.getVariable() instanceof OctetString);
         assertEquals("on", ((OctetString) variable.getVariable()).toString());
 
         variable = handleCommandSwitchChannel(SnmpDatatype.STRING, OnOffType.OFF, "on", "off", true);
+        assertNotNull(variable);
         assertEquals(new OID(TEST_OID), variable.getOid());
         assertTrue(variable.getVariable() instanceof OctetString);
         assertEquals("off", ((OctetString) variable.getVariable()).toString());

@@ -159,22 +159,24 @@ public class SnmpTargetHandler extends BaseThingHandler implements ResponseListe
                 updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "engineId not set");
                 return;
             }
+            String authPassphrase = config.authPassphrase;
             if ((config.securityModel == SnmpSecurityModel.AUTH_PRIV
                     || config.securityModel == SnmpSecurityModel.AUTH_NO_PRIV)
-                    && (config.authPassphrase == null || config.authPassphrase.isEmpty())) {
+                    && (authPassphrase == null || authPassphrase.isEmpty())) {
                 updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
                         "Authentication passphrase not configured");
                 return;
             }
+            String privPassphrase = config.privPassphrase;
             if (config.securityModel == SnmpSecurityModel.AUTH_PRIV
-                    && (config.privPassphrase == null || config.privPassphrase.isEmpty())) {
+                    && (privPassphrase == null || privPassphrase.isEmpty())) {
                 updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
                         "Privacy passphrase not configured");
                 return;
             }
             byte[] engineId = HexUtils.hexToBytes(engineIdHexString);
-            snmpService.addUser(userName, config.authProtocol, config.authPassphrase, config.privProtocol,
-                    config.privPassphrase, engineId);
+            snmpService.addUser(userName, config.authProtocol, authPassphrase, config.privProtocol, privPassphrase,
+                    engineId);
             UserTarget target = new UserTarget();
             target.setAuthoritativeEngineID(engineId);
             target.setSecurityName(new OctetString(config.user));
