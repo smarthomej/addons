@@ -76,8 +76,11 @@ public class GroupActions implements ThingActions {
 
         try {
             String returnedJson = newSceneId.get(2000, TimeUnit.MILLISECONDS);
-            List<NewSceneResponse> newSceneResponse = gson.fromJson(returnedJson, NEW_SCENE_RESPONSE_TYPE);
-            return Map.of(NEW_SCENE_ID_OUTPUT, newSceneResponse.get(0).success.id);
+            List<NewSceneResponse> newSceneResponses = gson.fromJson(returnedJson, NEW_SCENE_RESPONSE_TYPE);
+            if (newSceneResponses != null && !newSceneResponses.isEmpty()) {
+                return Map.of(NEW_SCENE_ID_OUTPUT, newSceneResponses.get(0).success.id);
+            }
+            throw new IllegalStateException("response is empty");
         } catch (InterruptedException | ExecutionException | TimeoutException | JsonParseException
                 | IllegalStateException e) {
             logger.warn("Couldn't get newSceneId", e);

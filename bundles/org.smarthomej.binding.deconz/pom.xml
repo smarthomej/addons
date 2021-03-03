@@ -12,6 +12,6 @@
 
   <artifactId>org.smarthomej.binding.deconz</artifactId>
 
-  <name>SmartHome/J Add-ons :: Bundles :: Dresden Elektronik deCONZ Binding</name>
+  <name>SmartHome/J Add-ons :: Bundles :: deCONZ Binding</name>
 
 </project>
