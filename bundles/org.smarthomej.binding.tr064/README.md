@@ -154,6 +154,8 @@ In this case you have to use the `wifi5GHzEnable` channel for switching the gues
 | `wanAccessType`            | `String`                  |     x    | Access Type                                                    |
 | `wanMaxDownstreamRate`     | `Number:DataTransferRate` |     x    | Max. Downstream Rate                                           |
 | `wanMaxUpstreamRate`       | `Number:DataTransferRate` |     x    | Max. Upstream Rate                                             |
+| `wanCurrentDownstreamRate` | `Number:DataTransferRate` |     x    | Current Downstream Rate (average last 15 seconds)              |
+| `wanCurrentUpstreamRate`   | `Number:DataTransferRate` |     x    | Current Upstream Rate (average last 15 seconds)                |
 | `wanPhysicalLinkStatus`    | `String`                  |     x    | Link Status                                                    |
 | `wanTotalBytesReceived`    | `Number:DataAmount`       |     x    | Total Bytes Received                                           |
 | `wanTotalBytesSent`        | `Number:DataAmount`       |     x    | Total Bytes Sent                                               |

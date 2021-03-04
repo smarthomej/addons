@@ -18,6 +18,7 @@ import static org.smarthomej.binding.tr064.internal.util.Util.getSOAPElement;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -35,6 +36,7 @@ import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.library.types.StringType;
+import org.openhab.core.library.unit.Units;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.State;
 import org.openhab.core.types.UnDefType;
@@ -167,6 +169,26 @@ public class SOAPValueConverter {
             }
             return null;
         }).or(Optional::empty);
+    }
+
+    /**
+     * post processor for current bitrate
+     */
+    @SuppressWarnings("unused")
+    private State processCurrentBitrate(State state, Tr064ChannelConfig channelConfig) throws PostProcessingException {
+        Double bps = Arrays.stream(state.toString().split(",")).mapToDouble(s -> {
+            try {
+                return Double.valueOf(s);
+            } catch (NumberFormatException e) {
+                return 0.0;
+            }
+        }).limit(3).average().orElse(Double.NaN);
+
+        if (bps.equals(Double.NaN)) {
+            return UnDefType.UNDEF;
+        } else {
+            return new QuantityType<>(bps * 8.0 / 1024.0, Units.KILOBIT_PER_SECOND);
+        }
     }
 
     /**
