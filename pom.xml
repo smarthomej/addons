@@ -149,6 +149,7 @@
             <bnd><![CDATA[Bundle-SymbolicName: ${project.artifactId}
 Automatic-Module-Name: ${def;bsn}
 Bundle-DocURL: https://github.com/smarthomej/addons/tree/main/bundles/${bsn}
+Build-Date: ${now;dd.MM.YYYY HH:mm}
 Import-Package: \\
   io.swagger.v3.oas.annotations.*;resolution:=optional,\\
   javax.annotation.security.*;resolution:=optional,\\
