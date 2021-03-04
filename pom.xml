@@ -78,7 +78,7 @@
     <maven.compiler.compilerVersion>${oh.java.version}</maven.compiler.compilerVersion>
 
     <ohc.version>3.1.0-SNAPSHOT</ohc.version>
-    <bnd.version>5.2.0</bnd.version>
+    <bnd.version>5.3.0</bnd.version>
     <commons.net.version>3.7.2</commons.net.version>
     <eea.version>2.2.1</eea.version>
     <karaf.version>4.2.7</karaf.version>
@@ -149,6 +149,7 @@
             <bnd><![CDATA[Bundle-SymbolicName: ${project.artifactId}
 Automatic-Module-Name: ${def;bsn}
 Bundle-DocURL: https://github.com/smarthomej/addons/tree/main/bundles/${bsn}
+Build-Date: ${now;dd.MM.YYYY HH:mm}
 Import-Package: \\
   io.swagger.v3.oas.annotations.*;resolution:=optional,\\
   javax.annotation.security.*;resolution:=optional,\\

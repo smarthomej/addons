@@ -46,6 +46,7 @@
                   <header file="src/main/resources/header.xml" filtering="no"/>
                   <fileset dir="${basedirRoot}/bundles">
                     <include name="*/src/main/feature/feature.xml"/>
+                    <exclude name="**/org.smarthomej.io.repomanager/**/feature.xml"/>
                   </fileset>
                   <filterchain>
                     <linecontainsRegExp>
