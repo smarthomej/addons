@@ -20,11 +20,15 @@ import static org.mockito.Mockito.*;
 import java.io.IOException;
 import java.util.Collections;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.junit.jupiter.api.Test;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.thing.ThingStatus;
+import org.smarthomej.binding.snmp.internal.types.SnmpChannelMode;
+import org.smarthomej.binding.snmp.internal.types.SnmpDatatype;
 import org.snmp4j.PDU;
 import org.snmp4j.Snmp;
 import org.snmp4j.event.ResponseEvent;
@@ -40,6 +44,7 @@ import org.snmp4j.smi.VariableBinding;
  *
  * @author Jan N. Klug - Initial contribution
  */
+@NonNullByDefault
 public class SnmpTargetHandlerTest extends AbstractSnmpTargetHandlerTest {
 
     @Test
@@ -51,7 +56,7 @@ public class SnmpTargetHandlerTest extends AbstractSnmpTargetHandlerTest {
     }
 
     @Test
-    public void testChannelsProperlyUpdate() throws IOException {
+    public void testChannelsProperlyUpdate() {
         onResponseNumberStringChannel(SnmpChannelMode.READ, true);
         onResponseNumberStringChannel(SnmpChannelMode.READ_WRITE, true);
         onResponseNumberStringChannel(SnmpChannelMode.WRITE, false);
@@ -68,28 +73,33 @@ public class SnmpTargetHandlerTest extends AbstractSnmpTargetHandlerTest {
     }
 
     @Test
+    @SuppressWarnings("null")
     public void testCommandsAreProperlyHandledByNumberChannel() throws IOException {
         VariableBinding variable;
         variable = handleCommandNumberStringChannel(SnmpBindingConstants.CHANNEL_TYPE_UID_NUMBER, SnmpDatatype.INT32,
                 new DecimalType(-5), true);
+        assertNotNull(variable);
         assertEquals(new OID(TEST_OID), variable.getOid());
         assertTrue(variable.getVariable() instanceof Integer32);
         assertEquals(-5, ((Integer32) variable.getVariable()).toInt());
 
         variable = handleCommandNumberStringChannel(SnmpBindingConstants.CHANNEL_TYPE_UID_NUMBER, SnmpDatatype.UINT32,
                 new DecimalType(10000), true);
+        assertNotNull(variable);
         assertEquals(new OID(TEST_OID), variable.getOid());
         assertTrue(variable.getVariable() instanceof UnsignedInteger32);
         assertEquals(10000, ((UnsignedInteger32) variable.getVariable()).toInt());
 
         variable = handleCommandNumberStringChannel(SnmpBindingConstants.CHANNEL_TYPE_UID_NUMBER,
                 SnmpDatatype.COUNTER64, new DecimalType(10000), true);
+        assertNotNull(variable);
         assertEquals(new OID(TEST_OID), variable.getOid());
         assertTrue(variable.getVariable() instanceof Counter64);
         assertEquals(10000, ((Counter64) variable.getVariable()).toInt());
 
         variable = handleCommandNumberStringChannel(SnmpBindingConstants.CHANNEL_TYPE_UID_NUMBER, SnmpDatatype.FLOAT,
                 new DecimalType("12.4"), true);
+        assertNotNull(variable);
         assertEquals(new OID(TEST_OID), variable.getOid());
         assertTrue(variable.getVariable() instanceof OctetString);
         assertEquals("12.4", variable.getVariable().toString());
@@ -125,11 +135,11 @@ public class SnmpTargetHandlerTest extends AbstractSnmpTargetHandlerTest {
         verifyStatus(ThingStatus.ONLINE);
     }
 
-    class SnmpMock extends Snmp {
+    static class SnmpMock extends Snmp {
         public int cancelCallCounter = 0;
 
         @Override
-        public void cancel(PDU request, org.snmp4j.event.ResponseListener listener) {
+        public void cancel(@Nullable PDU request, org.snmp4j.event.@Nullable ResponseListener listener) {
             ++cancelCallCounter;
         }
     }

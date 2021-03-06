@@ -14,9 +14,7 @@
 package org.smarthomej.binding.snmp.internal;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -28,13 +26,16 @@ import org.osgi.service.component.annotations.Modified;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.snmp.internal.config.SnmpServiceConfiguration;
+import org.smarthomej.binding.snmp.internal.types.SnmpAuthProtocol;
+import org.smarthomej.binding.snmp.internal.types.SnmpPrivProtocol;
 import org.snmp4j.CommandResponder;
 import org.snmp4j.PDU;
 import org.snmp4j.Snmp;
 import org.snmp4j.Target;
 import org.snmp4j.event.ResponseListener;
-import org.snmp4j.security.Priv3DES;
-import org.snmp4j.security.SecurityProtocols;
+import org.snmp4j.mp.MPv3;
+import org.snmp4j.security.*;
+import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.UdpAddress;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
 
@@ -50,14 +51,24 @@ import org.snmp4j.transport.DefaultUdpTransportMapping;
 public class SnmpServiceImpl implements SnmpService {
     private final Logger logger = LoggerFactory.getLogger(SnmpServiceImpl.class);
 
+    private final OctetString localEngineId;
+
     private @NonNullByDefault({}) SnmpServiceConfiguration config;
     private @Nullable Snmp snmp;
     private @Nullable DefaultUdpTransportMapping transport;
 
-    private List<CommandResponder> listeners = new ArrayList<>();
+    private final List<CommandResponder> listeners = new ArrayList<>();
+    private final Set<UserEntry> userEntries = new HashSet<>();
 
     @Activate
     public SnmpServiceImpl(Map<String, Object> config) {
+        SecurityProtocols.getInstance().addDefaultProtocols();
+        SecurityProtocols.getInstance().addPrivacyProtocol(new Priv3DES());
+
+        localEngineId = new OctetString(MPv3.createLocalEngineID());
+        USM usm = new USM(SecurityProtocols.getInstance(), localEngineId, 0);
+        SecurityModels.getInstance().addSecurityModel(usm);
+
         modified(config);
     }
 
@@ -75,12 +86,12 @@ public class SnmpServiceImpl implements SnmpService {
                 transport = new DefaultUdpTransportMapping();
             }
 
-            SecurityProtocols.getInstance().addDefaultProtocols();
-            SecurityProtocols.getInstance().addPrivacyProtocol(new Priv3DES());
-
             final Snmp snmp = new Snmp(transport);
             listeners.forEach(listener -> snmp.addCommandResponder(listener));
             snmp.listen();
+
+            // re-add user entries
+            userEntries.forEach(u -> addUser(snmp, u));
 
             this.snmp = snmp;
             this.transport = transport;
@@ -91,6 +102,7 @@ public class SnmpServiceImpl implements SnmpService {
         }
     }
 
+    @SuppressWarnings("unused")
     @Deactivate
     public void deactivate() {
         try {
@@ -140,6 +152,39 @@ public class SnmpServiceImpl implements SnmpService {
             logger.trace("send {} to {}", pdu, target);
         } else {
             logger.warn("SNMP service not initialized, can't send {} to {}", pdu, target);
+        }
+    }
+
+    @Override
+    public void addUser(String userName, SnmpAuthProtocol snmpAuthProtocol, @Nullable String authPassphrase,
+            SnmpPrivProtocol snmpPrivProtocol, @Nullable String privPassphrase, byte[] engineId) {
+        UsmUser usmUser = new UsmUser(new OctetString(userName), snmpAuthProtocol.getOid(),
+                authPassphrase != null ? new OctetString(authPassphrase) : null, snmpPrivProtocol.getOid(),
+                privPassphrase != null ? new OctetString(privPassphrase) : null);
+        OctetString securityNameOctets = new OctetString(userName);
+
+        UserEntry userEntry = new UserEntry(securityNameOctets, new OctetString(engineId), usmUser);
+        userEntries.add(userEntry);
+
+        Snmp snmp = this.snmp;
+        if (snmp != null) {
+            addUser(snmp, userEntry);
+        }
+    }
+
+    private static void addUser(Snmp snmp, UserEntry userEntry) {
+        snmp.getUSM().addUser(userEntry.securityName, userEntry.engineId, userEntry.user);
+    }
+
+    private class UserEntry {
+        public OctetString securityName;
+        public OctetString engineId;
+        public UsmUser user;
+
+        public UserEntry(OctetString securityName, OctetString engineId, UsmUser user) {
+            this.securityName = securityName;
+            this.engineId = engineId;
+            this.user = user;
         }
     }
 }

@@ -11,7 +11,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.smarthomej.binding.snmp.internal;
+package org.smarthomej.binding.snmp.internal.types;
 
 /**
  * The {@link SnmpChannelMode} enum defines the mode of SNMP channels

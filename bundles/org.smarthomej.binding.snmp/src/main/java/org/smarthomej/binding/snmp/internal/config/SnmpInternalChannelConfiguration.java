@@ -17,8 +17,8 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.types.State;
-import org.smarthomej.binding.snmp.internal.SnmpChannelMode;
-import org.smarthomej.binding.snmp.internal.SnmpDatatype;
+import org.smarthomej.binding.snmp.internal.types.SnmpChannelMode;
+import org.smarthomej.binding.snmp.internal.types.SnmpDatatype;
 import org.snmp4j.smi.OID;
 import org.snmp4j.smi.Variable;
 

@@ -17,6 +17,8 @@ import java.io.IOException;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.smarthomej.binding.snmp.internal.types.SnmpAuthProtocol;
+import org.smarthomej.binding.snmp.internal.types.SnmpPrivProtocol;
 import org.snmp4j.CommandResponder;
 import org.snmp4j.PDU;
 import org.snmp4j.Target;
@@ -32,9 +34,12 @@ import org.snmp4j.event.ResponseListener;
 @NonNullByDefault
 public interface SnmpService {
 
-    public void addCommandResponder(CommandResponder listener);
+    void addCommandResponder(CommandResponder listener);
 
-    public void removeCommandResponder(CommandResponder listener);
+    void removeCommandResponder(CommandResponder listener);
 
-    public void send(PDU pdu, Target target, @Nullable Object userHandle, ResponseListener listener) throws IOException;
+    void send(PDU pdu, Target target, @Nullable Object userHandle, ResponseListener listener) throws IOException;
+
+    void addUser(String userName, SnmpAuthProtocol snmpAuthProtocol, @Nullable String authPassphrase,
+            SnmpPrivProtocol snmpPrivProtocol, @Nullable String privPassphrase, byte[] engineId);
 }
