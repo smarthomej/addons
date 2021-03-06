@@ -40,6 +40,7 @@ import org.openhab.core.thing.binding.ThingHandlerService;
 import org.openhab.core.types.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smarthomej.binding.deconz.internal.action.BridgeActions;
 import org.smarthomej.binding.deconz.internal.discovery.ThingDiscoveryService;
 import org.smarthomej.binding.deconz.internal.dto.ApiKeyMessage;
 import org.smarthomej.binding.deconz.internal.dto.BridgeFullState;
@@ -94,7 +95,7 @@ public class DeconzBridgeHandler extends BaseBridgeHandler implements WebSocketC
 
     @Override
     public Collection<Class<? extends ThingHandlerService>> getServices() {
-        return Set.of(ThingDiscoveryService.class);
+        return Set.of(ThingDiscoveryService.class, BridgeActions.class);
     }
 
     @Override
@@ -330,7 +331,7 @@ public class DeconzBridgeHandler extends BaseBridgeHandler implements WebSocketC
             HttpMethod httpMethod) {
         String json = object == null ? null : gson.toJson(object);
         String url = buildUrl(config.host, config.httpPort, config.apikey, endPoint);
-        logger.trace("Sending {} via {}", json, url);
+        logger.trace("Sending {} via {} to {}", json, httpMethod, url);
 
         if (httpMethod == HttpMethod.PUT) {
             return http.put(url, json, config.timeout);
