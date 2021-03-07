@@ -27,10 +27,7 @@ import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingTypeUID;
 import org.openhab.core.thing.binding.ThingHandlerService;
-import org.openhab.core.types.Command;
-import org.openhab.core.types.CommandDescriptionBuilder;
-import org.openhab.core.types.CommandOption;
-import org.openhab.core.types.RefreshType;
+import org.openhab.core.types.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.deconz.internal.CommandDescriptionProvider;
@@ -89,7 +86,7 @@ public class GroupThingHandler extends DeconzBaseThingHandler {
             case CHANNEL_COLOR:
                 if (command instanceof HSBType) {
                     HSBType hsbCommand = (HSBType) command;
-                    Integer bri = Util.fromPercentType(hsbCommand.getBrightness());
+                    int bri = Util.fromPercentType(hsbCommand.getBrightness());
                     newGroupAction.bri = bri;
                     if (bri > 0) {
                         newGroupAction.hue = (int) (hsbCommand.getHue().doubleValue() * HUE_FACTOR);
@@ -115,13 +112,13 @@ public class GroupThingHandler extends DeconzBaseThingHandler {
                 break;
             case CHANNEL_SCENE:
                 if (command instanceof StringType) {
-                    String sceneId = scenes.get(command.toString());
-                    if (sceneId != null) {
-                        sendCommand(null, command, channelUID, "scenes/" + sceneId + "/recall", null);
-                    } else {
-                        logger.debug("Ignoring command {} for {}, scene is not found in available scenes: {}", command,
-                                channelUID, scenes);
-                    }
+                    scenes.entrySet().stream().filter(e -> e.getValue().equals(command.toString())).findAny()
+                            .ifPresentOrElse(
+                                    e -> sendCommand(null, command, channelUID, "scenes/" + e.getKey() + "/recall",
+                                            null),
+                                    () -> logger.debug(
+                                            "Ignoring command {} for {}, scene is not found in available scenes: {}",
+                                            command, channelUID, scenes));
                 }
                 return;
             default:
@@ -140,7 +137,7 @@ public class GroupThingHandler extends DeconzBaseThingHandler {
     protected void processStateResponse(DeconzBaseMessage stateResponse) {
         if (stateResponse instanceof GroupMessage) {
             GroupMessage groupMessage = (GroupMessage) stateResponse;
-            scenes = groupMessage.scenes.stream().collect(Collectors.toMap(scene -> scene.name, scene -> scene.id));
+            scenes = groupMessage.scenes.stream().collect(Collectors.toMap(scene -> scene.id, scene -> scene.name));
             ChannelUID channelUID = new ChannelUID(thing.getUID(), CHANNEL_SCENE);
             commandDescriptionProvider.setDescription(channelUID,
                     CommandDescriptionBuilder.create().withCommandOptions(groupMessage.scenes.stream()
@@ -176,9 +173,13 @@ public class GroupThingHandler extends DeconzBaseThingHandler {
             }
         } else {
             logger.trace("{} received {}", thing.getUID(), message);
-            scenes.entrySet().stream().filter(e -> e.getValue().equals(message.scid)).findAny().ifPresentOrElse(
-                    e -> updateState(CHANNEL_SCENE, new StringType(e.getKey())),
-                    () -> logger.debug("{} ignoring unknown scene id {}", thing.getUID(), message.scid));
+            String sceneName = scenes.get(message.scid);
+            if (sceneName != null) {
+                updateState(CHANNEL_SCENE, new StringType(sceneName));
+            } else {
+                updateState(CHANNEL_SCENE, UnDefType.UNDEF);
+                logger.debug("{} ignoring unknown scene id {}", thing.getUID(), message.scid);
+            }
         }
     }
 
