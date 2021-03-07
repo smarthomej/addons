@@ -320,7 +320,7 @@ public class LightThingHandler extends DeconzBaseThingHandler {
             updateThing(thingBuilder.build());
         }
 
-        messageReceived(config.id, lightMessage);
+        messageReceived(lightMessage);
     }
 
     private enum EffectLightModel {
@@ -453,7 +453,7 @@ public class LightThingHandler extends DeconzBaseThingHandler {
     }
 
     @Override
-    public void messageReceived(String sensorID, DeconzBaseMessage message) {
+    public void messageReceived(DeconzBaseMessage message) {
         if (message instanceof LightMessage) {
             LightMessage lightMessage = (LightMessage) message;
             logger.trace("{} received {}", thing.getUID(), lightMessage);

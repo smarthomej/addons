@@ -82,7 +82,7 @@ public class SensorsTest {
         SensorThingHandler sensorThingHandler = new SensorThingHandler(sensor, gson);
         sensorThingHandler.setCallback(thingHandlerCallback);
 
-        sensorThingHandler.messageReceived("", sensorMessage);
+        sensorThingHandler.messageReceived(sensorMessage);
         Mockito.verify(thingHandlerCallback).stateUpdated(eq(channelUID), eq(OnOffType.ON));
     }
 
@@ -104,7 +104,7 @@ public class SensorsTest {
         SensorThermostatThingHandler sensorThingHandler = new SensorThermostatThingHandler(sensor, gson);
         sensorThingHandler.setCallback(thingHandlerCallback);
 
-        sensorThingHandler.messageReceived("", sensorMessage);
+        sensorThingHandler.messageReceived(sensorMessage);
         Mockito.verify(thingHandlerCallback).stateUpdated(eq(channelValveUID),
                 eq(new QuantityType<>(100.0, Units.PERCENT)));
         Mockito.verify(thingHandlerCallback).stateUpdated(eq(channelHeatSetPointUID),
@@ -134,7 +134,7 @@ public class SensorsTest {
         SensorThingHandler sensorThingHandler = new SensorThingHandler(sensor, gson);
         sensorThingHandler.setCallback(thingHandlerCallback);
 
-        sensorThingHandler.messageReceived("", sensorMessage);
+        sensorThingHandler.messageReceived(sensorMessage);
 
         Mockito.verify(thingHandlerCallback).stateUpdated(eq(channelFireUID), eq(OnOffType.OFF));
         Mockito.verify(thingHandlerCallback).stateUpdated(eq(channelBatteryLevelUID), eq(new DecimalType(98)));

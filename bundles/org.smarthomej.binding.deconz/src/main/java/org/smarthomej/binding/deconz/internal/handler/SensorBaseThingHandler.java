@@ -192,7 +192,7 @@ public abstract class SensorBaseThingHandler extends DeconzBaseThingHandler {
     }
 
     @Override
-    public void messageReceived(String sensorID, DeconzBaseMessage message) {
+    public void messageReceived(DeconzBaseMessage message) {
         logger.trace("{} received {}", thing.getUID(), message);
         if (message instanceof SensorMessage) {
             SensorMessage sensorMessage = (SensorMessage) message;

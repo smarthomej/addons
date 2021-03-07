@@ -25,4 +25,9 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 public class Scene {
     public String id = "";
     public String name = "";
+
+    @Override
+    public String toString() {
+        return "Scene{" + "id='" + id + '\'' + ", name='" + name + '\'' + '}';
+    }
 }
