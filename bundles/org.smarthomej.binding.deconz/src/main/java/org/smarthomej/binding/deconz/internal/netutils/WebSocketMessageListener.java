@@ -26,8 +26,7 @@ public interface WebSocketMessageListener {
     /**
      * A new message was received
      *
-     * @param sensorID The sensor ID (API endpoint)
      * @param message The received message
      */
-    void messageReceived(String sensorID, DeconzBaseMessage message);
+    void messageReceived(DeconzBaseMessage message);
 }

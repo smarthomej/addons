@@ -88,7 +88,7 @@ public class LightsTest {
                 commandDescriptionProvider);
         lightThingHandler.setCallback(thingHandlerCallback);
 
-        lightThingHandler.messageReceived("", lightMessage);
+        lightThingHandler.messageReceived(lightMessage);
         Mockito.verify(thingHandlerCallback).stateUpdated(eq(channelUID_bri), eq(new PercentType("21")));
         Mockito.verify(thingHandlerCallback).stateUpdated(eq(channelUID_ct), eq(new DecimalType("2500")));
     }
@@ -134,7 +134,7 @@ public class LightsTest {
                 commandDescriptionProvider);
         lightThingHandler.setCallback(thingHandlerCallback);
 
-        lightThingHandler.messageReceived("", lightMessage);
+        lightThingHandler.messageReceived(lightMessage);
         Mockito.verify(thingHandlerCallback).stateUpdated(eq(channelUID_bri), eq(new PercentType("38")));
     }
 
@@ -152,7 +152,7 @@ public class LightsTest {
                 commandDescriptionProvider);
         lightThingHandler.setCallback(thingHandlerCallback);
 
-        lightThingHandler.messageReceived("", lightMessage);
+        lightThingHandler.messageReceived(lightMessage);
         Mockito.verify(thingHandlerCallback).stateUpdated(eq(channelUID_bri), eq(new PercentType("100")));
     }
 
@@ -170,7 +170,7 @@ public class LightsTest {
                 commandDescriptionProvider);
         lightThingHandler.setCallback(thingHandlerCallback);
 
-        lightThingHandler.messageReceived("", lightMessage);
+        lightThingHandler.messageReceived(lightMessage);
         Mockito.verify(thingHandlerCallback).stateUpdated(eq(channelUID_bri), eq(new PercentType("0")));
     }
 
@@ -188,7 +188,7 @@ public class LightsTest {
                 commandDescriptionProvider);
         lightThingHandler.setCallback(thingHandlerCallback);
 
-        lightThingHandler.messageReceived("", lightMessage);
+        lightThingHandler.messageReceived(lightMessage);
         Mockito.verify(thingHandlerCallback).stateUpdated(eq(channelUID_pos), eq(new PercentType("41")));
     }
 }

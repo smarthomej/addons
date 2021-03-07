@@ -148,7 +148,7 @@ public class GroupThingHandler extends DeconzBaseThingHandler {
                             .build());
 
         }
-        messageReceived(config.id, stateResponse);
+        messageReceived(stateResponse);
     }
 
     private void valueUpdated(String channelId, GroupState newState) {
@@ -164,7 +164,7 @@ public class GroupThingHandler extends DeconzBaseThingHandler {
     }
 
     @Override
-    public void messageReceived(String sensorID, DeconzBaseMessage message) {
+    public void messageReceived(DeconzBaseMessage message) {
         if (message instanceof GroupMessage) {
             GroupMessage groupMessage = (GroupMessage) message;
             logger.trace("{} received {}", thing.getUID(), groupMessage);
@@ -174,6 +174,11 @@ public class GroupThingHandler extends DeconzBaseThingHandler {
                 thing.getChannels().stream().map(c -> c.getUID().getId()).forEach(c -> valueUpdated(c, groupState));
                 groupStateCache = groupState;
             }
+        } else {
+            logger.trace("{} received {}", thing.getUID(), message);
+            scenes.entrySet().stream().filter(e -> e.getValue().equals(message.scid)).findAny().ifPresentOrElse(
+                    e -> updateState(CHANNEL_SCENE, new StringType(e.getKey())),
+                    () -> logger.debug("{} ignoring unknown scene id {}", thing.getUID(), message.scid));
         }
     }
 

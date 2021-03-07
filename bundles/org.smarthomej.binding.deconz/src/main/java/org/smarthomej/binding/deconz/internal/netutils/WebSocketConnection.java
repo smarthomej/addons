@@ -129,7 +129,16 @@ public class WebSocketConnection {
                 return;
             }
 
-            WebSocketMessageListener listener = listeners.get(getListenerId(changedMessage.r, changedMessage.id));
+            ResourceType resourceType = changedMessage.r;
+            String resourceId = changedMessage.id;
+
+            if (resourceType == ResourceType.SCENES) {
+                // scene recalls
+                resourceType = ResourceType.GROUPS;
+                resourceId = changedMessage.gid;
+            }
+
+            WebSocketMessageListener listener = listeners.get(getListenerId(resourceType, resourceId));
             if (listener == null) {
                 logger.debug(
                         "Couldn't find listener for id {} with resource type {}. Either no thing for this id has been defined or this is a bug.",
@@ -137,6 +146,7 @@ public class WebSocketConnection {
                 return;
             }
 
+            // we still need the original resource type here
             Class<? extends DeconzBaseMessage> expectedMessageType = changedMessage.r.getExpectedMessageType();
             if (expectedMessageType == null) {
                 logger.warn(
@@ -147,7 +157,7 @@ public class WebSocketConnection {
 
             DeconzBaseMessage deconzMessage = gson.fromJson(message, expectedMessageType);
             if (deconzMessage != null) {
-                listener.messageReceived(changedMessage.id, deconzMessage);
+                listener.messageReceived(deconzMessage);
 
             }
         } catch (RuntimeException e) {
