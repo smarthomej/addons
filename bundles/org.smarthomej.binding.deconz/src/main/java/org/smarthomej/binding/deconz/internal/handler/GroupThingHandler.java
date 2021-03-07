@@ -18,6 +18,7 @@ import static org.smarthomej.binding.deconz.internal.BindingConstants.*;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -112,13 +113,13 @@ public class GroupThingHandler extends DeconzBaseThingHandler {
                 break;
             case CHANNEL_SCENE:
                 if (command instanceof StringType) {
-                    scenes.entrySet().stream().filter(e -> e.getValue().equals(command.toString())).findAny()
-                            .ifPresentOrElse(
-                                    e -> sendCommand(null, command, channelUID, "scenes/" + e.getKey() + "/recall",
-                                            null),
-                                    () -> logger.debug(
-                                            "Ignoring command {} for {}, scene is not found in available scenes: {}",
-                                            command, channelUID, scenes));
+                    getIdFromSceneName(command.toString())
+                            .thenAccept(id -> sendCommand(null, command, channelUID, "scenes/" + id + "/recall", null))
+                            .exceptionally(e -> {
+                                logger.debug("Ignoring command {} for {}, scene is not found in available scenes {}.",
+                                        command, channelUID, scenes);
+                                return null;
+                            });
                 }
                 return;
             default:
@@ -135,16 +136,7 @@ public class GroupThingHandler extends DeconzBaseThingHandler {
 
     @Override
     protected void processStateResponse(DeconzBaseMessage stateResponse) {
-        if (stateResponse instanceof GroupMessage) {
-            GroupMessage groupMessage = (GroupMessage) stateResponse;
-            scenes = groupMessage.scenes.stream().collect(Collectors.toMap(scene -> scene.id, scene -> scene.name));
-            ChannelUID channelUID = new ChannelUID(thing.getUID(), CHANNEL_SCENE);
-            commandDescriptionProvider.setDescription(channelUID,
-                    CommandDescriptionBuilder.create().withCommandOptions(groupMessage.scenes.stream()
-                            .map(scene -> new CommandOption(scene.name, scene.name)).collect(Collectors.toList()))
-                            .build());
-
-        }
+        scenes = processScenes(stateResponse);
         messageReceived(stateResponse);
     }
 
@@ -173,14 +165,65 @@ public class GroupThingHandler extends DeconzBaseThingHandler {
             }
         } else {
             logger.trace("{} received {}", thing.getUID(), message);
-            String sceneName = scenes.get(message.scid);
-            if (sceneName != null) {
-                updateState(CHANNEL_SCENE, new StringType(sceneName));
-            } else {
-                updateState(CHANNEL_SCENE, UnDefType.UNDEF);
-                logger.debug("{} ignoring unknown scene id {}", thing.getUID(), message.scid);
-            }
+            getSceneNameFromId(message.scid).thenAccept(v -> updateState(CHANNEL_SCENE, v));
         }
+    }
+
+    private CompletableFuture<String> getIdFromSceneName(String sceneName) {
+        CompletableFuture<String> f = new CompletableFuture<>();
+
+        Util.getKeysFromValue(scenes, sceneName).findAny().ifPresentOrElse(f::complete, () -> {
+            // we need to check if that is a new scene
+            logger.trace("Scene name {} not found in {}, refreshing scene list", sceneName, thing.getUID());
+            requestState(stateResponse -> {
+                scenes = processScenes(stateResponse);
+                Util.getKeysFromValue(scenes, sceneName).findAny().ifPresentOrElse(f::complete,
+                        () -> f.completeExceptionally(new IllegalArgumentException("Scene not found")));
+            });
+        });
+
+        return f;
+    }
+
+    private CompletableFuture<State> getSceneNameFromId(String sceneId) {
+        CompletableFuture<State> f = new CompletableFuture<>();
+
+        String sceneName = scenes.get(sceneId);
+        if (sceneName != null) {
+            // we already know that name, exit early
+            f.complete(new StringType(sceneName));
+        } else {
+            // we need to check if that is a new scene
+            logger.trace("Scene name for id {} not found in {}, refreshing scene list", sceneId, thing.getUID());
+            requestState(stateResponse -> {
+                scenes = processScenes(stateResponse);
+                String newSceneId = scenes.get(sceneId);
+                if (newSceneId != null) {
+                    f.complete(new StringType(newSceneId));
+                } else {
+                    logger.debug("Scene name for id {} not found in {} even after refreshing scene list.", sceneId,
+                            thing.getUID());
+                    f.complete(UnDefType.UNDEF);
+                }
+            });
+        }
+
+        return f;
+    }
+
+    private Map<String, String> processScenes(DeconzBaseMessage stateResponse) {
+        if (stateResponse instanceof GroupMessage) {
+            GroupMessage groupMessage = (GroupMessage) stateResponse;
+            Map<String, String> scenes = groupMessage.scenes.stream()
+                    .collect(Collectors.toMap(scene -> scene.id, scene -> scene.name));
+            ChannelUID channelUID = new ChannelUID(thing.getUID(), CHANNEL_SCENE);
+            commandDescriptionProvider.setDescription(channelUID,
+                    CommandDescriptionBuilder.create().withCommandOptions(groupMessage.scenes.stream()
+                            .map(scene -> new CommandOption(scene.name, scene.name)).collect(Collectors.toList()))
+                            .build());
+            return scenes;
+        }
+        return Map.of();
     }
 
     @Override

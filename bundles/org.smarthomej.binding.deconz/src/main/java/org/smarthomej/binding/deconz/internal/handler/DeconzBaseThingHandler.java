@@ -156,7 +156,7 @@ public abstract class DeconzBaseThingHandler extends BaseThingHandler implements
     protected abstract void processStateResponse(DeconzBaseMessage stateResponse);
 
     /**
-     * Perform a request to the REST API for retrieving the full light state with all data and configuration.
+     * Perform a request to the REST API for retrieving the full state with all data and configuration.
      */
     protected void requestState(Consumer<DeconzBaseMessage> processor) {
         DeconzBridgeHandler bridgeHandler = getBridgeHandler();
