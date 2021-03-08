@@ -41,8 +41,8 @@
   </developers>
 
   <scm>
-    <connection>scm:git:https://github.com/smarthomej/addons.git</connection>
-    <developerConnection>scm:git:https://github.com/smarthomej/addons.git</developerConnection>
+    <connection>scm:git:git@github.com/smarthomej/addons.git</connection>
+    <developerConnection>scm:git:git@github.com/smarthomej/addons.git</developerConnection>
     <tag>HEAD</tag>
     <url>https://github.com/smarthomej/addons</url>
   </scm>
@@ -77,7 +77,7 @@
     <maven.compiler.target>${oh.java.version}</maven.compiler.target>
     <maven.compiler.compilerVersion>${oh.java.version}</maven.compiler.compilerVersion>
 
-    <ohc.version>3.1.0-SNAPSHOT</ohc.version>
+    <ohc.version>3.0.0</ohc.version>
     <bnd.version>5.3.0</bnd.version>
     <commons.net.version>3.7.2</commons.net.version>
     <eea.version>2.2.1</eea.version>
@@ -632,6 +632,37 @@ Import-Package: \\
             </execution>
           </executions>
         </plugin>
+
+        <!-- unleash -->
+        <plugin>
+          <groupId>com.itemis.maven.plugins</groupId>
+          <artifactId>unleash-maven-plugin</artifactId>
+          <version>2.9.3</version>
+          <dependencies>
+            <!-- The next 3 dependencies were added due to https://github.com/shillner/unleash-scm-provider-git/issues/15 -->
+            <dependency>
+              <groupId>com.jcraft</groupId>
+              <artifactId>jsch</artifactId>
+              <version>0.1.55</version>
+            </dependency>
+            <dependency>
+              <groupId>org.eclipse.jgit</groupId>
+              <artifactId>org.eclipse.jgit</artifactId>
+              <version>5.3.0.201903130848-r</version>
+            </dependency>
+            <dependency>
+              <groupId>com.itemis.maven.plugins</groupId>
+              <artifactId>unleash-scm-provider-api</artifactId>
+              <version>2.9.3</version>
+            </dependency>
+            <!-- end -->
+            <dependency>
+              <groupId>com.itemis.maven.plugins</groupId>
+              <artifactId>unleash-scm-provider-git</artifactId>
+              <version>2.2.0</version>
+            </dependency>
+          </dependencies>
+        </plugin>
       </plugins>
     </pluginManagement>
 
@@ -775,6 +806,12 @@ Import-Package: \\
                   <goal>sign</goal>
                 </goals>
                 <phase>verify</phase>
+                <configuration>
+                  <gpgArguments>
+                    <arg>--pinentry-mode</arg>
+                    <arg>loopback</arg>
+                  </gpgArguments>
+                </configuration>
               </execution>
             </executions>
           </plugin>
