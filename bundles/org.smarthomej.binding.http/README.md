@@ -17,8 +17,8 @@ It can be extended with different channels.
 | `bufferSize`      | no       |  2048   | The buffer size for the response data (in kB). |
 | `delay`           | no       |    0    | Delay between two requests in ms (advanced parameter). |
 | `username`        | yes      |    -    | Username for authentication (advanced parameter). |
-| `password`        | yes      |    -    | Password for authentication (advanced parameter). |
-| `authMode`        | no       |  BASIC  | Authentication mode, `BASIC`, `BASIC_PREEMPTIVE` or `DIGEST` (advanced parameter). |
+| `password`        | yes      |    -    | Password for authentication (advanced parameter). Also used for the authentication token when using `TOKEN` authentication. |
+| `authMode`        | no       |  BASIC  | Authentication mode, `BASIC`, `BASIC_PREEMPTIVE`, `TOKEN` or `DIGEST` (advanced parameter). |
 | `stateMethod`     | no       |   GET   | Method used for requesting the state: `GET`, `PUT`, `POST`. |
 | `commandMethod`   | no       |   GET   | Method used for sending commands: `GET`, `PUT`, `POST`. |
 | `contentType`     | yes      |    -    | MIME content-type of the command requests. Only used for  `PUT` and `POST`. |
