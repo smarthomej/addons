@@ -152,7 +152,7 @@ public class HttpThingHandler extends BaseThingHandler {
         config.headers.removeIf(String::isBlank);
 
         // configure authentication
-        if (!config.username.isEmpty()) {
+        if (!config.username.isEmpty() || !config.password.isEmpty()) {
             try {
                 AuthenticationStore authStore = httpClient.getAuthenticationStore();
                 URI uri = new URI(config.baseURL);
@@ -161,6 +161,15 @@ public class HttpThingHandler extends BaseThingHandler {
                         config.headers.add("Authorization=Basic " + Base64.getEncoder()
                                 .encodeToString((config.username + ":" + config.password).getBytes()));
                         logger.debug("Preemptive Basic Authentication configured for thing '{}'", thing.getUID());
+                        break;
+                    case TOKEN:
+                        if (!config.password.isEmpty()) {
+                            config.headers.add("Authorization=Bearer " + config.password);
+                            logger.debug("Token/Bearer Authentication configured for thing '{}'", thing.getUID());
+                        } else {
+                            logger.warn("Token/Bearer Authentication configured for thing '{}' but token is empty!",
+                                    thing.getUID());
+                        }
                         break;
                     case BASIC:
                         authStore.addAuthentication(new BasicAuthentication(uri, Authentication.ANY_REALM,

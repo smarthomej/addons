@@ -44,7 +44,7 @@
 			</parameter>
 			<parameter name="password" type="text">
 				<label>Password</label>
-				<description>Basic Authentication password</description>
+				<description>Authentication password or token</description>
 				<context>password</context>
 				<advanced>true</advanced>
 			</parameter>
@@ -54,6 +54,7 @@
 					<option value="BASIC">Basic Authentication</option>
 					<option value="BASIC_PREEMPTIVE">Preemptive Basic Authentication</option>
 					<option value="DIGEST">Digest Authentication</option>
+					<option value="TOKEN">Token/Bearer Authentication</option>
 				</options>
 				<default>BASIC</default>
 				<limitToOptions>true</limitToOptions>
