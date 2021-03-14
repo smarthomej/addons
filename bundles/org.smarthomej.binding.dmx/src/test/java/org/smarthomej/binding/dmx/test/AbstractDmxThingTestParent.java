@@ -23,6 +23,7 @@ import static org.smarthomej.binding.dmx.test.TestBridgeHandler.THING_TYPE_TEST_
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 import org.mockito.ArgumentCaptor;
@@ -93,6 +94,7 @@ public class AbstractDmxThingTestParent extends JavaTest {
         // check that thing properly follows bridge status
         ThingHandler handler = thing.getHandler();
         assertNotNull(handler);
+        Objects.requireNonNull(handler);
         handler.bridgeStatusChanged(ThingStatusInfoBuilder.create(ThingStatus.OFFLINE).build());
         waitForAssert(() -> assertEquals(ThingStatus.OFFLINE, thing.getStatusInfo().getStatus()));
         handler.bridgeStatusChanged(ThingStatusInfoBuilder.create(ThingStatus.ONLINE).build());

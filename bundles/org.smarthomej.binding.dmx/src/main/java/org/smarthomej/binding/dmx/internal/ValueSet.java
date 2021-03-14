@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.jdt.annotation.NonNull;
 import org.openhab.core.library.types.PercentType;
 
 /**
@@ -25,7 +26,6 @@ import org.openhab.core.library.types.PercentType;
  *
  * @author Jan N. Klug - Initial contribution
  */
-
 public class ValueSet {
     protected static final Pattern VALUESET_PATTERN = Pattern.compile("^(\\d*):([\\d,]*):([\\d-]*)$");
 
@@ -189,7 +189,7 @@ public class ValueSet {
     }
 
     @Override
-    public String toString() {
+    public @NonNull String toString() {
         String str = "fade/hold:" + String.valueOf(fadeTime) + "/" + String.valueOf(holdTime) + ": ";
         for (Integer value : values) {
             str += String.valueOf(value) + " ";

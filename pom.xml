@@ -80,7 +80,7 @@
     <ohc.version>3.0.0</ohc.version>
     <bnd.version>5.3.0</bnd.version>
     <commons.net.version>3.7.2</commons.net.version>
-    <eea.version>2.2.1</eea.version>
+    <eea.version>2.3.0</eea.version>
     <karaf.version>4.2.7</karaf.version>
     <sat.version>0.10.0</sat.version>
     <slf4j.version>1.7.21</slf4j.version>
@@ -302,11 +302,8 @@ Import-Package: \\
             <compilerArguments>
               <annotationpath>CLASSPATH</annotationpath>
               <classpath>${project.build.directory}/dependency</classpath>
+              <properties>${basedirRoot}/tools/org.eclipse.jdt.core.prefs</properties>
             </compilerArguments>
-            <compilerArgs>
-              <arg>-err:+nullAnnot(org.eclipse.jdt.annotation.Nullable|org.eclipse.jdt.annotation.NonNull|org.eclipse.jdt.annotation.NonNullByDefault),+inheritNullAnnot,+nullAnnotConflict,-nullUncheckedConversion</arg>
-              <arg>-warn:+null,+inheritNullAnnot,-nullUncheckedConversion,+nullAnnotRedundant,+nullDereference</arg>
-            </compilerArgs>
             <showWarnings>true</showWarnings>
             <showDeprecation>true</showDeprecation>
           </configuration>

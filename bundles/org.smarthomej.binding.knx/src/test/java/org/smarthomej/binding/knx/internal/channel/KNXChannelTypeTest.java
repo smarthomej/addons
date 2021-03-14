@@ -41,6 +41,11 @@ public class KNXChannelTypeTest {
     public void testParseWithDPTMultipleWithRead() {
         ChannelConfiguration res = ct.parse("5.001:<1/3/22+0/3/22+<0/8/15");
 
+        if (res == null) {
+            fail();
+            return;
+        }
+
         assertEquals("5.001", res.getDPT());
         assertEquals("1/3/22", res.getMainGA().getGA());
         assertTrue(res.getMainGA().isRead());
@@ -51,6 +56,11 @@ public class KNXChannelTypeTest {
     @Test
     public void testParseWithDPTMultipleWithoutRead() {
         ChannelConfiguration res = ct.parse("5.001:1/3/22+0/3/22+0/8/15");
+
+        if (res == null) {
+            fail();
+            return;
+        }
 
         assertEquals("5.001", res.getDPT());
         assertEquals("1/3/22", res.getMainGA().getGA());
@@ -63,6 +73,11 @@ public class KNXChannelTypeTest {
     public void testParseWithoutDPTSingleWithoutRead() {
         ChannelConfiguration res = ct.parse("1/3/22");
 
+        if (res == null) {
+            fail();
+            return;
+        }
+
         assertNull(res.getDPT());
         assertEquals("1/3/22", res.getMainGA().getGA());
         assertFalse(res.getMainGA().isRead());
@@ -74,6 +89,11 @@ public class KNXChannelTypeTest {
     public void testParseWithoutDPTSingleWithRead() {
         ChannelConfiguration res = ct.parse("<1/3/22");
 
+        if (res == null) {
+            fail();
+            return;
+        }
+
         assertNull(res.getDPT());
         assertEquals("1/3/22", res.getMainGA().getGA());
         assertTrue(res.getMainGA().isRead());
@@ -84,6 +104,12 @@ public class KNXChannelTypeTest {
     @Test
     public void testParseTwoLevel() {
         ChannelConfiguration res = ct.parse("5.001:<3/1024+<4/1025");
+
+        if (res == null) {
+            fail();
+            return;
+        }
+
         assertEquals("3/1024", res.getMainGA().getGA());
         assertEquals(2, res.getListenGAs().size());
         assertEquals(2, res.getReadGAs().size());
@@ -92,6 +118,12 @@ public class KNXChannelTypeTest {
     @Test
     public void testParseFreeLevel() {
         ChannelConfiguration res = ct.parse("5.001:<4610+<4611");
+
+        if (res == null) {
+            fail();
+            return;
+        }
+
         assertEquals("4610", res.getMainGA().getGA());
         assertEquals(2, res.getListenGAs().size());
         assertEquals(2, res.getReadGAs().size());

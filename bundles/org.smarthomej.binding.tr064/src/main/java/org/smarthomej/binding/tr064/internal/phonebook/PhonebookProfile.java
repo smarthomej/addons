@@ -15,6 +15,7 @@ package org.smarthomej.binding.tr064.internal.phonebook;
 
 import java.math.BigDecimal;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -139,7 +140,7 @@ public class PhonebookProfile implements StateProfile {
         }
         if (state instanceof StringType) {
             Optional<String> match = resolveNumber(state.toString());
-            State newState = match.map(name -> (State) new StringType(name)).orElse(state);
+            State newState = Objects.requireNonNull(match.map(name -> (State) new StringType(name)).orElse(state));
             if (newState == state) {
                 logger.debug("Number '{}' not found in phonebook '{}' from provider '{}'", state, phonebookName,
                         thingUID);

@@ -55,7 +55,7 @@ public class HttpResponseListener extends BufferingResponseListener {
     }
 
     @Override
-    public void onComplete(@NonNullByDefault({}) Result result) {
+    public void onComplete(Result result) {
         Response response = result.getResponse();
         if (logger.isTraceEnabled()) {
             logger.trace("Received from '{}': {}", result.getRequest().getURI(), responseToLogString(response));

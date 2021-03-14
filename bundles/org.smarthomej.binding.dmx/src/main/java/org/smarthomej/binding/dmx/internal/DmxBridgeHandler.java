@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.jdt.annotation.NonNull;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.ChannelUID;
@@ -284,7 +285,7 @@ public abstract class DmxBridgeHandler extends BaseBridgeHandler {
     }
 
     @Override
-    public Collection<Class<? extends ThingHandlerService>> getServices() {
+    public @NonNull Collection<@NonNull Class<? extends @NonNull ThingHandlerService>> getServices() {
         return Collections.singletonList(DmxActions.class);
     }
 }

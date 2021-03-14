@@ -20,6 +20,8 @@ import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.jdt.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.dmx.internal.Util;
@@ -92,20 +94,20 @@ public class BaseDmxChannel implements Comparable<BaseDmxChannel> {
     }
 
     @Override
-    public int compareTo(BaseDmxChannel otherDmxChannel) {
+    public int compareTo(@Nullable BaseDmxChannel otherDmxChannel) {
         if (otherDmxChannel == null) {
             return -1;
         }
-        int universeCompare = new Integer(getUniverseId()).compareTo(new Integer(otherDmxChannel.getUniverseId()));
+        int universeCompare = Integer.valueOf(getUniverseId()).compareTo(otherDmxChannel.getUniverseId());
         if (universeCompare == 0) {
-            return new Integer(getChannelId()).compareTo(new Integer(otherDmxChannel.getChannelId()));
+            return Integer.valueOf(getChannelId()).compareTo(otherDmxChannel.getChannelId());
         } else {
             return universeCompare;
         }
     }
 
     @Override
-    public String toString() {
+    public @NonNull String toString() {
         return universeId + ":" + dmxChannelId;
     }
 
@@ -125,9 +127,9 @@ public class BaseDmxChannel implements Comparable<BaseDmxChannel> {
             Matcher channelMatch = CHANNEL_PATTERN.matcher(singleDmxChannelString);
             if (channelMatch.matches()) {
                 final int universeId = (channelMatch.group(1) == null) ? defaultUniverseId
-                        : Integer.valueOf(channelMatch.group(1));
-                dmxChannelWidth = channelMatch.group(3).equals("") ? 1 : Integer.valueOf(channelMatch.group(3));
-                dmxChannelId = Integer.valueOf(channelMatch.group(2));
+                        : Integer.parseInt(channelMatch.group(1));
+                dmxChannelWidth = channelMatch.group(3).equals("") ? 1 : Integer.parseInt(channelMatch.group(3));
+                dmxChannelId = Integer.parseInt(channelMatch.group(2));
                 LOGGER.trace("parsed channel string {} to universe {}, id {}, width {}", singleDmxChannelString,
                         universeId, dmxChannelId, dmxChannelWidth);
                 IntStream.range(dmxChannelId, dmxChannelId + dmxChannelWidth)

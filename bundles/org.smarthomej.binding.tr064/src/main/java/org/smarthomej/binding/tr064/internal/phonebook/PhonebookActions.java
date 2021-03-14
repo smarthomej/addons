@@ -77,12 +77,12 @@ public class PhonebookActions implements ThingActions {
         } else {
             int matchCountInt = matchCount == null ? 0 : matchCount;
             if (phonebook != null && !phonebook.isEmpty()) {
-                return handler.getPhonebookByName(phonebook).flatMap(p -> p.lookupNumber(phonenumber, matchCountInt))
-                        .orElse(phonenumber);
+                return Objects.requireNonNull(handler.getPhonebookByName(phonebook)
+                        .flatMap(p -> p.lookupNumber(phonenumber, matchCountInt)).orElse(phonenumber));
             } else {
                 Collection<Phonebook> phonebooks = handler.getPhonebooks();
-                return phonebooks.stream().map(p -> p.lookupNumber(phonenumber, matchCountInt))
-                        .filter(Optional::isPresent).map(Optional::get).findAny().orElse(phonenumber);
+                return Objects.requireNonNull(phonebooks.stream().map(p -> p.lookupNumber(phonenumber, matchCountInt))
+                        .filter(Optional::isPresent).map(Optional::get).findAny().orElse(phonenumber));
             }
         }
     }

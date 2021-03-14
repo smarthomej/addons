@@ -16,10 +16,7 @@ package org.smarthomej.persistence.influxdb.internal.influx2;
 import static org.smarthomej.persistence.influxdb.internal.InfluxDBConstants.*;
 
 import java.time.Instant;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -219,9 +216,10 @@ public class InfluxDB2RepositoryImpl implements InfluxDBRepository {
                     + "  |> group()";
 
             List<FluxTable> queryResult = currentQueryAPI.query(query);
-            queryResult.stream().findFirst().orElse(new FluxTable()).getRecords().forEach(row -> {
-                result.put((String) row.getValueByKey(TAG_ITEM_NAME), ((Number) row.getValue()).intValue());
-            });
+            Objects.requireNonNull(queryResult.stream().findFirst().orElse(new FluxTable())).getRecords()
+                    .forEach(row -> {
+                        result.put((String) row.getValueByKey(TAG_ITEM_NAME), ((Number) row.getValue()).intValue());
+                    });
             return result;
         } else {
             logger.warn("Returning empty result  because queryAPI isn't present");

@@ -15,12 +15,7 @@ package org.smarthomej.binding.onewire.internal.handler;
 
 import static org.smarthomej.binding.onewire.internal.OwBindingConstants.*;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -160,7 +155,7 @@ public class AdvancedMultisensorThingHandler extends OwBaseThingHandler {
         // delete unwanted channels
         Set<String> existingChannelIds = thing.getChannels().stream().map(channel -> channel.getUID().getId())
                 .collect(Collectors.toSet());
-        Set<String> wantedChannelIds = SENSOR_TYPE_CHANNEL_MAP.get(sensorType).stream()
+        Set<String> wantedChannelIds = SENSOR_TYPE_CHANNEL_MAP.getOrDefault(sensorType, Set.of()).stream()
                 .map(channelConfig -> channelConfig.channelId).collect(Collectors.toSet());
         wantedChannelIds.add(CHANNEL_TEMPERATURE);
         wantedChannelIds.add(CHANNEL_HUMIDITY);
@@ -168,13 +163,12 @@ public class AdvancedMultisensorThingHandler extends OwBaseThingHandler {
                 .forEach(channelId -> removeChannelIfExisting(thingBuilder, channelId));
 
         // add or update wanted channels
-        SENSOR_TYPE_CHANNEL_MAP.get(sensorType).stream().forEach(channelConfig -> {
+        SENSOR_TYPE_CHANNEL_MAP.getOrDefault(sensorType, Set.of()).stream().forEach(channelConfig -> {
             addChannelIfMissingAndEnable(thingBuilder, channelConfig);
         });
 
         // temperature channel
-        if (configuration.containsKey(CONFIG_TEMPERATURESENSOR)
-                && configuration.get(CONFIG_TEMPERATURESENSOR).equals("DS18B20")) {
+        if ("DS18B20".equals(configuration.get(CONFIG_TEMPERATURESENSOR))) {
             addChannelIfMissingAndEnable(thingBuilder,
                     new OwChannelConfig(CHANNEL_TEMPERATURE, CHANNEL_TYPE_UID_TEMPERATURE_POR_RES), 1);
         } else {

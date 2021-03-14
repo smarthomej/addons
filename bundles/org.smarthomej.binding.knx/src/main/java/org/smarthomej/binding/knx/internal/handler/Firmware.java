@@ -13,11 +13,15 @@
  */
 package org.smarthomej.binding.knx.internal.handler;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
+
 /**
  * Enumeration containing the firmware types.
  *
  * @author Karel Goderis - Initial contribution
  */
+@NonNullByDefault
 public enum Firmware {
     F0(0, "BCU 1, BCU 2, BIM M113"),
     F1(1, "Unidirectional devices"),
@@ -26,10 +30,10 @@ public enum Firmware {
     F8(8, "IR Decoder, TP1 legacy"),
     F9(9, "Repeater, Coupler");
 
-    private int code;
-    private String name;
+    private final int code;
+    private final String name;
 
-    private Firmware(int code, String name) {
+    Firmware(int code, String name) {
         this.code = code;
         this.name = name;
     }
@@ -39,7 +43,7 @@ public enum Firmware {
         return name;
     }
 
-    public static String getName(int code) {
+    public static @Nullable String getName(int code) {
         for (Firmware c : Firmware.values()) {
             if (c.code == code) {
                 return c.name;

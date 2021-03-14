@@ -332,20 +332,23 @@ public class Tr064RootHandler extends BaseBridgeHandler implements PhonebookProv
     private Collection<Phonebook> processPhonebookList(SOAPMessage soapMessagePhonebookList,
             SCPDServiceType scpdService) {
         SOAPValueConverter soapValueConverter = new SOAPValueConverter(httpClient);
-        return (Collection<Phonebook>) soapValueConverter
+        Optional<Stream<String>> phonebookStream = soapValueConverter
                 .getStateFromSOAPValue(soapMessagePhonebookList, "NewPhonebookList", null)
-                .map(phonebookList -> Arrays.stream(phonebookList.toString().split(","))).orElse(Stream.empty())
-                .map(index -> {
-                    try {
-                        SOAPMessage soapMessageURL = soapConnector.doSOAPRequest(
-                                new SOAPRequest(scpdService, "GetPhonebook", Map.of("NewPhonebookID", index)));
-                        return soapValueConverter.getStateFromSOAPValue(soapMessageURL, "NewPhonebookURL", null)
-                                .map(url -> (Phonebook) new Tr064PhonebookImpl(httpClient, url.toString()));
-                    } catch (Tr064CommunicationException e) {
-                        logger.warn("Failed to get phonebook with index {}:", index, e);
-                    }
-                    return Optional.empty();
-                }).filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList());
+                .map(phonebookList -> Arrays.stream(phonebookList.toString().split(",")));
+        if (!phonebookStream.isPresent()) {
+            return Set.of();
+        }
+        return (Collection<Phonebook>) phonebookStream.get().map(index -> {
+            try {
+                SOAPMessage soapMessageURL = soapConnector
+                        .doSOAPRequest(new SOAPRequest(scpdService, "GetPhonebook", Map.of("NewPhonebookID", index)));
+                return soapValueConverter.getStateFromSOAPValue(soapMessageURL, "NewPhonebookURL", null)
+                        .map(url -> (Phonebook) new Tr064PhonebookImpl(httpClient, url.toString()));
+            } catch (Tr064CommunicationException e) {
+                logger.warn("Failed to get phonebook with index {}:", index, e);
+            }
+            return Optional.empty();
+        }).filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList());
     }
 
     private void retrievePhonebooks() {
@@ -358,14 +361,14 @@ public class Tr064RootHandler extends BaseBridgeHandler implements PhonebookProv
         Optional<SCPDServiceType> scpdService = scpdUtil.getDevice("").flatMap(deviceType -> deviceType.getServiceList()
                 .stream().filter(service -> service.getServiceId().equals(serviceId)).findFirst());
 
-        phonebooks = scpdService.map(service -> {
+        phonebooks = Objects.requireNonNull(scpdService.map(service -> {
             try {
                 return processPhonebookList(soapConnector.doSOAPRequest(new SOAPRequest(service, "GetPhonebookList")),
                         service);
             } catch (Tr064CommunicationException e) {
                 return Collections.<Phonebook> emptyList();
             }
-        }).orElse(List.of());
+        }).orElse(List.of()));
 
         if (phonebooks.isEmpty()) {
             logger.warn("Could not get phonebooks for thing {}", thing.getUID());

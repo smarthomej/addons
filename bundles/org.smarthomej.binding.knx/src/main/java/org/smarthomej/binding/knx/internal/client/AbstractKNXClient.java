@@ -21,6 +21,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.thing.ThingStatus;
@@ -222,7 +223,6 @@ public abstract class AbstractKNXClient implements NetworkLinkListener, KNXClien
         }
     }
 
-    @SuppressWarnings("null")
     private void releaseConnection() {
         logger.debug("Bridge {} is disconnecting from the KNX bus", thingUID);
         readDatapoints.clear();
@@ -241,7 +241,7 @@ public abstract class AbstractKNXClient implements NetworkLinkListener, KNXClien
         });
     }
 
-    private <@Nullable T> T nullify(T target, @Nullable Consumer<T> lastWill) {
+    private <T> @Nullable T nullify(@Nullable T target, @Nullable Consumer<@NonNull T> lastWill) {
         if (target != null && lastWill != null) {
             lastWill.accept(target);
         }
@@ -272,7 +272,6 @@ public abstract class AbstractKNXClient implements NetworkLinkListener, KNXClien
         return typeHelper.toDPTValue(type, dpt);
     }
 
-    @SuppressWarnings("null")
     private void readNextQueuedDatapoint() {
         if (!connectIfNotAutomatic()) {
             return;

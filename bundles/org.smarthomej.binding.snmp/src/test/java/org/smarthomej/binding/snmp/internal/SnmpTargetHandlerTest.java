@@ -73,33 +73,52 @@ public class SnmpTargetHandlerTest extends AbstractSnmpTargetHandlerTest {
     }
 
     @Test
-    @SuppressWarnings("null")
     public void testCommandsAreProperlyHandledByNumberChannel() throws IOException {
         VariableBinding variable;
         variable = handleCommandNumberStringChannel(SnmpBindingConstants.CHANNEL_TYPE_UID_NUMBER, SnmpDatatype.INT32,
                 new DecimalType(-5), true);
-        assertNotNull(variable);
+
+        if (variable == null) {
+            fail("'variable' is null");
+            return;
+        }
+
         assertEquals(new OID(TEST_OID), variable.getOid());
         assertTrue(variable.getVariable() instanceof Integer32);
         assertEquals(-5, ((Integer32) variable.getVariable()).toInt());
 
         variable = handleCommandNumberStringChannel(SnmpBindingConstants.CHANNEL_TYPE_UID_NUMBER, SnmpDatatype.UINT32,
                 new DecimalType(10000), true);
-        assertNotNull(variable);
+
+        if (variable == null) {
+            fail("'variable' is null");
+            return;
+        }
+
         assertEquals(new OID(TEST_OID), variable.getOid());
         assertTrue(variable.getVariable() instanceof UnsignedInteger32);
         assertEquals(10000, ((UnsignedInteger32) variable.getVariable()).toInt());
 
         variable = handleCommandNumberStringChannel(SnmpBindingConstants.CHANNEL_TYPE_UID_NUMBER,
                 SnmpDatatype.COUNTER64, new DecimalType(10000), true);
-        assertNotNull(variable);
+
+        if (variable == null) {
+            fail("'variable' is null");
+            return;
+        }
+
         assertEquals(new OID(TEST_OID), variable.getOid());
         assertTrue(variable.getVariable() instanceof Counter64);
         assertEquals(10000, ((Counter64) variable.getVariable()).toInt());
 
         variable = handleCommandNumberStringChannel(SnmpBindingConstants.CHANNEL_TYPE_UID_NUMBER, SnmpDatatype.FLOAT,
                 new DecimalType("12.4"), true);
-        assertNotNull(variable);
+
+        if (variable == null) {
+            fail("'variable' is null");
+            return;
+        }
+
         assertEquals(new OID(TEST_OID), variable.getOid());
         assertTrue(variable.getVariable() instanceof OctetString);
         assertEquals("12.4", variable.getVariable().toString());

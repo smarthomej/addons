@@ -15,7 +15,6 @@ package org.smarthomej.binding.onewire.internal;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -90,6 +89,10 @@ public class Util {
 
     public static Map<String, String> readPropertiesFile(String filename) {
         URL resource = Thread.currentThread().getContextClassLoader().getResource(filename);
+        if (resource == null) {
+            LOGGER.warn("Could not read resource file {}, binding will probably fail: resource is null", filename);
+            return Map.of();
+        }
         Properties properties = new Properties();
         try {
             properties.load(resource.openStream());
@@ -97,7 +100,7 @@ public class Util {
                     .collect(Collectors.toMap(e -> (String) e.getKey(), e -> (String) e.getValue()));
         } catch (IOException e) {
             LOGGER.warn("Could not read resource file {}, binding will probably fail: {}", filename, e.getMessage());
-            return new HashMap<>();
+            return Map.of();
         }
     }
 }
