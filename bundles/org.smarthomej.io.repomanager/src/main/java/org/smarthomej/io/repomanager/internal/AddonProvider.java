@@ -17,6 +17,8 @@ import java.net.URI;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.karaf.features.Feature;
@@ -48,6 +50,8 @@ public class AddonProvider implements AddonService {
     public static final String CONFIGURATION_PID = "smarthomej.AddonProvider";
     private static final String ADDON_CONFIG_ID = "installedAddons";
     private static final String FEATURE_REPO_CONFIG_ID = "installedFeatureRepos";
+    private static final Pattern ADDON_TYPE = Pattern.compile("(smarthomej-[a-zA-Z]+)-.*");
+    private static final Set<String> SUPPORTED_ADDON_TYPES = Set.of("smarthomej-binding", "smarthomej-persistence");
 
     private final Logger logger = LoggerFactory.getLogger(AddonProvider.class);
 
@@ -104,7 +108,7 @@ public class AddonProvider implements AddonService {
             Configuration configuration = configurationAdmin.getConfiguration(CONFIGURATION_PID);
             Dictionary<String, Object> properties = Objects.requireNonNullElse(configuration.getProperties(),
                     new Hashtable<>());
-            properties.put(ADDON_CONFIG_ID, installedAddons.stream().collect(Collectors.joining(",")));
+            properties.put(ADDON_CONFIG_ID, String.join(",", installedAddons));
             properties.put(FEATURE_REPO_CONFIG_ID,
                     installedFeatureRepos.stream().map(URI::toString).collect(Collectors.joining(",")));
             configurationAdmin.getConfiguration(CONFIGURATION_PID).update(properties);
@@ -172,6 +176,14 @@ public class AddonProvider implements AddonService {
         return f.getName() + "_" + f.getVersion().replace(".", "_");
     }
 
+    private String addonTypeFromFeature(Feature f) {
+        Matcher matcher = ADDON_TYPE.matcher(f.getName());
+        if (matcher.matches()) {
+            return matcher.group(1);
+        }
+        return "smarthomej-unknown";
+    }
+
     private String featureIdFromAddonId(String addonId) {
         return addonId.substring(0, addonId.indexOf("_"));
     }
@@ -183,10 +195,11 @@ public class AddonProvider implements AddonService {
     private void buildAddonList() {
         try {
             availableAddons = Arrays.stream(featuresService.listFeatures())
-                    .filter(f -> f.getName().contains("smarthomej-binding"))
-                    .map(f -> new Addon(addonIdFromFeature(f), "smarthomej-binding", f.getDescription(), f.getVersion(),
-                            "https://github.com/smarthomej/addons/blob/main/bundles/org.smarthomej.binding."
-                                    + f.getName().replace("smarthomej-binding-", "") + "/README.md",
+                    .filter(f -> SUPPORTED_ADDON_TYPES.contains(addonTypeFromFeature(f)))
+                    .map(f -> new Addon(addonIdFromFeature(f), addonTypeFromFeature(f), f.getDescription(),
+                            f.getVersion(),
+                            "https://github.com/smarthomej/addons/blob/main/bundles/org."
+                                    + f.getName().replace("-", ".") + "/README.md",
                             featuresService.isInstalled(f), f.getDescription(), null, null))
                     .collect(Collectors.toMap(Addon::getId, a -> a));
             logger.trace("Available addons: {}", availableAddons);
@@ -246,7 +259,8 @@ public class AddonProvider implements AddonService {
     @Override
     @NonNullByDefault({})
     public List<AddonType> getTypes(@Nullable Locale locale) {
-        return List.of(new AddonType("smarthomej-binding", "SmartHome/J Bindings"));
+        return List.of(new AddonType("smarthomej-binding", "SmartHome/J Bindings"),
+                new AddonType("smarthomej-persistence", "SmartHome/J Persistence"));
     }
 
     @Override
