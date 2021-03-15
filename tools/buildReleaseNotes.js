@@ -26,15 +26,14 @@ const request = http.request(options, function (res) {
             fullJson.forEach(pr => {
                 if (pr.merged_at != null && pr.milestone != null && pr.milestone.title === releaseTag) {
                     let module = pr.title.match(/\[(.*)\]/)[1];
-                    if (module !== 'infrastructure') {
-                        releasePr.push({
-                            'module': module,
-                            'label': pr.labels.map(label => label.name),
-                            'title': pr.title.match(/\[.*\]\s(.*)/)[1],
-                            'issue': parseInt(pr.url.match(/\/(\d+)$/)[1]),
-                            'url': pr.url
-                        });
-                    }
+                    releasePr.push({
+                        'module': module,
+                        'label': pr.labels.map(label => label.name),
+                        'title': pr.title.match(/\[.*\]\s(.*)/)[1],
+                        'issue': parseInt(pr.url.match(/\/(\d+)$/)[1]),
+                        'url': pr.url
+                    });
+
                 }
             });
             releasePr.sort(function (a, b) {
@@ -51,15 +50,31 @@ const request = http.request(options, function (res) {
             output += 'This is the latest release of the SmartHome/J addons.\n';
             output += 'Please see below for a list of all changes since the last release.\n\n';
             output += '## Changelog\n\n';
+
+            // infrastructure
+            output += '### General/Infrastructure\n\n';
+            output += '| Type | Issue | Description |\n'
+            output += '---|:---:|---|\n';
+            releasePr.forEach(pr => {
+                if (pr.module === "infrastructure") {
+                    output += '|';
+                    pr.label.forEach(label => output += label + " ");
+                    output += '|[#' + pr.issue + '](' + pr.url + ')|' + pr.title + '|\n';
+                }
+            });
+
+            // modules
+            output += '\n### Individual Modules\n\n';
             output += '| Module | Type | Issue | Description |\n'
             output += '|---|---|:---:|---|\n';
-
             let lastModule = ''
             releasePr.forEach(pr => {
-                output += '|' + (lastModule !== pr.module ? pr.module : ' ') + '|';
-                pr.label.forEach(label => output += label + " ");
-                output += '|[#' + pr.issue + '](' + pr.url + ')|' + pr.title + '|\n';
-                lastModule = pr.module;
+                if (pr.module !== "infrastructure") {
+                    output += '|' + (lastModule !== pr.module ? pr.module : ' ') + '|';
+                    pr.label.forEach(label => output += label + " ");
+                    output += '|[#' + pr.issue + '](' + pr.url + ')|' + pr.title + '|\n';
+                    lastModule = pr.module;
+                }
             });
 
             // check if target directory exists (using target prevents locally generated release notes from being checked in)
