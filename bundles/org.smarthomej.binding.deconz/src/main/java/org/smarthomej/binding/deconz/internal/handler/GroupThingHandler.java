@@ -14,6 +14,8 @@
 package org.smarthomej.binding.deconz.internal.handler;
 
 import static org.smarthomej.binding.deconz.internal.BindingConstants.*;
+import static org.smarthomej.binding.deconz.internal.Util.constrainToRange;
+import static org.smarthomej.binding.deconz.internal.Util.kelvinToMired;
 
 import java.util.Collection;
 import java.util.Map;
@@ -85,30 +87,34 @@ public class GroupThingHandler extends DeconzBaseThingHandler {
                 }
                 break;
             case CHANNEL_COLOR:
-                if (command instanceof HSBType) {
+                if (command instanceof OnOffType) {
+                    newGroupAction.on = (command == OnOffType.ON);
+                } else if (command instanceof HSBType) {
                     HSBType hsbCommand = (HSBType) command;
-                    int bri = Util.fromPercentType(hsbCommand.getBrightness());
-                    newGroupAction.bri = bri;
-                    if (bri > 0) {
-                        newGroupAction.hue = (int) (hsbCommand.getHue().doubleValue() * HUE_FACTOR);
-                        newGroupAction.sat = Util.fromPercentType(hsbCommand.getSaturation());
-                    }
+
+                    // default is colormode "hs" (used when colormode "hs" is set or colormode is unknown)
+                    newGroupAction.bri = Util.fromPercentType(hsbCommand.getBrightness());
+                    newGroupAction.hue = (int) (hsbCommand.getHue().doubleValue() * HUE_FACTOR);
+                    newGroupAction.sat = Util.fromPercentType(hsbCommand.getSaturation());
                 } else if (command instanceof PercentType) {
                     newGroupAction.bri = Util.fromPercentType((PercentType) command);
                 } else if (command instanceof DecimalType) {
                     newGroupAction.bri = ((DecimalType) command).intValue();
-                } else if (command instanceof OnOffType) {
-                    newGroupAction.on = OnOffType.ON.equals(command);
                 } else {
                     return;
+                }
+
+                // send on/off state together with brightness if not already set or unknown
+                Integer newBri = newGroupAction.bri;
+                if (newBri != null) {
+                    newGroupAction.on = (newBri > 0);
                 }
                 break;
             case CHANNEL_COLOR_TEMPERATURE:
                 if (command instanceof DecimalType) {
-                    int miredValue = Util.kelvinToMired(((DecimalType) command).intValue());
-                    newGroupAction.ct = Util.constrainToRange(miredValue, ZCL_CT_MIN, ZCL_CT_MAX);
-                } else {
-                    return;
+                    int miredValue = kelvinToMired(((DecimalType) command).intValue());
+                    newGroupAction.ct = constrainToRange(miredValue, ZCL_CT_MIN, ZCL_CT_MAX);
+                    newGroupAction.on = true;
                 }
                 break;
             case CHANNEL_SCENE:
@@ -123,12 +129,15 @@ public class GroupThingHandler extends DeconzBaseThingHandler {
                 }
                 return;
             default:
+                // no supported command
                 return;
         }
 
-        Integer bri = newGroupAction.bri;
-        if (bri != null && bri > 0) {
-            newGroupAction.on = true;
+        Boolean newOn = newGroupAction.on;
+        if (newOn != null && !newOn) {
+            // if light shall be off, no other commands are allowed, so reset the new light state
+            newGroupAction.clear();
+            newGroupAction.on = false;
         }
 
         sendCommand(newGroupAction, command, channelUID, null);
