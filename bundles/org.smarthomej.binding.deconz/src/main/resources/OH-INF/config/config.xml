@@ -39,6 +39,10 @@
 			<label>Device ID</label>
 			<description>The deCONZ bridge assigns an integer number ID to each group.</description>
 		</parameter>
+		<parameter name="transitiontime" type="decimal" required="false" min="0" unit="s">
+			<label>Transition Time</label>
+			<description>Time to move between two states. If empty, the default of the group is used. Resolution is 1/10 second.</description>
+		</parameter>
 	</config-description>
 
 	<config-description uri="thing-type:deconz:sensor">

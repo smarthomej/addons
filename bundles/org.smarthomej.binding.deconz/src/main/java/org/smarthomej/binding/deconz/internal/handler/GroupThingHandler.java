@@ -109,6 +109,12 @@ public class GroupThingHandler extends DeconzBaseThingHandler {
                 if (newBri != null) {
                     newGroupAction.on = (newBri > 0);
                 }
+
+                Double transitiontime = config.transitiontime;
+                if (transitiontime != null) {
+                    // value is in 1/10 seconds
+                    newGroupAction.transitiontime = (int) Math.round(10 * transitiontime);
+                }
                 break;
             case CHANNEL_COLOR_TEMPERATURE:
                 if (command instanceof DecimalType) {
