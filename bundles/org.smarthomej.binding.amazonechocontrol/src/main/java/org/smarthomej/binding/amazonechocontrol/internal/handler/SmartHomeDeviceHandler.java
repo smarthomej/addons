@@ -18,8 +18,6 @@ import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Consta
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
