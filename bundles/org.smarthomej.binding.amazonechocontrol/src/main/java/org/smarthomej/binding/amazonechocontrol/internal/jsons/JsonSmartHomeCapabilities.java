@@ -50,6 +50,11 @@ public class JsonSmartHomeCapabilities {
 
     public static class Property {
         public @Nullable String name;
+
+        @Override
+        public String toString() {
+            return "Property{" + "name='" + name + '\'' + '}';
+        }
     }
 
     @Override

@@ -27,7 +27,17 @@ import org.eclipse.jdt.annotation.Nullable;
 public class JsonSmartHomeGroupIdentity {
     public static class SmartHomeGroupIdentity {
         public @Nullable List<String> groupIdentity;
+
+        @Override
+        public String toString() {
+            return "SmartHomeGroupIdentity{" + "groupIdentity=" + groupIdentity + '}';
+        }
     }
 
     public @Nullable List<SmartHomeGroupIdentity> groupIdentity;
+
+    @Override
+    public String toString() {
+        return "JsonSmartHomeGroupIdentity{" + "groupIdentity=" + groupIdentity + '}';
+    }
 }

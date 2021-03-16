@@ -58,4 +58,9 @@ public class JsonSmartHomeGroups {
     }
 
     public @Nullable List<SmartHomeGroup> groups;
+
+    @Override
+    public String toString() {
+        return "JsonSmartHomeGroups{" + "groups=" + groups + '}';
+    }
 }

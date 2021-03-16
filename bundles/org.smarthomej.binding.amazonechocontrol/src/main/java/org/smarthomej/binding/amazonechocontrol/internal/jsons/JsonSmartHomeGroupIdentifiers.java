@@ -24,7 +24,17 @@ public class JsonSmartHomeGroupIdentifiers {
 
     public static class SmartHomeGroupIdentifier {
         public @Nullable String value;
+
+        @Override
+        public String toString() {
+            return "SmartHomeGroupIdentifier{" + "value='" + value + '\'' + '}';
+        }
     }
 
     public @Nullable SmartHomeGroupIdentifier identifier;
+
+    @Override
+    public String toString() {
+        return "JsonSmartHomeGroupIdentifiers{" + "identifier=" + identifier + '}';
+    }
 }

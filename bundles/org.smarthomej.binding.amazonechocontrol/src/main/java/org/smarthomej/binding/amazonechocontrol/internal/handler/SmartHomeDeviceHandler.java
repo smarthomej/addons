@@ -18,6 +18,8 @@ import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Consta
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -168,7 +170,7 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
 
     public void updateChannelStates(List<SmartHomeBaseDevice> allDevices,
             Map<String, JsonArray> applianceIdToCapabilityStates) {
-        logger.trace("Updating {} with {}", allDevices, applianceIdToCapabilityStates);
+        logger.trace("Updating allDevices={} with states={}", allDevices, applianceIdToCapabilityStates);
         AccountHandler accountHandler = getAccountHandler();
         SmartHomeBaseDevice smartHomeBaseDevice = this.smartHomeBaseDevice;
         if (smartHomeBaseDevice == null) {
@@ -179,9 +181,11 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
         boolean stateFound = false;
         Map<String, List<JsonObject>> mapInterfaceToStates = new HashMap<>();
         SmartHomeDevice firstDevice = null;
+        logger.trace("Searching for smartHomeBaseDevice={}", smartHomeBaseDevice);
         for (SmartHomeDevice shd : getSupportedSmartHomeDevices(smartHomeBaseDevice, allDevices)) {
             String applianceId = shd.applianceId;
             if (applianceId == null) {
+                logger.trace("applianceId is null in smartHomeDevice={}", shd);
                 continue;
             }
             JsonArray states = applianceIdToCapabilityStates.get(applianceId);
@@ -192,11 +196,17 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
                     lastStates.put(applianceId, states);
                 }
             } else {
+                logger.trace("No new states array found for applianceId={}, trying to find old state.", applianceId);
                 states = lastStates.get(applianceId);
                 if (states == null) {
+                    logger.trace("No old states array found for applianceId={}, trying to find old state.",
+                            applianceId);
                     continue;
                 }
+                stateFound = true;
             }
+            logger.trace("Found states array={} for applianceId={}", states, applianceId);
+
             if (firstDevice == null) {
                 firstDevice = shd;
             }
