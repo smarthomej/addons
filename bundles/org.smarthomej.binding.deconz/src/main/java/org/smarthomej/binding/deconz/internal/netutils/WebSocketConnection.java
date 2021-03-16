@@ -17,6 +17,9 @@ import java.net.URI;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -28,6 +31,7 @@ import org.eclipse.jetty.websocket.api.annotations.OnWebSocketError;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
+import org.openhab.core.common.ThreadPoolManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.deconz.internal.dto.DeconzBaseMessage;
@@ -46,7 +50,9 @@ import com.google.gson.Gson;
 @NonNullByDefault
 public class WebSocketConnection {
     private static final AtomicInteger INSTANCE_COUNTER = new AtomicInteger();
+    private static final int WATCHDOG_INTERVAL = 120; // in s
     private final Logger logger = LoggerFactory.getLogger(WebSocketConnection.class);
+    private final ScheduledExecutorService scheduler = ThreadPoolManager.getScheduledPool("thingHandler");
 
     private final WebSocketClient client;
     private final String socketName;
@@ -56,6 +62,8 @@ public class WebSocketConnection {
     private final Map<String, WebSocketMessageListener> listeners = new ConcurrentHashMap<>();
 
     private ConnectionState connectionState = ConnectionState.DISCONNECTED;
+    private @Nullable ScheduledFuture<?> watchdogJob;
+
     private @Nullable Session session;
 
     public WebSocketConnection(WebSocketConnectionListener listener, WebSocketClient client, Gson gson) {
@@ -80,14 +88,30 @@ public class WebSocketConnection {
             client.start();
             logger.debug("Trying to connect {} to {}", socketName, destUri);
             client.connect(this, destUri).get();
+            watchdogJob = scheduler.scheduleWithFixedDelay(this::watchDog, WATCHDOG_INTERVAL, WATCHDOG_INTERVAL,
+                    TimeUnit.SECONDS);
         } catch (Exception e) {
             connectionListener.connectionLost("Error while connecting: " + e.getMessage());
+        }
+    }
+
+    private void watchDog() {
+        boolean running = client.isRunning();
+        logger.debug("{}", running);
+    }
+
+    private void stopWatchDog() {
+        ScheduledFuture<?> watchdogJob = this.watchdogJob;
+        if (watchdogJob != null) {
+            watchdogJob.cancel(true);
+            this.watchdogJob = null;
         }
     }
 
     public void close() {
         try {
             connectionState = ConnectionState.DISCONNECTING;
+            stopWatchDog();
             client.stop();
         } catch (Exception e) {
             logger.debug("{} encountered an error while closing connection", socketName, e);
@@ -191,6 +215,7 @@ public class WebSocketConnection {
         }
         logger.trace("{} closed connection: {} / {}", socketName, statusCode, reason);
         connectionState = ConnectionState.DISCONNECTED;
+        stopWatchDog();
         this.session = null;
         connectionListener.connectionLost(reason);
     }
