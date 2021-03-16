@@ -52,8 +52,6 @@ public class GroupAction {
         sat = null;
         ct = null;
         xy = null;
-
-        transitiontime = null;
     }
 
     @Override
