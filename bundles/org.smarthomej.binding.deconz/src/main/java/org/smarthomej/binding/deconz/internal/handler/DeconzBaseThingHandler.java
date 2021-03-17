@@ -128,7 +128,7 @@ public abstract class DeconzBaseThingHandler extends BaseThingHandler implements
                 return;
             }
 
-            final WebSocketConnection webSocketConnection = bridgeHandler.getWebsocketConnection();
+            final WebSocketConnection webSocketConnection = bridgeHandler.getWebSocketConnection();
             this.connection = webSocketConnection;
 
             updateStatus(ThingStatus.UNKNOWN, ThingStatusDetail.NONE);
