@@ -294,7 +294,7 @@ public class DeconzBridgeHandler extends BaseBridgeHandler implements WebSocketC
     public void dispose() {
         thingDisposing = true;
         stopTimer();
-        websocket.close();
+        websocket.dispose();
     }
 
     @Override

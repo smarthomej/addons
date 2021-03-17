@@ -65,6 +65,7 @@ public class WebSocketConnection {
     private @Nullable ScheduledFuture<?> watchdogJob;
 
     private @Nullable Session session;
+    private long lastMessageTimestamp = 0;
 
     public WebSocketConnection(WebSocketConnectionListener listener, WebSocketClient client, Gson gson) {
         this.connectionListener = listener;
@@ -88,16 +89,16 @@ public class WebSocketConnection {
             client.start();
             logger.debug("Trying to connect {} to {}", socketName, destUri);
             client.connect(this, destUri).get();
-            watchdogJob = scheduler.scheduleWithFixedDelay(this::watchDog, WATCHDOG_INTERVAL, WATCHDOG_INTERVAL,
-                    TimeUnit.SECONDS);
         } catch (Exception e) {
             connectionListener.connectionLost("Error while connecting: " + e.getMessage());
         }
     }
 
     private void watchDog() {
-        boolean running = client.isRunning();
-        logger.debug("{}", running);
+        if ((System.currentTimeMillis() - lastMessageTimestamp) > WATCHDOG_INTERVAL * 1000) {
+            logger.warn("Websocket {} seems to be dead, closing.", socketName);
+            close();
+        }
     }
 
     private void stopWatchDog() {
@@ -108,14 +109,22 @@ public class WebSocketConnection {
         }
     }
 
-    public void close() {
+    private void close() {
+        stopWatchDog();
         try {
             connectionState = ConnectionState.DISCONNECTING;
-            stopWatchDog();
             client.stop();
         } catch (Exception e) {
             logger.debug("{} encountered an error while closing connection", socketName, e);
         }
+    }
+
+    /**
+     * dispose the websocket (close connection and destroy client)
+     *
+     */
+    public void dispose() {
+        close();
         client.destroy();
     }
 
@@ -134,6 +143,9 @@ public class WebSocketConnection {
         logger.debug("{} successfully connected to {}: {}", socketName, session.getRemoteAddress().getAddress(),
                 session.hashCode());
         connectionListener.connectionEstablished();
+        lastMessageTimestamp = System.currentTimeMillis();
+        watchdogJob = scheduler.scheduleWithFixedDelay(this::watchDog, WATCHDOG_INTERVAL, WATCHDOG_INTERVAL,
+                TimeUnit.SECONDS);
         this.session = session;
     }
 
@@ -144,6 +156,7 @@ public class WebSocketConnection {
             handleWrongSession(session, message);
             return;
         }
+        lastMessageTimestamp = System.currentTimeMillis();
         logger.trace("{} received raw data: {}", socketName, message);
 
         try {
@@ -200,6 +213,7 @@ public class WebSocketConnection {
         }
         logger.warn("{} connection errored, closing: {}", socketName, cause.getMessage());
 
+        stopWatchDog();
         Session storedSession = this.session;
         if (storedSession != null && storedSession.isOpen()) {
             storedSession.close(-1, "Processing error");
