@@ -526,6 +526,7 @@ Import-Package: \\
           <artifactId>sat-plugin</artifactId>
           <version>${sat.version}</version>
           <configuration>
+            <checkstyleRuleset>${basedirRoot}/tools/static-code-analysis/checkstyle/rules.xml</checkstyleRuleset>
             <checkstyleProperties>${basedirRoot}/tools/static-code-analysis/checkstyle/ruleset.properties</checkstyleProperties>
             <checkstyleFilter>${basedirRoot}/tools/static-code-analysis/checkstyle/suppressions.xml</checkstyleFilter>
           </configuration>
