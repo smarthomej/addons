@@ -62,18 +62,21 @@ import com.google.gson.Gson;
  */
 @NonNullByDefault
 public class DeconzBridgeHandler extends BaseBridgeHandler implements WebSocketConnectionListener {
-    public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES = Collections.singleton(BRIDGE_TYPE);
+    public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES = Set.of(BRIDGE_TYPE);
+
+    private static final int WEBSOCKET_WATCHDOG_INTERVAL = 120; // in s
 
     private final Logger logger = LoggerFactory.getLogger(DeconzBridgeHandler.class);
-    private final WebSocketConnection websocket;
     private final AsyncHttpClient http;
+    private final WebSocketFactory webSocketFactory;
     private DeconzBridgeConfig config = new DeconzBridgeConfig();
     private final Gson gson;
-    private @Nullable ScheduledFuture<?> scheduledFuture;
+    private @Nullable ScheduledFuture<?> connectionJob;
     private int websocketPort = 0;
     /** Prevent a dispose/init cycle while this flag is set. Use for property updates */
     private boolean ignoreConfigurationUpdate;
     private boolean thingDisposing = false;
+    private WebSocketConnection webSocketConnection;
 
     private final ExpiringCacheAsync<Optional<BridgeFullState>> fullStateCache = new ExpiringCacheAsync<>(1000);
 
@@ -84,13 +87,19 @@ public class DeconzBridgeHandler extends BaseBridgeHandler implements WebSocketC
         super(thing);
         this.http = http;
         this.gson = gson;
+        this.webSocketFactory = webSocketFactory;
+        this.webSocketConnection = createNewWebSocketConnection();
+    }
+
+    private WebSocketConnection createNewWebSocketConnection() {
         String websocketID = thing.getUID().getAsString().replace(':', '-');
         if (websocketID.length() < 4) {
             websocketID = "openHAB-deconz-" + websocketID;
         } else if (websocketID.length() > 20) {
             websocketID = websocketID.substring(websocketID.length() - 20);
         }
-        this.websocket = new WebSocketConnection(this, webSocketFactory.createWebSocketClient(websocketID), gson);
+        return new WebSocketConnection(this, webSocketFactory.createWebSocketClient(websocketID), gson,
+                WEBSOCKET_WATCHDOG_INTERVAL);
     }
 
     @Override
@@ -113,10 +122,10 @@ public class DeconzBridgeHandler extends BaseBridgeHandler implements WebSocketC
      * Stops the API request or websocket reconnect timer
      */
     private void stopTimer() {
-        ScheduledFuture<?> future = scheduledFuture;
+        ScheduledFuture<?> future = connectionJob;
         if (future != null) {
             future.cancel(true);
-            scheduledFuture = null;
+            connectionJob = null;
         }
     }
 
@@ -134,7 +143,7 @@ public class DeconzBridgeHandler extends BaseBridgeHandler implements WebSocketC
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_PENDING,
                     "Allow authentication for 3rd party apps. Trying again in " + POLL_FREQUENCY_SEC + " seconds");
             stopTimer();
-            scheduledFuture = scheduler.schedule(this::requestApiKey, POLL_FREQUENCY_SEC, TimeUnit.SECONDS);
+            connectionJob = scheduler.schedule(this::requestApiKey, POLL_FREQUENCY_SEC, TimeUnit.SECONDS);
         } else if (r.getResponseCode() == 200) {
             ApiKeyMessage[] response = Objects.requireNonNull(gson.fromJson(r.getBody(), ApiKeyMessage[].class));
             if (response.length == 0) {
@@ -227,11 +236,11 @@ public class DeconzBridgeHandler extends BaseBridgeHandler implements WebSocketC
 
             // Use requested websocket port if no specific port is given
             websocketPort = config.port == 0 ? state.config.websocketport : config.port;
-            startWebsocket();
+            startWebSocketConnection();
         }, () -> {
             // initial response was empty, re-trying in POLL_FREQUENCY_SEC seconds
             if (!thingDisposing) {
-                scheduledFuture = scheduler.schedule(this::initializeBridgeState, POLL_FREQUENCY_SEC, TimeUnit.SECONDS);
+                connectionJob = scheduler.schedule(this::initializeBridgeState, POLL_FREQUENCY_SEC, TimeUnit.SECONDS);
             }
         })).exceptionally(e -> {
             if (e != null) {
@@ -241,7 +250,7 @@ public class DeconzBridgeHandler extends BaseBridgeHandler implements WebSocketC
             }
             logger.warn("Initial full state request or result parsing failed", e);
             if (!thingDisposing) {
-                scheduledFuture = scheduler.schedule(this::initializeBridgeState, POLL_FREQUENCY_SEC, TimeUnit.SECONDS);
+                connectionJob = scheduler.schedule(this::initializeBridgeState, POLL_FREQUENCY_SEC, TimeUnit.SECONDS);
             }
             return null;
         });
@@ -251,15 +260,15 @@ public class DeconzBridgeHandler extends BaseBridgeHandler implements WebSocketC
      * Starts the websocket connection.
      * {@link #initializeBridgeState} need to be called first to obtain the websocket port.
      */
-    private void startWebsocket() {
-        if (websocket.isConnected() || websocketPort == 0 || thingDisposing) {
+    private void startWebSocketConnection() {
+        if (webSocketConnection.isConnected() || websocketPort == 0 || thingDisposing) {
             return;
         }
 
         stopTimer();
-        scheduledFuture = scheduler.schedule(this::startWebsocket, POLL_FREQUENCY_SEC, TimeUnit.SECONDS);
+        connectionJob = scheduler.schedule(this::startWebSocketConnection, POLL_FREQUENCY_SEC, TimeUnit.SECONDS);
 
-        websocket.start(config.getHostWithoutPort() + ":" + websocketPort);
+        webSocketConnection.start(config.getHostWithoutPort() + ":" + websocketPort);
     }
 
     /**
@@ -294,29 +303,33 @@ public class DeconzBridgeHandler extends BaseBridgeHandler implements WebSocketC
     public void dispose() {
         thingDisposing = true;
         stopTimer();
-        websocket.close();
+        webSocketConnection.dispose();
     }
 
     @Override
-    public void connectionEstablished() {
+    public void webSocketConnectionEstablished() {
         stopTimer();
         updateStatus(ThingStatus.ONLINE);
     }
 
     @Override
-    public void connectionLost(String reason) {
+    public void webSocketConnectionLost(String reason) {
         updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, reason);
-
         stopTimer();
+
+        // make sure we get a new connection
+        webSocketConnection.dispose();
+        webSocketConnection = createNewWebSocketConnection();
+
         // Wait for POLL_FREQUENCY_SEC after a connection was closed before trying again
-        scheduledFuture = scheduler.schedule(this::startWebsocket, POLL_FREQUENCY_SEC, TimeUnit.SECONDS);
+        connectionJob = scheduler.schedule(this::startWebSocketConnection, POLL_FREQUENCY_SEC, TimeUnit.SECONDS);
     }
 
     /**
      * Return the websocket connection.
      */
-    public WebSocketConnection getWebsocketConnection() {
-        return websocket;
+    public WebSocketConnection getWebSocketConnection() {
+        return webSocketConnection;
     }
 
     /**
