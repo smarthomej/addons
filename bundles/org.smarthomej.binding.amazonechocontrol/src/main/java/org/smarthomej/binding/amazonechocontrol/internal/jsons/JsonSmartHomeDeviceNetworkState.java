@@ -25,7 +25,17 @@ import org.eclipse.jdt.annotation.Nullable;
 public class JsonSmartHomeDeviceNetworkState {
     public static class SmartHomeDeviceNetworkState {
         public @Nullable String reachability;
+
+        @Override
+        public String toString() {
+            return "SmartHomeDeviceNetworkState{reachability='" + reachability + "'}";
+        }
     }
 
     public @Nullable SmartHomeDeviceNetworkState networkState;
+
+    @Override
+    public String toString() {
+        return "JsonSmartHomeDeviceNetworkState{networkState=" + networkState + "}";
+    }
 }

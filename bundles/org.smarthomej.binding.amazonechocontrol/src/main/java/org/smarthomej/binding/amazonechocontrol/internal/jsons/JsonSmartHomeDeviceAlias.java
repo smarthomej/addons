@@ -24,11 +24,8 @@ public class JsonSmartHomeDeviceAlias {
     public @Nullable String friendlyName;
     public @Nullable Boolean enabled;
 
-    public JsonSmartHomeDeviceAlias(String friendlyName, Boolean enabled) {
-        this.friendlyName = friendlyName;
-        this.enabled = enabled;
-    }
-
-    public JsonSmartHomeDeviceAlias() {
+    @Override
+    public String toString() {
+        return "JsonSmartHomeDeviceAlias{friendlyName='" + friendlyName + "', enabled=" + enabled + "}";
     }
 }
