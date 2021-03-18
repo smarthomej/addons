@@ -28,7 +28,7 @@ public class JsonSmartHomeDeviceNetworkState {
 
         @Override
         public String toString() {
-            return "SmartHomeDeviceNetworkState{" + "reachability='" + reachability + '\'' + '}';
+            return "SmartHomeDeviceNetworkState{reachability='" + reachability + "'}";
         }
     }
 
@@ -36,6 +36,6 @@ public class JsonSmartHomeDeviceNetworkState {
 
     @Override
     public String toString() {
-        return "JsonSmartHomeDeviceNetworkState{" + "networkState=" + networkState + '}';
+        return "JsonSmartHomeDeviceNetworkState{networkState=" + networkState + "}";
     }
 }

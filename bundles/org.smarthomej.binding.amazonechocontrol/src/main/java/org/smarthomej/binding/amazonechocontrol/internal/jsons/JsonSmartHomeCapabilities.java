@@ -33,9 +33,8 @@ public class JsonSmartHomeCapabilities {
 
         @Override
         public String toString() {
-            return "SmartHomeCapability{" + "capabilityType='" + capabilityType + '\'' + ", type='" + type + '\''
-                    + ", version='" + version + '\'' + ", interfaceName='" + interfaceName + '\'' + ", properties="
-                    + properties + '}';
+            return "SmartHomeCapability{capabilityType='" + capabilityType + "', type='" + type + "', version='"
+                    + version + "', interfaceName='" + interfaceName + "', properties=" + properties + "}";
         }
     }
 
@@ -44,7 +43,7 @@ public class JsonSmartHomeCapabilities {
 
         @Override
         public String toString() {
-            return "Properties{" + "supported=" + supported + '}';
+            return "Properties{supported=" + supported + "}";
         }
     }
 
@@ -53,13 +52,13 @@ public class JsonSmartHomeCapabilities {
 
         @Override
         public String toString() {
-            return "Property{" + "name='" + name + '\'' + '}';
+            return "Property{name='" + name + "'}";
         }
     }
 
     @Override
     public String toString() {
-        return "JsonSmartHomeCapabilities{" + "capabilites=" + capabilites + '}';
+        return "JsonSmartHomeCapabilities{capabilites=" + capabilites + "}";
     }
 
     public @Nullable List<SmartHomeCapability> capabilites;

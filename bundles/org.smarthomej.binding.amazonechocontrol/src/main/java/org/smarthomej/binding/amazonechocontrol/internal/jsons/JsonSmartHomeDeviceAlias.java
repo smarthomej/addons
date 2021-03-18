@@ -26,6 +26,6 @@ public class JsonSmartHomeDeviceAlias {
 
     @Override
     public String toString() {
-        return "JsonSmartHomeDeviceAlias{" + "friendlyName='" + friendlyName + '\'' + ", enabled=" + enabled + '}';
+        return "JsonSmartHomeDeviceAlias{friendlyName='" + friendlyName + "', enabled=" + enabled + "}";
     }
 }

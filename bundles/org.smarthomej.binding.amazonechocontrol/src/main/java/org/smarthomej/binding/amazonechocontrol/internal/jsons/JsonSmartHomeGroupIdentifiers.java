@@ -27,7 +27,7 @@ public class JsonSmartHomeGroupIdentifiers {
 
         @Override
         public String toString() {
-            return "SmartHomeGroupIdentifier{" + "value='" + value + '\'' + '}';
+            return "SmartHomeGroupIdentifier{value='" + value + "'}";
         }
     }
 
@@ -35,6 +35,6 @@ public class JsonSmartHomeGroupIdentifiers {
 
     @Override
     public String toString() {
-        return "JsonSmartHomeGroupIdentifiers{" + "identifier=" + identifier + '}';
+        return "JsonSmartHomeGroupIdentifiers{identifier=" + identifier + "}";
     }
 }
