@@ -11,7 +11,7 @@
   </parent>
 
   <artifactId>org.smarthomej.addons.features.karaf.smarthomej-addons</artifactId>
-  <packaging>feature</packaging>
+  <packaging>pom</packaging>
 
   <name>SmartHome/J Add-ons :: Features :: Karaf :: Add-ons</name>
   <description>SmartHome/J Add-ons Features</description>
@@ -27,6 +27,13 @@
   </dependencies>
 
   <build>
+    <resources>
+      <resource>
+        <targetPath>${project.build.directory}/feature</targetPath>
+        <filtering>true</filtering>
+        <directory>${project.basedir}/src/main/feature</directory>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -62,6 +69,39 @@
         </executions>
       </plugin>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>resources</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-artifacts</id>
+            <goals>
+              <goal>attach-artifact</goal>
+            </goals>
+            <phase>package</phase>
+            <configuration>
+              <artifacts>
+                <artifact>
+                  <file>${project.build.directory}/feature/feature.xml</file>
+                  <type>xml</type>
+                  <classifier>features</classifier>
+                </artifact>
+              </artifacts>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>org.apache.karaf.tooling</groupId>
         <artifactId>karaf-maven-plugin</artifactId>
         <executions>
@@ -71,6 +111,13 @@
               <features>
               </features>
             </configuration>
+          </execution>
+          <execution>
+            <id>compile</id>
+            <goals>
+              <goal>features-generate-descriptor</goal>
+            </goals>
+            <phase>none</phase>
           </execution>
         </executions>
       </plugin>
