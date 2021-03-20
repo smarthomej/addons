@@ -294,7 +294,7 @@ public class AndroidDebugBridgeDevice {
         return currentSocket != null && currentSocket.isConnected();
     }
 
-    public void connect() throws AndroidDebugBridgeDeviceException, InterruptedException {
+    public void connect() throws AndroidDebugBridgeDeviceException, InterruptedException, TimeoutException {
         this.disconnect();
         AdbConnection adbConnection;
         Socket sock;
@@ -311,6 +311,8 @@ public class AndroidDebugBridgeDevice {
             if (e.getMessage().equals("Socket closed")) {
                 // Connection aborted by us
                 throw new InterruptedException();
+            } else if (e.getMessage().equals("No route to host (Host unreachable)")) {
+                throw new TimeoutException();
             }
             throw new AndroidDebugBridgeDeviceException("Unable to open socket " + ip + ":" + port);
         }

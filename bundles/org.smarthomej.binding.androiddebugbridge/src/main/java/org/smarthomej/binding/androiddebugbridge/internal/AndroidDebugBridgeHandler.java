@@ -314,6 +314,12 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
                     adbConnection.disconnect();
                     updateStatus(ThingStatus.OFFLINE);
                     return;
+                } catch (TimeoutException e) {
+                    logger.debug("Error connecting to device; [{}]: {}", e.getClass().getCanonicalName(),
+                            e.getMessage());
+                    adbConnection.disconnect();
+                    updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR);
+                    return;
                 }
                 if (adbConnection.isConnected()) {
                     updateStatus(ThingStatus.ONLINE);
@@ -334,49 +340,63 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
         } catch (AndroidDebugBridgeDeviceReadException e) {
             logger.warn("Unable to refresh media volume: {}", e.getMessage());
         } catch (TimeoutException e) {
-            logger.warn("Unable to refresh media volume: Timeout");
+            logger.debug("Unable to refresh media volume: Timeout");
+            adbConnection.disconnect();
+            return;
         }
         try {
             handleCommandInternal(new ChannelUID(this.thing.getUID(), MEDIA_CONTROL_CHANNEL), RefreshType.REFRESH);
         } catch (AndroidDebugBridgeDeviceReadException e) {
             logger.warn("Unable to refresh play status: {}", e.getMessage());
         } catch (TimeoutException e) {
-            logger.warn("Unable to refresh play status: Timeout");
+            logger.debug("Unable to refresh play status: Timeout");
+            adbConnection.disconnect();
+            return;
         }
         try {
             handleCommandInternal(new ChannelUID(this.thing.getUID(), CURRENT_PACKAGE_CHANNEL), RefreshType.REFRESH);
         } catch (AndroidDebugBridgeDeviceReadException e) {
             logger.warn("Unable to refresh current package: {}", e.getMessage());
         } catch (TimeoutException e) {
-            logger.warn("Unable to refresh current package: Timeout");
+            logger.debug("Unable to refresh current package: Timeout");
+            adbConnection.disconnect();
+            return;
         }
         try {
             handleCommandInternal(new ChannelUID(this.thing.getUID(), WAKE_LOCK_CHANNEL), RefreshType.REFRESH);
         } catch (AndroidDebugBridgeDeviceReadException e) {
             logger.warn("Unable to refresh wake lock: {}", e.getMessage());
         } catch (TimeoutException e) {
-            logger.warn("Unable to refresh wake lock: Timeout");
+            logger.debug("Unable to refresh wake lock: Timeout");
+            adbConnection.disconnect();
+            return;
         }
         try {
             handleCommandInternal(new ChannelUID(this.thing.getUID(), AWAKE_STATE_CHANNEL), RefreshType.REFRESH);
         } catch (AndroidDebugBridgeDeviceReadException e) {
             logger.warn("Unable to refresh awake state: {}", e.getMessage());
         } catch (TimeoutException e) {
-            logger.warn("Unable to refresh awake state: Timeout");
+            logger.debug("Unable to refresh awake state: Timeout");
+            adbConnection.disconnect();
+            return;
         }
         try {
             handleCommandInternal(new ChannelUID(this.thing.getUID(), SCREEN_STATE_CHANNEL), RefreshType.REFRESH);
         } catch (AndroidDebugBridgeDeviceReadException e) {
             logger.warn("Unable to refresh screen state: {}", e.getMessage());
         } catch (TimeoutException e) {
-            logger.warn("Unable to refresh screen state: Timeout");
+            logger.debug("Unable to refresh screen state: Timeout");
+            adbConnection.disconnect();
+            return;
         }
         try {
             handleCommandInternal(new ChannelUID(this.thing.getUID(), HDMI_STATE_CHANNEL), RefreshType.REFRESH);
         } catch (AndroidDebugBridgeDeviceReadException e) {
             logger.warn("Unable to refresh hdmi state: {}", e.getMessage());
         } catch (TimeoutException e) {
-            logger.warn("Unable to refresh hdmi state: Timeout");
+            logger.debug("Unable to refresh hdmi state: Timeout");
+            adbConnection.disconnect();
+            return;
         }
     }
 
