@@ -52,10 +52,15 @@ public class JsonSmartHomeGroups {
 
         @Override
         public String toString() {
-            return "SmartHomeGroup{" + "applianceGroupName='" + applianceGroupName + '\'' + ", isSpace=" + isSpace
-                    + ", space=" + space + ", applianceGroupIdentifier=" + applianceGroupIdentifier + '}';
+            return "SmartHomeGroup{applianceGroupName='" + applianceGroupName + "', isSpace=" + isSpace + ", space="
+                    + space + ", applianceGroupIdentifier=" + applianceGroupIdentifier + "}";
         }
     }
 
     public @Nullable List<SmartHomeGroup> groups;
+
+    @Override
+    public String toString() {
+        return "JsonSmartHomeGroups{groups=" + groups + "}";
+    }
 }

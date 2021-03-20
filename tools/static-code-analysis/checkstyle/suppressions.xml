@@ -6,7 +6,6 @@
     <suppress files=".+DTO\.java" checks="JavadocType|JavadocVariable|JavadocMethod|MissingJavadocFilterCheck|NullAnnotationsCheck"/>
     <suppress files=".+[\\/]dto[\\/].+\.java" checks="JavadocType|JavadocVariable|JavadocMethod|MissingJavadocFilterCheck|NullAnnotationsCheck"/>
     <suppress files=".+Impl\.java" checks="JavadocType|JavadocVariable|JavadocMethod|MissingJavadocFilterCheck"/>
-    <suppress files=".+[\\/]io[\\/]repomanager.+\.java" checks="ParameterizedRegexpHeaderCheck"/>
     <suppress files=".+[\\/]SnmpSecurityModel\.java" checks="ParameterizedRegexpHeaderCheck"/>
     <suppress files=".+[\\/]SnmpPrivProtocol\.java" checks="ParameterizedRegexpHeaderCheck"/>
     <suppress files=".+[\\/]SnmpAuthProtocol\.java" checks="ParameterizedRegexpHeaderCheck"/>

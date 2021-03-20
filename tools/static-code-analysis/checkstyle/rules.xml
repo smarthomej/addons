@@ -1,0 +1,254 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+        "-//Puppy Crawl//DTD Check Configuration 1.3//EN"
+        "http://www.puppycrawl.com/dtds/configuration_1_3.dtd">
+
+<!--
+    Checkstyle configuration that checks if a bundle is matching the Coding Guidelines in the openHAB project.
+
+    For more information about the guidelines see - http://www.eclipse.org/smarthome/documentation/development/guidelines.html.
+
+    Note that some of the required checks may be provided by some of the other plugins used in the Static Code Analysis tool.
+ -->
+
+<module name="Checker">
+
+    <!-- Allow to skip parsing of files, see https://github.com/checkstyle/checkstyle/issues/5629#issuecomment-375126473 -->
+    <!-- Add default to skip unhandled Java 9 sources -->
+    <module name="BeforeExecutionExclusionFileFilter">
+        <property name="fileNamePattern" value="${checkstyle.beforeExecutionExclusionFileFilter.fileNamePattern}" default="module\-info\.java$" />
+    </module>
+
+    <!-- Rules for Code Formatting -->
+    <module name="FileTabCharacter">
+        <property name="severity" value="error" />
+        <property name="fileExtensions" value="java"/>
+    </module>
+
+    <module name="com.puppycrawl.tools.checkstyle.checks.header.RegexpHeaderCheck">
+        <property name="header" value="${checkstyle.headerCheck.content}"/>
+        <property name="multiLines" value="2"/>
+        <property name="fileExtensions" value="java"/>
+    </module>
+
+    <module name="NewlineAtEndOfFile">
+        <property name="severity" value="info"/>
+    </module>
+
+    <module name="org.openhab.tools.analysis.checkstyle.ExportInternalPackageCheck">
+        <property name="severity" value="error" />
+    </module>
+
+    <module name="org.openhab.tools.analysis.checkstyle.ManifestExternalLibrariesCheck">
+        <property name="severity" value="error" />
+    </module>
+
+    <module name="org.openhab.tools.analysis.checkstyle.BuildPropertiesExternalLibrariesCheck">
+        <property name="severity" value="error" />
+    </module>
+
+    <module name="org.openhab.tools.analysis.checkstyle.OutsideOfLibExternalLibrariesCheck">
+        <property name="severity" value="error" />
+        <property name="ignoredDirectories" value="${checkstyle.outsideOfLibExternalLibrariesCheck.ignoredDirectories}" default="target,bin" />
+    </module>
+
+    <module name="org.openhab.tools.analysis.checkstyle.readme.MarkdownCheck">
+        <property name="severity" value="warning" />
+    </module>
+
+    <module name="org.openhab.tools.analysis.checkstyle.OverridingParentPomConfigurationCheck">
+        <property name="severity" value="warning" />
+    </module>
+
+    <module name="org.openhab.tools.analysis.checkstyle.OnlyTabIndentationCheck">
+        <property name="severity" value="error" />
+        <property name="onlyShowFirstWarning" value="true" />
+        <property name="fileTypes" value="${checkstyle.onlyTabIndentationCheck.fileTypes}" default="xml,json"/>
+    </module>
+
+    <module name="org.openhab.tools.analysis.checkstyle.RequireBundleCheck">
+        <property name="severity" value="error" />
+        <property name="allowedRequireBundles" value="${checkstyle.requireBundleCheck.allowedBundles}" default="org.junit,org.mockito,org.hamcrest" />
+    </module>
+
+    <module name="org.openhab.tools.analysis.checkstyle.BundleVendorCheck">
+        <property name="severity" value="warning" />
+        <property name="allowedValues" value="${checkstyle.bundleVendorCheck.allowedValues}" default="openHAB"/>
+    </module>
+
+    <module name="org.openhab.tools.analysis.checkstyle.ManifestJavaVersionCheck">
+        <property name="severity" value="warning" />
+        <property name="allowedValues" value="JavaSE-1.8"/>
+    </module>
+
+    <module name="org.openhab.tools.analysis.checkstyle.ManifestLineLengthCheck">
+        <property name="severity" value="warning" />
+    </module>
+
+    <module name="org.openhab.tools.analysis.checkstyle.RequiredFilesCheck">
+        <property name="severity" value="error" />
+        <property name="extensions" value="${checkstyle.requiredFilesCheck.extensions}" default="html,properties,xml,MF" />
+        <!-- Relative path to the root directory of the module-->
+        <property name="requiredFiles" value="${checkstyle.requiredFilesCheck.files}" default="build.properties,pom.xml,META-INF/MANIFEST.MF" />
+    </module>
+
+    <module name="org.openhab.tools.analysis.checkstyle.BuildPropertiesCheck">
+        <property name="severity" value="warning" />
+        <!-- Other bin.includes values will be checked from a specific Checks (e.g.ServiceComponentManifestCheck) -->
+        <!-- The bin.includes values must end with the "/" character -->
+        <property name="expectedBinIncludesValues" value="META-INF/,." />
+        <!-- output.. and source.. properties allow skipping the "/" character at the end of the value -->
+        <property name="possibleOutputValues" value="target/classes,target/test-classes" />
+        <property name="possibleSourceValues" value="src/main/java,src/main/resources,src/test/java,src/test/resources,src/main/groovy,src/test/groovy" />
+    </module>
+
+    <module name="org.openhab.tools.analysis.checkstyle.ServiceComponentManifestCheck">
+        <property name="severity" value="error" />
+    </module>
+
+    <module name="org.openhab.tools.analysis.checkstyle.ImportExportedPackagesCheck">
+        <property name="severity" value="warning" />
+    </module>
+
+    <module name="org.openhab.tools.analysis.checkstyle.ManifestPackageVersionCheck">
+        <property name="severity" value="warning" />
+        <property name="ignoreImportedPackages" value="org.junit.*"/>
+    </module>
+
+    <module name="org.openhab.tools.analysis.checkstyle.OhInfXmlValidationCheck">
+        <property name="severity" value="error" />
+        <property name="thingSchema" value="https://openhab.org/schemas/thing-description-1.0.0.xsd" />
+        <property name="bindingSchema" value="https://openhab.org/schemas/binding-1.0.0.xsd" />
+        <property name="configSchema" value="https://openhab.org/schemas/config-description-1.0.0.xsd" />
+    </module>
+
+    <module name="org.openhab.tools.analysis.checkstyle.OhInfXmlUsageCheck">
+        <property name="severity" value="warning" />
+    </module>
+
+    <module name="org.openhab.tools.analysis.checkstyle.PomXmlCheck">
+        <property name="severity" value="error" />
+        <property name="checkPomVersion" value="${checkstyle.pomXmlCheck.checkPomVersion}" default="true"/>
+    </module>
+
+    <module name="org.openhab.tools.analysis.checkstyle.PackageExportsNameCheck">
+        <property name="severity" value="error" />
+        <property name="sourceDirectories" value="src/main/java" />
+        <property name="excludedPackages" value=".*.internal.*" />
+    </module>
+
+    <module name="org.openhab.tools.analysis.checkstyle.KarafFeatureCheck">
+        <property name="severity" value="${checkstyle.karafFeatureCheck.severity}" default="ignore" />
+        <property name="featureXmlPath" value="${checkstyle.karafFeatureCheck.featureXmlPath}" default="src/main/feature/feature.xml" />
+    </module>
+
+    <module name="org.openhab.tools.analysis.checkstyle.AnnotationDependencyCheck">
+        <property name="severity" value="warning" />
+    </module>
+
+    <module name="TreeWalker">
+        <!-- See http://checkstyle.sourceforge.net/config_coding.html#IllegalThrows -->
+        <module name="IllegalThrows">
+            <property name="severity" value="warning" />
+        </module>
+        <!-- See http://checkstyle.sourceforge.net/config_coding.html#OneStatementPerLine -->
+        <module name="OneStatementPerLine">
+            <property name="severity" value="info" />
+        </module>
+        <!-- See http://checkstyle.sourceforge.net/config_misc.html#TodoComment -->
+        <module name="TodoComment">
+            <property name="format" value="(TODO)|(FIXME)" />
+            <property name="severity" value="info" />
+        </module>
+        <!-- See http://checkstyle.sourceforge.net/config_modifier.html#ModifierOrder -->
+        <module name="ModifierOrder">
+            <property name="severity" value="info" />
+        </module>
+        <module name="org.openhab.tools.analysis.checkstyle.MissingJavadocFilterCheck">
+            <property name="severity" value="warning" />
+            <property name="scope" value="public"/>
+            <property name="checkInnerUnits" value="false"/>
+            <property name="tokens" value="INTERFACE_DEF,CLASS_DEF,ENUM_DEF" />
+            <message key="javadoc.missing" value="Missing Javadoc comment."/>
+        </module>
+        <module name="org.openhab.tools.analysis.checkstyle.DeclarativeServicesDependencyInjectionCheck">
+            <property name="severity" value="warning" />
+        </module>
+        <module name="org.openhab.tools.analysis.checkstyle.InheritDocCheck">
+            <property name="severity" value="warning" />
+        </module>
+        <module name="org.openhab.tools.analysis.checkstyle.ForbiddenPackageUsageCheck">
+            <property name="severity" value="warning" />
+            <property name="forbiddenPackages" value="${checkstyle.forbiddenPackageUsageCheck.forbiddenPackages}"/>
+            <property name="exceptions" value="${checkstyle.forbiddenPackageUsageCheck.exceptions}"/>
+        </module>
+        <module name="UnusedImports">
+            <property name="processJavadoc" value="true"/>
+            <property name="severity" value="info" />
+        </module>
+
+        <module name="org.openhab.tools.analysis.checkstyle.AuthorTagCheck">
+            <property name="tag" value="@author"/>
+            <property name="tagFormat" value="\S"/> <!-- the tag can be anything but whitespace -->
+            <property name="checkInnerUnits" value="false"/>
+            <property name="severity" value="error"/> <!-- A property defining what should be done if the author is missing. In our case we want the build to fail. -->
+            <property name="tagSeverity" value="ignore"/> <!-- A property defining what should be done when the author tag is found. In our case we want to ignore it. -->
+            <message key="type.missingTag" value="An author tag is missing"/>
+        </module>
+
+        <module name="org.openhab.tools.analysis.checkstyle.NoEmptyLineSeparatorCheck">
+            <property name="severity" value="info"/>
+        </module>
+
+        <module name="org.openhab.tools.analysis.checkstyle.AvoidScheduleAtFixedRateCheck">
+            <property name="severity" value="warning" />
+        </module>
+
+        <module name="org.openhab.tools.analysis.checkstyle.JavadocMethodStyleCheck">
+            <property name="severity" value="info"/>
+            <property name="allowMissingPropertyJavadoc" value="true"/>
+        </module>
+
+        <module name="org.openhab.tools.analysis.checkstyle.AuthorContributionDescriptionCheck">
+            <property name="severity" value="warning"/>
+            <property name="requiredContributionDescriptions" value="Initial contribution"/>
+            <property name="checkInnerUnits" value="false"/>
+        </module>
+
+        <module name="org.openhab.tools.analysis.checkstyle.NullAnnotationsCheck">
+            <property name="severity" value="warning"/>
+            <property name="checkInnerUnits" value="false"/>
+        </module>
+
+        <!-- Rules for Java Naming Convention -->
+
+        <module name="PackageName">
+            <property name="format"
+                      value="^[a-z]+(\.[a-z][a-z0-9]*)*$"/>
+            <property name="severity" value="info" />
+        </module>
+        <module name="TypeName">
+            <property name="tokens"
+                      value="INTERFACE_DEF,CLASS_DEF,ENUM_DEF"/>
+            <property name="severity" value="info" />
+        </module>
+        <module name="MethodName">
+            <property name="severity" value="info" />
+        </module>
+        <module name="ConstantName">
+            <property name="severity" value="info" />
+        </module>
+        <module name="LocalFinalVariableName">
+            <property name="severity" value="info" />
+        </module>
+        <module name="LocalVariableName">
+            <property name="severity" value="info" />
+        </module>
+        <module name="StaticVariableName">
+            <property name="severity" value="info" />
+        </module>
+        <module name="MemberName">
+            <property name="severity" value="info" />
+        </module>
+    </module>
+</module>
