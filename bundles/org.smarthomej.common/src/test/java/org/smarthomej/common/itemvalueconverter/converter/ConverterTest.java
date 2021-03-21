@@ -69,7 +69,8 @@ public class ConverterTest {
     @Test
     public void numberItemConverter() {
         NumberItemConverter converter = new NumberItemConverter(updateState, postCommand, sendHttpValue,
-                NoOpValueTransformation.getInstance(), NoOpValueTransformation.getInstance(), new ItemValueConverterChannelConfig());
+                NoOpValueTransformation.getInstance(), NoOpValueTransformation.getInstance(),
+                new ItemValueConverterChannelConfig());
 
         // without unit
         Assertions.assertEquals(Optional.of(new DecimalType(1234)), converter.toState("1234"));
@@ -134,6 +135,7 @@ public class ConverterTest {
 
     public GenericItemConverter createConverter(Function<String, State> fcn) {
         return new GenericItemConverter(fcn, updateState, postCommand, sendHttpValue,
-                NoOpValueTransformation.getInstance(), NoOpValueTransformation.getInstance(), new ItemValueConverterChannelConfig());
+                NoOpValueTransformation.getInstance(), NoOpValueTransformation.getInstance(),
+                new ItemValueConverterChannelConfig());
     }
 }
