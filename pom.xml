@@ -41,8 +41,8 @@
   </developers>
 
   <scm>
-    <connection>scm:git:git@github.com/smarthomej/addons.git</connection>
-    <developerConnection>scm:git:git@github.com/smarthomej/addons.git</developerConnection>
+    <connection>scm:git:git@github.com:smarthomej/addons.git</connection>
+    <developerConnection>scm:git:git@github.com:smarthomej/addons.git</developerConnection>
     <tag>HEAD</tag>
     <url>https://github.com/smarthomej/addons</url>
   </scm>
@@ -362,9 +362,10 @@ Import-Package: \\
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-release-plugin</artifactId>
-          <version>2.5.2</version>
+          <version>3.0.0-M1</version>
           <configuration>
             <preparationGoals>clean install</preparationGoals>
+            <tagNameFormat>v@{project.version}</tagNameFormat>
           </configuration>
         </plugin>
 
@@ -632,37 +633,6 @@ Import-Package: \\
               <phase>initialize</phase>
             </execution>
           </executions>
-        </plugin>
-
-        <!-- unleash -->
-        <plugin>
-          <groupId>com.itemis.maven.plugins</groupId>
-          <artifactId>unleash-maven-plugin</artifactId>
-          <version>2.9.3</version>
-          <dependencies>
-            <!-- The next 3 dependencies were added due to https://github.com/shillner/unleash-scm-provider-git/issues/15 -->
-            <dependency>
-              <groupId>com.jcraft</groupId>
-              <artifactId>jsch</artifactId>
-              <version>0.1.55</version>
-            </dependency>
-            <dependency>
-              <groupId>org.eclipse.jgit</groupId>
-              <artifactId>org.eclipse.jgit</artifactId>
-              <version>5.3.0.201903130848-r</version>
-            </dependency>
-            <dependency>
-              <groupId>com.itemis.maven.plugins</groupId>
-              <artifactId>unleash-scm-provider-api</artifactId>
-              <version>2.9.3</version>
-            </dependency>
-            <!-- end -->
-            <dependency>
-              <groupId>com.itemis.maven.plugins</groupId>
-              <artifactId>unleash-scm-provider-git</artifactId>
-              <version>2.2.0</version>
-            </dependency>
-          </dependencies>
         </plugin>
       </plugins>
     </pluginManagement>
