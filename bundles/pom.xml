@@ -18,6 +18,7 @@
 
   <modules>
     <!-- bindings -->
+    <module>org.smarthomej.binding.androiddebugbridge</module>
     <module>org.smarthomej.binding.amazonechocontrol</module>
     <module>org.smarthomej.binding.deconz</module>
     <module>org.smarthomej.binding.dmx</module>
