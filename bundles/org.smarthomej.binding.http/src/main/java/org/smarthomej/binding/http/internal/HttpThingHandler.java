@@ -48,11 +48,13 @@ import org.openhab.core.types.StateDescriptionFragmentBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.http.internal.config.HttpChannelConfig;
-import org.smarthomej.binding.http.internal.config.HttpChannelMode;
 import org.smarthomej.binding.http.internal.config.HttpThingConfig;
-import org.smarthomej.binding.http.internal.converter.*;
 import org.smarthomej.binding.http.internal.http.*;
-import org.smarthomej.binding.http.internal.transform.ValueTransformationProvider;
+import org.smarthomej.common.itemvalueconverter.ChannelMode;
+import org.smarthomej.common.itemvalueconverter.ContentWrapper;
+import org.smarthomej.common.itemvalueconverter.ItemValueConverter;
+import org.smarthomej.common.itemvalueconverter.converter.*;
+import org.smarthomej.common.transform.ValueTransformationProvider;
 
 /**
  * The {@link HttpThingHandler} is responsible for handling commands, which are
@@ -281,7 +283,7 @@ public class HttpThingHandler extends BaseThingHandler {
         }
 
         channels.put(channelUID, itemValueConverter);
-        if (channelConfig.mode != HttpChannelMode.WRITEONLY) {
+        if (channelConfig.mode != ChannelMode.WRITEONLY) {
             // we need a key consisting of stateContent and URL, only if both are equal, we can use the same cache
             String key = channelConfig.stateContent + "$" + stateUrl;
             channelUrls.put(channelUID, key);
@@ -290,7 +292,7 @@ public class HttpThingHandler extends BaseThingHandler {
         }
 
         StateDescription stateDescription = StateDescriptionFragmentBuilder.create()
-                .withReadOnly(channelConfig.mode == HttpChannelMode.READONLY).build().toStateDescription();
+                .withReadOnly(channelConfig.mode == ChannelMode.READONLY).build().toStateDescription();
         if (stateDescription != null) {
             // if the state description is not available, we don't need to add it
             httpDynamicStateDescriptionProvider.setDescription(channelUID, stateDescription);
@@ -331,7 +333,7 @@ public class HttpThingHandler extends BaseThingHandler {
                 logger.trace("Sending to '{}': {}", uri, Util.requestToLogString(request));
             }
 
-            CompletableFuture<@Nullable Content> f = new CompletableFuture<>();
+            CompletableFuture<@Nullable ContentWrapper> f = new CompletableFuture<>();
             f.exceptionally(e -> {
                 if (e instanceof HttpAuthException) {
                     if (isRetry) {

@@ -27,6 +27,7 @@ import org.eclipse.jetty.http.HttpField;
 import org.eclipse.jetty.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smarthomej.common.itemvalueconverter.ContentWrapper;
 
 /**
  * The {@link HttpResponseListener} is responsible for processing the result of a HTTP request
@@ -36,7 +37,7 @@ import org.slf4j.LoggerFactory;
 @NonNullByDefault
 public class HttpResponseListener extends BufferingResponseListener {
     private final Logger logger = LoggerFactory.getLogger(HttpResponseListener.class);
-    private final CompletableFuture<@Nullable Content> future;
+    private final CompletableFuture<@Nullable ContentWrapper> future;
     private final String fallbackEncoding;
 
     /**
@@ -46,7 +47,7 @@ public class HttpResponseListener extends BufferingResponseListener {
      * @param fallbackEncoding a fallback encoding for the content (UTF-8 if null)
      * @param bufferSize the buffer size for the content in kB (default 2048 kB)
      */
-    public HttpResponseListener(CompletableFuture<@Nullable Content> future, @Nullable String fallbackEncoding,
+    public HttpResponseListener(CompletableFuture<@Nullable ContentWrapper> future, @Nullable String fallbackEncoding,
             int bufferSize) {
         super(bufferSize * 1024);
         this.future = future;
@@ -77,8 +78,8 @@ public class HttpResponseListener extends BufferingResponseListener {
                     byte[] content = getContent();
                     String encoding = getEncoding();
                     if (content != null) {
-                        future.complete(
-                                new Content(content, encoding == null ? fallbackEncoding : encoding, getMediaType()));
+                        future.complete(new ContentWrapper(content, encoding == null ? fallbackEncoding : encoding,
+                                getMediaType()));
                     } else {
                         future.complete(null);
                     }

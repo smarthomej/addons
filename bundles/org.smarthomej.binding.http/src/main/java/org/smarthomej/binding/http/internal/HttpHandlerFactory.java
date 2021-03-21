@@ -34,10 +34,10 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthomej.binding.http.internal.transform.CascadedValueTransformationImpl;
-import org.smarthomej.binding.http.internal.transform.NoOpValueTransformation;
-import org.smarthomej.binding.http.internal.transform.ValueTransformation;
-import org.smarthomej.binding.http.internal.transform.ValueTransformationProvider;
+import org.smarthomej.common.transform.CascadedValueTransformationImpl;
+import org.smarthomej.common.transform.NoOpValueTransformation;
+import org.smarthomej.common.transform.ValueTransformation;
+import org.smarthomej.common.transform.ValueTransformationProvider;
 
 /**
  * The {@link HttpHandlerFactory} is responsible for creating things and thing

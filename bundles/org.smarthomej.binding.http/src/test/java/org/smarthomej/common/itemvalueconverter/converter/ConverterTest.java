@@ -11,7 +11,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.smarthomej.binding.http.internal.converter;
+package org.smarthomej.common.itemvalueconverter.converter;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
@@ -34,8 +34,8 @@ import org.openhab.core.types.Command;
 import org.openhab.core.types.State;
 import org.openhab.core.types.UnDefType;
 import org.smarthomej.binding.http.internal.config.HttpChannelConfig;
-import org.smarthomej.binding.http.internal.http.Content;
-import org.smarthomej.binding.http.internal.transform.NoOpValueTransformation;
+import org.smarthomej.common.itemvalueconverter.ContentWrapper;
+import org.smarthomej.common.transform.NoOpValueTransformation;
 
 /**
  * The {@link ConverterTest} is a test class for state converters
@@ -122,7 +122,7 @@ public class ConverterTest {
     public void playerItemTypeConverter() {
         HttpChannelConfig cfg = new HttpChannelConfig();
         cfg.playValue = "PLAY";
-        Content content = new Content("PLAY".getBytes(StandardCharsets.UTF_8), "UTF-8", null);
+        ContentWrapper content = new ContentWrapper("PLAY".getBytes(StandardCharsets.UTF_8), "UTF-8", null);
         PlayerItemConverter converter = new PlayerItemConverter(updateState, postCommand, sendHttpValue,
                 NoOpValueTransformation.getInstance(), NoOpValueTransformation.getInstance(), cfg);
         converter.process(content);

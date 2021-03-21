@@ -14,4 +14,12 @@
 
   <name>SmartHome/J Add-ons :: Bundles :: HTTP Binding</name>
 
+  <dependencies>
+    <dependency>
+      <groupId>org.smarthomej.addons.bundles</groupId>
+      <artifactId>org.smarthomej.common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+
 </project>

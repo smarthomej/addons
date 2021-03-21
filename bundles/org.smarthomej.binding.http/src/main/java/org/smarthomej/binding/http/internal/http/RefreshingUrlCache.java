@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.http.internal.Util;
 import org.smarthomej.binding.http.internal.config.HttpThingConfig;
+import org.smarthomej.common.itemvalueconverter.ContentWrapper;
 
 /**
  * The {@link RefreshingUrlCache} is responsible for requesting from a single URL and passing the content to the
@@ -46,13 +47,13 @@ public class RefreshingUrlCache {
     private final int timeout;
     private final int bufferSize;
     private final @Nullable String fallbackEncoding;
-    private final Set<Consumer<Content>> consumers = ConcurrentHashMap.newKeySet();
+    private final Set<Consumer<ContentWrapper>> consumers = ConcurrentHashMap.newKeySet();
     private final List<String> headers;
     private final HttpMethod httpMethod;
     private final String httpContent;
 
     private final ScheduledFuture<?> future;
-    private @Nullable Content lastContent;
+    private @Nullable ContentWrapper lastContent;
 
     public RefreshingUrlCache(ScheduledExecutorService executor, RateLimitedHttpClient httpClient, String url,
             HttpThingConfig thingConfig, String httpContent) {
@@ -96,7 +97,7 @@ public class RefreshingUrlCache {
                     }
                 });
 
-                CompletableFuture<@Nullable Content> response = new CompletableFuture<>();
+                CompletableFuture<@Nullable ContentWrapper> response = new CompletableFuture<>();
                 response.exceptionally(e -> {
                     if (e instanceof HttpAuthException) {
                         if (isRetry) {
@@ -141,12 +142,12 @@ public class RefreshingUrlCache {
         logger.trace("Stopped refresh task for URL '{}'", url);
     }
 
-    public void addConsumer(Consumer<Content> consumer) {
+    public void addConsumer(Consumer<ContentWrapper> consumer) {
         consumers.add(consumer);
     }
 
-    public Optional<Content> get() {
-        final Content content = lastContent;
+    public Optional<ContentWrapper> get() {
+        final ContentWrapper content = lastContent;
         if (content == null) {
             return Optional.empty();
         } else {
@@ -154,9 +155,9 @@ public class RefreshingUrlCache {
         }
     }
 
-    private void processResult(@Nullable Content content) {
+    private void processResult(@Nullable ContentWrapper content) {
         if (content != null) {
-            for (Consumer<Content> consumer : consumers) {
+            for (Consumer<ContentWrapper> consumer : consumers) {
                 try {
                     consumer.accept(content);
                 } catch (IllegalArgumentException | IllegalStateException e) {
