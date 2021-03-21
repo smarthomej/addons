@@ -32,7 +32,7 @@ import org.smarthomej.common.itemvalueconverter.converter.ColorItemConverter;
  */
 
 @NonNullByDefault
-public abstract class ItemValueConverterChannelConfig {
+public class ItemValueConverterChannelConfig {
     private final Map<String, State> stringStateMap = new HashMap<>();
     private final Map<Command, @Nullable String> commandStringMap = new HashMap<>();
 
