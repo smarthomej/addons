@@ -26,17 +26,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The {@link CascadedValueTransformationImpl} implements {@link ValueTransformation for a cascaded set of
+ * The {@link CascadedValueTransformation} implements {@link ValueTransformation for a cascaded set of
  * transformations}
  *
  * @author Jan N. Klug - Initial contribution
  */
 @NonNullByDefault
-public class CascadedValueTransformationImpl implements ValueTransformation {
-    private final Logger logger = LoggerFactory.getLogger(CascadedValueTransformationImpl.class);
+public class CascadedValueTransformation implements ValueTransformation {
+    private final Logger logger = LoggerFactory.getLogger(CascadedValueTransformation.class);
     private final List<ValueTransformation> transformations;
 
-    public CascadedValueTransformationImpl(String transformationString,
+    public CascadedValueTransformation(String transformationString,
             Function<String, @Nullable TransformationService> transformationServiceSupplier) {
         List<ValueTransformation> transformations;
         try {
