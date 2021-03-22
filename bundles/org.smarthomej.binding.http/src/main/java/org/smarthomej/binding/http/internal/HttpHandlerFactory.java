@@ -34,7 +34,7 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthomej.common.transform.CascadedValueTransformationImpl;
+import org.smarthomej.common.transform.CascadedValueTransformation;
 import org.smarthomej.common.transform.NoOpValueTransformation;
 import org.smarthomej.common.transform.ValueTransformation;
 import org.smarthomej.common.transform.ValueTransformationProvider;
@@ -105,7 +105,7 @@ public class HttpHandlerFactory extends BaseThingHandlerFactory
         if (pattern == null || pattern.isEmpty()) {
             return NoOpValueTransformation.getInstance();
         }
-        return new CascadedValueTransformationImpl(pattern,
+        return new CascadedValueTransformation(pattern,
                 name -> TransformationHelper.getTransformationService(bundleContext, name));
     }
 

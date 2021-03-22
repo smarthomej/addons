@@ -19,6 +19,7 @@
       <groupId>org.smarthomej.addons.bundles</groupId>
       <artifactId>org.smarthomej.common</artifactId>
       <version>${project.version}</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 
