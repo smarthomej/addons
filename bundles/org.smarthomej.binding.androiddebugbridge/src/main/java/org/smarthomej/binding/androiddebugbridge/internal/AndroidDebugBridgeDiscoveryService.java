@@ -92,7 +92,7 @@ public class AndroidDebugBridgeDiscoveryService extends AbstractDiscoveryService
                         ipParts[3] = Integer.toString(i);
                         String currentIp = String.join(".", ipParts);
                         try {
-                            var currentAddress = InetAddress.getByName(currentIp);
+                            InetAddress currentAddress = InetAddress.getByName(currentIp);
                             logger.debug("address: {}", currentIp);
                             if (currentAddress.isReachable(configuration.discoveryReachableMs)) {
                                 logger.debug("Reachable ip: {}", currentIp);
@@ -125,7 +125,7 @@ public class AndroidDebugBridgeDiscoveryService extends AbstractDiscoveryService
 
     private void discoverWithADB(String ip, int port) throws InterruptedException, AndroidDebugBridgeDeviceException,
             AndroidDebugBridgeDeviceReadException, TimeoutException, ExecutionException {
-        var device = new AndroidDebugBridgeDevice(scheduler);
+        AndroidDebugBridgeDevice device = new AndroidDebugBridgeDevice(scheduler);
         device.configure(ip, port, 10);
         try {
             device.connect();

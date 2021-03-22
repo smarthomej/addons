@@ -17,6 +17,7 @@ import static org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBri
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -34,6 +35,7 @@ import org.openhab.core.types.Command;
 import org.openhab.core.types.RefreshType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBridgeDevice.VolumeInfo;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -69,7 +71,7 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
-        var currentConfig = config;
+        AndroidDebugBridgeConfiguration currentConfig = config;
         if (currentConfig == null) {
             return;
         }
@@ -131,7 +133,7 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
                 break;
             case CURRENT_PACKAGE_CHANNEL:
                 if (command instanceof RefreshType) {
-                    var packageName = adbConnection.getCurrentPackage();
+                    String packageName = adbConnection.getCurrentPackage();
                     updateState(channelUID, new StringType(packageName));
                 }
                 break;
@@ -143,18 +145,12 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
                 break;
             case AWAKE_STATE_CHANNEL:
                 if (command instanceof RefreshType) {
-                    Boolean awakeState = adbConnection.isAwake();
-                    if (awakeState != null) {
-                        updateState(channelUID, OnOffType.from(awakeState));
-                    }
+                    adbConnection.isAwake().ifPresent(state -> updateState(channelUID, OnOffType.from(state)));
                 }
                 break;
             case SCREEN_STATE_CHANNEL:
                 if (command instanceof RefreshType) {
-                    Boolean screenState = adbConnection.isScreenOn();
-                    if (screenState != null) {
-                        updateState(channelUID, OnOffType.from(screenState));
-                    }
+                    adbConnection.isScreenOn().ifPresent(state -> updateState(channelUID, OnOffType.from(state)));
                 }
                 break;
         }
@@ -164,7 +160,7 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
             throws InterruptedException, AndroidDebugBridgeDeviceReadException, AndroidDebugBridgeDeviceException,
             TimeoutException, ExecutionException {
         if (command instanceof RefreshType) {
-            var volumeInfo = adbConnection.getMediaVolume();
+            VolumeInfo volumeInfo = adbConnection.getMediaVolume();
             maxMediaVolume = volumeInfo.max;
             updateState(channelUID, new PercentType((int) Math.round(toPercent(volumeInfo.current, volumeInfo.max))));
         } else {
@@ -189,19 +185,20 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
             throws InterruptedException, AndroidDebugBridgeDeviceException, AndroidDebugBridgeDeviceReadException,
             TimeoutException, ExecutionException {
         if (command instanceof RefreshType) {
-            Boolean playing;
+            Optional<Boolean> playing;
             String currentPackage = adbConnection.getCurrentPackage();
-            var currentPackageConfig = packageConfigs != null ? Arrays.stream(packageConfigs)
-                    .filter(pc -> pc.name.equals(currentPackage)).findFirst().orElse(null) : null;
+            AndroidDebugBridgeMediaStatePackageConfig currentPackageConfig = packageConfigs != null ? Arrays
+                    .stream(packageConfigs).filter(pc -> pc.name.equals(currentPackage)).findFirst().orElse(null)
+                    : null;
             if (currentPackageConfig != null) {
                 logger.debug("media stream config found for {}, mode: {}", currentPackage, currentPackageConfig.mode);
                 switch (currentPackageConfig.mode) {
                     case "idle":
-                        playing = false;
+                        playing = Optional.of(false);
                         break;
                     case "wake_lock":
                         int wakeLockState = adbConnection.getPowerWakeLock();
-                        playing = currentPackageConfig.wakeLockPlayStates.contains(wakeLockState);
+                        playing = Optional.of(currentPackageConfig.wakeLockPlayStates.contains(wakeLockState));
                         break;
                     case "media_state":
                         playing = adbConnection.isPlayingMedia(currentPackage);
@@ -211,15 +208,13 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
                         break;
                     default:
                         logger.warn("media state config: package {} unsupported mode", currentPackage);
-                        playing = false;
+                        playing = Optional.of(false);
                 }
             } else {
                 logger.debug("media stream config not found for {}", currentPackage);
                 playing = adbConnection.isPlayingMedia(currentPackage);
             }
-            if (playing != null) {
-                updateState(channelUID, playing ? PlayPauseType.PLAY : PlayPauseType.PAUSE);
-            }
+            updateState(channelUID, playing.isPresent() && playing.get() ? PlayPauseType.PLAY : PlayPauseType.PAUSE);
         } else if (command instanceof PlayPauseType) {
             if (command == PlayPauseType.PLAY) {
                 adbConnection.sendKeyEvent(KEY_EVENT_PLAY);
@@ -247,9 +242,9 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
 
     @Override
     public void initialize() {
-        var currentConfig = getConfigAs(AndroidDebugBridgeConfiguration.class);
+        AndroidDebugBridgeConfiguration currentConfig = getConfigAs(AndroidDebugBridgeConfiguration.class);
         config = currentConfig;
-        var mediaStateJSONConfig = currentConfig.mediaStateJSONConfig;
+        String mediaStateJSONConfig = currentConfig.mediaStateJSONConfig;
         if (mediaStateJSONConfig != null && !mediaStateJSONConfig.isEmpty()) {
             loadMediaStateConfig(mediaStateJSONConfig);
         }
@@ -270,7 +265,7 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
 
     @Override
     public void dispose() {
-        var schedule = connectionCheckerSchedule;
+        ScheduledFuture<?> schedule = connectionCheckerSchedule;
         if (schedule != null) {
             schedule.cancel(true);
             connectionCheckerSchedule = null;
@@ -281,7 +276,7 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
     }
 
     public void checkConnection() {
-        var currentConfig = config;
+        AndroidDebugBridgeConfiguration currentConfig = config;
         if (currentConfig == null)
             return;
         try {
