@@ -33,7 +33,7 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthomej.common.transform.ValueTransformationProvider;
+import org.smarthomej.commons.transform.ValueTransformationProvider;
 
 /**
  * The {@link HttpHandlerFactory} is responsible for creating things and thing

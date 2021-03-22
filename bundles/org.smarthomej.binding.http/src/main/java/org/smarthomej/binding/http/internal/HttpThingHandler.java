@@ -50,11 +50,11 @@ import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.http.internal.config.HttpChannelConfig;
 import org.smarthomej.binding.http.internal.config.HttpThingConfig;
 import org.smarthomej.binding.http.internal.http.*;
-import org.smarthomej.common.itemvalueconverter.ChannelMode;
-import org.smarthomej.common.itemvalueconverter.ContentWrapper;
-import org.smarthomej.common.itemvalueconverter.ItemValueConverter;
-import org.smarthomej.common.itemvalueconverter.converter.*;
-import org.smarthomej.common.transform.ValueTransformationProvider;
+import org.smarthomej.commons.itemvalueconverter.ChannelMode;
+import org.smarthomej.commons.itemvalueconverter.ContentWrapper;
+import org.smarthomej.commons.itemvalueconverter.ItemValueConverter;
+import org.smarthomej.commons.itemvalueconverter.converter.*;
+import org.smarthomej.commons.transform.ValueTransformationProvider;
 
 /**
  * The {@link HttpThingHandler} is responsible for handling commands, which are

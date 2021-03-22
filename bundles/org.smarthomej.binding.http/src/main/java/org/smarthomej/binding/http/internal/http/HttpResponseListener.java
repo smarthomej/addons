@@ -27,7 +27,7 @@ import org.eclipse.jetty.http.HttpField;
 import org.eclipse.jetty.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthomej.common.itemvalueconverter.ContentWrapper;
+import org.smarthomej.commons.itemvalueconverter.ContentWrapper;
 
 /**
  * The {@link HttpResponseListener} is responsible for processing the result of a HTTP request

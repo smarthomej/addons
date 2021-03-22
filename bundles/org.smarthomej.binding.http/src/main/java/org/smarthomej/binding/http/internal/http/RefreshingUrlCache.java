@@ -30,7 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.http.internal.Util;
 import org.smarthomej.binding.http.internal.config.HttpThingConfig;
-import org.smarthomej.common.itemvalueconverter.ContentWrapper;
+import org.smarthomej.commons.itemvalueconverter.ContentWrapper;
 
 /**
  * The {@link RefreshingUrlCache} is responsible for requesting from a single URL and passing the content to the
