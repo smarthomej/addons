@@ -18,7 +18,7 @@
 
   <modules>
     <!-- common -->
-    <module>org.smarthomej.common</module>
+    <module>org.smarthomej.commons</module>
     <!-- bindings -->
     <module>org.smarthomej.binding.androiddebugbridge</module>
     <module>org.smarthomej.binding.amazonechocontrol</module>
