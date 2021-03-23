@@ -10,7 +10,7 @@
     <version>3.1.1-SNAPSHOT</version>
   </parent>
 
-  <artifactId>org.smarthomej.common</artifactId>
+  <artifactId>org.smarthomej.commons</artifactId>
 
   <name>SmartHome/J Add-ons :: Bundles :: Common Components</name>
 
