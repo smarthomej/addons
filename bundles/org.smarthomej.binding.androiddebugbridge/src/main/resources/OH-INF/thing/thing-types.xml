@@ -8,6 +8,7 @@
 		<label>Android Device Thing</label>
 		<description>Android Device Thing for Android Debug Bridge Binding</description>
 		<channels>
+			<channel id="mouse-tap" typeId="mouse-tap-channel"/>
 			<channel id="key-event" typeId="key-event-channel"/>
 			<channel id="text" typeId="text-channel"/>
 			<channel id="media-volume" typeId="system.volume"/>
@@ -15,10 +16,12 @@
 			<channel id="start-package" typeId="start-package-channel"/>
 			<channel id="stop-package" typeId="stop-package-channel"/>
 			<channel id="stop-current-package" typeId="stop-current-package-channel"/>
+			<channel id="open-url" typeId="open-url-channel"/>
 			<channel id="current-package" typeId="current-package-channel"/>
 			<channel id="wake-lock" typeId="wake-lock-channel"/>
 			<channel id="screen-state" typeId="screen-state-channel"/>
 			<channel id="awake-state" typeId="awake-state-channel"/>
+			<channel id="hdmi-state" typeId="hdmi-state-channel"/>
 		</channels>
 		<representation-property>serial</representation-property>
 		<config-description>
@@ -49,6 +52,12 @@
 			</parameter>
 		</config-description>
 	</thing-type>
+
+	<channel-type id="mouse-tap-channel">
+		<item-type>String</item-type>
+		<label>Send Mouse Tap</label>
+		<description>Send mouse tap to android device</description>
+	</channel-type>
 
 	<channel-type id="key-event-channel">
 		<item-type>String</item-type>
@@ -373,6 +382,12 @@
 		<description>Stops the top application in screen when receives an OFF command</description>
 	</channel-type>
 
+	<channel-type id="open-url-channel">
+		<item-type>String</item-type>
+		<label>Open URL</label>
+		<description>Open URL</description>
+	</channel-type>
+
 	<channel-type id="current-package-channel">
 		<item-type>String</item-type>
 		<label>Current Package</label>
@@ -398,6 +413,13 @@
 		<item-type>Switch</item-type>
 		<label>Screen State</label>
 		<description>Screen Power State</description>
+		<state readOnly="true"/>
+	</channel-type>
+
+	<channel-type id="hdmi-state-channel" advanced="true">
+		<item-type>Switch</item-type>
+		<label>HDMI State</label>
+		<description>HDMI Power State</description>
 		<state readOnly="true"/>
 	</channel-type>
 

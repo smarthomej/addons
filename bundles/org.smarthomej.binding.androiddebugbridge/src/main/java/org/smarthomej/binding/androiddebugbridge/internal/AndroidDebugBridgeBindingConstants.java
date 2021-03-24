@@ -35,6 +35,7 @@ public class AndroidDebugBridgeBindingConstants {
     public static final ThingTypeUID THING_TYPE_ANDROID_DEVICE = new ThingTypeUID(BINDING_ID, "android");
     public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES = Collections.singleton(THING_TYPE_ANDROID_DEVICE);
     // List of all Channel ids
+    public static final String MOUSE_TAP_CHANNEL = "mouse-tap";
     public static final String KEY_EVENT_CHANNEL = "key-event";
     public static final String TEXT_CHANNEL = "text";
     public static final String MEDIA_VOLUME_CHANNEL = "media-volume";
@@ -42,10 +43,12 @@ public class AndroidDebugBridgeBindingConstants {
     public static final String START_PACKAGE_CHANNEL = "start-package";
     public static final String STOP_PACKAGE_CHANNEL = "stop-package";
     public static final String STOP_CURRENT_PACKAGE_CHANNEL = "stop-current-package";
+    public static final String OPEN_URL_CHANNEL = "open-url";
     public static final String CURRENT_PACKAGE_CHANNEL = "current-package";
     public static final String AWAKE_STATE_CHANNEL = "awake-state";
     public static final String WAKE_LOCK_CHANNEL = "wake-lock";
     public static final String SCREEN_STATE_CHANNEL = "screen-state";
+    public static final String HDMI_STATE_CHANNEL = "hdmi-state";
     // List of all Parameters
     public static final String PARAMETER_IP = "ip";
     public static final String PARAMETER_PORT = "port";
