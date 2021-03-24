@@ -31,6 +31,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.Lock;
@@ -135,7 +136,7 @@ public class AndroidDebugBridgeDevice {
     public String getCurrentPackage() throws AndroidDebugBridgeDeviceException, InterruptedException,
             AndroidDebugBridgeDeviceReadException, TimeoutException, ExecutionException {
         String result = runAdbShell("dumpsys", "window", "windows", "|", "grep", "mFocusedApp");
-        String targetLine = Arrays.stream(result.split("\n")).findFirst().orElse("");
+        String targetLine = Objects.requireNonNull(Arrays.stream(result.split("\n")).findFirst().orElse(""));
         String[] lineParts = targetLine.split(" ");
         if (lineParts.length >= 2) {
             String packageActivityName = lineParts[lineParts.length - 2];
@@ -333,7 +334,8 @@ public class AndroidDebugBridgeDevice {
         }
         lock.lock();
         try {
-            commandFuture = scheduler.submit(() -> {
+            stopCommandFuture(); // make sure there is not future
+            Future<String> commandFuture = scheduler.submit(() -> {
                 ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                 String cmd = String.join(" ", args);
                 logger.debug("{} - shell:{}", ip, cmd);
@@ -350,6 +352,7 @@ public class AndroidDebugBridgeDevice {
                 }
                 return byteArrayOutputStream.toString(StandardCharsets.US_ASCII);
             });
+            this.commandFuture = commandFuture;
             return commandFuture.get(timeoutSec, TimeUnit.SECONDS).trim();
         } finally {
             stopCommandFuture();
