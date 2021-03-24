@@ -102,6 +102,9 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
         }
         String channelId = channelUID.getId();
         switch (channelId) {
+            case MOUSE_TAP_CHANNEL:
+                adbConnection.sendMouseTap(command.toFullString());
+                break;
             case KEY_EVENT_CHANNEL:
                 adbConnection.sendKeyEvent(command.toFullString());
                 break;
@@ -131,6 +134,11 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
                             RefreshType.REFRESH);
                 }
                 break;
+            case OPEN_URL_CHANNEL:
+                adbConnection.openURL(command.toFullString());
+                handleCommandInternal(new ChannelUID(this.thing.getUID(), CURRENT_PACKAGE_CHANNEL),
+                        RefreshType.REFRESH);
+                break;
             case CURRENT_PACKAGE_CHANNEL:
                 if (command instanceof RefreshType) {
                     String packageName = adbConnection.getCurrentPackage();
@@ -151,6 +159,11 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
             case SCREEN_STATE_CHANNEL:
                 if (command instanceof RefreshType) {
                     adbConnection.isScreenOn().ifPresent(state -> updateState(channelUID, OnOffType.from(state)));
+                }
+                break;
+            case HDMI_STATE_CHANNEL:
+                if (command instanceof RefreshType) {
+                    adbConnection.isHDMIOn().ifPresent(state -> updateState(channelUID, OnOffType.from(state)));
                 }
                 break;
         }
@@ -365,6 +378,15 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
             logger.warn("Unable to refresh screen state: {}", e.getMessage());
         } catch (TimeoutException e) {
             logger.debug("Unable to refresh screen state: Timeout");
+            adbConnection.disconnect();
+            return;
+        }
+        try {
+            handleCommandInternal(new ChannelUID(this.thing.getUID(), HDMI_STATE_CHANNEL), RefreshType.REFRESH);
+        } catch (AndroidDebugBridgeDeviceReadException e) {
+            logger.warn("Unable to refresh hdmi state: {}", e.getMessage());
+        } catch (TimeoutException e) {
+            logger.debug("Unable to refresh hdmi state: Timeout");
             adbConnection.disconnect();
             return;
         }
