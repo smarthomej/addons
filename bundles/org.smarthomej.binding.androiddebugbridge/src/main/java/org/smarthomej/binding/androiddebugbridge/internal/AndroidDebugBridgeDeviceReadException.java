@@ -24,6 +24,10 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 public class AndroidDebugBridgeDeviceReadException extends Exception {
     private static final long serialVersionUID = 6608406239134276287L;
 
+    public AndroidDebugBridgeDeviceReadException(String channelId, String result) {
+        super("Device does not support " + channelId + ": " + result);
+    }
+
     public AndroidDebugBridgeDeviceReadException(String message) {
         super(message);
     }

@@ -17,6 +17,7 @@ import static org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBri
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -34,6 +35,7 @@ import org.openhab.core.types.Command;
 import org.openhab.core.types.RefreshType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBridgeDevice.VolumeInfo;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -69,7 +71,7 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
-        var currentConfig = config;
+        AndroidDebugBridgeConfiguration currentConfig = config;
         if (currentConfig == null) {
             return;
         }
@@ -114,20 +116,24 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
                 break;
             case START_PACKAGE_CHANNEL:
                 adbConnection.startPackage(command.toFullString());
-                updateState(new ChannelUID(this.thing.getUID(), CURRENT_PACKAGE_CHANNEL),
-                        new StringType(command.toFullString()));
+                handleCommandInternal(new ChannelUID(this.thing.getUID(), CURRENT_PACKAGE_CHANNEL),
+                        RefreshType.REFRESH);
                 break;
             case STOP_PACKAGE_CHANNEL:
                 adbConnection.stopPackage(command.toFullString());
+                handleCommandInternal(new ChannelUID(this.thing.getUID(), CURRENT_PACKAGE_CHANNEL),
+                        RefreshType.REFRESH);
                 break;
             case STOP_CURRENT_PACKAGE_CHANNEL:
                 if (OnOffType.from(command.toFullString()).equals(OnOffType.OFF)) {
                     adbConnection.stopPackage(adbConnection.getCurrentPackage());
+                    handleCommandInternal(new ChannelUID(this.thing.getUID(), CURRENT_PACKAGE_CHANNEL),
+                            RefreshType.REFRESH);
                 }
                 break;
             case CURRENT_PACKAGE_CHANNEL:
                 if (command instanceof RefreshType) {
-                    var packageName = adbConnection.getCurrentPackage();
+                    String packageName = adbConnection.getCurrentPackage();
                     updateState(channelUID, new StringType(packageName));
                 }
                 break;
@@ -139,14 +145,12 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
                 break;
             case AWAKE_STATE_CHANNEL:
                 if (command instanceof RefreshType) {
-                    boolean awakeState = adbConnection.isAwake();
-                    updateState(channelUID, OnOffType.from(awakeState));
+                    adbConnection.isAwake().ifPresent(state -> updateState(channelUID, OnOffType.from(state)));
                 }
                 break;
             case SCREEN_STATE_CHANNEL:
                 if (command instanceof RefreshType) {
-                    boolean screenState = adbConnection.isScreenOn();
-                    updateState(channelUID, OnOffType.from(screenState));
+                    adbConnection.isScreenOn().ifPresent(state -> updateState(channelUID, OnOffType.from(state)));
                 }
                 break;
         }
@@ -156,7 +160,7 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
             throws InterruptedException, AndroidDebugBridgeDeviceReadException, AndroidDebugBridgeDeviceException,
             TimeoutException, ExecutionException {
         if (command instanceof RefreshType) {
-            var volumeInfo = adbConnection.getMediaVolume();
+            VolumeInfo volumeInfo = adbConnection.getMediaVolume();
             maxMediaVolume = volumeInfo.max;
             updateState(channelUID, new PercentType((int) Math.round(toPercent(volumeInfo.current, volumeInfo.max))));
         } else {
@@ -181,19 +185,20 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
             throws InterruptedException, AndroidDebugBridgeDeviceException, AndroidDebugBridgeDeviceReadException,
             TimeoutException, ExecutionException {
         if (command instanceof RefreshType) {
-            boolean playing;
+            Optional<Boolean> playing;
             String currentPackage = adbConnection.getCurrentPackage();
-            var currentPackageConfig = packageConfigs != null ? Arrays.stream(packageConfigs)
-                    .filter(pc -> pc.name.equals(currentPackage)).findFirst().orElse(null) : null;
+            AndroidDebugBridgeMediaStatePackageConfig currentPackageConfig = packageConfigs != null ? Arrays
+                    .stream(packageConfigs).filter(pc -> pc.name.equals(currentPackage)).findFirst().orElse(null)
+                    : null;
             if (currentPackageConfig != null) {
                 logger.debug("media stream config found for {}, mode: {}", currentPackage, currentPackageConfig.mode);
                 switch (currentPackageConfig.mode) {
                     case "idle":
-                        playing = false;
+                        playing = Optional.of(false);
                         break;
                     case "wake_lock":
                         int wakeLockState = adbConnection.getPowerWakeLock();
-                        playing = currentPackageConfig.wakeLockPlayStates.contains(wakeLockState);
+                        playing = Optional.of(currentPackageConfig.wakeLockPlayStates.contains(wakeLockState));
                         break;
                     case "media_state":
                         playing = adbConnection.isPlayingMedia(currentPackage);
@@ -203,13 +208,13 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
                         break;
                     default:
                         logger.warn("media state config: package {} unsupported mode", currentPackage);
-                        playing = false;
+                        playing = Optional.of(false);
                 }
             } else {
                 logger.debug("media stream config not found for {}", currentPackage);
                 playing = adbConnection.isPlayingMedia(currentPackage);
             }
-            updateState(channelUID, playing ? PlayPauseType.PLAY : PlayPauseType.PAUSE);
+            updateState(channelUID, playing.isPresent() && playing.get() ? PlayPauseType.PLAY : PlayPauseType.PAUSE);
         } else if (command instanceof PlayPauseType) {
             if (command == PlayPauseType.PLAY) {
                 adbConnection.sendKeyEvent(KEY_EVENT_PLAY);
@@ -237,9 +242,9 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
 
     @Override
     public void initialize() {
-        var currentConfig = getConfigAs(AndroidDebugBridgeConfiguration.class);
+        AndroidDebugBridgeConfiguration currentConfig = getConfigAs(AndroidDebugBridgeConfiguration.class);
         config = currentConfig;
-        var mediaStateJSONConfig = currentConfig.mediaStateJSONConfig;
+        String mediaStateJSONConfig = currentConfig.mediaStateJSONConfig;
         if (mediaStateJSONConfig != null && !mediaStateJSONConfig.isEmpty()) {
             loadMediaStateConfig(mediaStateJSONConfig);
         }
@@ -260,7 +265,7 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
 
     @Override
     public void dispose() {
-        var schedule = connectionCheckerSchedule;
+        ScheduledFuture<?> schedule = connectionCheckerSchedule;
         if (schedule != null) {
             schedule.cancel(true);
             connectionCheckerSchedule = null;
@@ -271,7 +276,7 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
     }
 
     public void checkConnection() {
-        var currentConfig = config;
+        AndroidDebugBridgeConfiguration currentConfig = config;
         if (currentConfig == null)
             return;
         try {
@@ -288,6 +293,12 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
                     adbConnection.disconnect();
                     updateStatus(ThingStatus.OFFLINE);
                     return;
+                } catch (TimeoutException e) {
+                    logger.debug("Error connecting to device; [{}]: {}", e.getClass().getCanonicalName(),
+                            e.getMessage());
+                    adbConnection.disconnect();
+                    updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR);
+                    return;
                 }
                 if (adbConnection.isConnected()) {
                     updateStatus(ThingStatus.ONLINE);
@@ -303,57 +314,59 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
     }
 
     private void refreshStatus() throws InterruptedException, AndroidDebugBridgeDeviceException, ExecutionException {
-        boolean awakeState;
-        boolean prevDeviceAwake = deviceAwake;
-        try {
-            awakeState = adbConnection.isAwake();
-            deviceAwake = awakeState;
-        } catch (TimeoutException e) {
-            logger.warn("Unable to refresh awake state: Timeout");
-            return;
-        }
-        var awakeStateChannelUID = new ChannelUID(this.thing.getUID(), AWAKE_STATE_CHANNEL);
-        if (isLinked(awakeStateChannelUID)) {
-            updateState(awakeStateChannelUID, OnOffType.from(awakeState));
-        }
-        if (!awakeState && !prevDeviceAwake) {
-            logger.debug("device {} is sleeping", config.ip);
-            return;
-        }
         try {
             handleCommandInternal(new ChannelUID(this.thing.getUID(), MEDIA_VOLUME_CHANNEL), RefreshType.REFRESH);
         } catch (AndroidDebugBridgeDeviceReadException e) {
             logger.warn("Unable to refresh media volume: {}", e.getMessage());
         } catch (TimeoutException e) {
-            logger.warn("Unable to refresh media volume: Timeout");
+            logger.debug("Unable to refresh media volume: Timeout");
+            adbConnection.disconnect();
+            return;
         }
         try {
             handleCommandInternal(new ChannelUID(this.thing.getUID(), MEDIA_CONTROL_CHANNEL), RefreshType.REFRESH);
         } catch (AndroidDebugBridgeDeviceReadException e) {
             logger.warn("Unable to refresh play status: {}", e.getMessage());
         } catch (TimeoutException e) {
-            logger.warn("Unable to refresh play status: Timeout");
+            logger.debug("Unable to refresh play status: Timeout");
+            adbConnection.disconnect();
+            return;
         }
         try {
             handleCommandInternal(new ChannelUID(this.thing.getUID(), CURRENT_PACKAGE_CHANNEL), RefreshType.REFRESH);
         } catch (AndroidDebugBridgeDeviceReadException e) {
             logger.warn("Unable to refresh current package: {}", e.getMessage());
         } catch (TimeoutException e) {
-            logger.warn("Unable to refresh current package: Timeout");
+            logger.debug("Unable to refresh current package: Timeout");
+            adbConnection.disconnect();
+            return;
         }
         try {
             handleCommandInternal(new ChannelUID(this.thing.getUID(), WAKE_LOCK_CHANNEL), RefreshType.REFRESH);
         } catch (AndroidDebugBridgeDeviceReadException e) {
             logger.warn("Unable to refresh wake lock: {}", e.getMessage());
         } catch (TimeoutException e) {
-            logger.warn("Unable to refresh wake lock: Timeout");
+            logger.debug("Unable to refresh wake lock: Timeout");
+            adbConnection.disconnect();
+            return;
+        }
+        try {
+            handleCommandInternal(new ChannelUID(this.thing.getUID(), AWAKE_STATE_CHANNEL), RefreshType.REFRESH);
+        } catch (AndroidDebugBridgeDeviceReadException e) {
+            logger.warn("Unable to refresh awake state: {}", e.getMessage());
+        } catch (TimeoutException e) {
+            logger.debug("Unable to refresh awake state: Timeout");
+            adbConnection.disconnect();
+            return;
         }
         try {
             handleCommandInternal(new ChannelUID(this.thing.getUID(), SCREEN_STATE_CHANNEL), RefreshType.REFRESH);
         } catch (AndroidDebugBridgeDeviceReadException e) {
             logger.warn("Unable to refresh screen state: {}", e.getMessage());
         } catch (TimeoutException e) {
-            logger.warn("Unable to refresh screen state: Timeout");
+            logger.debug("Unable to refresh screen state: Timeout");
+            adbConnection.disconnect();
+            return;
         }
     }
 
