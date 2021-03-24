@@ -319,9 +319,7 @@ public class AndroidDebugBridgeDevice {
             });
             return commandFuture.get(timeoutSec, TimeUnit.SECONDS).trim();
         } finally {
-            if (commandFuture != null) {
-                commandFuture.cancel(true);
-            }
+            stopCommandFuture();
             lock.unlock();
         }
     }
@@ -352,12 +350,16 @@ public class AndroidDebugBridgeDevice {
         return c;
     }
 
-    public void disconnect() {
-        Future<String> commandFuture = this.commandFuture;
+    private void stopCommandFuture() {
+        Future<?> commandFuture = this.commandFuture;
         if (commandFuture != null) {
             commandFuture.cancel(true);
             this.commandFuture = null;
         }
+    }
+
+    public void disconnect() {
+        stopCommandFuture();
         AdbConnection adb = connection;
         Socket sock = socket;
         if (adb != null) {
