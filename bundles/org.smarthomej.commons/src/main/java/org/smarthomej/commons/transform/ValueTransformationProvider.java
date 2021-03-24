@@ -11,23 +11,24 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.smarthomej.binding.http.internal.config;
+package org.smarthomej.commons.transform;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.smarthomej.commons.itemvalueconverter.ItemValueConverterChannelConfig;
 
 /**
- * The {@link HttpChannelConfig} class contains fields mapping channel configuration parameters.
+ * The {@link ValueTransformationProvider} allows to retrieve a transformation service by name
  *
  * @author Jan N. Klug - Initial contribution
  */
 @NonNullByDefault
-public class HttpChannelConfig extends ItemValueConverterChannelConfig {
+public interface ValueTransformationProvider {
 
-    public @Nullable String stateExtension;
-    public @Nullable String commandExtension;
-    public @Nullable String stateTransformation;
-    public @Nullable String commandTransformation;
-    public String stateContent = "";
+    /**
+     *
+     * @param pattern A transformation pattern, starting with the transformation service
+     *            name, followed by a colon and the transformation itself.
+     * @return
+     */
+    ValueTransformation getValueTransformation(@Nullable String pattern);
 }

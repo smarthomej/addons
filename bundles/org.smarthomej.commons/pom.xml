@@ -10,17 +10,8 @@
     <version>3.1.1-SNAPSHOT</version>
   </parent>
 
-  <artifactId>org.smarthomej.binding.http</artifactId>
+  <artifactId>org.smarthomej.commons</artifactId>
 
-  <name>SmartHome/J Add-ons :: Bundles :: HTTP Binding</name>
-
-  <dependencies>
-    <dependency>
-      <groupId>org.smarthomej.addons.bundles</groupId>
-      <artifactId>org.smarthomej.commons</artifactId>
-      <version>${project.version}</version>
-      <scope>provided</scope>
-    </dependency>
-  </dependencies>
+  <name>SmartHome/J Add-ons :: Bundles :: Common Components</name>
 
 </project>

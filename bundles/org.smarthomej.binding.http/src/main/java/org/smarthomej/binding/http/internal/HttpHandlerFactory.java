@@ -27,17 +27,13 @@ import org.openhab.core.thing.ThingTypeUID;
 import org.openhab.core.thing.binding.BaseThingHandlerFactory;
 import org.openhab.core.thing.binding.ThingHandler;
 import org.openhab.core.thing.binding.ThingHandlerFactory;
-import org.openhab.core.transform.TransformationHelper;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthomej.binding.http.internal.transform.CascadedValueTransformationImpl;
-import org.smarthomej.binding.http.internal.transform.NoOpValueTransformation;
-import org.smarthomej.binding.http.internal.transform.ValueTransformation;
-import org.smarthomej.binding.http.internal.transform.ValueTransformationProvider;
+import org.smarthomej.commons.transform.ValueTransformationProvider;
 
 /**
  * The {@link HttpHandlerFactory} is responsible for creating things and thing
@@ -47,21 +43,23 @@ import org.smarthomej.binding.http.internal.transform.ValueTransformationProvide
  */
 @NonNullByDefault
 @Component(configurationPid = "binding.http", service = ThingHandlerFactory.class)
-public class HttpHandlerFactory extends BaseThingHandlerFactory
-        implements ValueTransformationProvider, HttpClientProvider {
+public class HttpHandlerFactory extends BaseThingHandlerFactory implements HttpClientProvider {
     private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Set.of(THING_TYPE_URL);
     private final Logger logger = LoggerFactory.getLogger(HttpHandlerFactory.class);
 
     private final HttpClient secureClient;
     private final HttpClient insecureClient;
+    private final ValueTransformationProvider valueTransformationProvider;
 
     private final HttpDynamicStateDescriptionProvider httpDynamicStateDescriptionProvider;
 
     @Activate
     public HttpHandlerFactory(@Reference HttpClientFactory httpClientFactory,
+            @Reference ValueTransformationProvider valueTransformationProvider,
             @Reference HttpDynamicStateDescriptionProvider httpDynamicStateDescriptionProvider) {
         this.secureClient = new HttpClient(new SslContextFactory.Client());
         this.insecureClient = new HttpClient(new SslContextFactory.Client(true));
+        this.valueTransformationProvider = valueTransformationProvider;
         try {
             this.secureClient.start();
             this.insecureClient.start();
@@ -94,19 +92,10 @@ public class HttpHandlerFactory extends BaseThingHandlerFactory
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
 
         if (THING_TYPE_URL.equals(thingTypeUID)) {
-            return new HttpThingHandler(thing, this, this, httpDynamicStateDescriptionProvider);
+            return new HttpThingHandler(thing, this, valueTransformationProvider, httpDynamicStateDescriptionProvider);
         }
 
         return null;
-    }
-
-    @Override
-    public ValueTransformation getValueTransformation(@Nullable String pattern) {
-        if (pattern == null || pattern.isEmpty()) {
-            return NoOpValueTransformation.getInstance();
-        }
-        return new CascadedValueTransformationImpl(pattern,
-                name -> TransformationHelper.getTransformationService(bundleContext, name));
     }
 
     @Override
