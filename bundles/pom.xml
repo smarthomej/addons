@@ -157,7 +157,7 @@
                   <feature>framework</feature>
                 </framework>
                 <features>
-                  <feature>openhab-*</feature>
+                  <feature>smarthomej-*</feature>
                 </features>
                 <verifyTransitive>false</verifyTransitive>
                 <ignoreMissingConditions>true</ignoreMissingConditions>
