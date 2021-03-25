@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<features name="org.smarthomej.binding.tcpudp-${project.version}" xmlns="http://karaf.apache.org/xmlns/features/v1.4.0">
+	<repository>mvn:org.openhab.core.features.karaf/org.openhab.core.features.karaf.openhab-core/${ohc.version}/xml/features</repository>
+
+	<feature name="smarthomej-binding-tcpudp" description="TCP/UDP Binding" version="${project.version}">
+		<feature>openhab-runtime-base</feature>
+		<bundle dependency="true">mvn:org.smarthomej.addons.bundles/org.smarthomej.commons/${project.version}</bundle>
+		<bundle start-level="80">mvn:org.smarthomej.addons.bundles/org.smarthomej.binding.tcpudp/${project.version}</bundle>
+	</feature>
+</features>

@@ -31,6 +31,7 @@
     <module>org.smarthomej.binding.mpd</module>
     <module>org.smarthomej.binding.onewire</module>
     <module>org.smarthomej.binding.snmp</module>
+    <module>org.smarthomej.binding.tcpudp</module>
     <module>org.smarthomej.binding.tr064</module>
     <!-- persistence -->
     <module>org.smarthomej.persistence.influxdb</module>
