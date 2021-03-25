@@ -381,6 +381,15 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
             adbConnection.disconnect();
             return;
         }
+        try {
+            handleCommandInternal(new ChannelUID(this.thing.getUID(), HDMI_STATE_CHANNEL), RefreshType.REFRESH);
+        } catch (AndroidDebugBridgeDeviceReadException e) {
+            logger.warn("Unable to refresh hdmi state: {}", e.getMessage());
+        } catch (TimeoutException e) {
+            logger.debug("Unable to refresh hdmi state: Timeout");
+            adbConnection.disconnect();
+            return;
+        }
     }
 
     static class AndroidDebugBridgeMediaStatePackageConfig {
