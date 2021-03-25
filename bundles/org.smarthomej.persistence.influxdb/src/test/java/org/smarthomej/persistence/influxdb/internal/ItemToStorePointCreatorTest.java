@@ -24,6 +24,7 @@ import java.util.stream.Stream;
 import org.eclipse.jdt.annotation.DefaultLocation;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,7 +42,6 @@ import org.smarthomej.persistence.influxdb.InfluxDBPersistenceService;
  * @author Joan Pujol Espinar - Initial contribution
  */
 @ExtendWith(MockitoExtension.class)
-@SuppressWarnings("null") // In case of any NPE it will cause test fail that it's the expected result
 @NonNullByDefault(value = { DefaultLocation.PARAMETER, DefaultLocation.RETURN_TYPE })
 public class ItemToStorePointCreatorTest {
 
@@ -72,6 +72,11 @@ public class ItemToStorePointCreatorTest {
         NumberItem item = ItemTestHelper.createNumberItem("myitem", number);
         InfluxPoint point = instance.convert(item, null);
 
+        if (point == null) {
+            Assertions.fail("'point' is null");
+            return;
+        }
+
         assertThat(point.getMeasurementName(), equalTo(item.getName()));
         assertThat("Must Store item name", point.getTags(), hasEntry("item", item.getName()));
         assertThat(point.getValue(), equalTo(new BigDecimal(number.toString())));
@@ -85,6 +90,12 @@ public class ItemToStorePointCreatorTest {
     public void shouldUseAliasAsMeasurementNameIfProvided() {
         NumberItem item = ItemTestHelper.createNumberItem("myitem", 5);
         InfluxPoint point = instance.convert(item, "aliasName");
+
+        if (point == null) {
+            Assertions.fail("'point' is null");
+            return;
+        }
+
         assertThat(point.getMeasurementName(), is("aliasName"));
     }
 
@@ -95,10 +106,22 @@ public class ItemToStorePointCreatorTest {
 
         when(influxDBConfiguration.isAddCategoryTag()).thenReturn(true);
         InfluxPoint point = instance.convert(item, null);
+
+        if (point == null) {
+            Assertions.fail("'point' is null");
+            return;
+        }
+
         assertThat(point.getTags(), hasEntry(InfluxDBConstants.TAG_CATEGORY_NAME, "categoryValue"));
 
         when(influxDBConfiguration.isAddCategoryTag()).thenReturn(false);
         point = instance.convert(item, null);
+
+        if (point == null) {
+            Assertions.fail("'point' is null");
+            return;
+        }
+
         assertThat(point.getTags(), not(hasKey(InfluxDBConstants.TAG_CATEGORY_NAME)));
     }
 
@@ -108,10 +131,22 @@ public class ItemToStorePointCreatorTest {
 
         when(influxDBConfiguration.isAddTypeTag()).thenReturn(true);
         InfluxPoint point = instance.convert(item, null);
+
+        if (point == null) {
+            Assertions.fail("'point' is null");
+            return;
+        }
+
         assertThat(point.getTags(), hasEntry(InfluxDBConstants.TAG_TYPE_NAME, "Number"));
 
         when(influxDBConfiguration.isAddTypeTag()).thenReturn(false);
         point = instance.convert(item, null);
+
+        if (point == null) {
+            Assertions.fail("'point' is null");
+            return;
+        }
+
         assertThat(point.getTags(), not(hasKey(InfluxDBConstants.TAG_TYPE_NAME)));
     }
 
@@ -122,10 +157,22 @@ public class ItemToStorePointCreatorTest {
 
         when(influxDBConfiguration.isAddLabelTag()).thenReturn(true);
         InfluxPoint point = instance.convert(item, null);
+
+        if (point == null) {
+            Assertions.fail("'point' is null");
+            return;
+        }
+
         assertThat(point.getTags(), hasEntry(InfluxDBConstants.TAG_LABEL_NAME, "ItemLabel"));
 
         when(influxDBConfiguration.isAddLabelTag()).thenReturn(false);
         point = instance.convert(item, null);
+
+        if (point == null) {
+            Assertions.fail("'point' is null");
+            return;
+        }
+
         assertThat(point.getTags(), not(hasKey(InfluxDBConstants.TAG_LABEL_NAME)));
     }
 
@@ -138,6 +185,12 @@ public class ItemToStorePointCreatorTest {
                 .thenReturn(new Metadata(metadataKey, "", Map.of("key1", "val1", "key2", "val2")));
 
         InfluxPoint point = instance.convert(item, null);
+
+        if (point == null) {
+            Assertions.fail("'point' is null");
+            return;
+        }
+
         assertThat(point.getTags(), hasEntry("key1", "val1"));
         assertThat(point.getTags(), hasEntry("key2", "val2"));
     }

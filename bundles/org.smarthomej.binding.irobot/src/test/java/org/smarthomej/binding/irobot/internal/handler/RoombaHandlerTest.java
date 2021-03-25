@@ -15,6 +15,7 @@ package org.smarthomej.binding.irobot.internal.handler;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.Objects;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInstance;
@@ -76,7 +77,7 @@ class RoombaHandlerTest {
         handler.initialize();
         Mockito.verify(myThing, Mockito.times(1)).getConfiguration();
 
-        System.in.read();
+        Objects.requireNonNull(System.in).read();
         handler.dispose();
     }
 
@@ -84,12 +85,12 @@ class RoombaHandlerTest {
     void testCleanRegion() throws IOException, InterruptedException {
         handler.initialize();
 
-        System.in.read();
+        Objects.requireNonNull(System.in).read();
 
         ChannelUID cmd = new ChannelUID("my:thi:blabla:command");
         handler.handleCommand(cmd, new StringType("cleanRegions:AABBCCDDEEFFGGHH;2,3"));
 
-        System.in.read();
+        Objects.requireNonNull(System.in).read();
         handler.dispose();
     }
 
@@ -97,12 +98,12 @@ class RoombaHandlerTest {
     void testDock() throws IOException, InterruptedException {
         handler.initialize();
 
-        System.in.read();
+        Objects.requireNonNull(System.in).read();
 
         ChannelUID cmd = new ChannelUID("my:thi:blabla:command");
         handler.handleCommand(cmd, new StringType("dock"));
 
-        System.in.read();
+        Objects.requireNonNull(System.in).read();
         handler.dispose();
     }
 
@@ -110,12 +111,12 @@ class RoombaHandlerTest {
     void testStop() throws IOException, InterruptedException {
         handler.initialize();
 
-        System.in.read();
+        Objects.requireNonNull(System.in).read();
 
         ChannelUID cmd = new ChannelUID("my:thi:blabla:command");
         handler.handleCommand(cmd, new StringType("stop"));
 
-        System.in.read();
+        Objects.requireNonNull(System.in).read();
         handler.dispose();
     }
 }

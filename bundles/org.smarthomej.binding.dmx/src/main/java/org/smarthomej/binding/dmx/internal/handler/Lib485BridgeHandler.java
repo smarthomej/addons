@@ -105,7 +105,7 @@ public class Lib485BridgeHandler extends DmxBridgeHandler {
             universe.calculateBuffer(now);
             for (IpNode receiverNode : receiverNodes.keySet()) {
                 Socket socket = receiverNodes.get(receiverNode);
-                if (socket.isConnected()) {
+                if (socket != null && socket.isConnected()) {
                     try {
                         socket.getOutputStream().write(universe.getBuffer());
                     } catch (IOException e) {

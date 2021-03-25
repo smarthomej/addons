@@ -13,7 +13,10 @@
  */
 package org.smarthomej.binding.tr064.internal;
 
+import java.util.Objects;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 
 /**
  * The {@link Tr064CommunicationException} is thrown for communication errors
@@ -34,10 +37,10 @@ public class Tr064CommunicationException extends Exception {
         super(s);
     }
 
-    public Tr064CommunicationException(String s, Integer httpError, String soapError) {
+    public Tr064CommunicationException(String s, Integer httpError, @Nullable String soapError) {
         super(s);
         this.httpError = httpError;
-        this.soapError = soapError;
+        this.soapError = Objects.requireNonNullElse(soapError, "");
     };
 
     public String getSoapError() {

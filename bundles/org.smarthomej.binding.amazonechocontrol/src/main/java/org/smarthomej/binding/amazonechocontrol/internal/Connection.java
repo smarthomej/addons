@@ -1592,7 +1592,6 @@ public class Connection {
         logger.debug("added {} device {}", queueObject.hashCode(), serialNumbers);
     }
 
-    @SuppressWarnings("null") // peek can return null
     private void handleExecuteSequenceNode() {
         Lock lock = Objects.requireNonNull(locks.computeIfAbsent(TimerType.DEVICES, k -> new ReentrantLock()));
         if (lock.tryLock()) {
@@ -1612,12 +1611,16 @@ public class Connection {
                                                 .get(tmpDevice.serialNumber);
                                         if (tmpQueueObjects != null) {
                                             QueueObject tmpQueueObject = tmpQueueObjects.peek();
-                                            Future<?> tmpFuture = tmpQueueObject.future;
+                                            Future<?> tmpFuture = null;
+                                            if (tmpQueueObject != null) {
+                                                tmpFuture = tmpQueueObject.future;
+                                            }
                                             if (!queueObject.equals(tmpQueueObject)
                                                     || (tmpFuture != null && !tmpFuture.isDone())) {
                                                 execute = false;
                                                 break;
                                             }
+
                                             serial = serial + tmpDevice.serialNumber + " ";
                                         }
                                     }

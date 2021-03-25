@@ -99,13 +99,12 @@ public class POP3IMAPHandler extends BaseThingHandler {
         updateStatus(ThingStatus.ONLINE);
     }
 
-    @SuppressWarnings("null")
     @Override
     public void dispose() {
+        ScheduledFuture<?> refreshTask = this.refreshTask;
         if (refreshTask != null) {
-            if (!refreshTask.isCancelled()) {
-                refreshTask.cancel(true);
-            }
+            refreshTask.cancel(true);
+            this.refreshTask = null;
         }
     }
 

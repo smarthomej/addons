@@ -496,7 +496,7 @@ public class OwserverConnection {
                 throw e;
             } catch (IOException e) {
                 // Read time out
-                if (e.getMessage().equals("Read timed out") && noTimeoutException) {
+                if ("Read timed out".equals(e.getMessage()) && noTimeoutException) {
                     logger.trace("timeout - setting error code to -1");
                     // will lead to re-try reading in request method!!!
                     returnPacket.setPayload("timeout");

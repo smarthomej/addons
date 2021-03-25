@@ -96,9 +96,11 @@ public class SMTPHandler extends BaseThingHandler {
             }
             mail.send();
         } catch (EmailException e) {
-            logger.warn("{}", e.getMessage());
-            if (e.getCause() != null) {
-                logger.warn("{}", e.getCause().toString());
+            Throwable cause = e.getCause();
+            if (cause != null) {
+                logger.warn("{}", cause.toString());
+            } else {
+                logger.warn("{}", e.getMessage());
             }
             return false;
         }

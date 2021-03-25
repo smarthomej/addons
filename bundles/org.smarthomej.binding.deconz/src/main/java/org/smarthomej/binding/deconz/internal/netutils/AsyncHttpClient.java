@@ -102,7 +102,7 @@ public class AsyncHttpClient {
         }
 
         request.method(method).timeout(timeout, TimeUnit.MILLISECONDS).send(new BufferingResponseListener() {
-            @NonNullByDefault({})
+
             @Override
             public void onComplete(org.eclipse.jetty.client.api.Result result) {
                 final HttpResponse response = (HttpResponse) result.getResponse();
@@ -110,7 +110,8 @@ public class AsyncHttpClient {
                     f.completeExceptionally(result.getFailure());
                     return;
                 }
-                f.complete(new Result(getContentAsString(), response.getStatus()));
+                String content = getContentAsString();
+                f.complete(new Result(content != null ? content : "", response.getStatus()));
             }
         });
         return f;

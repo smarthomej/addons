@@ -216,7 +216,9 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
     @SuppressWarnings("null")
     private void rememberRespondingSpec(OutboundSpec commandSpec, boolean add) {
         GroupAddress ga = commandSpec.getGroupAddress();
-        groupAddressesRespondingSpec.removeIf(spec -> spec.getGroupAddress().equals(ga));
+        if (ga != null) {
+            groupAddressesRespondingSpec.removeIf(spec -> ga.equals(spec.getGroupAddress()));
+        }
         if (add) {
             groupAddressesRespondingSpec.add(commandSpec);
         }

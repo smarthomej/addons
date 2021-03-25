@@ -13,6 +13,7 @@
  */
 package org.smarthomej.binding.dmx.internal.action;
 
+import org.eclipse.jdt.annotation.NonNull;
 import org.openhab.core.library.types.PercentType;
 import org.smarthomej.binding.dmx.internal.Util;
 import org.smarthomej.binding.dmx.internal.multiverse.DmxChannel;
@@ -139,7 +140,7 @@ public class FadeAction extends BaseAction {
     }
 
     @Override
-    public String toString() {
+    public @NonNull String toString() {
         return "FadeAction: " + String.valueOf(targetValue) + ", fade time " + String.valueOf(fadeTime)
                 + "ms, hold time " + String.valueOf(holdTime) + "ms";
     }

@@ -43,13 +43,17 @@ import org.snmp4j.smi.VariableBinding;
 public class StringChannelTest extends AbstractSnmpTargetHandlerTest {
 
     @Test
-    @SuppressWarnings("null")
     public void testCommandsAreProperlyHandledByStringChannel() throws IOException {
         VariableBinding variable;
 
         variable = handleCommandNumberStringChannel(SnmpBindingConstants.CHANNEL_TYPE_UID_STRING, SnmpDatatype.STRING,
                 new StringType(TEST_STRING), true);
-        assertNotNull(variable);
+
+        if (variable == null) {
+            fail("'variable' is null");
+            return;
+        }
+
         assertEquals(new OID(TEST_OID), variable.getOid());
         assertTrue(variable.getVariable() instanceof OctetString);
         assertEquals(TEST_STRING, ((OctetString) variable.getVariable()).toString());
@@ -64,14 +68,24 @@ public class StringChannelTest extends AbstractSnmpTargetHandlerTest {
 
         variable = handleCommandNumberStringChannel(SnmpBindingConstants.CHANNEL_TYPE_UID_STRING,
                 SnmpDatatype.HEXSTRING, new StringType("AA bf 11"), true);
-        assertNotNull(variable);
+
+        if (variable == null) {
+            fail("'variable' is null");
+            return;
+        }
+
         assertEquals(new OID(TEST_OID), variable.getOid());
         assertTrue(variable.getVariable() instanceof OctetString);
         assertEquals("aa bf 11", ((OctetString) variable.getVariable()).toHexString(' '));
 
         variable = handleCommandNumberStringChannel(SnmpBindingConstants.CHANNEL_TYPE_UID_STRING,
                 SnmpDatatype.IPADDRESS, new StringType(TEST_ADDRESS), true);
-        assertNotNull(variable);
+
+        if (variable == null) {
+            fail("'variable' is null");
+            return;
+        }
+
         assertEquals(new OID(TEST_OID), variable.getOid());
         assertTrue(variable.getVariable() instanceof IpAddress);
         assertEquals(TEST_ADDRESS, ((IpAddress) variable.getVariable()).toString());

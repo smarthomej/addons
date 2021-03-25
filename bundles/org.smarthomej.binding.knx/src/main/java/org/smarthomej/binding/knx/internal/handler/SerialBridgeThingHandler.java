@@ -49,10 +49,12 @@ public class SerialBridgeThingHandler extends KNXBridgeBaseThingHandler {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "serial port not configured");
             return;
         }
-        client = new SerialClient(config.getAutoReconnectPeriod(), thing.getUID(), config.getResponseTimeout(),
-                config.getReadingPause(), config.getReadRetriesLimit(), getScheduler(), serialPort, this);
+        SerialClient client = new SerialClient(config.getAutoReconnectPeriod(), thing.getUID(),
+                config.getResponseTimeout(), config.getReadingPause(), config.getReadRetriesLimit(), getScheduler(),
+                serialPort, this);
         updateStatus(ThingStatus.UNKNOWN);
         client.initialize();
+        this.client = client;
     }
 
     @Override

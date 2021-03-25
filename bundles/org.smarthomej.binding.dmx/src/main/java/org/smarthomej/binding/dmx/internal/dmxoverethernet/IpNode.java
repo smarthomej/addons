@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.jdt.annotation.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -132,7 +133,7 @@ public class IpNode {
      * @return string representation of this node (address:port)
      */
     @Override
-    public String toString() {
+    public @NonNull String toString() {
         if (this.address == null) {
             return "(null):" + String.valueOf(this.port);
         }

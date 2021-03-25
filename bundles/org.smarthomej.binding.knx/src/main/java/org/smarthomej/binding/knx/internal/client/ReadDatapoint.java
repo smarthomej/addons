@@ -13,6 +13,8 @@
  */
 package org.smarthomej.binding.knx.internal.client;
 
+import org.eclipse.jdt.annotation.Nullable;
+
 import tuwien.auto.calimero.datapoint.Datapoint;
 
 /**
@@ -57,7 +59,7 @@ public class ReadDatapoint {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(@Nullable Object obj) {
         if (this == obj) {
             return true;
         }

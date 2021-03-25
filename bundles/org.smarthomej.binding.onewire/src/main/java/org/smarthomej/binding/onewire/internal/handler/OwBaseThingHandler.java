@@ -167,13 +167,13 @@ public abstract class OwBaseThingHandler extends BaseThingHandler {
         // remove unwanted channels
         Set<String> existingChannelIds = thing.getChannels().stream().map(channel -> channel.getUID().getId())
                 .collect(Collectors.toSet());
-        Set<String> wantedChannelIds = SENSOR_TYPE_CHANNEL_MAP.get(sensorType).stream()
+        Set<String> wantedChannelIds = SENSOR_TYPE_CHANNEL_MAP.getOrDefault(sensorType, Set.of()).stream()
                 .map(channelConfig -> channelConfig.channelId).collect(Collectors.toSet());
         existingChannelIds.stream().filter(channelId -> !wantedChannelIds.contains(channelId))
                 .forEach(channelId -> removeChannelIfExisting(thingBuilder, channelId));
 
         // add or update wanted channels
-        SENSOR_TYPE_CHANNEL_MAP.get(sensorType).stream().forEach(channelConfig -> {
+        SENSOR_TYPE_CHANNEL_MAP.getOrDefault(sensorType, Set.of()).stream().forEach(channelConfig -> {
             addChannelIfMissingAndEnable(thingBuilder, channelConfig);
         });
 

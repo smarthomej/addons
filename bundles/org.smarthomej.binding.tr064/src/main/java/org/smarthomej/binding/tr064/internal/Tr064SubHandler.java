@@ -73,7 +73,6 @@ public class Tr064SubHandler extends BaseThingHandler {
     }
 
     @Override
-    @SuppressWarnings("null")
     public void handleCommand(ChannelUID channelUID, Command command) {
         Tr064ChannelConfig channelConfig = channels.get(channelUID);
         if (channelConfig == null) {
@@ -82,6 +81,7 @@ public class Tr064SubHandler extends BaseThingHandler {
         }
 
         if (command instanceof RefreshType) {
+            final SOAPConnector soapConnector = this.soapConnector;
             State state = stateCache.putIfAbsentAndGet(channelUID, () -> soapConnector == null ? UnDefType.UNDEF
                     : soapConnector.getChannelStateFromDevice(channelConfig, channels, stateCache));
             if (state != null) {
@@ -95,6 +95,7 @@ public class Tr064SubHandler extends BaseThingHandler {
             return;
         }
         scheduler.execute(() -> {
+            final SOAPConnector soapConnector = this.soapConnector;
             if (soapConnector == null) {
                 logger.warn("Could not send command because connector not available");
             } else {

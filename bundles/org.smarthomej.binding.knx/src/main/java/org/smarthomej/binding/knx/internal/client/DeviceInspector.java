@@ -143,12 +143,20 @@ public class DeviceInspector {
         if (data != null) {
             final DD0 dd = DeviceDescriptor.DD0.from(data);
 
-            ret.put(FIRMWARE_TYPE, Firmware.getName(dd.firmwareType()));
-            ret.put(FIRMWARE_VERSION, Firmware.getName(dd.firmwareVersion()));
-            ret.put(FIRMWARE_SUBVERSION, Firmware.getName(dd.firmwareSubcode()));
-            logger.debug("The device with address {} is of type {}, version {}, subversion {}", address,
-                    Firmware.getName(dd.firmwareType()), Firmware.getName(dd.firmwareVersion()),
-                    Firmware.getName(dd.firmwareSubcode()));
+            String type = Firmware.getName(dd.firmwareType());
+            if (type != null) {
+                ret.put(FIRMWARE_TYPE, type);
+            }
+            String version = Firmware.getName(dd.firmwareVersion());
+            if (version != null) {
+                ret.put(FIRMWARE_VERSION, version);
+            }
+            String subVersion = Firmware.getName(dd.firmwareSubcode());
+            if (subVersion != null) {
+                ret.put(FIRMWARE_SUBVERSION, subVersion);
+            }
+            logger.debug("The device with address {} is of type {}, version {}, subversion {}", address, type, version,
+                    subVersion);
         } else {
             logger.debug("The KNX device with address {} does not expose a Device Descriptor", address);
         }

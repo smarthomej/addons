@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.jdt.annotation.DefaultLocation;
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
@@ -91,7 +92,7 @@ public class InfluxPoint {
     }
 
     @Override
-    public String toString() {
+    public @NonNull String toString() {
         return "InfluxPoint{" + "measurementName='" + measurementName + '\'' + ", time=" + time + ", value=" + value
                 + ", tags=" + tags + '}';
     }
