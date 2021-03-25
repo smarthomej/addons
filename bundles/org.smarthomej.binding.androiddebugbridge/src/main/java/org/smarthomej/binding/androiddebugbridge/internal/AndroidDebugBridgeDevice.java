@@ -15,6 +15,7 @@ package org.smarthomej.binding.androiddebugbridge.internal;
 
 import static org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBridgeBindingConstants.AWAKE_STATE_CHANNEL;
 import static org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBridgeBindingConstants.CURRENT_PACKAGE_CHANNEL;
+import static org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBridgeBindingConstants.HDMI_STATE_CHANNEL;
 import static org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBridgeBindingConstants.MEDIA_CONTROL_CHANNEL;
 import static org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBridgeBindingConstants.MEDIA_VOLUME_CHANNEL;
 import static org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBridgeBindingConstants.SCREEN_STATE_CHANNEL;
@@ -98,6 +99,14 @@ public class AndroidDebugBridgeDevice {
         this.timeoutSec = timeout;
     }
 
+    public void sendMouseTap(String mouseTap)
+            throws InterruptedException, AndroidDebugBridgeDeviceException, TimeoutException, ExecutionException {
+        String[] splitMouseTap = mouseTap.split(",");
+        if (splitMouseTap.length >= 2) {
+            runAdbShell("input", "mouse", "tap", splitMouseTap[0], splitMouseTap[1]);
+        }
+    }
+
     public void sendKeyEvent(String eventCode)
             throws InterruptedException, AndroidDebugBridgeDeviceException, TimeoutException, ExecutionException {
         runAdbShell("input", "keyevent", eventCode);
@@ -116,6 +125,11 @@ public class AndroidDebugBridgeDevice {
     public void stopPackage(String packageName)
             throws AndroidDebugBridgeDeviceException, InterruptedException, TimeoutException, ExecutionException {
         runAdbShell("am", "force-stop", packageName);
+    }
+
+    public void openURL(String url)
+            throws AndroidDebugBridgeDeviceException, InterruptedException, TimeoutException, ExecutionException {
+        runAdbShell("am", "start", "-a", "android.intent.action.VIEW", "-d", url);
     }
 
     public String getCurrentPackage() throws AndroidDebugBridgeDeviceException, InterruptedException,
@@ -152,6 +166,25 @@ public class AndroidDebugBridgeDevice {
             return Optional.empty();
         }
         throw new AndroidDebugBridgeDeviceReadException(SCREEN_STATE_CHANNEL, result);
+    }
+
+    public Optional<Boolean> isHDMIOn() throws InterruptedException, AndroidDebugBridgeDeviceException,
+            AndroidDebugBridgeDeviceReadException, TimeoutException, ExecutionException {
+        String result = runAdbShell("cat", "/sys/devices/virtual/switch/hdmi/state");
+        if (result.equals("0") || result.equals("1")) {
+            return Optional.of(result.equals("1"));
+        } else if (result.isEmpty()) {
+            return Optional.empty();
+        } else {
+            String fallback = runAdbShell("logcat", "-d", "|", "grep", "hdmi", "|", "grep", "SWITCH_STATE=", "|",
+                    "tail", "-1");
+            if (fallback.contains("SWITCH_STATE=")) {
+                return Optional.of(fallback.contains("SWITCH_STATE=1"));
+            } else if (fallback.isEmpty()) {
+                return Optional.empty();
+            }
+            throw new AndroidDebugBridgeDeviceReadException(HDMI_STATE_CHANNEL, result, fallback);
+        }
     }
 
     public Optional<Boolean> isPlayingMedia(String currentApp) throws AndroidDebugBridgeDeviceException,
