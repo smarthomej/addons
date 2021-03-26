@@ -31,7 +31,7 @@ const request = http.request(options, function (res) {
                         'label': pr.labels.map(label => label.name),
                         'title': pr.title.match(/\[.*\]\s(.*)/)[1],
                         'issue': parseInt(pr.url.match(/\/(\d+)$/)[1]),
-                        'url': pr.url
+                        'url': pr.html_url
                     });
 
                 }
