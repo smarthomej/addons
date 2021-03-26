@@ -19,7 +19,6 @@ import static org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBri
 import static org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBridgeBindingConstants.MEDIA_CONTROL_CHANNEL;
 import static org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBridgeBindingConstants.MEDIA_VOLUME_CHANNEL;
 import static org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBridgeBindingConstants.SCREEN_STATE_CHANNEL;
-import static org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBridgeBindingConstants.START_PACKAGE_CHANNEL;
 import static org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBridgeBindingConstants.WAKE_LOCK_CHANNEL;
 
 import java.io.*;
@@ -32,8 +31,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.Lock;
@@ -91,7 +88,6 @@ public class AndroidDebugBridgeDevice {
     private @Nullable Future<String> commandFuture;
 
     private Lock lock = new ReentrantLock();
-    private Map<String, @Nullable Boolean> fallbacks = new HashMap<>();
 
     AndroidDebugBridgeDevice(ScheduledExecutorService scheduler) {
         this.scheduler = scheduler;
@@ -121,18 +117,9 @@ public class AndroidDebugBridgeDevice {
         runAdbShell("input", "text", URLEncoder.encode(text, StandardCharsets.UTF_8));
     }
 
-    public void startPackage(String packageName) throws InterruptedException, AndroidDebugBridgeDeviceException,
-            AndroidDebugBridgeDeviceReadException, TimeoutException, ExecutionException {
-        Boolean fallbackPackage = fallbacks.getOrDefault(HDMI_STATE_CHANNEL, false);
-        String result = runAdbShell("am", "start", "-n", packageName);
-        if (fallbackPackage == false && result.contains("Error")) {
-            fallbacks.put(START_PACKAGE_CHANNEL, true);
-            String fallback = runAdbShell("monkey", "--pct-syskeys", "0", "-p", packageName, "-v", "1");
-            if (fallback.contains("monkey aborted")) {
-                throw new AndroidDebugBridgeDeviceException("Unable to open package: " + packageName);
-            }
-        }
-        throw new AndroidDebugBridgeDeviceReadException(START_PACKAGE_CHANNEL, result);
+    public void startPackage(String packageName)
+            throws InterruptedException, AndroidDebugBridgeDeviceException, TimeoutException, ExecutionException {
+        runAdbShell("am", "start", "-n", packageName);
     }
 
     public void stopPackage(String packageName)
@@ -183,14 +170,12 @@ public class AndroidDebugBridgeDevice {
 
     public Optional<Boolean> isHDMIOn() throws InterruptedException, AndroidDebugBridgeDeviceException,
             AndroidDebugBridgeDeviceReadException, TimeoutException, ExecutionException {
-        Boolean fallbackHDMI = fallbacks.getOrDefault(HDMI_STATE_CHANNEL, false);
         String result = runAdbShell("cat", "/sys/devices/virtual/switch/hdmi/state");
-        if (fallbackHDMI == false && result.equals("0") || result.equals("1")) {
+        if (result.equals("0") || result.equals("1")) {
             return Optional.of(result.equals("1"));
-        } else if (fallbackHDMI == false && result.isEmpty()) {
+        } else if (result.isEmpty()) {
             return Optional.empty();
         } else {
-            fallbacks.put(HDMI_STATE_CHANNEL, true);
             String fallback = runAdbShell("logcat", "-d", "|", "grep", "hdmi", "|", "grep", "SWITCH_STATE=", "|",
                     "tail", "-1");
             if (fallback.contains("SWITCH_STATE=")) {
