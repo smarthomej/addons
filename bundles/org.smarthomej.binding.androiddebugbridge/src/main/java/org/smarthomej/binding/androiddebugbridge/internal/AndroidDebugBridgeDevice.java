@@ -62,6 +62,8 @@ public class AndroidDebugBridgeDevice {
     private final Logger logger = LoggerFactory.getLogger(AndroidDebugBridgeDevice.class);
     private static final Pattern VOLUME_PATTERN = Pattern
             .compile("volume is (?<current>\\d.*) in range \\[(?<min>\\d.*)\\.\\.(?<max>\\d.*)]");
+    private static final Pattern PACKAGE_NAME_PATTERN = Pattern
+            .compile("^([A-Za-z]{1}[A-Za-z\\d_]*\\.)+[A-Za-z][A-Za-z\\d_]*$");
 
     private static @Nullable AdbCrypto adbCrypto;
 
@@ -84,6 +86,7 @@ public class AndroidDebugBridgeDevice {
     private String ip = "127.0.0.1";
     private int port = 5555;
     private int timeoutSec = 5;
+    private boolean fallbackStartPackage = false;
     private @Nullable Socket socket;
     private @Nullable AdbConnection connection;
     private @Nullable Future<String> commandFuture;
@@ -120,7 +123,24 @@ public class AndroidDebugBridgeDevice {
 
     public void startPackage(String packageName)
             throws InterruptedException, AndroidDebugBridgeDeviceException, TimeoutException, ExecutionException {
-        runAdbShell("am", "start", "-n", packageName);
+        if (!PACKAGE_NAME_PATTERN.matcher(packageName).matches()) {
+            logger.warn("{} is not a valid package name", packageName);
+            return;
+        }
+        if (fallbackStartPackage) {
+            startPackageWithMonkey(packageName);
+            return;
+        }
+        String output = runAdbShell("am", "start", "-n", packageName);
+        if (output.contains("usage: am")) {
+            fallbackStartPackage = true;
+            startPackageWithMonkey(packageName);
+        }
+    }
+
+    private void startPackageWithMonkey(String packageName)
+            throws InterruptedException, AndroidDebugBridgeDeviceException, TimeoutException, ExecutionException {
+        runAdbShell("monkey", "--pct-syskeys", "0", "-p", packageName, "-v", "1");
     }
 
     public void stopPackage(String packageName)
