@@ -28,7 +28,7 @@ function mvnp() {
     wait ${pid}
 }
 
-COMMITS=${1:-"master...HEAD"}
+COMMITS=${1:-"main...HEAD"}
 
 # Determine if this is a single changed addon -> Perform build with tests + integration tests and all SAT checks
 CHANGED_BUNDLE_DIR=`git diff --dirstat=files,0 ${COMMITS} bundles/ | sed 's/^[ 0-9.]\+% bundles\///g' | grep -o -P "^([^/]*)" | uniq`
@@ -75,9 +75,10 @@ if [[ ! -z "$CHANGED_DIR" ]] && [[ -e "bundles/$CHANGED_DIR" ]]; then
 else
     echo "Build all"
     echo "MAVEN_OPTS='-Xms1g -Xmx2g -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn'" > ~/.mavenrc
-    mvnp clean install -B -DskipChecks=true
+    mvnp clean install -B
     if [[ $? -eq 0 ]]; then
       print_reactor_summary .build.log
+      echo $TRAVIS_EVENT_TYPE;
     else
       tail -n 1000 .build.log
       exit 1
