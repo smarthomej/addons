@@ -50,6 +50,7 @@ import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.http.internal.config.HttpChannelConfig;
 import org.smarthomej.binding.http.internal.config.HttpThingConfig;
 import org.smarthomej.binding.http.internal.http.*;
+import org.smarthomej.commons.SimpleDynamicStateDescriptionProvider;
 import org.smarthomej.commons.itemvalueconverter.ChannelMode;
 import org.smarthomej.commons.itemvalueconverter.ContentWrapper;
 import org.smarthomej.commons.itemvalueconverter.ItemValueConverter;
@@ -71,7 +72,7 @@ public class HttpThingHandler extends BaseThingHandler {
     private final HttpClientProvider httpClientProvider;
     private HttpClient httpClient;
     private RateLimitedHttpClient rateLimitedHttpClient;
-    private final HttpDynamicStateDescriptionProvider httpDynamicStateDescriptionProvider;
+    private final SimpleDynamicStateDescriptionProvider httpDynamicStateDescriptionProvider;
 
     private HttpThingConfig config = new HttpThingConfig();
     private final Map<String, RefreshingUrlCache> urlHandlers = new HashMap<>();
@@ -80,7 +81,7 @@ public class HttpThingHandler extends BaseThingHandler {
 
     public HttpThingHandler(Thing thing, HttpClientProvider httpClientProvider,
             ValueTransformationProvider valueTransformationProvider,
-            HttpDynamicStateDescriptionProvider httpDynamicStateDescriptionProvider) {
+            SimpleDynamicStateDescriptionProvider httpDynamicStateDescriptionProvider) {
         super(thing);
         this.httpClientProvider = httpClientProvider;
         this.httpClient = httpClientProvider.getSecureClient();
