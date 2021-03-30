@@ -12,9 +12,18 @@
  */
 package org.smarthomej.binding.tcpudp.internal;
 
+import static org.smarthomej.binding.tcpudp.internal.TcpUdpBindingConstants.THING_TYPE_UID_UDP;
+
+import java.io.*;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -37,30 +46,42 @@ import org.smarthomej.commons.itemvalueconverter.converter.*;
 import org.smarthomej.commons.transform.ValueTransformationProvider;
 
 /**
- * The {@link TcpUdpBaseThingHandler} is a base class for thing handlers and responsible for handling commands, which
+ * The {@link TcpUdpThingHandler} is a base class for thing handlers and responsible for handling commands, which
  * are
  * sent to one of the channels.
  *
  * @author Jan N. Klug - Initial contribution
  */
 @NonNullByDefault
-public abstract class TcpUdpBaseThingHandler extends BaseThingHandler {
-    private final Logger logger = LoggerFactory.getLogger(TcpUdpBaseThingHandler.class);
+public class TcpUdpThingHandler extends BaseThingHandler {
+    private final Logger logger = LoggerFactory.getLogger(TcpUdpThingHandler.class);
 
     private final ValueTransformationProvider valueTransformationProvider;
     private final SimpleDynamicStateDescriptionProvider dynamicStateDescriptionProvider;
     private final Map<ChannelUID, ItemValueConverter> channels = new HashMap<>();
     private final Map<ChannelUID, String> readCommands = new HashMap<>();
 
+    private final Function<String, Optional<ContentWrapper>> doSyncRequest;
+    private final Consumer<String> doAsyncSend;
+
     private @Nullable ScheduledFuture<?> refreshJob = null;
 
     protected ThingConfiguration config = new ThingConfiguration();
 
-    public TcpUdpBaseThingHandler(Thing thing, ValueTransformationProvider valueTransformationProvider,
+    public TcpUdpThingHandler(Thing thing, ValueTransformationProvider valueTransformationProvider,
             SimpleDynamicStateDescriptionProvider dynamicStateDescriptionProvider) {
         super(thing);
         this.valueTransformationProvider = valueTransformationProvider;
         this.dynamicStateDescriptionProvider = dynamicStateDescriptionProvider;
+
+        // set methods depending on thing-type
+        if (thing.getThingTypeUID().equals(THING_TYPE_UID_UDP)) {
+            doSyncRequest = this::doUdpSyncRequest;
+            doAsyncSend = this::doUdpAsyncSend;
+        } else {
+            doSyncRequest = this::doTcpSyncRequest;
+            doAsyncSend = this::doTcpAsyncSend;
+        }
     }
 
     @Override
@@ -141,7 +162,7 @@ public abstract class TcpUdpBaseThingHandler extends BaseThingHandler {
             return;
         }
 
-        doSyncRequest(stateContent).ifPresent(itemValueConverter::process);
+        doSyncRequest.apply(stateContent).ifPresent(itemValueConverter::process);
     }
 
     private void createChannel(Channel channel) {
@@ -223,8 +244,7 @@ public abstract class TcpUdpBaseThingHandler extends BaseThingHandler {
     private ItemValueConverter createItemConverter(AbstractTransformingItemConverter.Factory factory,
             ChannelUID channelUID, TcpUdpChannelConfig channelConfig) {
         return factory.create(state -> updateState(channelUID, state), command -> postCommand(channelUID, command),
-                this::doAsyncSend,
-                valueTransformationProvider.getValueTransformation(channelConfig.stateTransformation),
+                doAsyncSend, valueTransformationProvider.getValueTransformation(channelConfig.stateTransformation),
                 valueTransformationProvider.getValueTransformation(channelConfig.commandTransformation), channelConfig);
     }
 
@@ -235,7 +255,94 @@ public abstract class TcpUdpBaseThingHandler extends BaseThingHandler {
         return createItemConverter(factory, channelUID, channelConfig);
     }
 
-    protected abstract Optional<ContentWrapper> doSyncRequest(String s);
+    protected void doTcpAsyncSend(String command) {
+        scheduler.execute(() -> {
+            try (Socket socket = new Socket(config.host, config.port);
+                    PrintWriter out = new PrintWriter(socket.getOutputStream())) {
+                socket.setSoTimeout(config.timeout);
+                out.println(command);
 
-    protected abstract void doAsyncSend(String command);
+                updateStatus(ThingStatus.ONLINE);
+            } catch (IOException e) {
+                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
+                logger.debug("Failed sending '{}' in thing '{}': {}", command, thing.getUID(), e.getMessage());
+            }
+        });
+    }
+
+    protected Optional<ContentWrapper> doTcpSyncRequest(String request) {
+        try (Socket socket = new Socket(config.host, config.port);
+                OutputStream out = socket.getOutputStream();
+                InputStream in = socket.getInputStream();
+                ByteArrayOutputStream outputByteArrayStream = new ByteArrayOutputStream()) {
+            socket.setSoTimeout(config.timeout);
+            out.write(request.getBytes(Objects.requireNonNullElse(config.encoding, StandardCharsets.UTF_8.name())));
+            out.flush();
+            byte[] buffer = new byte[config.bufferSize];
+            int len;
+
+            do {
+                len = in.read(buffer);
+                if (len != -1) {
+                    outputByteArrayStream.write(buffer, 0, len);
+                }
+            } while (len == config.bufferSize);
+            outputByteArrayStream.flush();
+
+            ContentWrapper contentWrapper = new ContentWrapper(outputByteArrayStream.toByteArray(),
+                    Objects.requireNonNullElse(config.encoding, StandardCharsets.UTF_8.name()), null);
+
+            updateStatus(ThingStatus.ONLINE);
+            return Optional.of(contentWrapper);
+        } catch (Exception e) {
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
+            logger.debug("Failed to request '{}' in thing '{}': {}", request, thing.getUID(), e.getMessage());
+        }
+
+        return Optional.empty();
+    }
+
+    protected void doUdpAsyncSend(String command) {
+        scheduler.execute(() -> {
+            try (DatagramSocket socket = new DatagramSocket()) {
+                socket.setSoTimeout(config.timeout);
+                InetAddress inetAddress = InetAddress.getByName(config.host);
+
+                byte[] buffer = command.getBytes(StandardCharsets.UTF_8);
+                DatagramPacket packet = new DatagramPacket(buffer, buffer.length, inetAddress, config.port);
+
+                socket.send(packet);
+                updateStatus(ThingStatus.ONLINE);
+            } catch (IOException e) {
+                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
+                logger.debug("Failed sending '{}' in thing '{}': {}", command, thing.getUID(), e.getMessage());
+            }
+        });
+    }
+
+    protected Optional<ContentWrapper> doUdpSyncRequest(String request) {
+        try (DatagramSocket socket = new DatagramSocket()) {
+            socket.setSoTimeout(config.timeout);
+            InetAddress inetAddress = InetAddress.getByName(config.host);
+
+            byte[] buffer = request.getBytes(StandardCharsets.UTF_8);
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, inetAddress, config.port);
+            socket.send(packet);
+
+            byte[] receiveBuffer = new byte[config.bufferSize];
+            packet = new DatagramPacket(receiveBuffer, receiveBuffer.length);
+            socket.receive(packet);
+
+            ContentWrapper contentWrapper = new ContentWrapper(Arrays.copyOf(packet.getData(), packet.getLength()),
+                    Objects.requireNonNullElse(config.encoding, StandardCharsets.UTF_8.name()), null);
+
+            updateStatus(ThingStatus.ONLINE);
+            return Optional.of(contentWrapper);
+        } catch (IOException e) {
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
+            logger.debug("Failed to request '{}' in thing '{}': {}", request, thing.getUID(), e.getMessage());
+        }
+
+        return Optional.empty();
+    }
 }

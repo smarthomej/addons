@@ -39,7 +39,7 @@ import org.smarthomej.commons.transform.ValueTransformationProvider;
 @Component(configurationPid = "binding.tcpudp", service = ThingHandlerFactory.class)
 public class TcpUdpHandlerFactory extends BaseThingHandlerFactory {
 
-    private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Set.of(THING_TYPE_UDP, THING_TYPE_TCP);
+    private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Set.of(THING_TYPE_UID_UDP, THING_TYPE_UID_TCP);
 
     private final ValueTransformationProvider valueTransformationProvider;
     private final SimpleDynamicStateDescriptionProvider dynamicStateDescriptionProvider;
@@ -60,11 +60,11 @@ public class TcpUdpHandlerFactory extends BaseThingHandlerFactory {
     protected @Nullable ThingHandler createHandler(Thing thing) {
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
 
-        if (THING_TYPE_UDP.equals(thingTypeUID)) {
-            return new UdpThingHandler(thing, valueTransformationProvider, dynamicStateDescriptionProvider);
+        if (THING_TYPE_UID_UDP.equals(thingTypeUID)) {
+            return new TcpUdpThingHandler(thing, valueTransformationProvider, dynamicStateDescriptionProvider);
         }
-        if (THING_TYPE_TCP.equals(thingTypeUID)) {
-            return new TcpThingHandler(thing, valueTransformationProvider, dynamicStateDescriptionProvider);
+        if (THING_TYPE_UID_TCP.equals(thingTypeUID)) {
+            return new TcpUdpThingHandler(thing, valueTransformationProvider, dynamicStateDescriptionProvider);
         }
 
         return null;
