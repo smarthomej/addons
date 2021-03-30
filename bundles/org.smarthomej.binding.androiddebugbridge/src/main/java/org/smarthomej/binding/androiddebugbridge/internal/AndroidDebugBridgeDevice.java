@@ -146,25 +146,21 @@ public class AndroidDebugBridgeDevice {
         throw new AndroidDebugBridgeDeviceReadException(CURRENT_PACKAGE_CHANNEL, result);
     }
 
-    public Optional<Boolean> isAwake() throws InterruptedException, AndroidDebugBridgeDeviceException,
+    public boolean isAwake() throws InterruptedException, AndroidDebugBridgeDeviceException,
             AndroidDebugBridgeDeviceReadException, TimeoutException, ExecutionException {
         String result = runAdbShell("dumpsys", "activity", "|", "grep", "mWakefulness");
         if (result.contains("mWakefulness=")) {
-            return Optional.of(result.contains("mWakefulness=Awake"));
-        } else if (result.isEmpty()) {
-            return Optional.empty();
+            return result.contains("mWakefulness=Awake");
         }
         throw new AndroidDebugBridgeDeviceReadException(AWAKE_STATE_CHANNEL, result);
     }
 
-    public Optional<Boolean> isScreenOn() throws InterruptedException, AndroidDebugBridgeDeviceException,
+    public boolean isScreenOn() throws InterruptedException, AndroidDebugBridgeDeviceException,
             AndroidDebugBridgeDeviceReadException, TimeoutException, ExecutionException {
         String result = runAdbShell("dumpsys", "power", "|", "grep", "'Display Power'");
         String[] splitResult = result.split("=");
         if (splitResult.length >= 2) {
-            return Optional.of("ON".equals(splitResult[1]));
-        } else if (result.isEmpty()) {
-            return Optional.empty();
+            "ON".equals(splitResult[1]);
         }
         throw new AndroidDebugBridgeDeviceReadException(SCREEN_STATE_CHANNEL, result);
     }
@@ -174,45 +170,41 @@ public class AndroidDebugBridgeDevice {
         String result = runAdbShell("cat", "/sys/devices/virtual/switch/hdmi/state");
         if (result.equals("0") || result.equals("1")) {
             return Optional.of(result.equals("1"));
-        } else if (result.isEmpty()) {
-            return Optional.empty();
         } else {
             String fallback = runAdbShell("logcat", "-d", "|", "grep", "hdmi", "|", "grep", "SWITCH_STATE=", "|",
                     "tail", "-1");
             if (fallback.contains("SWITCH_STATE=")) {
                 return Optional.of(fallback.contains("SWITCH_STATE=1"));
             } else if (fallback.isEmpty()) {
+                // IF THE DEVICE DO NOT SUPPORT THIS VALUE IN LOGCAT THE USER WILL NEVER KNOW THE CHANNEL WON'T WORK
+                // FIND A BETTER SOLUTION
                 return Optional.empty();
             }
             throw new AndroidDebugBridgeDeviceReadException(HDMI_STATE_CHANNEL, result, fallback);
         }
     }
 
-    public Optional<Boolean> isPlayingMedia(String currentApp) throws AndroidDebugBridgeDeviceException,
+    public boolean isPlayingMedia(String currentApp) throws AndroidDebugBridgeDeviceException,
             AndroidDebugBridgeDeviceReadException, InterruptedException, TimeoutException, ExecutionException {
         String result = runAdbShell("dumpsys", "media_session", "|", "grep", "-A", "100", "'Sessions Stack'", "|",
                 "grep", "-A", "50", currentApp);
         String[] mediaSessions = result.split("\n\n");
         if (mediaSessions.length == 0) {
             // no media session found for current app
-            return Optional.of(false);
+            return false;
         } else if (mediaSessions[0].contains("PlaybackState {state=3")) {
             boolean isPlaying = mediaSessions[0].contains("PlaybackState {state=3");
             logger.debug("device media state playing {}", isPlaying);
-            return Optional.of(isPlaying);
-        } else if (result.isEmpty()) {
-            return Optional.empty();
+            return isPlaying;
         }
         throw new AndroidDebugBridgeDeviceReadException(MEDIA_CONTROL_CHANNEL, result);
     }
 
-    public Optional<Boolean> isPlayingAudio() throws AndroidDebugBridgeDeviceException,
-            AndroidDebugBridgeDeviceReadException, InterruptedException, TimeoutException, ExecutionException {
+    public boolean isPlayingAudio() throws AndroidDebugBridgeDeviceException, AndroidDebugBridgeDeviceReadException,
+            InterruptedException, TimeoutException, ExecutionException {
         String result = runAdbShell("dumpsys", "audio", "|", "grep", "ID:");
         if (result.contains("state:")) {
-            return Optional.of(result.contains("state:started"));
-        } else if (result.isEmpty()) {
-            return Optional.empty();
+            return result.contains("state:started");
         }
         throw new AndroidDebugBridgeDeviceReadException(MEDIA_CONTROL_CHANNEL, result);
     }
