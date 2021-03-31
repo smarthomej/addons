@@ -33,6 +33,7 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smarthomej.commons.SimpleDynamicStateDescriptionProvider;
 import org.smarthomej.commons.transform.ValueTransformationProvider;
 
 /**
@@ -51,12 +52,12 @@ public class HttpHandlerFactory extends BaseThingHandlerFactory implements HttpC
     private final HttpClient insecureClient;
     private final ValueTransformationProvider valueTransformationProvider;
 
-    private final HttpDynamicStateDescriptionProvider httpDynamicStateDescriptionProvider;
+    private final SimpleDynamicStateDescriptionProvider httpDynamicStateDescriptionProvider;
 
     @Activate
     public HttpHandlerFactory(@Reference HttpClientFactory httpClientFactory,
             @Reference ValueTransformationProvider valueTransformationProvider,
-            @Reference HttpDynamicStateDescriptionProvider httpDynamicStateDescriptionProvider) {
+            @Reference SimpleDynamicStateDescriptionProvider httpDynamicStateDescriptionProvider) {
         this.secureClient = new HttpClient(new SslContextFactory.Client());
         this.insecureClient = new HttpClient(new SslContextFactory.Client(true));
         this.valueTransformationProvider = valueTransformationProvider;

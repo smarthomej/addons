@@ -11,7 +11,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.smarthomej.binding.http.internal;
+package org.smarthomej.commons.impl;
 
 import java.util.Locale;
 import java.util.Map;
@@ -27,6 +27,7 @@ import org.openhab.core.types.StateDescription;
 import org.osgi.service.component.annotations.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smarthomej.commons.SimpleDynamicStateDescriptionProvider;
 
 /**
  * Dynamic channel state description provider.
@@ -36,31 +37,19 @@ import org.slf4j.LoggerFactory;
  */
 @NonNullByDefault
 @Component(service = { DynamicStateDescriptionProvider.class,
-        HttpDynamicStateDescriptionProvider.class }, immediate = true)
-public class HttpDynamicStateDescriptionProvider implements DynamicStateDescriptionProvider {
+        SimpleDynamicStateDescriptionProvider.class }, immediate = true)
+public class SimpleDynamicStateDescriptionProviderImpl implements SimpleDynamicStateDescriptionProvider {
 
     private final Map<ChannelUID, StateDescription> descriptions = new ConcurrentHashMap<>();
-    private final Logger logger = LoggerFactory.getLogger(HttpDynamicStateDescriptionProvider.class);
+    private final Logger logger = LoggerFactory.getLogger(SimpleDynamicStateDescriptionProviderImpl.class);
 
-    /**
-     * Set a state description for a channel. This description will be used when preparing the channel state by
-     * the framework for presentation. A previous description, if existed, will be replaced.
-     *
-     * @param channelUID
-     *            channel UID
-     * @param description
-     *            state description for the channel
-     */
+    @Override
     public void setDescription(ChannelUID channelUID, StateDescription description) {
         logger.trace("adding state description for channel {}", channelUID);
         descriptions.put(channelUID, description);
     }
 
-    /**
-     * remove all descriptions for a given thing
-     *
-     * @param thingUID the thing's UID
-     */
+    @Override
     public void removeDescriptionsForThing(ThingUID thingUID) {
         logger.trace("removing state description for thing {}", thingUID);
         descriptions.entrySet().removeIf(entry -> entry.getKey().getThingUID().equals(thingUID));

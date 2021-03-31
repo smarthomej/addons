@@ -47,6 +47,7 @@ import org.openhab.core.thing.binding.BaseThingHandler;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.RefreshType;
 import org.openhab.core.types.State;
+import org.osgi.framework.FrameworkUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.irobot.internal.RawMQTT;
@@ -71,12 +72,12 @@ import com.google.gson.stream.JsonReader;
  */
 @NonNullByDefault
 public class RoombaHandler extends BaseThingHandler implements MqttConnectionObserver, MqttMessageSubscriber {
+    private static final int RECONNECT_DELAY_SEC = 5; // In seconds
+
     private final Logger logger = LoggerFactory.getLogger(RoombaHandler.class);
     private final Gson gson = new Gson();
-    private static final int RECONNECT_DELAY_SEC = 5; // In seconds
+    private final int mqttQos;
     private @Nullable Future<?> reconnectReq;
-    // Dummy RoombaConfiguration object in order to shut up Eclipse warnings
-    // The real one is set in initialize()
     private RoombaConfiguration config = new RoombaConfiguration();
     private @Nullable String blid = null;
     private @Nullable MqttBrokerConnection connection;
@@ -90,6 +91,12 @@ public class RoombaHandler extends BaseThingHandler implements MqttConnectionObs
 
     public RoombaHandler(Thing thing) {
         super(thing);
+        if (FrameworkUtil.getBundle(MqttBrokerConnection.class).getVersion().getMinor() == 0) {
+            // due to a bug the core MQTT bundle needed to set the QoS to 1, where it should be 0 (AT_MOST_ONCE)-
+            mqttQos = 1;
+        } else {
+            mqttQos = 0;
+        }
     }
 
     @Override
@@ -215,9 +222,7 @@ public class RoombaHandler extends BaseThingHandler implements MqttConnectionObs
         if (conn != null) {
             String json = gson.toJson(request);
             logger.trace("Sending {}: {}", request.getTopic(), json);
-            // 1 here actually corresponds to MQTT qos 0 (AT_MOST_ONCE). Only this value is accepted
-            // by Roomba, others just cause it to reject the command and drop the connection.
-            conn.publish(request.getTopic(), json.getBytes(), 1, false);
+            conn.publish(request.getTopic(), json.getBytes(), mqttQos, false);
         }
     }
 
@@ -308,14 +313,12 @@ public class RoombaHandler extends BaseThingHandler implements MqttConnectionObs
 
             this.connection = connection;
 
-            // Disable sending UNSUBSCRIBE request before disconnecting becuase Roomba doesn't like it.
+            // Disable sending UNSUBSCRIBE request before disconnecting because Roomba doesn't like it.
             // It just swallows the request and never sends any response, so stop() method never completes.
             connection.setUnsubscribeOnStop(false);
             connection.setCredentials(blid, config.password);
             connection.setTrustManagers(RawMQTT.getTrustManagers());
-            // 1 here actually corresponds to MQTT qos 0 (AT_MOST_ONCE). Only this value is accepted
-            // by Roomba, others just cause it to reject the command and drop the connection.
-            connection.setQos(1);
+            connection.setQos(mqttQos);
             // MQTT connection reconnects itself, so we don't have to call scheduleReconnect()
             // when it breaks. Just set the period in ms.
             connection.setReconnectStrategy(
