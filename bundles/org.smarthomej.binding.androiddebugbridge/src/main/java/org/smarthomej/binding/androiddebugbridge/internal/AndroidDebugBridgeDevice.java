@@ -33,6 +33,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.*;
@@ -88,7 +89,7 @@ public class AndroidDebugBridgeDevice {
     private String ip = "127.0.0.1";
     private int port = 5555;
     private int timeoutSec = 5;
-    private HashMap<String, FallbackModes> channelFallbackMap = new HashMap<>();
+    private Map<String, FallbackModes> channelFallbackMap = new HashMap<>();
     private @Nullable Socket socket;
     private @Nullable AdbConnection connection;
     private @Nullable Future<String> commandFuture;
