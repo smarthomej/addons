@@ -160,7 +160,7 @@ public class AndroidDebugBridgeDevice {
         String result = runAdbShell("dumpsys", "power", "|", "grep", "'Display Power'");
         String[] splitResult = result.split("=");
         if (splitResult.length >= 2) {
-            "ON".equals(splitResult[1]);
+            return "ON".equals(splitResult[1]);
         }
         throw new AndroidDebugBridgeDeviceReadException(SCREEN_STATE_CHANNEL, result);
     }
