@@ -216,6 +216,7 @@ public class AndroidDebugBridgeDevice {
             // FIND A BETTER SOLUTION
             return Optional.empty();
         }
+        channelFallbackMap.remove(HDMI_STATE_CHANNEL);
         throw new AndroidDebugBridgeDeviceReadException(HDMI_STATE_CHANNEL, result);
     }
 
