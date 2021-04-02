@@ -3,7 +3,7 @@
 	xmlns:binding="https://openhab.org/schemas/binding/v1.0.0"
 	xsi:schemaLocation="https://openhab.org/schemas/binding/v1.0.0 https://openhab.org/schemas/binding-1.0.0.xsd">
 
-	<name>TcpUdp Binding</name>
+	<name>TCP/UDP Binding</name>
 	<description>This is the binding for TCP/UDP connections.</description>
 
 </binding:binding>
