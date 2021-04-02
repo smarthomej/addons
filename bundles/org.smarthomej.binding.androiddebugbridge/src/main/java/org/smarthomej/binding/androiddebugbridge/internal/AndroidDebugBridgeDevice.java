@@ -19,6 +19,7 @@ import static org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBri
 import static org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBridgeBindingConstants.MEDIA_CONTROL_CHANNEL;
 import static org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBridgeBindingConstants.MEDIA_VOLUME_CHANNEL;
 import static org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBridgeBindingConstants.SCREEN_STATE_CHANNEL;
+import static org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBridgeBindingConstants.START_PACKAGE_CHANNEL;
 import static org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBridgeBindingConstants.WAKE_LOCK_CHANNEL;
 
 import java.io.*;
@@ -31,6 +32,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.*;
@@ -62,6 +65,8 @@ public class AndroidDebugBridgeDevice {
     private final Logger logger = LoggerFactory.getLogger(AndroidDebugBridgeDevice.class);
     private static final Pattern VOLUME_PATTERN = Pattern
             .compile("volume is (?<current>\\d.*) in range \\[(?<min>\\d.*)\\.\\.(?<max>\\d.*)]");
+    private static final Pattern PACKAGE_NAME_PATTERN = Pattern
+            .compile("^([A-Za-z]{1}[A-Za-z\\d_]*\\.)+[A-Za-z][A-Za-z\\d_]*$");
 
     private static @Nullable AdbCrypto adbCrypto;
 
@@ -84,6 +89,7 @@ public class AndroidDebugBridgeDevice {
     private String ip = "127.0.0.1";
     private int port = 5555;
     private int timeoutSec = 5;
+    private Map<String, FallbackModes> channelFallbackMap = new HashMap<>();
     private @Nullable Socket socket;
     private @Nullable AdbConnection connection;
     private @Nullable Future<String> commandFuture;
@@ -120,11 +126,32 @@ public class AndroidDebugBridgeDevice {
 
     public void startPackage(String packageName)
             throws InterruptedException, AndroidDebugBridgeDeviceException, TimeoutException, ExecutionException {
-        runAdbShell("am", "start", "-n", packageName);
+        if (!PACKAGE_NAME_PATTERN.matcher(packageName).matches()) {
+            logger.warn("{} is not a valid package name", packageName);
+            return;
+        }
+        if (channelFallbackMap.get(START_PACKAGE_CHANNEL) == FallbackModes.MONKEY) {
+            startPackageWithMonkey(packageName);
+            return;
+        }
+        String output = runAdbShell("am", "start", "-n", packageName);
+        if (output.contains("usage: am")) {
+            channelFallbackMap.put(START_PACKAGE_CHANNEL, FallbackModes.MONKEY);
+            startPackageWithMonkey(packageName);
+        }
+    }
+
+    private void startPackageWithMonkey(String packageName)
+            throws InterruptedException, AndroidDebugBridgeDeviceException, TimeoutException, ExecutionException {
+        runAdbShell("monkey", "--pct-syskeys", "0", "-p", packageName, "-v", "1");
     }
 
     public void stopPackage(String packageName)
             throws AndroidDebugBridgeDeviceException, InterruptedException, TimeoutException, ExecutionException {
+        if (!PACKAGE_NAME_PATTERN.matcher(packageName).matches()) {
+            logger.warn("{} is not a valid package name", packageName);
+            return;
+        }
         runAdbShell("am", "force-stop", packageName);
     }
 
@@ -167,21 +194,31 @@ public class AndroidDebugBridgeDevice {
 
     public Optional<Boolean> isHDMIOn() throws InterruptedException, AndroidDebugBridgeDeviceException,
             AndroidDebugBridgeDeviceReadException, TimeoutException, ExecutionException {
+        if (channelFallbackMap.get(HDMI_STATE_CHANNEL) == FallbackModes.LOGCAT) {
+            return isHDMIOnWithLogcat();
+        }
         String result = runAdbShell("cat", "/sys/devices/virtual/switch/hdmi/state");
         if (result.equals("0") || result.equals("1")) {
             return Optional.of(result.equals("1"));
         } else {
-            String fallback = runAdbShell("logcat", "-d", "|", "grep", "hdmi", "|", "grep", "SWITCH_STATE=", "|",
-                    "tail", "-1");
-            if (fallback.contains("SWITCH_STATE=")) {
-                return Optional.of(fallback.contains("SWITCH_STATE=1"));
-            } else if (fallback.isEmpty()) {
-                // IF THE DEVICE DO NOT SUPPORT THIS VALUE IN LOGCAT THE USER WILL NEVER KNOW THE CHANNEL WON'T WORK
-                // FIND A BETTER SOLUTION
-                return Optional.empty();
-            }
-            throw new AndroidDebugBridgeDeviceReadException(HDMI_STATE_CHANNEL, result, fallback);
+            channelFallbackMap.put(HDMI_STATE_CHANNEL, FallbackModes.LOGCAT);
+            return isHDMIOnWithLogcat();
         }
+    }
+
+    private Optional<Boolean> isHDMIOnWithLogcat() throws InterruptedException, AndroidDebugBridgeDeviceException,
+            AndroidDebugBridgeDeviceReadException, TimeoutException, ExecutionException {
+        String result = runAdbShell("logcat", "-d", "|", "grep", "hdmi", "|", "grep", "SWITCH_STATE=", "|", "tail",
+                "-1");
+        if (result.contains("SWITCH_STATE=")) {
+            return Optional.of(result.contains("SWITCH_STATE=1"));
+        } else if (result.isEmpty()) {
+            // IF THE DEVICE DO NOT SUPPORT THIS VALUE IN LOGCAT THE USER WILL NEVER KNOW THE CHANNEL WON'T WORK
+            // FIND A BETTER SOLUTION
+            return Optional.empty();
+        }
+        channelFallbackMap.remove(HDMI_STATE_CHANNEL);
+        throw new AndroidDebugBridgeDeviceReadException(HDMI_STATE_CHANNEL, result);
     }
 
     public boolean isPlayingMedia(String currentApp) throws AndroidDebugBridgeDeviceException,
@@ -416,5 +453,10 @@ public class AndroidDebugBridgeDevice {
             this.min = min;
             this.max = max;
         }
+    }
+
+    private enum FallbackModes {
+        MONKEY,
+        LOGCAT,
     }
 }

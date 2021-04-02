@@ -61,7 +61,6 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
     private AndroidDebugBridgeConfiguration config = new AndroidDebugBridgeConfiguration();
     private @Nullable ScheduledFuture<?> connectionCheckerSchedule;
     private AndroidDebugBridgeMediaStatePackageConfig @Nullable [] packageConfigs = null;
-    private boolean deviceAwake = false;
 
     public AndroidDebugBridgeHandler(Thing thing) {
         super(thing);
