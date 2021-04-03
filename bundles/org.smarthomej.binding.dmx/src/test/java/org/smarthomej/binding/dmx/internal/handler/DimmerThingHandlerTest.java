@@ -22,6 +22,7 @@ import static org.smarthomej.binding.dmx.internal.DmxBindingConstants.*;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,13 +43,14 @@ import org.smarthomej.binding.dmx.test.AbstractDmxThingTestParent;
  *
  * @author Jan N. Klug - Initial contribution
  */
+@NonNullByDefault
 public class DimmerThingHandlerTest extends AbstractDmxThingTestParent {
     private static final String TEST_CHANNEL_CONFIG = "100";
     private static final int TEST_FADE_TIME = 1500;
 
-    private Map<String, Object> thingProperties;
-    private Thing dimmerThing;
-    private DimmerThingHandler dimmerThingHandler;
+    private @NonNullByDefault({}) Map<String, Object> thingProperties;
+    private @NonNullByDefault({}) Thing dimmerThing;
+    private @NonNullByDefault({}) DimmerThingHandler dimmerThingHandler;
 
     private final ThingUID THING_UID_DIMMER = new ThingUID(THING_TYPE_DIMMER, "testdimmer");
     private final ChannelUID CHANNEL_UID_BRIGHTNESS = new ChannelUID(THING_UID_DIMMER, CHANNEL_BRIGHTNESS);

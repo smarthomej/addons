@@ -13,6 +13,7 @@
  */
 package org.smarthomej.binding.dmx.internal.action;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.smarthomej.binding.dmx.internal.multiverse.DmxChannel;
 
 /**
@@ -21,6 +22,7 @@ import org.smarthomej.binding.dmx.internal.multiverse.DmxChannel;
  * @author Davy Vanherbergen - Initial contribution
  * @author Jan N. Klug - Refactoring for ESH
  */
+@NonNullByDefault
 public abstract class BaseAction {
 
     protected ActionState state = ActionState.WAITING;

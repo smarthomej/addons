@@ -13,6 +13,7 @@
  */
 package org.smarthomej.binding.dmx.internal.dmxoverethernet;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.dmx.internal.multiverse.Universe;
@@ -22,6 +23,7 @@ import org.smarthomej.binding.dmx.internal.multiverse.Universe;
  *
  * @author Jan N. Klug - Initial contribution
  */
+@NonNullByDefault
 public class ArtnetPacket extends DmxOverEthernetPacket {
     public static final int ARTNET_MAX_PACKET_LEN = 530;
     public static final int ARTNET_MAX_PAYLOAD_SIZE = 512;
@@ -32,7 +34,6 @@ public class ArtnetPacket extends DmxOverEthernetPacket {
      * default constructor, creates a packet
      *
      */
-
     public ArtnetPacket() {
         payloadSize = ARTNET_MAX_PAYLOAD_SIZE;
         rawPacket = new byte[ARTNET_MAX_PACKET_LEN];

@@ -13,7 +13,7 @@
  */
 package org.smarthomej.binding.dmx.internal.action;
 
-import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.library.types.PercentType;
 import org.smarthomej.binding.dmx.internal.Util;
 import org.smarthomej.binding.dmx.internal.multiverse.DmxChannel;
@@ -26,6 +26,7 @@ import org.smarthomej.binding.dmx.internal.multiverse.DmxChannel;
  * @author Davy Vanherbergen - Initial contribution
  * @author Jan N. Klug - Refactoring for ESH
  */
+@NonNullByDefault
 public class FadeAction extends BaseAction {
     /** Time in ms to hold the target value. -1 is indefinite */
     private long holdTime;
@@ -41,7 +42,7 @@ public class FadeAction extends BaseAction {
 
     private float stepDuration;
 
-    private FadeDirection fadeDirection;
+    private FadeDirection fadeDirection = FadeDirection.DOWN;
 
     /**
      * Create new fading action.
@@ -140,8 +141,7 @@ public class FadeAction extends BaseAction {
     }
 
     @Override
-    public @NonNull String toString() {
-        return "FadeAction: " + String.valueOf(targetValue) + ", fade time " + String.valueOf(fadeTime)
-                + "ms, hold time " + String.valueOf(holdTime) + "ms";
+    public String toString() {
+        return "FadeAction: " + targetValue + ", fade time " + fadeTime + "ms, hold time " + holdTime + "ms";
     }
 }

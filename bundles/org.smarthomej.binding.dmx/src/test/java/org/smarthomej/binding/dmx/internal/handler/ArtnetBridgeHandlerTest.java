@@ -23,6 +23,7 @@ import static org.smarthomej.binding.dmx.internal.DmxBindingConstants.*;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,6 +43,7 @@ import org.openhab.core.thing.binding.builder.ChannelBuilder;
  *
  * @author Jan N. Klug - Initial contribution
  */
+@NonNullByDefault
 public class ArtnetBridgeHandlerTest extends JavaTest {
 
     private static final String TEST_ADDRESS = "localhost";
@@ -50,10 +52,9 @@ public class ArtnetBridgeHandlerTest extends JavaTest {
     private final ThingUID BRIDGE_UID_ARTNET = new ThingUID(THING_TYPE_ARTNET_BRIDGE, "artnetbridge");
     private final ChannelUID CHANNEL_UID_MUTE = new ChannelUID(BRIDGE_UID_ARTNET, CHANNEL_MUTE);
 
-    Map<String, Object> bridgeProperties;
-
-    private Bridge bridge;
-    private ArtnetBridgeHandler bridgeHandler;
+    private @NonNullByDefault({}) Map<String, Object> bridgeProperties;
+    private @NonNullByDefault({}) Bridge bridge;
+    private @NonNullByDefault({}) ArtnetBridgeHandler bridgeHandler;
 
     @BeforeEach
     public void setUp() {

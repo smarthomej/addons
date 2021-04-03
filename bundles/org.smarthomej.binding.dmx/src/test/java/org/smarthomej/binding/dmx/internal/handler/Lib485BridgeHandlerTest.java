@@ -21,6 +21,7 @@ import static org.smarthomej.binding.dmx.internal.DmxBindingConstants.*;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,6 +41,7 @@ import org.openhab.core.thing.binding.builder.ChannelBuilder;
  *
  * @author Jan N. Klug - Initial contribution
  */
+@NonNullByDefault
 public class Lib485BridgeHandlerTest extends JavaTest {
 
     private static final String TEST_ADDRESS = "localhost";
@@ -47,10 +49,9 @@ public class Lib485BridgeHandlerTest extends JavaTest {
     private final ThingUID BRIDGE_UID_LIB485 = new ThingUID(THING_TYPE_LIB485_BRIDGE, "lib485bridge");
     private final ChannelUID CHANNEL_UID_MUTE = new ChannelUID(BRIDGE_UID_LIB485, CHANNEL_MUTE);
 
-    Map<String, Object> bridgeProperties;
-
-    private Bridge bridge;
-    private Lib485BridgeHandler bridgeHandler;
+    private @NonNullByDefault({}) Map<String, Object> bridgeProperties;
+    private @NonNullByDefault({}) Bridge bridge;
+    private @NonNullByDefault({}) Lib485BridgeHandler bridgeHandler;
 
     @BeforeEach
     public void setUp() {

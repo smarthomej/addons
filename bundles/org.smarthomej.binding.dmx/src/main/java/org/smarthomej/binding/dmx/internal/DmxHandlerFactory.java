@@ -15,6 +15,8 @@ package org.smarthomej.binding.dmx.internal;
 
 import static org.smarthomej.binding.dmx.internal.DmxBindingConstants.*;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingTypeUID;
@@ -37,6 +39,7 @@ import org.smarthomej.binding.dmx.internal.handler.TunableWhiteThingHandler;
  * @author Jan N. Klug - Initial contribution
  */
 @Component(service = ThingHandlerFactory.class, configurationPid = "binding.dmx")
+@NonNullByDefault
 public class DmxHandlerFactory extends BaseThingHandlerFactory {
 
     @Override
@@ -45,7 +48,7 @@ public class DmxHandlerFactory extends BaseThingHandlerFactory {
     }
 
     @Override
-    protected ThingHandler createHandler(Thing thing) {
+    protected @Nullable ThingHandler createHandler(Thing thing) {
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
         if (thingTypeUID.equals(THING_TYPE_ARTNET_BRIDGE)) {
             ArtnetBridgeHandler handler = new ArtnetBridgeHandler((Bridge) thing);

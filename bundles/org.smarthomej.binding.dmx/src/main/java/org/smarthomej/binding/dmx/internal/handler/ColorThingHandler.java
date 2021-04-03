@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.IntStream;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.HSBType;
 import org.openhab.core.library.types.IncreaseDecreaseType;
@@ -52,7 +53,7 @@ import org.smarthomej.binding.dmx.internal.multiverse.DmxChannel;
  *
  * @author Jan N. Klug - Initial contribution
  */
-
+@NonNullByDefault
 public class ColorThingHandler extends DmxThingHandler {
     public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES = Collections.singleton(THING_TYPE_COLOR);
 

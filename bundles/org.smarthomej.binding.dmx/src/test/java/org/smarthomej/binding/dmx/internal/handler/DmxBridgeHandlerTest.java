@@ -23,6 +23,7 @@ import static org.smarthomej.binding.dmx.internal.DmxBindingConstants.*;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -50,6 +51,7 @@ import org.smarthomej.binding.dmx.internal.multiverse.Universe;
  *
  * @author Jan N. Klug - Initial contribution
  */
+@NonNullByDefault
 public class DmxBridgeHandlerTest extends JavaTest {
 
     /**
@@ -90,10 +92,9 @@ public class DmxBridgeHandlerTest extends JavaTest {
     private final ThingUID BRIDGE_UID_TEST = new ThingUID(THING_TYPE_TEST_BRIDGE, "testbridge");
     private final ChannelUID CHANNEL_UID_MUTE = new ChannelUID(BRIDGE_UID_TEST, CHANNEL_MUTE);
 
-    Map<String, Object> bridgeProperties;
-
-    private Bridge bridge;
-    private DmxBridgeHandlerImpl bridgeHandler;
+    private @NonNullByDefault({}) Map<String, Object> bridgeProperties;
+    private @NonNullByDefault({}) Bridge bridge;
+    private @NonNullByDefault({}) DmxBridgeHandlerImpl bridgeHandler;
 
     @BeforeEach
     public void setUp() {

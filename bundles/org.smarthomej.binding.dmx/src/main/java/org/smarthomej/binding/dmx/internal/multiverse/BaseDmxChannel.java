@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +31,7 @@ import org.smarthomej.binding.dmx.internal.Util;
  *
  * @author Jan N. Klug - Initial contribution
  */
-
+@NonNullByDefault
 public class BaseDmxChannel implements Comparable<BaseDmxChannel> {
     public static final int MIN_CHANNEL_ID = 1;
     public static final int MAX_CHANNEL_ID = 512;
@@ -107,7 +107,7 @@ public class BaseDmxChannel implements Comparable<BaseDmxChannel> {
     }
 
     @Override
-    public @NonNull String toString() {
+    public String toString() {
         return universeId + ":" + dmxChannelId;
     }
 

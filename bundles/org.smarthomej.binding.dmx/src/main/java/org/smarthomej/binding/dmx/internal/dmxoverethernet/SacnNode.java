@@ -13,6 +13,8 @@
  */
 package org.smarthomej.binding.dmx.internal.dmxoverethernet;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+
 /**
  * The {@link ArtnetNode} represents a sending or receiving node with address and port
  * default address is set to 5568 for sACN/E1.31
@@ -20,7 +22,7 @@ package org.smarthomej.binding.dmx.internal.dmxoverethernet;
  * @author Jan N. Klug - Initial contribution
  *
  */
-
+@NonNullByDefault
 public class SacnNode extends IpNode {
     public static final int DEFAULT_PORT = 5568;
 

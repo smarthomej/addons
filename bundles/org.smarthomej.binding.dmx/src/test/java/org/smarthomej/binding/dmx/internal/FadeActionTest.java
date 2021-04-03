@@ -16,6 +16,7 @@ package org.smarthomej.binding.dmx.internal;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.Test;
 import org.smarthomej.binding.dmx.internal.action.ActionState;
 import org.smarthomej.binding.dmx.internal.action.FadeAction;
@@ -26,6 +27,7 @@ import org.smarthomej.binding.dmx.internal.multiverse.DmxChannel;
  *
  * @author Jan N. Klug - Initial contribution
  */
+@NonNullByDefault
 public class FadeActionTest {
 
     private static final int testValue = 200;

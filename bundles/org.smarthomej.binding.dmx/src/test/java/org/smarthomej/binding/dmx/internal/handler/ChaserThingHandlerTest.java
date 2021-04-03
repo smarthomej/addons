@@ -24,6 +24,7 @@ import static org.smarthomej.binding.dmx.test.TestBridgeHandler.THING_TYPE_TEST_
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,6 +46,7 @@ import org.smarthomej.binding.dmx.test.TestBridgeHandler;
  *
  * @author Jan N. Klug - Initial contribution
  */
+@NonNullByDefault
 public class ChaserThingHandlerTest extends AbstractDmxThingTestParent {
 
     private static final String TEST_CHANNEL = "100";
@@ -54,13 +56,11 @@ public class ChaserThingHandlerTest extends AbstractDmxThingTestParent {
     private final ThingUID THING_UID_CHASER = new ThingUID(THING_TYPE_CHASER, "testchaser");
     private final ChannelUID CHANNEL_UID_SWITCH = new ChannelUID(THING_UID_CHASER, CHANNEL_SWITCH);
 
-    Map<String, Object> bridgeProperties;
-    Map<String, Object> thingProperties;
-
-    private Thing chaserThing;
-
-    private TestBridgeHandler dmxBridgeHandler;
-    private ChaserThingHandler chaserThingHandler;
+    private @NonNullByDefault({}) Map<String, Object> bridgeProperties;
+    private @NonNullByDefault({}) Map<String, Object> thingProperties;
+    private @NonNullByDefault({}) Thing chaserThing;
+    private @NonNullByDefault({}) TestBridgeHandler dmxBridgeHandler;
+    private @NonNullByDefault({}) ChaserThingHandler chaserThingHandler;
 
     @BeforeEach
     public void setUp() {

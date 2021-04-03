@@ -14,14 +14,14 @@
 package org.smarthomej.binding.dmx.test;
 
 import static org.smarthomej.binding.dmx.internal.DmxBindingConstants.BINDING_ID;
+import static org.smarthomej.binding.dmx.internal.DmxBindingConstants.THING_TYPE_DIMMER;
 
 import java.util.Collections;
 import java.util.Set;
 
-import org.openhab.core.thing.Bridge;
-import org.openhab.core.thing.ThingStatus;
-import org.openhab.core.thing.ThingStatusDetail;
-import org.openhab.core.thing.ThingTypeUID;
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.core.thing.*;
+import org.openhab.core.thing.binding.builder.ThingBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.dmx.internal.DmxBridgeHandler;
@@ -33,7 +33,7 @@ import org.smarthomej.binding.dmx.internal.multiverse.Universe;
  *
  * @author Jan N. Klug - Initial contribution
  */
-
+@NonNullByDefault
 public class TestBridgeHandler extends DmxBridgeHandler {
     public static final ThingTypeUID THING_TYPE_TEST_BRIDGE = new ThingTypeUID(BINDING_ID, "test-bridge");
     public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES = Collections.singleton(THING_TYPE_TEST_BRIDGE);
@@ -41,6 +41,7 @@ public class TestBridgeHandler extends DmxBridgeHandler {
     public static final int MAX_UNIVERSE_ID = 0;
 
     private final Logger logger = LoggerFactory.getLogger(TestBridgeHandler.class);
+    private Thing dummyThing = ThingBuilder.create(THING_TYPE_DIMMER, "dummy").build();
 
     public TestBridgeHandler(Bridge testBridge) {
         super(testBridge);
@@ -102,7 +103,7 @@ public class TestBridgeHandler extends DmxBridgeHandler {
     }
 
     public void setDmxChannelValue(int dmxChannel, int value) {
-        this.getDmxChannel(new BaseDmxChannel(MIN_UNIVERSE_ID, dmxChannel), null).setValue(value);
+        this.getDmxChannel(new BaseDmxChannel(MIN_UNIVERSE_ID, dmxChannel), dummyThing).setValue(value);
     }
 
     /**

@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.thing.ThingTypeUID;
 import org.openhab.core.thing.type.ChannelTypeUID;
 
@@ -27,6 +28,7 @@ import org.openhab.core.thing.type.ChannelTypeUID;
  *
  * @author Jan N. Klug - Initial contribution
  */
+@NonNullByDefault
 public class DmxBindingConstants {
 
     public static final String BINDING_ID = "dmx";
