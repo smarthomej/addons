@@ -261,8 +261,7 @@ public class TcpUdpThingHandler extends BaseThingHandler {
 
     protected void doTcpAsyncSend(String command) {
         scheduler.execute(() -> {
-            try (Socket socket = new Socket(config.host, config.port);
-                    OutputStream out = socket.getOutputStream()) {
+            try (Socket socket = new Socket(config.host, config.port); OutputStream out = socket.getOutputStream()) {
                 socket.setSoTimeout(config.timeout);
                 out.write(command.getBytes(getEncoding()));
                 out.flush();
