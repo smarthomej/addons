@@ -38,6 +38,9 @@ If you only configured password authentication for your device, the `user` param
 The second credential parameter is `password`, which is mandatory.
 For security reasons it is highly recommended to set both, username and password.
 
+Another optional and advanced configuration parameter is `soapTimeout`.
+It only needs to be changed from the default value of `5` seconds when the remote device is unexpectedly slow and does not respond within that time.
+
 ### `fritzbox`
 
 The `fritzbox` devices can give additional informations in dedicated channels, controlled 

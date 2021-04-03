@@ -27,6 +27,7 @@ public class Tr064RootConfiguration extends Tr064BaseThingConfiguration {
     public String host = "";
     public String user = "dslf-config";
     public String password = "";
+    public int soapTimeout = 5;
 
     /* following parameters only available in fritzbox thing */
     public List<String> tamIndices = List.of();

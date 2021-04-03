@@ -81,6 +81,7 @@ public class Tr064RootHandler extends BaseBridgeHandler implements PhonebookProv
     private @Nullable SCPDUtil scpdUtil;
     private SOAPConnector soapConnector;
     private String endpointBaseURL = "";
+    private int soapTimeout = 5;
 
     private final Map<ChannelUID, Tr064ChannelConfig> channels = new HashMap<>();
     // caching is used to prevent excessive calls to the same action
@@ -138,6 +139,7 @@ public class Tr064RootHandler extends BaseBridgeHandler implements PhonebookProv
 
         endpointBaseURL = "http://" + config.host + ":49000";
         soapConnector = new SOAPConnector(httpClient, endpointBaseURL);
+        soapTimeout = config.soapTimeout;
         updateStatus(ThingStatus.UNKNOWN);
 
         connectFuture = scheduler.scheduleWithFixedDelay(this::internalInitialize, 0, RETRY_INTERVAL, TimeUnit.SECONDS);
@@ -148,7 +150,7 @@ public class Tr064RootHandler extends BaseBridgeHandler implements PhonebookProv
      */
     private void internalInitialize() {
         try {
-            scpdUtil = new SCPDUtil(httpClient, endpointBaseURL);
+            scpdUtil = new SCPDUtil(httpClient, endpointBaseURL, soapTimeout);
         } catch (SCPDException e) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
                     "could not get device definitions from " + config.host);
