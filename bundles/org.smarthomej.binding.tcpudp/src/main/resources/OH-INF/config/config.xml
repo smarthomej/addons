@@ -75,7 +75,7 @@
 		</parameter>
 		<parameter name="commandTransformation" type="text">
 			<label>Command Transformation</label>
-			<description>Transformation pattern used when sending value. Multiple transformation can be chained using "∩".</description>
+			<description>Transformation pattern used when sending values. Multiple transformation can be chained using "∩".</description>
 		</parameter>
 		<parameter name="stateContent" type="text">
 			<label>State Content</label>
@@ -129,11 +129,11 @@
 	<config-description uri="channel-type:tcpudp:channel-config-contact">
 		<parameter name="stateTransformation" type="text">
 			<label>State Transformation</label>
-			<description>Transformation pattern used when receiving value. Multiple transformation can be chained using "∩".</description>
+			<description>Transformation pattern used when receiving values. Multiple transformation can be chained using "∩".</description>
 		</parameter>
 		<parameter name="commandTransformation" type="text">
 			<label>Command Transformation</label>
-			<description>Transformation pattern used when sending value. Multiple transformation can be chained using "∩".</description>
+			<description>Transformation pattern used when sending values. Multiple transformation can be chained using "∩".</description>
 		</parameter>
 		<parameter name="stateContent" type="text">
 			<label>State Content</label>
@@ -163,11 +163,11 @@
 	<config-description uri="channel-type:tcpudp:channel-config-dimmer">
 		<parameter name="stateTransformation" type="text">
 			<label>State Transformation</label>
-			<description>Transformation pattern used when receiving value. Multiple transformation can be chained using "∩".</description>
+			<description>Transformation pattern used when receiving values. Multiple transformation can be chained using "∩".</description>
 		</parameter>
 		<parameter name="commandTransformation" type="text">
 			<label>Command Transformation</label>
-			<description>Transformation pattern used when sending value. Multiple transformation can be chained using "∩".</description>
+			<description>Transformation pattern used when sending values. Multiple transformation can be chained using "∩".</description>
 		</parameter>
 		<parameter name="stateContent" type="text">
 			<label>State Content</label>
@@ -218,11 +218,11 @@
 	<config-description uri="channel-type:tcpudp:channel-config-number">
 		<parameter name="stateTransformation" type="text">
 			<label>State Transformation</label>
-			<description>Transformation pattern used when receiving value. Multiple transformation can be chained using "∩".</description>
+			<description>Transformation pattern used when receiving values. Multiple transformation can be chained using "∩".</description>
 		</parameter>
 		<parameter name="commandTransformation" type="text">
 			<label>Command Transformation</label>
-			<description>Transformation pattern used when sending value. Multiple transformation can be chained using "∩".</description>
+			<description>Transformation pattern used when sending values. Multiple transformation can be chained using "∩".</description>
 		</parameter>
 		<parameter name="stateContent" type="text">
 			<label>State Content</label>
@@ -249,11 +249,11 @@
 	<config-description uri="channel-type:tcpudp:channel-config-player">
 		<parameter name="stateTransformation" type="text">
 			<label>State Transformation</label>
-			<description>Transformation pattern used when receiving value. Multiple transformation can be chained using "∩".</description>
+			<description>Transformation pattern used when receiving values. Multiple transformation can be chained using "∩".</description>
 		</parameter>
 		<parameter name="commandTransformation" type="text">
 			<label>Command Transformation</label>
-			<description>Transformation pattern used when sending value. Multiple transformation can be chained using "∩".</description>
+			<description>Transformation pattern used when sending values. Multiple transformation can be chained using "∩".</description>
 		</parameter>
 		<parameter name="stateContent" type="text">
 			<label>State Content</label>
@@ -299,11 +299,11 @@
 	<config-description uri="channel-type:tcpudp:channel-config-rollershutter">
 		<parameter name="stateTransformation" type="text">
 			<label>State Transformation</label>
-			<description>Transformation pattern used when receiving value. Multiple transformation can be chained using "∩".</description>
+			<description>Transformation pattern used when receiving values. Multiple transformation can be chained using "∩".</description>
 		</parameter>
 		<parameter name="commandTransformation" type="text">
 			<label>Command Transformation</label>
-			<description>Transformation pattern used when sending value. Multiple transformation can be chained using "∩".</description>
+			<description>Transformation pattern used when sending values. Multiple transformation can be chained using "∩".</description>
 		</parameter>
 		<parameter name="stateContent" type="text">
 			<label>State Content</label>
@@ -341,11 +341,11 @@
 	<config-description uri="channel-type:tcpudp:channel-config-switch">
 		<parameter name="stateTransformation" type="text">
 			<label>State Transformation</label>
-			<description>Transformation pattern used when receiving value. Multiple transformation can be chained using "∩".</description>
+			<description>Transformation pattern used when receiving values. Multiple transformation can be chained using "∩".</description>
 		</parameter>
 		<parameter name="commandTransformation" type="text">
 			<label>Command Transformation</label>
-			<description>Transformation pattern used when sending value. Multiple transformation can be chained using "∩".</description>
+			<description>Transformation pattern used when sending values. Multiple transformation can be chained using "∩".</description>
 		</parameter>
 		<parameter name="stateContent" type="text">
 			<label>State Content</label>

@@ -12,7 +12,6 @@
 		<config-description uri="thing-type:tcpudp:thing-config"/>
 	</thing-type>
 
-
 	<thing-type id="tcp"
 		extensible="color,contact,datetime,dimmer,image,location,number,player,rollershutter,string,switch">
 		<label>TCP Host</label>

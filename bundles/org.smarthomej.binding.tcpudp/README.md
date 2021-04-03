@@ -53,7 +53,7 @@ Here are a few examples to unwrap an incoming value via `stateTransformation` fr
 | `<device><status><temperature>23.2</temperature></status></device>` | XPath       | `XPath:/device/status/temperature/text()` |
 | `THEVALUE:23.2°C`                                                   | REGEX       | `REGEX::(.*?)°`                           |
 
-Transformations can be chained by separating them with the mathematical intersection character "∩".
+Transformations can be chained by separating them with the mathematical intersection character "∩", e.g. `JSONPATH:$.device.status∩MAP:onoff.map` would first apply the JSONPATH transformation and then apply the given MAP transformation on the result. 
 Please note that the values will be discarded if one transformation fails (e.g. REGEX did not match).
 
 The same mechanism works for commands (`commandTransformation`) for outgoing values.

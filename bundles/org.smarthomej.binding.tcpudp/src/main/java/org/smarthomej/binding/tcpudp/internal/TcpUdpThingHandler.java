@@ -255,12 +255,17 @@ public class TcpUdpThingHandler extends BaseThingHandler {
         return createItemConverter(factory, channelUID, channelConfig);
     }
 
+    private String getEncoding() {
+        return Objects.requireNonNullElse(config.encoding, StandardCharsets.UTF_8.name());
+    }
+
     protected void doTcpAsyncSend(String command) {
         scheduler.execute(() -> {
             try (Socket socket = new Socket(config.host, config.port);
-                    PrintWriter out = new PrintWriter(socket.getOutputStream())) {
+                    OutputStream out = socket.getOutputStream()) {
                 socket.setSoTimeout(config.timeout);
-                out.println(command);
+                out.write(command.getBytes(getEncoding()));
+                out.flush();
 
                 updateStatus(ThingStatus.ONLINE);
             } catch (IOException e) {
@@ -276,7 +281,7 @@ public class TcpUdpThingHandler extends BaseThingHandler {
                 InputStream in = socket.getInputStream();
                 ByteArrayOutputStream outputByteArrayStream = new ByteArrayOutputStream()) {
             socket.setSoTimeout(config.timeout);
-            out.write(request.getBytes(Objects.requireNonNullElse(config.encoding, StandardCharsets.UTF_8.name())));
+            out.write(request.getBytes(getEncoding()));
             out.flush();
             byte[] buffer = new byte[config.bufferSize];
             int len;
@@ -308,7 +313,7 @@ public class TcpUdpThingHandler extends BaseThingHandler {
                 socket.setSoTimeout(config.timeout);
                 InetAddress inetAddress = InetAddress.getByName(config.host);
 
-                byte[] buffer = command.getBytes(StandardCharsets.UTF_8);
+                byte[] buffer = command.getBytes(getEncoding());
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length, inetAddress, config.port);
 
                 socket.send(packet);
@@ -325,7 +330,7 @@ public class TcpUdpThingHandler extends BaseThingHandler {
             socket.setSoTimeout(config.timeout);
             InetAddress inetAddress = InetAddress.getByName(config.host);
 
-            byte[] buffer = request.getBytes(StandardCharsets.UTF_8);
+            byte[] buffer = request.getBytes(getEncoding());
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length, inetAddress, config.port);
             socket.send(packet);
 
@@ -334,7 +339,7 @@ public class TcpUdpThingHandler extends BaseThingHandler {
             socket.receive(packet);
 
             ContentWrapper contentWrapper = new ContentWrapper(Arrays.copyOf(packet.getData(), packet.getLength()),
-                    Objects.requireNonNullElse(config.encoding, StandardCharsets.UTF_8.name()), null);
+                    getEncoding(), null);
 
             updateStatus(ThingStatus.ONLINE);
             return Optional.of(contentWrapper);
