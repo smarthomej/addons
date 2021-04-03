@@ -16,7 +16,6 @@ package org.smarthomej.binding.dmx.internal.handler;
 import static org.smarthomej.binding.dmx.internal.DmxBindingConstants.THING_TYPE_SACN_BRIDGE;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
 
@@ -28,7 +27,11 @@ import org.openhab.core.thing.ThingTypeUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.dmx.internal.config.SacnBridgeHandlerConfiguration;
-import org.smarthomej.binding.dmx.internal.dmxoverethernet.*;
+import org.smarthomej.binding.dmx.internal.dmxoverethernet.DmxOverEthernetHandler;
+import org.smarthomej.binding.dmx.internal.dmxoverethernet.DmxOverEthernetPacket;
+import org.smarthomej.binding.dmx.internal.dmxoverethernet.IpNode;
+import org.smarthomej.binding.dmx.internal.dmxoverethernet.SacnNode;
+import org.smarthomej.binding.dmx.internal.dmxoverethernet.SacnPacket;
 
 /**
  * The {@link SacnBridgeHandler} is responsible for handling the communication
@@ -38,7 +41,7 @@ import org.smarthomej.binding.dmx.internal.dmxoverethernet.*;
  */
 @NonNullByDefault
 public class SacnBridgeHandler extends DmxOverEthernetHandler {
-    public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES = Collections.singleton(THING_TYPE_SACN_BRIDGE);
+    public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES = Set.of(THING_TYPE_SACN_BRIDGE);
     public static final int MIN_UNIVERSE_ID = 1;
     public static final int MAX_UNIVERSE_ID = 63999;
 

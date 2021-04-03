@@ -16,7 +16,6 @@ package org.smarthomej.binding.dmx.internal.handler;
 import static org.smarthomej.binding.dmx.internal.DmxBindingConstants.*;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -52,7 +51,7 @@ import org.smarthomej.binding.dmx.internal.multiverse.DmxChannel;
  */
 @NonNullByDefault
 public class ChaserThingHandler extends DmxThingHandler {
-    public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES = Collections.singleton(THING_TYPE_CHASER);
+    public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES = Set.of(THING_TYPE_CHASER);
 
     private final Logger logger = LoggerFactory.getLogger(ChaserThingHandler.class);
 

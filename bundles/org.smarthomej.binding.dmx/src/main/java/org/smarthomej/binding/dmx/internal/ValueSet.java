@@ -192,8 +192,7 @@ public class ValueSet {
 
     @Override
     public String toString() {
-        String str = "fade/hold:" + fadeTime + "/" + holdTime + ": "
+        return "fade/hold:" + fadeTime + "/" + holdTime + ": "
                 + values.stream().map(String::valueOf).collect(Collectors.joining(" "));
-        return str;
     }
 }

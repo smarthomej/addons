@@ -16,7 +16,6 @@ package org.smarthomej.binding.dmx.internal.handler;
 import static org.smarthomej.binding.dmx.internal.DmxBindingConstants.*;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.IntStream;
@@ -54,7 +53,7 @@ import org.smarthomej.binding.dmx.internal.multiverse.DmxChannel;
  */
 @NonNullByDefault
 public class TunableWhiteThingHandler extends DmxThingHandler {
-    public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES = Collections.singleton(THING_TYPE_TUNABLEWHITE);
+    public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES = Set.of(THING_TYPE_TUNABLEWHITE);
 
     private final Logger logger = LoggerFactory.getLogger(TunableWhiteThingHandler.class);
 
