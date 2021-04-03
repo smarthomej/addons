@@ -17,11 +17,12 @@ import static org.smarthomej.binding.dmx.internal.DmxBindingConstants.THING_TYPE
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
@@ -39,15 +40,15 @@ import org.smarthomej.binding.dmx.internal.multiverse.Universe;
  *
  * @author Jan N. Klug - Initial contribution
  */
-
+@NonNullByDefault
 public class Lib485BridgeHandler extends DmxBridgeHandler {
-    public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES = Collections.singleton(THING_TYPE_LIB485_BRIDGE);
+    public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES = Set.of(THING_TYPE_LIB485_BRIDGE);
     public static final int MIN_UNIVERSE_ID = 0;
     public static final int MAX_UNIVERSE_ID = 0;
     public static final int DEFAULT_PORT = 9020;
 
     private final Logger logger = LoggerFactory.getLogger(Lib485BridgeHandler.class);
-    private final Map<IpNode, Socket> receiverNodes = new HashMap<>();
+    private final Map<IpNode, @Nullable Socket> receiverNodes = new HashMap<>();
 
     public Lib485BridgeHandler(Bridge lib485Bridge) {
         super(lib485Bridge);

@@ -22,7 +22,8 @@ import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.ChannelUID;
@@ -49,15 +50,15 @@ import org.smarthomej.binding.dmx.internal.multiverse.Universe;
  *
  * @author Jan N. Klug - Initial contribution
  */
-
+@NonNullByDefault
 public abstract class DmxBridgeHandler extends BaseBridgeHandler {
     public static final int DEFAULT_REFRESH_RATE = 20;
 
     private final Logger logger = LoggerFactory.getLogger(DmxBridgeHandler.class);
 
-    protected Universe universe;
+    protected Universe universe = new Universe(0); // default universe
 
-    private ScheduledFuture<?> senderJob;
+    private @Nullable ScheduledFuture<?> senderJob;
     private boolean isMuted = false;
     private int refreshTime = 1000 / DEFAULT_REFRESH_RATE;
 
@@ -154,9 +155,7 @@ public abstract class DmxBridgeHandler extends BaseBridgeHandler {
      * install the sending and updating scheduler
      */
     protected void installScheduler() {
-        if (senderJob != null) {
-            uninstallScheduler();
-        }
+        uninstallScheduler();
         if (refreshTime > 0) {
             senderJob = scheduler.scheduleAtFixedRate(() -> {
                 logger.trace("runnable packet sender for universe {} called, state {}/{}", universe.getUniverseId(),
@@ -177,11 +176,10 @@ public abstract class DmxBridgeHandler extends BaseBridgeHandler {
      * uninstall the sending and updating scheduler
      */
     protected void uninstallScheduler() {
+        ScheduledFuture<?> senderJob = this.senderJob;
         if (senderJob != null) {
-            if (!senderJob.isCancelled()) {
-                senderJob.cancel(true);
-            }
-            senderJob = null;
+            senderJob.cancel(true);
+            this.senderJob = null;
             closeConnection();
             logger.trace("stopping scheduler for thing {}", this.thing.getUID());
         }
@@ -227,14 +225,9 @@ public abstract class DmxBridgeHandler extends BaseBridgeHandler {
      * @param maxUniverseId the maximum id allowed by the bridge
      **/
     protected void setUniverse(int universeConfig, int minUniverseId, int maxUniverseId) {
-        int universeId = minUniverseId;
-        universeId = Util.coerceToRange(universeConfig, minUniverseId, maxUniverseId, logger, "universeId");
+        int universeId = Util.coerceToRange(universeConfig, minUniverseId, maxUniverseId, logger, "universeId");
 
-        if (universe == null) {
-            universe = new Universe(universeId);
-        } else if (universe.getUniverseId() != universeId) {
-            universe.rename(universeId);
-        }
+        universe.rename(universeId);
     }
 
     /**
@@ -285,7 +278,7 @@ public abstract class DmxBridgeHandler extends BaseBridgeHandler {
     }
 
     @Override
-    public @NonNull Collection<@NonNull Class<? extends @NonNull ThingHandlerService>> getServices() {
+    public Collection<Class<? extends ThingHandlerService>> getServices() {
         return Collections.singletonList(DmxActions.class);
     }
 }

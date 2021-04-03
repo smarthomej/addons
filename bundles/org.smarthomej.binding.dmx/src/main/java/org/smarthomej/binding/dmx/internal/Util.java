@@ -15,6 +15,8 @@ package org.smarthomej.binding.dmx.internal;
 
 import java.math.BigDecimal;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.PercentType;
 import org.slf4j.Logger;
 import org.smarthomej.binding.dmx.internal.multiverse.DmxChannel;
@@ -24,6 +26,7 @@ import org.smarthomej.binding.dmx.internal.multiverse.DmxChannel;
  *
  * @author Jan N. Klug - Initial contribution
  */
+@NonNullByDefault
 public class Util {
     /**
      * inRange checks if a value is between two other values
@@ -53,7 +56,7 @@ public class Util {
      * @param var name of the variable (used for logging)
      * @return coerced value
      */
-    public static int coerceToRange(int value, int min, int max, Logger logger, String var) {
+    public static int coerceToRange(int value, int min, int max, @Nullable Logger logger, String var) {
         if (value < min) {
             if (logger != null) {
                 logger.warn("coerced {} {} to allowed range {}-{}", var, value, min, max);
@@ -78,8 +81,7 @@ public class Util {
      * @param logger logger that shall be used
      * @return coerced value
      */
-
-    public static int coerceToRange(int value, int min, int max, Logger logger) {
+    public static int coerceToRange(int value, int min, int max, @Nullable Logger logger) {
         return coerceToRange(value, min, max, logger, "");
     }
 
@@ -91,7 +93,6 @@ public class Util {
      * @param max
      * @return coerced value
      */
-
     public static int coerceToRange(int value, int min, int max) {
         return coerceToRange(value, min, max, null, "");
     }

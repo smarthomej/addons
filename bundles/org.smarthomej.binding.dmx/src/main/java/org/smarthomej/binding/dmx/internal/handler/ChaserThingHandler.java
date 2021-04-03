@@ -16,10 +16,10 @@ package org.smarthomej.binding.dmx.internal.handler;
 import static org.smarthomej.binding.dmx.internal.DmxBindingConstants.*;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.thing.Bridge;
@@ -49,9 +49,9 @@ import org.smarthomej.binding.dmx.internal.multiverse.DmxChannel;
  *
  * @author Jan N. Klug - Initial contribution
  */
-
+@NonNullByDefault
 public class ChaserThingHandler extends DmxThingHandler {
-    public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES = Collections.singleton(THING_TYPE_CHASER);
+    public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES = Set.of(THING_TYPE_CHASER);
 
     private final Logger logger = LoggerFactory.getLogger(ChaserThingHandler.class);
 

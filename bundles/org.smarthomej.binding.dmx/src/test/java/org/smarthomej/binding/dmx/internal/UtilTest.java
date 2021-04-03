@@ -16,6 +16,7 @@ package org.smarthomej.binding.dmx.internal;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.Test;
 import org.openhab.core.library.types.PercentType;
 import org.smarthomej.binding.dmx.internal.multiverse.DmxChannel;
@@ -25,6 +26,7 @@ import org.smarthomej.binding.dmx.internal.multiverse.DmxChannel;
  *
  * @author Jan N. Klug - Initial contribution
  */
+@NonNullByDefault
 public class UtilTest {
 
     @Test

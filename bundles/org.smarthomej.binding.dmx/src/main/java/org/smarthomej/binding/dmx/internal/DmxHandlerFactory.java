@@ -15,6 +15,12 @@ package org.smarthomej.binding.dmx.internal;
 
 import static org.smarthomej.binding.dmx.internal.DmxBindingConstants.*;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingTypeUID;
@@ -37,15 +43,22 @@ import org.smarthomej.binding.dmx.internal.handler.TunableWhiteThingHandler;
  * @author Jan N. Klug - Initial contribution
  */
 @Component(service = ThingHandlerFactory.class, configurationPid = "binding.dmx")
+@NonNullByDefault
 public class DmxHandlerFactory extends BaseThingHandlerFactory {
+    public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES = Stream
+            .of(ArtnetBridgeHandler.SUPPORTED_THING_TYPES, Lib485BridgeHandler.SUPPORTED_THING_TYPES,
+                    SacnBridgeHandler.SUPPORTED_THING_TYPES, ChaserThingHandler.SUPPORTED_THING_TYPES,
+                    ColorThingHandler.SUPPORTED_THING_TYPES, DimmerThingHandler.SUPPORTED_THING_TYPES,
+                    TunableWhiteThingHandler.SUPPORTED_THING_TYPES)
+            .flatMap(Set::stream).collect(Collectors.toUnmodifiableSet());
 
     @Override
     public boolean supportsThingType(ThingTypeUID thingTypeUID) {
-        return DmxBindingConstants.SUPPORTED_THING_TYPES.contains(thingTypeUID);
+        return SUPPORTED_THING_TYPES.contains(thingTypeUID);
     }
 
     @Override
-    protected ThingHandler createHandler(Thing thing) {
+    protected @Nullable ThingHandler createHandler(Thing thing) {
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
         if (thingTypeUID.equals(THING_TYPE_ARTNET_BRIDGE)) {
             ArtnetBridgeHandler handler = new ArtnetBridgeHandler((Bridge) thing);

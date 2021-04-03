@@ -13,13 +13,14 @@
  */
 package org.smarthomej.binding.dmx.internal.multiverse;
 
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.PercentType;
 import org.openhab.core.thing.ChannelUID;
@@ -39,6 +40,7 @@ import org.smarthomej.binding.dmx.internal.action.BaseAction;
  * @author Jan N. Klug - Initial contribution
  * @author Davy Vanherbergen - Initial contribution
  */
+@NonNullByDefault
 public class DmxChannel extends BaseDmxChannel {
     public static final int MIN_VALUE = 0;
     public static final int MAX_VALUE = 255;
@@ -59,7 +61,7 @@ public class DmxChannel extends BaseDmxChannel {
 
     private final Map<ChannelUID, DmxThingHandler> onOffListeners = new HashMap<>();
     private final Map<ChannelUID, DmxThingHandler> valueListeners = new HashMap<>();
-    private Entry<ChannelUID, DmxThingHandler> actionListener = null;
+    private @Nullable Entry<ChannelUID, DmxThingHandler> actionListener = null;
 
     public DmxChannel(int universeId, int dmxChannelId, int refreshTime) {
         super(universeId, dmxChannelId);
@@ -197,9 +199,10 @@ public class DmxChannel extends BaseDmxChannel {
         logger.trace("clearing all actions for DMX channel {}", this);
         actions.clear();
         // remove action listener
+        Map.Entry<ChannelUID, DmxThingHandler> actionListener = this.actionListener;
         if (actionListener != null) {
             actionListener.getValue().updateSwitchState(actionListener.getKey(), OnOffType.OFF);
-            actionListener = null;
+            this.actionListener = null;
         }
     }
 
@@ -320,13 +323,14 @@ public class DmxChannel extends BaseDmxChannel {
                 }
                 break;
             case ACTION:
+                Map.Entry<ChannelUID, DmxThingHandler> actionListener = this.actionListener;
                 if (actionListener != null) {
                     logger.info("replacing ACTION listener {} with {} in channel {}", actionListener.getValue(),
                             listener, this);
                 } else {
                     logger.debug("adding ACTION listener {} in channel {}", listener, this);
                 }
-                actionListener = new AbstractMap.SimpleEntry<>(thingChannel, listener);
+                this.actionListener = Map.entry(thingChannel, listener);
             default:
         }
     }
@@ -348,8 +352,9 @@ public class DmxChannel extends BaseDmxChannel {
             foundListener = true;
             logger.debug("removing VALUE listener {} from DMX channel {}", thingChannel, this);
         }
+        Map.Entry<ChannelUID, DmxThingHandler> actionListener = this.actionListener;
         if (actionListener != null && actionListener.getKey().equals(thingChannel)) {
-            actionListener = null;
+            this.actionListener = null;
             foundListener = true;
             logger.debug("removing ACTION listener {} from DMX channel {}", thingChannel, this);
         }

@@ -16,10 +16,10 @@ package org.smarthomej.binding.dmx.internal.handler;
 import static org.smarthomej.binding.dmx.internal.DmxBindingConstants.THING_TYPE_SACN_BRIDGE;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.dmx.internal.config.SacnBridgeHandlerConfiguration;
 import org.smarthomej.binding.dmx.internal.dmxoverethernet.DmxOverEthernetHandler;
+import org.smarthomej.binding.dmx.internal.dmxoverethernet.DmxOverEthernetPacket;
 import org.smarthomej.binding.dmx.internal.dmxoverethernet.IpNode;
 import org.smarthomej.binding.dmx.internal.dmxoverethernet.SacnNode;
 import org.smarthomej.binding.dmx.internal.dmxoverethernet.SacnPacket;
@@ -38,8 +39,9 @@ import org.smarthomej.binding.dmx.internal.dmxoverethernet.SacnPacket;
  *
  * @author Jan N. Klug - Initial contribution
  */
+@NonNullByDefault
 public class SacnBridgeHandler extends DmxOverEthernetHandler {
-    public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES = Collections.singleton(THING_TYPE_SACN_BRIDGE);
+    public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES = Set.of(THING_TYPE_SACN_BRIDGE);
     public static final int MIN_UNIVERSE_ID = 1;
     public static final int MAX_UNIVERSE_ID = 63999;
 
@@ -56,6 +58,11 @@ public class SacnBridgeHandler extends DmxOverEthernetHandler {
         SacnBridgeHandlerConfiguration configuration = getConfig().as(SacnBridgeHandlerConfiguration.class);
 
         setUniverse(configuration.universe, MIN_UNIVERSE_ID, MAX_UNIVERSE_ID);
+        DmxOverEthernetPacket packetTemplate = this.packetTemplate;
+        if (packetTemplate == null) {
+            packetTemplate = new SacnPacket(senderUUID);
+            this.packetTemplate = packetTemplate;
+        }
         packetTemplate.setUniverse(universe.getUniverseId());
 
         receiverNodes.clear();

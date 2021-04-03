@@ -20,7 +20,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,13 +31,14 @@ import org.slf4j.LoggerFactory;
  * @author Jan N. Klug - Initial contribution
  *
  */
+@NonNullByDefault
 public class IpNode {
     protected static final Pattern ADDR_PATTERN = Pattern.compile("([\\w.-]+):?(\\d*)");
 
     private final Logger logger = LoggerFactory.getLogger(IpNode.class);
 
     protected int port = 0;
-    protected InetAddress address = null;
+    protected @Nullable InetAddress address = null;
 
     /**
      * default constructor
@@ -118,13 +120,13 @@ public class IpNode {
      *
      * @return address as InetAddress
      */
-    public InetAddress getAddress() {
+    public @Nullable InetAddress getAddress() {
         return address;
     }
 
-    public String getAddressString() {
-        String addrString = address.getHostAddress();
-        return addrString;
+    public @Nullable String getAddressString() {
+        InetAddress address = this.address;
+        return address != null ? address.getHostAddress() : null;
     }
 
     /**
@@ -133,11 +135,9 @@ public class IpNode {
      * @return string representation of this node (address:port)
      */
     @Override
-    public @NonNull String toString() {
-        if (this.address == null) {
-            return "(null):" + String.valueOf(this.port);
-        }
-        return this.address.toString() + ":" + String.valueOf(this.port);
+    public String toString() {
+        InetAddress address = this.address;
+        return address != null ? address.toString() + ":" + this.port : "(null):" + this.port;
     }
 
     /**

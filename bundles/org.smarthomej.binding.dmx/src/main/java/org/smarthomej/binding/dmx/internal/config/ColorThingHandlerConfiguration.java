@@ -20,7 +20,6 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
  *
  * @author Jan N. Klug - Initial contribution
  */
-
 @NonNullByDefault
 public class ColorThingHandlerConfiguration {
     public String dmxid = "";

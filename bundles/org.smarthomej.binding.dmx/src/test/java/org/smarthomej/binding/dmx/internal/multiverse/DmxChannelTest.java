@@ -16,6 +16,7 @@ package org.smarthomej.binding.dmx.internal.multiverse;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -30,13 +31,13 @@ import org.smarthomej.binding.dmx.internal.handler.DimmerThingHandler;
  *
  * @author Jan N. Klug - Initial contribution
  */
+@NonNullByDefault
 public class DmxChannelTest {
-
     private final ChannelUID valueChannelUID = new ChannelUID("dmx:testBridge:testThing:valueChannel");
 
-    DmxChannel dmxChannel;
-    DimmerThingHandler dimmerThingHandler;
-    long currentTime;
+    private @NonNullByDefault({}) DmxChannel dmxChannel;
+    private @NonNullByDefault({}) DimmerThingHandler dimmerThingHandler;
+    private long currentTime;
 
     @BeforeEach
     public void setup() {

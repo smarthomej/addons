@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.openhab.core.config.core.Configuration;
@@ -48,13 +49,14 @@ import org.openhab.core.types.State;
  * @author Simon Kaufmann - initial contribution and API
  *
  */
+@NonNullByDefault
 public class AbstractDmxThingTestParent extends JavaTest {
 
-    private Map<String, Object> bridgeProperties;
+    private @NonNullByDefault({}) Map<String, Object> bridgeProperties;
 
-    protected Bridge bridge;
-    protected TestBridgeHandler dmxBridgeHandler;
-    protected ThingHandlerCallback mockCallback;
+    protected @NonNullByDefault({}) Bridge bridge;
+    protected @NonNullByDefault({}) TestBridgeHandler dmxBridgeHandler;
+    protected @NonNullByDefault({}) ThingHandlerCallback mockCallback;
 
     protected void setup() {
         initializeBridge();
