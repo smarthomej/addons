@@ -47,9 +47,8 @@ import org.openhab.core.thing.binding.builder.ChannelBuilder;
 public class SacnBridgeHandlerTest extends JavaTest {
     private static final String TEST_ADDRESS = "localhost";
     private static final int TEST_UNIVERSE = 1;
-
-    private final ThingUID BRIDGE_UID_SACN = new ThingUID(THING_TYPE_SACN_BRIDGE, "sacnbridge");
-    private final ChannelUID CHANNEL_UID_MUTE = new ChannelUID(BRIDGE_UID_SACN, CHANNEL_MUTE);
+    private static final ThingUID BRIDGE_UID_SACN = new ThingUID(THING_TYPE_SACN_BRIDGE, "sacnbridge");
+    private static final ChannelUID CHANNEL_UID_MUTE = new ChannelUID(BRIDGE_UID_SACN, CHANNEL_MUTE);
 
     private @NonNullByDefault({}) Map<String, Object> bridgeProperties;
     private @NonNullByDefault({}) Bridge bridge;

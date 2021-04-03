@@ -43,11 +43,9 @@ import org.openhab.core.thing.binding.builder.ChannelBuilder;
  */
 @NonNullByDefault
 public class Lib485BridgeHandlerTest extends JavaTest {
-
     private static final String TEST_ADDRESS = "localhost";
-
-    private final ThingUID BRIDGE_UID_LIB485 = new ThingUID(THING_TYPE_LIB485_BRIDGE, "lib485bridge");
-    private final ChannelUID CHANNEL_UID_MUTE = new ChannelUID(BRIDGE_UID_LIB485, CHANNEL_MUTE);
+    private static final ThingUID BRIDGE_UID_LIB485 = new ThingUID(THING_TYPE_LIB485_BRIDGE, "lib485bridge");
+    private static final ChannelUID CHANNEL_UID_MUTE = new ChannelUID(BRIDGE_UID_LIB485, CHANNEL_MUTE);
 
     private @NonNullByDefault({}) Map<String, Object> bridgeProperties;
     private @NonNullByDefault({}) Bridge bridge;

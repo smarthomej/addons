@@ -48,13 +48,11 @@ import org.smarthomej.binding.dmx.test.TestBridgeHandler;
  */
 @NonNullByDefault
 public class ChaserThingHandlerTest extends AbstractDmxThingTestParent {
-
     private static final String TEST_CHANNEL = "100";
     private static final String TEST_STEPS_INFINITE = "1000:100:1000|1000:200:-1";
     private static final String TEST_STEPS_REPEAT = "1000:115:1000|1000:210:1000";
-
-    private final ThingUID THING_UID_CHASER = new ThingUID(THING_TYPE_CHASER, "testchaser");
-    private final ChannelUID CHANNEL_UID_SWITCH = new ChannelUID(THING_UID_CHASER, CHANNEL_SWITCH);
+    private static final ThingUID THING_UID_CHASER = new ThingUID(THING_TYPE_CHASER, "testchaser");
+    private static final ChannelUID CHANNEL_UID_SWITCH = new ChannelUID(THING_UID_CHASER, CHANNEL_SWITCH);
 
     private @NonNullByDefault({}) Map<String, Object> bridgeProperties;
     private @NonNullByDefault({}) Map<String, Object> thingProperties;
@@ -78,7 +76,7 @@ public class ChaserThingHandlerTest extends AbstractDmxThingTestParent {
     }
 
     @Test
-    public void testThingStatus_noBridge() {
+    public void testThingStatusNoBridge() {
         thingProperties.put(CONFIG_CHASER_STEPS, TEST_STEPS_INFINITE);
         initialize();
         // check that thing is offline if no bridge found

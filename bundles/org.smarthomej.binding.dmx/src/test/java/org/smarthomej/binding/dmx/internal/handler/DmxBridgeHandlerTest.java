@@ -88,9 +88,9 @@ public class DmxBridgeHandlerTest extends JavaTest {
     private static final int TEST_UNIVERSE = 1;
     private static final int TEST_CHANNEL = 100;
 
-    private final ThingTypeUID THING_TYPE_TEST_BRIDGE = new ThingTypeUID(BINDING_ID, "testbridge");
-    private final ThingUID BRIDGE_UID_TEST = new ThingUID(THING_TYPE_TEST_BRIDGE, "testbridge");
-    private final ChannelUID CHANNEL_UID_MUTE = new ChannelUID(BRIDGE_UID_TEST, CHANNEL_MUTE);
+    private static final ThingTypeUID THING_TYPE_TEST_BRIDGE = new ThingTypeUID(BINDING_ID, "testbridge");
+    private static final ThingUID BRIDGE_UID_TEST = new ThingUID(THING_TYPE_TEST_BRIDGE, "testbridge");
+    private static final ChannelUID CHANNEL_UID_MUTE = new ChannelUID(BRIDGE_UID_TEST, CHANNEL_MUTE);
 
     private @NonNullByDefault({}) Map<String, Object> bridgeProperties;
     private @NonNullByDefault({}) Bridge bridge;

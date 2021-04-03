@@ -45,12 +45,10 @@ import org.openhab.core.thing.binding.builder.ChannelBuilder;
  */
 @NonNullByDefault
 public class ArtnetBridgeHandlerTest extends JavaTest {
-
     private static final String TEST_ADDRESS = "localhost";
     private static final int TEST_UNIVERSE = 1;
-
-    private final ThingUID BRIDGE_UID_ARTNET = new ThingUID(THING_TYPE_ARTNET_BRIDGE, "artnetbridge");
-    private final ChannelUID CHANNEL_UID_MUTE = new ChannelUID(BRIDGE_UID_ARTNET, CHANNEL_MUTE);
+    private static final ThingUID BRIDGE_UID_ARTNET = new ThingUID(THING_TYPE_ARTNET_BRIDGE, "artnetbridge");
+    private static final ChannelUID CHANNEL_UID_MUTE = new ChannelUID(BRIDGE_UID_ARTNET, CHANNEL_MUTE);
 
     private @NonNullByDefault({}) Map<String, Object> bridgeProperties;
     private @NonNullByDefault({}) Bridge bridge;

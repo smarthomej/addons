@@ -44,19 +44,18 @@ import org.smarthomej.binding.dmx.test.AbstractDmxThingTestParent;
  */
 @NonNullByDefault
 public class TunableWhiteThingHandlerTest extends AbstractDmxThingTestParent {
-
     private static final String TEST_CHANNEL_CONFIG = "100/2";
     private static final int TEST_FADE_TIME = 1500;
+    private static final ThingUID THING_UID_DIMMER = new ThingUID(THING_TYPE_TUNABLEWHITE, "testdimmer");
+    private static final ChannelUID CHANNEL_UID_BRIGHTNESS = new ChannelUID(THING_UID_DIMMER, CHANNEL_BRIGHTNESS);
+    private static final ChannelUID CHANNEL_UID_BRIGHTNESS_CW = new ChannelUID(THING_UID_DIMMER, CHANNEL_BRIGHTNESS_CW);
+    private static final ChannelUID CHANNEL_UID_BRIGHTNESS_WW = new ChannelUID(THING_UID_DIMMER, CHANNEL_BRIGHTNESS_WW);
+    private static final ChannelUID CHANNEL_UID_COLOR_TEMP = new ChannelUID(THING_UID_DIMMER,
+            CHANNEL_COLOR_TEMPERATURE);
 
     private @NonNullByDefault({}) Map<String, Object> thingProperties;
     private @NonNullByDefault({}) Thing dimmerThing;
     private @NonNullByDefault({}) TunableWhiteThingHandler dimmerThingHandler;
-
-    private final ThingUID THING_UID_DIMMER = new ThingUID(THING_TYPE_TUNABLEWHITE, "testdimmer");
-    private final ChannelUID CHANNEL_UID_BRIGHTNESS = new ChannelUID(THING_UID_DIMMER, CHANNEL_BRIGHTNESS);
-    private final ChannelUID CHANNEL_UID_BRIGHTNESS_CW = new ChannelUID(THING_UID_DIMMER, CHANNEL_BRIGHTNESS_CW);
-    private final ChannelUID CHANNEL_UID_BRIGHTNESS_WW = new ChannelUID(THING_UID_DIMMER, CHANNEL_BRIGHTNESS_WW);
-    private final ChannelUID CHANNEL_UID_COLOR_TEMP = new ChannelUID(THING_UID_DIMMER, CHANNEL_COLOR_TEMPERATURE);
 
     @BeforeEach
     public void setUp() {
@@ -93,7 +92,7 @@ public class TunableWhiteThingHandlerTest extends AbstractDmxThingTestParent {
     }
 
     @Test
-    public void testThingStatus_noBridge() {
+    public void testThingStatusNoBridge() {
         // check that thing is offline if no bridge found
         TunableWhiteThingHandler dimmerHandlerWithoutBridge = new TunableWhiteThingHandler(dimmerThing) {
             @Override
