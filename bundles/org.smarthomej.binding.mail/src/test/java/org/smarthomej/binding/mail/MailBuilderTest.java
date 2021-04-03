@@ -28,6 +28,7 @@ import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.HtmlEmail;
 import org.apache.commons.mail.MultiPartEmail;
 import org.apache.commons.mail.SimpleEmail;
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.Test;
 import org.smarthomej.binding.mail.internal.MailBuilder;
 
@@ -36,7 +37,7 @@ import org.smarthomej.binding.mail.internal.MailBuilder;
  *
  * @author Jan N. Klug - Initial contribution
  */
-
+@NonNullByDefault
 public class MailBuilderTest {
 
     private static final String TEST_STRING = "test";

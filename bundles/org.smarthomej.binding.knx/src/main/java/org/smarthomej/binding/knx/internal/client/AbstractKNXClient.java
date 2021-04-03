@@ -21,7 +21,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.thing.ThingStatus;
@@ -241,7 +240,7 @@ public abstract class AbstractKNXClient implements NetworkLinkListener, KNXClien
         });
     }
 
-    private <T> @Nullable T nullify(@Nullable T target, @Nullable Consumer<@NonNull T> lastWill) {
+    private <T> @Nullable T nullify(@Nullable T target, @Nullable Consumer<T> lastWill) {
         if (target != null && lastWill != null) {
             lastWill.accept(target);
         }

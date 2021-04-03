@@ -141,7 +141,7 @@ public class PhonebookProfile implements StateProfile {
         if (state instanceof StringType) {
             Optional<String> match = resolveNumber(state.toString());
             State newState = Objects.requireNonNull(match.map(name -> (State) new StringType(name)).orElse(state));
-            if (newState == state) {
+            if (newState.equals(state)) {
                 logger.debug("Number '{}' not found in phonebook '{}' from provider '{}'", state, phonebookName,
                         thingUID);
             }

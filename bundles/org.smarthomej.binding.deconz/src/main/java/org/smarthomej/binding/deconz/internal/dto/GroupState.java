@@ -13,6 +13,7 @@
  */
 package org.smarthomej.binding.deconz.internal.dto;
 
+import com.google.gson.annotations.SerializedName;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
@@ -23,11 +24,13 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
  */
 @NonNullByDefault
 public class GroupState {
-    public boolean all_on;
-    public boolean any_on;
+    @SerializedName(value = "all_on")
+    public boolean allOn;
+    @SerializedName(value = "any_on")
+    public boolean anyOn;
 
     @Override
     public String toString() {
-        return "GroupState{" + "all_on=" + all_on + ", any_on=" + any_on + '}';
+        return "GroupState{" + "all_on=" + allOn + ", any_on=" + anyOn + '}';
     }
 }

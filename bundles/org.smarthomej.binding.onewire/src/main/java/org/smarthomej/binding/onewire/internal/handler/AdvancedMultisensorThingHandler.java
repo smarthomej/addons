@@ -35,7 +35,7 @@ import org.smarthomej.binding.onewire.internal.SensorId;
 import org.smarthomej.binding.onewire.internal.config.AMSHandlerConfiguration;
 import org.smarthomej.binding.onewire.internal.device.AbstractOwDevice;
 import org.smarthomej.binding.onewire.internal.device.DS18x20;
-import org.smarthomej.binding.onewire.internal.device.DS2406_DS2413;
+import org.smarthomej.binding.onewire.internal.device.DS2406DS2413;
 import org.smarthomej.binding.onewire.internal.device.DS2438;
 import org.smarthomej.binding.onewire.internal.device.DS2438.LightSensorType;
 import org.smarthomej.binding.onewire.internal.device.OwChannelConfig;
@@ -93,7 +93,7 @@ public class AdvancedMultisensorThingHandler extends OwBaseThingHandler {
             sensors.add(new DS18x20(new SensorId(properties.get(PROPERTY_DS18B20)), this));
             if (THING_TYPE_AMS.equals(thingType)) {
                 sensors.add(new DS2438(new SensorId(properties.get(PROPERTY_DS2438)), this));
-                sensors.add(new DS2406_DS2413(new SensorId(properties.get(PROPERTY_DS2413)), this));
+                sensors.add(new DS2406DS2413(new SensorId(properties.get(PROPERTY_DS2413)), this));
                 digitalRefreshInterval = configuration.digitalRefresh * 1000;
                 digitalLastRefresh = 0;
             }

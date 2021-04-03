@@ -38,7 +38,9 @@ public class CallListEntry {
 
     public CallListEntry(Call call) {
         try {
-            date = DATE_FORMAT_PARSER.parse(call.getDate());
+            synchronized (DATE_FORMAT_PARSER) {
+                date = DATE_FORMAT_PARSER.parse(call.getDate());
+            }
         } catch (ParseException e) {
             // ignore parsing error
             date = null;
