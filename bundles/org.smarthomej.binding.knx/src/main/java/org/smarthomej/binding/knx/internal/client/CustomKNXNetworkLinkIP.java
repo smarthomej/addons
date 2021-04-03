@@ -14,6 +14,7 @@
 package org.smarthomej.binding.knx.internal.client;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+
 import tuwien.auto.calimero.KNXException;
 import tuwien.auto.calimero.knxnetip.KNXnetIPConnection;
 import tuwien.auto.calimero.link.KNXNetworkLinkIP;

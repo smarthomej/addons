@@ -13,8 +13,9 @@
  */
 package org.smarthomej.binding.deconz.internal.dto;
 
-import com.google.gson.annotations.SerializedName;
 import org.eclipse.jdt.annotation.NonNullByDefault;
+
+import com.google.gson.annotations.SerializedName;
 
 /**
  * The {@link GroupState} is send by the websocket connection as well as the Rest API.
