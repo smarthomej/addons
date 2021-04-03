@@ -102,11 +102,10 @@ class PhonebookProfileTest {
         });
     }
 
-    private @Mock ProfileCallback mockCallback;
-    private @Mock ProfileContext mockContext;
-    private @Mock PhonebookProvider mockPhonebookProvider;
+    private @Mock @NonNullByDefault({}) ProfileCallback mockCallback;
+    private @Mock @NonNullByDefault({}) ProfileContext mockContext;
+    private @Mock @NonNullByDefault({}) PhonebookProvider mockPhonebookProvider;
 
-    @NonNullByDefault
     private final Phonebook phonebook = new Phonebook() {
         @Override
         public Optional<String> lookupNumber(String number, int matchCount) {

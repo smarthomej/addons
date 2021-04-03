@@ -1,15 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suppressions PUBLIC "-//Puppy Crawl//DTD Suppressions 1.1//EN" "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
 <suppressions>
-    <!-- These suppressions define which files to be suppressed for which checks. -->
+    <suppress files=".+.test[\\/].+" checks="RequireBundleCheck"/>
+    <!-- No requirement for Javadoc in internal packages -->
     <suppress files=".+[\\/]internal[\\/].+\.java" checks="JavadocType|JavadocVariable|JavadocMethod|MissingJavadocFilterCheck"/>
+    <suppress files=".+Impl\.java" checks="JavadocType|JavadocVariable|JavadocMethod|MissingJavadocFilterCheck"/>
+    <!-- No requirement for NonNullByDefault annotations and Javadoc in DTO classes -->
     <suppress files=".+DTO\.java" checks="JavadocType|JavadocVariable|JavadocMethod|MissingJavadocFilterCheck|NullAnnotationsCheck"/>
     <suppress files=".+[\\/]dto[\\/].+\.java" checks="JavadocType|JavadocVariable|JavadocMethod|MissingJavadocFilterCheck|NullAnnotationsCheck"/>
-    <suppress files=".+Impl\.java" checks="JavadocType|JavadocVariable|JavadocMethod|MissingJavadocFilterCheck"/>
-    <suppress files=".+[\\/]SnmpSecurityModel\.java" checks="ParameterizedRegexpHeaderCheck"/>
-    <suppress files=".+[\\/]SnmpPrivProtocol\.java" checks="ParameterizedRegexpHeaderCheck"/>
-    <suppress files=".+[\\/]SnmpAuthProtocol\.java" checks="ParameterizedRegexpHeaderCheck"/>
-    <suppress files=".+.test[\\/].+" checks="RequireBundleCheck"/>
+    <!-- POMs use two-space indentation instead of tabs -->
     <suppress files=".+[\\/]pom\.xml" checks="OnlyTabIndentationCheck|OnlyTabIndentationInXmlFilesCheck"/>
+    <!-- DMX is timing sensitive so use scheduleAtFixedRate -->
     <suppress files=".+[\\/]DmxBridgeHandler\.java" checks="AvoidScheduleAtFixedRateCheck"/>
+    <!-- external configuration profiles do not pass usage check -->
+    <suppress files=".+\.tr064[\\/].+[\\/]phonebookProfile\.xml" checks="OhInfXmlUsageCheck"/>
+    <suppress files=".+\.influxdb[\\/].+[\\/]config\.xml" checks="OhInfXmlUsageCheck"/>
 </suppressions>
