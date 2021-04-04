@@ -36,4 +36,6 @@ public class Tr064BindingConstants {
     public static final ThingTypeUID THING_TYPE_SUBDEVICE_LAN = new ThingTypeUID(BINDING_ID, "subdeviceLan");
 
     public static final List<ChannelTypeDescription> CHANNEL_TYPES = Util.readXMLChannelConfig();
+
+    public static final int DEFAULT_HTTP_TIMEOUT = 5; // in s
 }

@@ -13,6 +13,8 @@
  */
 package org.smarthomej.binding.tr064.internal.config;
 
+import static org.smarthomej.binding.tr064.internal.Tr064BindingConstants.DEFAULT_HTTP_TIMEOUT;
+
 import java.util.List;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -27,7 +29,7 @@ public class Tr064RootConfiguration extends Tr064BaseThingConfiguration {
     public String host = "";
     public String user = "dslf-config";
     public String password = "";
-    public int soapTimeout = 5;
+    public int soapTimeout = DEFAULT_HTTP_TIMEOUT;
 
     /* following parameters only available in fritzbox thing */
     public List<String> tamIndices = List.of();

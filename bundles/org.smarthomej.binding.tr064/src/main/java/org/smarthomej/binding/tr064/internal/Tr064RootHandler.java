@@ -13,8 +13,7 @@
  */
 package org.smarthomej.binding.tr064.internal;
 
-import static org.smarthomej.binding.tr064.internal.Tr064BindingConstants.THING_TYPE_FRITZBOX;
-import static org.smarthomej.binding.tr064.internal.Tr064BindingConstants.THING_TYPE_GENERIC;
+import static org.smarthomej.binding.tr064.internal.Tr064BindingConstants.*;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -75,13 +74,15 @@ public class Tr064RootHandler extends BaseBridgeHandler implements PhonebookProv
     private final Logger logger = LoggerFactory.getLogger(Tr064RootHandler.class);
     private final HttpClient httpClient;
 
-    private Tr064RootConfiguration config = new Tr064RootConfiguration();
-    private String deviceType = "";
-
     private @Nullable SCPDUtil scpdUtil;
     private SOAPConnector soapConnector;
+
+    // these are set when the config is available
+    private Tr064RootConfiguration config = new Tr064RootConfiguration();
     private String endpointBaseURL = "";
-    private int soapTimeout = 5;
+    private int soapTimeout = DEFAULT_HTTP_TIMEOUT;
+
+    private String deviceType = "";
 
     private final Map<ChannelUID, Tr064ChannelConfig> channels = new HashMap<>();
     // caching is used to prevent excessive calls to the same action

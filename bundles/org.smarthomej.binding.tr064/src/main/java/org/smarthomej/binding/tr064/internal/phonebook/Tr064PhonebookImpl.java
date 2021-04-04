@@ -13,6 +13,8 @@
  */
 package org.smarthomej.binding.tr064.internal.phonebook;
 
+import static org.smarthomej.binding.tr064.internal.Tr064BindingConstants.DEFAULT_HTTP_TIMEOUT;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -48,7 +50,8 @@ public class Tr064PhonebookImpl implements Phonebook {
     }
 
     private void getPhonebook() {
-        PhonebooksType phonebooksType = Util.getAndUnmarshalXML(httpClient, phonebookUrl, PhonebooksType.class, 5);
+        PhonebooksType phonebooksType = Util.getAndUnmarshalXML(httpClient, phonebookUrl, PhonebooksType.class,
+                DEFAULT_HTTP_TIMEOUT);
         if (phonebooksType == null) {
             logger.warn("Failed to get phonebook with URL '{}'", phonebookUrl);
             return;
