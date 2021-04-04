@@ -258,8 +258,10 @@
         </plugins>
       </build>
     </profile>
+    <!-- no-javadoc: Sonatype requires a javadoc artifact for all bundles that contain classes. The maven-java-doc-plugin
+      is not able to generate that artifact if no public classes are present, therefore we generate an empty jar. -->
     <profile>
-      <id>javadoc</id>
+      <id>empty-javadoc</id>
       <activation>
         <file>
           <exists>src/main/java</exists>
@@ -272,7 +274,7 @@
             <artifactId>maven-jar-plugin</artifactId>
             <executions>
               <execution>
-                <id>empty-javadoc-jar</id>
+                <id>attach-empty-javadoc-jar</id>
                 <phase>package</phase>
                 <goals>
                   <goal>jar</goal>
@@ -288,6 +290,61 @@
         </plugins>
       </build>
     </profile>
+    <!-- javadoc: If we want to generate non-empty javadoc, activate this profile -->
+    <profile>
+      <id>attach-javadoc</id>
+      <activation>
+        <file>
+          <exists>javadoc.profile</exists>
+        </file>
+      </activation>
+      <build>
+        <plugins>
+          <!-- deactivate generation of empty javadoc artifact -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-jar-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>attach-empty-javadoc</id>
+                <phase>none</phase>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>3.2.0</version>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <source>8</source>
+              <detectJavaApiLink>false</detectJavaApiLink>
+              <failOnError>true</failOnError>
+              <doclint>none</doclint>
+              <excludePackageNames>*.internal,*.internal.*</excludePackageNames>
+              <!-- The search function is broken without the workaround below -->
+              <!-- See: https://stackoverflow.com/questions/52326318/maven-javadoc-search-redirects-to-undefined-url -->
+              <additionalJOption>--allow-script-in-comments</additionalJOption>
+              <bottom>
+                <![CDATA[
+                <script>
+                if (typeof useModuleDirectories !== 'undefined') {
+                  useModuleDirectories = false;
+                }
+                </script>
+              ]]>
+              </bottom>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
-
 </project>
