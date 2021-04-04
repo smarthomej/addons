@@ -13,6 +13,18 @@ The documentation can be found [here](https://github.com/smarthomej/addons/tree/
 
 The latest version of RepoManager can be downloaded [here](https://download.smarthomej.org/repomanager-latest).
 
+### Compatibility
+
+Due to a breaking change in openHAB 3.1 (starting with SNAPSHOT #2305), older and newer versions of bundles are no longer compatible.
+Please check the table to see which versions of SmartHome/J are compatible with which openHAB version:
+
+| | openHAB 3.0.x (snapshots, milestones, releases) |  openHAB 3.1.0 (snapshots <= #2305, milestones <= M3) | openHAB 3.1.0 (snapshots > #2305, milestones > M3 |
+|---|:---:|:---:|:---:|
+| SmartHome/J 3.1.x (snapshots, releases) | yes | yes | no |
+| SmartHome/J 3.2.0 (snapshots, releases) | no | no | yes |
+
+We'll continue to support 3.0 compatible addons until further notice.
+
 ## Development
 
 SmartHome/J add-ons are [Java](https://en.wikipedia.org/wiki/Java_(programming_language)) `.jar` files.
