@@ -74,7 +74,7 @@ public class BasicThingHandler extends OwBaseThingHandler {
                 break;
             case DS2406:
             case DS2413:
-                sensors.add(new DS2406_DS2413(sensorId, this));
+                sensors.add(new DS2406DS2413(sensorId, this));
                 break;
             case DS2408:
                 sensors.add(new DS2408(sensorId, this));

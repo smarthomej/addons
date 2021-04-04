@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Objects;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -43,14 +44,14 @@ import org.slf4j.spi.LocationAwareLogger;
 
 @ExtendWith(MockitoExtension.class)
 @TestInstance(Lifecycle.PER_CLASS)
+@NonNullByDefault
 class RoombaHandlerTest {
-
     private static final String IP_ADDRESS = "<iRobotIP>";
     private static final String PASSWORD = "<PasswordForIRobot>";
 
-    private RoombaHandler handler;
-    private @Mock Thing myThing;
-    private ThingHandlerCallback callback;
+    private @NonNullByDefault({}) RoombaHandler handler;
+    private @NonNullByDefault({}) @Mock Thing myThing;
+    private @NonNullByDefault({}) ThingHandlerCallback callback;
 
     @BeforeEach
     void setUp() throws Exception {

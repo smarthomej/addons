@@ -26,19 +26,19 @@ import org.mockito.InOrder;
 import org.mockito.Mockito;
 import org.openhab.core.library.types.OnOffType;
 import org.smarthomej.binding.onewire.internal.OwException;
-import org.smarthomej.binding.onewire.internal.device.DS2406_DS2413;
+import org.smarthomej.binding.onewire.internal.device.DS2406DS2413;
 
 /**
- * Tests cases for {@link DS2406_DS2413}.
+ * Tests cases for {@link DS2406DS2413}.
  *
  * @author Jan N. Klug - Initial contribution
  */
 @NonNullByDefault
-public class DS2406_DS2413Test extends DeviceTestParent<DS2406_DS2413> {
+public class DS2406DS2413Test extends DeviceTestParent<DS2406DS2413> {
 
     @BeforeEach
     public void setupMocks() {
-        setupMocks(THING_TYPE_BASIC, DS2406_DS2413.class);
+        setupMocks(THING_TYPE_BASIC, DS2406DS2413.class);
 
         for (int i = 0; i < 2; i++) {
             addChannel(channelName(i), "Switch");
@@ -54,7 +54,7 @@ public class DS2406_DS2413Test extends DeviceTestParent<DS2406_DS2413> {
     }
 
     private void digitalChannelTest(OnOffType state, int channelNo) throws OwException {
-        final DS2406_DS2413 testDevice = instantiateDevice();
+        final DS2406DS2413 testDevice = instantiateDevice();
         final InOrder inOrder = Mockito.inOrder(mockThingHandler, mockBridgeHandler);
 
         BitSet returnValue = new BitSet(8);

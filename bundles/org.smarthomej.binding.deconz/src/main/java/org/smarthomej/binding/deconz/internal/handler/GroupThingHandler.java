@@ -158,10 +158,10 @@ public class GroupThingHandler extends DeconzBaseThingHandler {
     private void valueUpdated(String channelId, GroupState newState) {
         switch (channelId) {
             case CHANNEL_ALL_ON:
-                updateState(channelId, OnOffType.from(newState.all_on));
+                updateState(channelId, OnOffType.from(newState.allOn));
                 break;
             case CHANNEL_ANY_ON:
-                updateState(channelId, OnOffType.from(newState.any_on));
+                updateState(channelId, OnOffType.from(newState.anyOn));
                 break;
             default:
         }

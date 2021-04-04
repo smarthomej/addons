@@ -155,7 +155,6 @@ public class RoombaHandler extends BaseThingHandler implements MqttConnectionObs
                 } else {
                     sendRequest(new MQTTProtocol.CommandRequest(cmd));
                 }
-
             }
         } else if (ch.startsWith(CHANNEL_SCHED_SWITCH_PREFIX)) {
             MQTTProtocol.Schedule schedule = lastSchedule;

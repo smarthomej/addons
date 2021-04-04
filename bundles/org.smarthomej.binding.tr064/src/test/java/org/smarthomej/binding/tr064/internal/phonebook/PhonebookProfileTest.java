@@ -52,8 +52,8 @@ import org.openhab.core.util.UIDUtils;
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.WARN)
+@NonNullByDefault
 class PhonebookProfileTest {
-
     private static final String INTERNAL_PHONE_NUMBER = "999";
     private static final String OTHER_PHONE_NUMBER = "555-456";
     private static final String JOHN_DOES_PHONE_NUMBER = "12345";
@@ -102,11 +102,10 @@ class PhonebookProfileTest {
         });
     }
 
-    private @Mock ProfileCallback mockCallback;
-    private @Mock ProfileContext mockContext;
-    private @Mock PhonebookProvider mockPhonebookProvider;
+    private @Mock @NonNullByDefault({}) ProfileCallback mockCallback;
+    private @Mock @NonNullByDefault({}) ProfileContext mockContext;
+    private @Mock @NonNullByDefault({}) PhonebookProvider mockPhonebookProvider;
 
-    @NonNullByDefault
     private final Phonebook phonebook = new Phonebook() {
         @Override
         public Optional<String> lookupNumber(String number, int matchCount) {

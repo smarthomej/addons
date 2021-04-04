@@ -21,13 +21,13 @@ import org.smarthomej.binding.onewire.internal.handler.OwBaseThingHandler;
 import org.smarthomej.binding.onewire.internal.owserver.OwserverDeviceParameter;
 
 /**
- * The {@link DS2406_DS2413} class defines an DS2406 or DS2413 device
+ * The {@link DS2406DS2413} class defines an DS2406 or DS2413 device
  *
  * @author Jan N. Klug - Initial contribution
  */
 @NonNullByDefault
-public class DS2406_DS2413 extends AbstractDigitalOwDevice {
-    public DS2406_DS2413(SensorId sensorId, OwBaseThingHandler callback) {
+public class DS2406DS2413 extends AbstractDigitalOwDevice {
+    public DS2406DS2413(SensorId sensorId, OwBaseThingHandler callback) {
         super(sensorId, callback);
     }
 

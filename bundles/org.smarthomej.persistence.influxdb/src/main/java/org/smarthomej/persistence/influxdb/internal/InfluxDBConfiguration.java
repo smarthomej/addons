@@ -13,7 +13,6 @@
  */
 package org.smarthomej.persistence.influxdb.internal;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.StringJoiner;
 
@@ -40,7 +39,7 @@ public class InfluxDBConfiguration {
     public static final String ADD_CATEGORY_TAG_PARAM = "addCategoryTag";
     public static final String ADD_LABEL_TAG_PARAM = "addLabelTag";
     public static final String ADD_TYPE_TAG_PARAM = "addTypeTag";
-    public static InfluxDBConfiguration NO_CONFIGURATION = new InfluxDBConfiguration(Collections.emptyMap());
+    public static final InfluxDBConfiguration NO_CONFIGURATION = new InfluxDBConfiguration(Map.of());
     private final Logger logger = LoggerFactory.getLogger(InfluxDBConfiguration.class);
     private final String url;
     private final String user;

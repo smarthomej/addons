@@ -98,8 +98,6 @@ public class WebSocketConnection {
     }
 
     private void startOrResetWatchdogTimer() {
-        // TODO: remove log
-        logger.trace("Websocket WatchdogTimer reset.");
         stopWatchdogTimer(); // stop already running timer
         watchdogJob = scheduler.schedule(
                 () -> connectionListener.webSocketConnectionLost(

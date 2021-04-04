@@ -33,7 +33,7 @@ import com.google.gson.stream.JsonReader;
 public class IdentProtocol {
     private static final String UDP_PACKET_CONTENTS = "irobotmcs";
     private static final int REMOTE_UDP_PORT = 5678;
-    private static final Gson gson = new Gson();
+    private static final Gson GSON = new Gson();
 
     public static DatagramSocket sendRequest(InetAddress host) throws IOException {
         DatagramSocket socket = new DatagramSocket();
@@ -98,15 +98,15 @@ public class IdentProtocol {
         // used up. We want to avoid that for compatibility reasons because newer iRobot versions
         // may add fields.
         JsonReader jsonReader = new JsonReader(new StringReader(reply));
-        IdentData data = gson.fromJson(jsonReader, IdentData.class);
+        IdentData data = GSON.fromJson(jsonReader, IdentData.class);
 
         data.postParse();
         return data;
     }
 
     public static class IdentData {
-        public static int MIN_SUPPORTED_VERSION = 2;
-        public static String PRODUCT_ROOMBA = "Roomba";
+        public static final int MIN_SUPPORTED_VERSION = 2;
+        public static final String PRODUCT_ROOMBA = "Roomba";
 
         public int ver;
         private String hostname;

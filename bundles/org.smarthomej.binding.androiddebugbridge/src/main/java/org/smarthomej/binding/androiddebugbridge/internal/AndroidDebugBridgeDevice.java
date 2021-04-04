@@ -62,7 +62,7 @@ import com.tananaev.adblib.AdbStream;
 public class AndroidDebugBridgeDevice {
     public static final int ANDROID_MEDIA_STREAM = 3;
     private static final String ADB_FOLDER = OpenHAB.getUserDataFolder() + File.separator + ".adb";
-    private final Logger logger = LoggerFactory.getLogger(AndroidDebugBridgeDevice.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AndroidDebugBridgeDevice.class);
     private static final Pattern VOLUME_PATTERN = Pattern
             .compile("volume is (?<current>\\d.*) in range \\[(?<min>\\d.*)\\.\\.(?<max>\\d.*)]");
     private static final Pattern PACKAGE_NAME_PATTERN = Pattern
@@ -71,7 +71,6 @@ public class AndroidDebugBridgeDevice {
     private static @Nullable AdbCrypto adbCrypto;
 
     static {
-        Logger logger = LoggerFactory.getLogger(AndroidDebugBridgeDevice.class);
         try {
             File directory = new File(ADB_FOLDER);
             if (!directory.exists()) {
@@ -80,7 +79,7 @@ public class AndroidDebugBridgeDevice {
             adbCrypto = loadKeyPair(ADB_FOLDER + File.separator + "adb_pub.key",
                     ADB_FOLDER + File.separator + "adb.key");
         } catch (NoSuchAlgorithmException | IOException | InvalidKeySpecException e) {
-            logger.warn("Unable to setup adb keys: {}", e.getMessage());
+            LOGGER.warn("Unable to setup adb keys: {}", e.getMessage());
         }
     }
 
@@ -127,7 +126,7 @@ public class AndroidDebugBridgeDevice {
     public void startPackage(String packageName)
             throws InterruptedException, AndroidDebugBridgeDeviceException, TimeoutException, ExecutionException {
         if (!PACKAGE_NAME_PATTERN.matcher(packageName).matches()) {
-            logger.warn("{} is not a valid package name", packageName);
+            LOGGER.warn("{} is not a valid package name", packageName);
             return;
         }
         if (channelFallbackMap.get(START_PACKAGE_CHANNEL) == FallbackModes.MONKEY) {
@@ -149,7 +148,7 @@ public class AndroidDebugBridgeDevice {
     public void stopPackage(String packageName)
             throws AndroidDebugBridgeDeviceException, InterruptedException, TimeoutException, ExecutionException {
         if (!PACKAGE_NAME_PATTERN.matcher(packageName).matches()) {
-            logger.warn("{} is not a valid package name", packageName);
+            LOGGER.warn("{} is not a valid package name", packageName);
             return;
         }
         runAdbShell("am", "force-stop", packageName);
@@ -231,7 +230,7 @@ public class AndroidDebugBridgeDevice {
             return false;
         } else if (mediaSessions[0].contains("PlaybackState {state=3")) {
             boolean isPlaying = mediaSessions[0].contains("PlaybackState {state=3");
-            logger.debug("device media state playing {}", isPlaying);
+            LOGGER.debug("device media state playing {}", isPlaying);
             return isPlaying;
         }
         throw new AndroidDebugBridgeDeviceReadException(MEDIA_CONTROL_CHANNEL, result);
@@ -264,7 +263,7 @@ public class AndroidDebugBridgeDevice {
             try {
                 return Integer.parseInt(splitResult[1]);
             } catch (NumberFormatException e) {
-                logger.debug("Unable to parse device wake lock: {}", e.getMessage());
+                LOGGER.debug("Unable to parse device wake lock: {}", e.getMessage());
             }
         }
         throw new AndroidDebugBridgeDeviceReadException(WAKE_LOCK_CHANNEL, result);
@@ -313,7 +312,7 @@ public class AndroidDebugBridgeDevice {
             throw new AndroidDebugBridgeDeviceReadException(MEDIA_VOLUME_CHANNEL, result);
         VolumeInfo volumeInfo = new VolumeInfo(Integer.parseInt(matcher.group("current")),
                 Integer.parseInt(matcher.group("min")), Integer.parseInt(matcher.group("max")));
-        logger.debug("Device {}:{} VolumeInfo: current {}, min {}, max {}", this.ip, this.port, volumeInfo.current,
+        LOGGER.debug("Device {}:{} VolumeInfo: current {}, min {}, max {}", this.ip, this.port, volumeInfo.current,
                 volumeInfo.min, volumeInfo.max);
         return volumeInfo;
     }
@@ -336,7 +335,7 @@ public class AndroidDebugBridgeDevice {
             socket = sock;
             sock.connect(new InetSocketAddress(ip, port), (int) TimeUnit.SECONDS.toMillis(15));
         } catch (IOException e) {
-            logger.debug("Error connecting to {}: [{}] {}", ip, e.getClass().getName(), e.getMessage());
+            LOGGER.debug("Error connecting to {}: [{}] {}", ip, e.getClass().getName(), e.getMessage());
             if ("Socket closed".equals(e.getMessage())) {
                 // Connection aborted by us
                 throw new InterruptedException();
@@ -350,7 +349,7 @@ public class AndroidDebugBridgeDevice {
             connection = adbConnection;
             adbConnection.connect(15, TimeUnit.SECONDS, false);
         } catch (IOException e) {
-            logger.debug("Error connecting to {}: {}", ip, e.getMessage());
+            LOGGER.debug("Error connecting to {}: {}", ip, e.getMessage());
             throw new AndroidDebugBridgeDeviceException("Unable to open adb connection " + ip + ":" + port);
         }
     }
@@ -367,7 +366,7 @@ public class AndroidDebugBridgeDevice {
             Future<String> commandFuture = scheduler.submit(() -> {
                 ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                 String cmd = String.join(" ", args);
-                logger.debug("{} - shell:{}", ip, cmd);
+                LOGGER.debug("{} - shell:{}", ip, cmd);
                 try {
                     AdbStream stream = adb.open("shell:" + cmd);
                     do {

@@ -22,7 +22,6 @@ known, however, whether the password is eternal or can change during factory res
 
 ## Thing Configuration
 
-
 | Parameter | Meaning                                |
 |-----------|----------------------------------------|
 | ipaddress | IP address (or hostname) of your robot |
@@ -140,12 +139,14 @@ Error codes. Data type is string in order to be able to utilize mapping to human
 | 76    | Hardware problem detected |
 
 ## Cleaning specific regions
+
 You can clean one or many specific regions of a given map by sending the following String to the command channel:
 
 ```
  cleanRegions:<pmapId>;<region_id1>,<region_id2>,..
 ```
-The easiest way to determine the pmapId and region_ids is to monitor the last_command channel while starting a new mission for the specific region with the iRobot-App.
+
+The easiest way to determine the `pmapId` and `region_id`s is to monitor the last_command channel while starting a new mission for the specific region with the iRobot-App.
 
 ## Known Problems / Caveats
 
@@ -153,7 +154,6 @@ The easiest way to determine the pmapId and region_ids is to monitor the last_co
 2. Switching to "spot" mission is possible only in "stop" state. Attempt to do it otherwise causes error: the command is rejected and error tones are played.
 3. Roomba's built-in MQTT server, used for communication, supports only a single local connection at a time. Bear this in mind when you want to do something that requires local connection from your phone, like reconfiguring the network. Disable openHAB Thing before doing this.
 4. Sometimes during intensive testing Roomba just stopped communicating over the local connection. If this happens, try rebooting it. On my robot it's done by holding "Clean" button for about 10 seconds until all the LEDs come on. Release the button and the reboot tone will be played. It looks like there are some bugs in the firmware.
-
 
 ## Example
 

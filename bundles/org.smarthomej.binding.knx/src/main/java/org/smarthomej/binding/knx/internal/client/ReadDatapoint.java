@@ -13,6 +13,7 @@
  */
 package org.smarthomej.binding.knx.internal.client;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 
 import tuwien.auto.calimero.datapoint.Datapoint;
@@ -22,6 +23,7 @@ import tuwien.auto.calimero.datapoint.Datapoint;
  *
  * @author Karel Goderis - Initial contribution
  */
+@NonNullByDefault
 public class ReadDatapoint {
 
     private final Datapoint datapoint;
