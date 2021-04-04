@@ -12,15 +12,20 @@
  */
 package org.smarthomej.binding.tcpudp.internal;
 
-import static org.smarthomej.binding.tcpudp.internal.TcpUdpBindingConstants.THING_TYPE_UID_UDP;
-
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -31,57 +36,64 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.DateTimeType;
 import org.openhab.core.library.types.PointType;
 import org.openhab.core.library.types.StringType;
-import org.openhab.core.thing.*;
+import org.openhab.core.thing.Channel;
+import org.openhab.core.thing.ChannelUID;
+import org.openhab.core.thing.Thing;
+import org.openhab.core.thing.ThingStatus;
+import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.binding.BaseThingHandler;
-import org.openhab.core.types.*;
+import org.openhab.core.types.Command;
+import org.openhab.core.types.RefreshType;
+import org.openhab.core.types.State;
+import org.openhab.core.types.StateDescription;
+import org.openhab.core.types.StateDescriptionFragmentBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smarthomej.binding.tcpudp.internal.config.ClientConfiguration;
 import org.smarthomej.binding.tcpudp.internal.config.TcpUdpChannelConfig;
-import org.smarthomej.binding.tcpudp.internal.config.ThingConfiguration;
 import org.smarthomej.commons.SimpleDynamicStateDescriptionProvider;
 import org.smarthomej.commons.itemvalueconverter.ChannelMode;
 import org.smarthomej.commons.itemvalueconverter.ContentWrapper;
 import org.smarthomej.commons.itemvalueconverter.ItemValueConverter;
-import org.smarthomej.commons.itemvalueconverter.converter.*;
+import org.smarthomej.commons.itemvalueconverter.converter.AbstractTransformingItemConverter;
+import org.smarthomej.commons.itemvalueconverter.converter.ColorItemConverter;
+import org.smarthomej.commons.itemvalueconverter.converter.DimmerItemConverter;
+import org.smarthomej.commons.itemvalueconverter.converter.FixedValueMappingItemConverter;
+import org.smarthomej.commons.itemvalueconverter.converter.GenericItemConverter;
+import org.smarthomej.commons.itemvalueconverter.converter.ImageItemConverter;
+import org.smarthomej.commons.itemvalueconverter.converter.NumberItemConverter;
+import org.smarthomej.commons.itemvalueconverter.converter.PlayerItemConverter;
+import org.smarthomej.commons.itemvalueconverter.converter.RollershutterItemConverter;
 import org.smarthomej.commons.transform.ValueTransformationProvider;
 
 /**
- * The {@link TcpUdpThingHandler} is a base class for thing handlers and responsible for handling commands, which
+ * The {@link ClientThingHandler} is a base class for thing handlers and responsible for handling commands, which
  * are
  * sent to one of the channels.
  *
  * @author Jan N. Klug - Initial contribution
  */
 @NonNullByDefault
-public class TcpUdpThingHandler extends BaseThingHandler {
-    private final Logger logger = LoggerFactory.getLogger(TcpUdpThingHandler.class);
+public class ClientThingHandler extends BaseThingHandler {
+    private final Logger logger = LoggerFactory.getLogger(ClientThingHandler.class);
 
     private final ValueTransformationProvider valueTransformationProvider;
     private final SimpleDynamicStateDescriptionProvider dynamicStateDescriptionProvider;
     private final Map<ChannelUID, ItemValueConverter> channels = new HashMap<>();
     private final Map<ChannelUID, String> readCommands = new HashMap<>();
 
-    private final Function<String, Optional<ContentWrapper>> doSyncRequest;
-    private final Consumer<String> doAsyncSend;
+    private Function<String, Optional<ContentWrapper>> doSyncRequest = this::doTcpSyncRequest;
+    private Consumer<String> doAsyncSend = this::doUdpAsyncSend;
 
     private @Nullable ScheduledFuture<?> refreshJob = null;
 
-    protected ThingConfiguration config = new ThingConfiguration();
+    protected ClientConfiguration config = new ClientConfiguration();
 
-    public TcpUdpThingHandler(Thing thing, ValueTransformationProvider valueTransformationProvider,
+    public ClientThingHandler(Thing thing, ValueTransformationProvider valueTransformationProvider,
             SimpleDynamicStateDescriptionProvider dynamicStateDescriptionProvider) {
         super(thing);
         this.valueTransformationProvider = valueTransformationProvider;
         this.dynamicStateDescriptionProvider = dynamicStateDescriptionProvider;
-
-        // set methods depending on thing-type
-        if (thing.getThingTypeUID().equals(THING_TYPE_UID_UDP)) {
-            doSyncRequest = this::doUdpSyncRequest;
-            doAsyncSend = this::doUdpAsyncSend;
-        } else {
-            doSyncRequest = this::doTcpSyncRequest;
-            doAsyncSend = this::doTcpAsyncSend;
-        }
     }
 
     @Override
@@ -113,11 +125,26 @@ public class TcpUdpThingHandler extends BaseThingHandler {
 
     @Override
     public void initialize() {
-        config = getConfigAs(ThingConfiguration.class);
+        config = getConfigAs(ClientConfiguration.class);
 
         if (config.host.isEmpty() || config.port == 0) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
                     "Parameter host must not be empty and port must not be 0!");
+            return;
+        }
+
+        // set methods depending on thing-type
+        if (config.protocol == ClientConfiguration.Protocol.UDP) {
+            doSyncRequest = this::doUdpSyncRequest;
+            doAsyncSend = this::doUdpAsyncSend;
+            logger.debug("Configured '{}' for UDP connections.", thing.getUID());
+        } else if (config.protocol == ClientConfiguration.Protocol.TCP) {
+            doSyncRequest = this::doTcpSyncRequest;
+            doAsyncSend = this::doTcpAsyncSend;
+            logger.debug("Configured '{}' for TCP connections.", thing.getUID());
+        } else {
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
+                    "Protocol for connection not set!");
             return;
         }
 

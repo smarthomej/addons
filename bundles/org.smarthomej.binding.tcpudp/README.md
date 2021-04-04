@@ -4,11 +4,8 @@ This binding allows using TCP or UDP connection to bring external data into open
 
 ## Supported Things
 
-Two things are available: 
-
-  - `tcp` for TCP connections and
-  - `udp` for UDP connections.
-
+One thing is available: `client` for connecting to remote hosts via TCP or UDP.
+ 
 It can be extended with different channels.
 
 ## Thing Configuration
@@ -17,6 +14,7 @@ It can be extended with different channels.
 |-------------------|----------|---------|-------------|
 | `host`            | no       |    -    | The address of the remote host (can be an IP address or a hostname (FQDN). |
 | `port`            | no       |    -    | The port on the remote host that this thing shall connect to. |
+| `protocol`        | no       |    -    | protocol for this connection: `TCP` or `UDP`. |
 | `refresh`         | no       |   30    | Time in seconds between two refresh calls for the channels of this thing. |
 | `timeout`         | no       |  3000   | Timeout for requests in ms. |
 | `bufferSize`      | no       |  2048   | The buffer size for the response data (in kB). |

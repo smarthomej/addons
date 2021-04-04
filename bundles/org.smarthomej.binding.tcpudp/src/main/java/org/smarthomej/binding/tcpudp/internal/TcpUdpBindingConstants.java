@@ -27,6 +27,5 @@ public class TcpUdpBindingConstants {
     private static final String BINDING_ID = "tcpudp";
 
     // List of all Thing Type UIDs
-    public static final ThingTypeUID THING_TYPE_UID_UDP = new ThingTypeUID(BINDING_ID, "udp");
-    public static final ThingTypeUID THING_TYPE_UID_TCP = new ThingTypeUID(BINDING_ID, "tcp");
+    public static final ThingTypeUID THING_TYPE_UID_CLIENT = new ThingTypeUID(BINDING_ID, "client");
 }

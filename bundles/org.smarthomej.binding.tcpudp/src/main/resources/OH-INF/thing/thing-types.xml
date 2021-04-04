@@ -4,20 +4,12 @@
 	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
 	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
 
-	<thing-type id="udp"
+	<thing-type id="client"
 		extensible="color,contact,datetime,dimmer,image,location,number,player,rollershutter,string,switch">
-		<label>UDP Host</label>
-		<description>A host that provides information via a UDP connection.</description>
+		<label>TCP/UDP Client</label>
+		<description>A remote host that provides information via a TCP or UDP connection.</description>
 
-		<config-description uri="thing-type:tcpudp:thing-config"/>
-	</thing-type>
-
-	<thing-type id="tcp"
-		extensible="color,contact,datetime,dimmer,image,location,number,player,rollershutter,string,switch">
-		<label>TCP Host</label>
-		<description>A host that provides information via a TCP connection.</description>
-
-		<config-description uri="thing-type:tcpudp:thing-config"/>
+		<config-description uri="thing-type:client:thing-config"/>
 	</thing-type>
 
 	<channel-type id="color">

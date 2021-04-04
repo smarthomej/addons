@@ -16,12 +16,12 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 
 /**
- * The {@link ThingConfiguration} class contains fields mapping thing configuration parameters.
+ * The {@link ClientConfiguration} class contains fields mapping thing configuration parameters.
  *
  * @author Jan N. Klug - Initial contribution
  */
 @NonNullByDefault
-public class ThingConfiguration {
+public class ClientConfiguration {
     public String host = "";
     public int port = 0;
 
@@ -30,5 +30,12 @@ public class ThingConfiguration {
 
     public int bufferSize = 2048;
 
+    public Protocol protocol = Protocol.TCP;
+
     public @Nullable String encoding = null;
+
+    public enum Protocol {
+        UDP,
+        TCP
+    }
 }
