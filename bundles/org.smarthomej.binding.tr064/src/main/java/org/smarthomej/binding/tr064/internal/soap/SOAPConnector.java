@@ -60,19 +60,20 @@ import org.smarthomej.binding.tr064.internal.dto.scpd.service.SCPDActionType;
  */
 @NonNullByDefault
 public class SOAPConnector {
-    private static final int SOAP_TIMEOUT = 5; // in
     private final Logger logger = LoggerFactory.getLogger(SOAPConnector.class);
     private final HttpClient httpClient;
     private final String endpointBaseURL;
     private final SOAPValueConverter soapValueConverter;
+    private final int timeout;
 
     private final ExpiringCacheMap<SOAPRequest, SOAPMessage> soapMessageCache = new ExpiringCacheMap<>(
             Duration.ofMillis(2000));
 
-    public SOAPConnector(HttpClient httpClient, String endpointBaseURL) {
+    public SOAPConnector(HttpClient httpClient, String endpointBaseURL, int timeout) {
         this.httpClient = httpClient;
         this.endpointBaseURL = endpointBaseURL;
-        this.soapValueConverter = new SOAPValueConverter(httpClient);
+        this.timeout = timeout;
+        this.soapValueConverter = new SOAPValueConverter(httpClient, timeout);
     }
 
     /**
@@ -162,7 +163,7 @@ public class SOAPConnector {
      */
     public synchronized SOAPMessage doSOAPRequestUncached(SOAPRequest soapRequest) throws Tr064CommunicationException {
         try {
-            Request request = prepareSOAPRequest(soapRequest).timeout(SOAP_TIMEOUT, TimeUnit.SECONDS);
+            Request request = prepareSOAPRequest(soapRequest).timeout(timeout, TimeUnit.SECONDS);
             if (logger.isTraceEnabled()) {
                 request.getContent().forEach(buffer -> logger.trace("Request: {}", new String(buffer.array())));
             }
@@ -172,7 +173,7 @@ public class SOAPConnector {
                 // retry once if authentication expired
                 logger.trace("Re-Auth needed.");
                 httpClient.getAuthenticationStore().clearAuthenticationResults();
-                request = prepareSOAPRequest(soapRequest).timeout(SOAP_TIMEOUT, TimeUnit.SECONDS);
+                request = prepareSOAPRequest(soapRequest).timeout(timeout, TimeUnit.SECONDS);
                 response = request.send();
             }
             try (final ByteArrayInputStream is = new ByteArrayInputStream(response.getContent())) {

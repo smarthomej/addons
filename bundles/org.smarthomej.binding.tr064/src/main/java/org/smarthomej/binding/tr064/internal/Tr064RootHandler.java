@@ -13,8 +13,7 @@
  */
 package org.smarthomej.binding.tr064.internal;
 
-import static org.smarthomej.binding.tr064.internal.Tr064BindingConstants.THING_TYPE_FRITZBOX;
-import static org.smarthomej.binding.tr064.internal.Tr064BindingConstants.THING_TYPE_GENERIC;
+import static org.smarthomej.binding.tr064.internal.Tr064BindingConstants.*;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -75,12 +74,15 @@ public class Tr064RootHandler extends BaseBridgeHandler implements PhonebookProv
     private final Logger logger = LoggerFactory.getLogger(Tr064RootHandler.class);
     private final HttpClient httpClient;
 
-    private Tr064RootConfiguration config = new Tr064RootConfiguration();
-    private String deviceType = "";
-
     private @Nullable SCPDUtil scpdUtil;
     private SOAPConnector soapConnector;
+
+    // these are set when the config is available
+    private Tr064RootConfiguration config = new Tr064RootConfiguration();
     private String endpointBaseURL = "";
+    private int timeout = Tr064RootConfiguration.DEFAULT_HTTP_TIMEOUT;
+
+    private String deviceType = "";
 
     private final Map<ChannelUID, Tr064ChannelConfig> channels = new HashMap<>();
     // caching is used to prevent excessive calls to the same action
@@ -96,7 +98,7 @@ public class Tr064RootHandler extends BaseBridgeHandler implements PhonebookProv
     Tr064RootHandler(Bridge bridge, HttpClient httpClient) {
         super(bridge);
         this.httpClient = httpClient;
-        this.soapConnector = new SOAPConnector(httpClient, endpointBaseURL);
+        this.soapConnector = new SOAPConnector(httpClient, endpointBaseURL, timeout);
     }
 
     @Override
@@ -137,7 +139,8 @@ public class Tr064RootHandler extends BaseBridgeHandler implements PhonebookProv
         }
 
         endpointBaseURL = "http://" + config.host + ":49000";
-        soapConnector = new SOAPConnector(httpClient, endpointBaseURL);
+        soapConnector = new SOAPConnector(httpClient, endpointBaseURL, timeout);
+        timeout = config.timeout;
         updateStatus(ThingStatus.UNKNOWN);
 
         connectFuture = scheduler.scheduleWithFixedDelay(this::internalInitialize, 0, RETRY_INTERVAL, TimeUnit.SECONDS);
@@ -148,7 +151,7 @@ public class Tr064RootHandler extends BaseBridgeHandler implements PhonebookProv
      */
     private void internalInitialize() {
         try {
-            scpdUtil = new SCPDUtil(httpClient, endpointBaseURL);
+            scpdUtil = new SCPDUtil(httpClient, endpointBaseURL, timeout);
         } catch (SCPDException e) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
                     "could not get device definitions from " + config.host);
@@ -228,11 +231,11 @@ public class Tr064RootHandler extends BaseBridgeHandler implements PhonebookProv
                 SOAPMessage soapResponse = soapConnector
                         .doSOAPRequest(new SOAPRequest(deviceService, "GetSecurityPort"));
                 if (!soapResponse.getSOAPBody().hasFault()) {
-                    SOAPValueConverter soapValueConverter = new SOAPValueConverter(httpClient);
+                    SOAPValueConverter soapValueConverter = new SOAPValueConverter(httpClient, timeout);
                     soapValueConverter.getStateFromSOAPValue(soapResponse, "NewSecurityPort", null)
                             .ifPresentOrElse(port -> {
                                 endpointBaseURL = "https://" + config.host + ":" + port.toString();
-                                soapConnector = new SOAPConnector(httpClient, endpointBaseURL);
+                                soapConnector = new SOAPConnector(httpClient, endpointBaseURL, timeout);
                                 logger.debug("endpointBaseURL is now '{}'", endpointBaseURL);
                             }, () -> logger.warn("Could not determine secure port, disabling https"));
                 } else {
@@ -253,7 +256,7 @@ public class Tr064RootHandler extends BaseBridgeHandler implements PhonebookProv
                         .orElseThrow(() -> new SCPDException("Action 'GetInfo' not found"));
                 SOAPMessage soapResponse1 = soapConnector
                         .doSOAPRequest(new SOAPRequest(deviceService, getInfoAction.getName()));
-                SOAPValueConverter soapValueConverter = new SOAPValueConverter(httpClient);
+                SOAPValueConverter soapValueConverter = new SOAPValueConverter(httpClient, timeout);
                 Map<String, String> properties = editProperties();
                 PROPERTY_ARGUMENTS.forEach(argumentName -> getInfoAction.getArgumentList().stream()
                         .filter(argument -> argument.getName().equals(argumentName)).findFirst()
@@ -331,7 +334,7 @@ public class Tr064RootHandler extends BaseBridgeHandler implements PhonebookProv
     @SuppressWarnings("unchecked")
     private Collection<Phonebook> processPhonebookList(SOAPMessage soapMessagePhonebookList,
             SCPDServiceType scpdService) {
-        SOAPValueConverter soapValueConverter = new SOAPValueConverter(httpClient);
+        SOAPValueConverter soapValueConverter = new SOAPValueConverter(httpClient, timeout);
         Optional<Stream<String>> phonebookStream = soapValueConverter
                 .getStateFromSOAPValue(soapMessagePhonebookList, "NewPhonebookList", null)
                 .map(phonebookList -> Arrays.stream(phonebookList.toString().split(",")));
@@ -343,7 +346,7 @@ public class Tr064RootHandler extends BaseBridgeHandler implements PhonebookProv
                 SOAPMessage soapMessageURL = soapConnector
                         .doSOAPRequest(new SOAPRequest(scpdService, "GetPhonebook", Map.of("NewPhonebookID", index)));
                 return soapValueConverter.getStateFromSOAPValue(soapMessageURL, "NewPhonebookURL", null)
-                        .map(url -> (Phonebook) new Tr064PhonebookImpl(httpClient, url.toString()));
+                        .map(url -> (Phonebook) new Tr064PhonebookImpl(httpClient, url.toString(), timeout));
             } catch (Tr064CommunicationException e) {
                 logger.warn("Failed to get phonebook with index {}:", index, e);
             }

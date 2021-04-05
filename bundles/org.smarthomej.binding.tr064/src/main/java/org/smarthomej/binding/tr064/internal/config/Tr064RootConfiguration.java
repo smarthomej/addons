@@ -24,9 +24,12 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
  */
 @NonNullByDefault
 public class Tr064RootConfiguration extends Tr064BaseThingConfiguration {
+    public static final int DEFAULT_HTTP_TIMEOUT = 5; // in s
+
     public String host = "";
     public String user = "dslf-config";
     public String password = "";
+    public int timeout = DEFAULT_HTTP_TIMEOUT;
 
     /* following parameters only available in fritzbox thing */
     public List<String> tamIndices = List.of();
