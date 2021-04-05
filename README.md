@@ -12,8 +12,6 @@ Some parts of this repository are forked from [openHAB Addons](https://github.co
 The easiest way to use the bindings in this repository is to install the SmartHome/J repository manager.
 The documentation can be found [here](https://github.com/smarthomej/addons/tree/main/bundles/org.smarthomej.io.repomanager).
 
-The latest release version of RepoManager can be downloaded [here](https://download.smarthomej.org/repomanager-latest).
-
 ### Compatibility
 
 Due to a breaking change in openHAB 3.1 (starting with SNAPSHOT #2305), older and newer versions of bundles are no longer compatible.
