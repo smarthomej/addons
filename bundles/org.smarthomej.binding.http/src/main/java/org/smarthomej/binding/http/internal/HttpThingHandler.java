@@ -131,6 +131,13 @@ public class HttpThingHandler extends BaseThingHandler {
             return;
         }
 
+        // check protocol is set
+        if (!config.baseURL.startsWith("http://") || !config.baseURL.startsWith("https://")) {
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
+                    "baseURL is invalid: protocol not defined.");
+            return;
+        }
+
         // check SSL handling and initialize client
         if (config.ignoreSSLErrors) {
             logger.info("Using the insecure client for thing '{}'.", thing.getUID());
