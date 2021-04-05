@@ -80,7 +80,7 @@ public class Tr064RootHandler extends BaseBridgeHandler implements PhonebookProv
     // these are set when the config is available
     private Tr064RootConfiguration config = new Tr064RootConfiguration();
     private String endpointBaseURL = "";
-    private int soapTimeout = DEFAULT_HTTP_TIMEOUT;
+    private int httpTimeout = Tr064RootConfiguration.DEFAULT_HTTP_TIMEOUT;
 
     private String deviceType = "";
 
@@ -140,7 +140,7 @@ public class Tr064RootHandler extends BaseBridgeHandler implements PhonebookProv
 
         endpointBaseURL = "http://" + config.host + ":49000";
         soapConnector = new SOAPConnector(httpClient, endpointBaseURL);
-        soapTimeout = config.soapTimeout;
+        httpTimeout = config.httpTimeout;
         updateStatus(ThingStatus.UNKNOWN);
 
         connectFuture = scheduler.scheduleWithFixedDelay(this::internalInitialize, 0, RETRY_INTERVAL, TimeUnit.SECONDS);
@@ -151,7 +151,7 @@ public class Tr064RootHandler extends BaseBridgeHandler implements PhonebookProv
      */
     private void internalInitialize() {
         try {
-            scpdUtil = new SCPDUtil(httpClient, endpointBaseURL, soapTimeout);
+            scpdUtil = new SCPDUtil(httpClient, endpointBaseURL, httpTimeout);
         } catch (SCPDException e) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
                     "could not get device definitions from " + config.host);
@@ -346,7 +346,7 @@ public class Tr064RootHandler extends BaseBridgeHandler implements PhonebookProv
                 SOAPMessage soapMessageURL = soapConnector
                         .doSOAPRequest(new SOAPRequest(scpdService, "GetPhonebook", Map.of("NewPhonebookID", index)));
                 return soapValueConverter.getStateFromSOAPValue(soapMessageURL, "NewPhonebookURL", null)
-                        .map(url -> (Phonebook) new Tr064PhonebookImpl(httpClient, url.toString()));
+                        .map(url -> (Phonebook) new Tr064PhonebookImpl(httpClient, url.toString(), httpTimeout));
             } catch (Tr064CommunicationException e) {
                 logger.warn("Failed to get phonebook with index {}:", index, e);
             }
