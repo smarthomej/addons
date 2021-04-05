@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="tcpudp"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+
+	<thing-type id="client"
+		extensible="color,contact,datetime,dimmer,image,location,number,player,rollershutter,string,switch">
+		<label>TCP/UDP Client</label>
+		<description>A remote host that provides information via a TCP or UDP connection.</description>
+
+		<config-description uri="thing-type:client:thing-config"/>
+	</thing-type>
+
+	<channel-type id="color">
+		<item-type>Color</item-type>
+		<label>Color Channel</label>
+		<config-description-ref uri="channel-type:tcpudp:channel-config-color"/>
+	</channel-type>
+
+	<channel-type id="contact">
+		<item-type>Contact</item-type>
+		<label>Contact Channel</label>
+		<config-description-ref uri="channel-type:tcpudp:channel-config-contact"/>
+	</channel-type>
+
+	<channel-type id="datetime">
+		<item-type>DateTime</item-type>
+		<label>DateTime Channel</label>
+		<config-description-ref uri="channel-type:tcpudp:channel-config"/>
+	</channel-type>
+
+	<channel-type id="dimmer">
+		<item-type>Dimmer</item-type>
+		<label>Dimmer Channel</label>
+		<config-description-ref uri="channel-type:tcpudp:channel-config-dimmer"/>
+	</channel-type>
+
+	<channel-type id="image">
+		<item-type>Image</item-type>
+		<label>Image Channel</label>
+		<config-description-ref uri="channel-type:tcpudp:channel-config-image"/>
+	</channel-type>
+
+	<channel-type id="location">
+		<item-type>Location</item-type>
+		<label>Location Channel</label>
+		<config-description-ref uri="channel-type:tcpudp:channel-config"/>
+	</channel-type>
+
+	<channel-type id="number">
+		<item-type>Number</item-type>
+		<label>Number Channel</label>
+		<config-description-ref uri="channel-type:tcpudp:channel-config-number"/>
+	</channel-type>
+
+	<channel-type id="player">
+		<item-type>Player</item-type>
+		<label>Player Channel</label>
+		<config-description-ref uri="channel-type:tcpudp:channel-config-player"/>
+	</channel-type>
+
+	<channel-type id="rollershutter">
+		<item-type>Rollershutter</item-type>
+		<label>Rollershutter Channel</label>
+		<config-description-ref uri="channel-type:tcpudp:channel-config-rollershutter"/>
+	</channel-type>
+
+	<channel-type id="string">
+		<item-type>String</item-type>
+		<label>String Channel</label>
+		<config-description-ref uri="channel-type:tcpudp:channel-config"/>
+	</channel-type>
+
+	<channel-type id="switch">
+		<item-type>Switch</item-type>
+		<label>Switch Channel</label>
+		<config-description-ref uri="channel-type:tcpudp:channel-config-switch"/>
+	</channel-type>
+
+</thing:thing-descriptions>

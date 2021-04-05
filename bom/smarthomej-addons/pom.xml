@@ -73,6 +73,11 @@
     </dependency>
     <dependency>
       <groupId>org.smarthomej.addons.bundles</groupId>
+      <artifactId>org.smarthomej.binding.tcpudp</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.smarthomej.addons.bundles</groupId>
       <artifactId>org.smarthomej.binding.tr064</artifactId>
       <version>${project.version}</version>
     </dependency>
