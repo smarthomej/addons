@@ -29,7 +29,7 @@ public class Tr064RootConfiguration extends Tr064BaseThingConfiguration {
     public String host = "";
     public String user = "dslf-config";
     public String password = "";
-    public int httpTimeout = DEFAULT_HTTP_TIMEOUT;
+    public int timeout = DEFAULT_HTTP_TIMEOUT;
 
     /* following parameters only available in fritzbox thing */
     public List<String> tamIndices = List.of();

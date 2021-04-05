@@ -26,9 +26,9 @@
 				<default>60</default>
 				<unitLabel>s</unitLabel>
 			</parameter>
-			<parameter name="soapTimeout" type="integer" unit="s">
-				<label>SOAP Timeout</label>
-				<description>Timout for SOAP requests (default is 5s).</description>
+			<parameter name="timeout" type="integer" unit="s">
+				<label>Timeout</label>
+				<description>Timout for all requests (SOAP requests, phonebook retrieval, call lists, ...).</description>
 				<default>5</default>
 				<unitLabel>s</unitLabel>
 				<advanced>true</advanced>
