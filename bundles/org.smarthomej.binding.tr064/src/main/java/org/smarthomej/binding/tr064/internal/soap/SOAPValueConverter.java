@@ -59,9 +59,11 @@ import com.google.gson.GsonBuilder;
 public class SOAPValueConverter {
     private final Logger logger = LoggerFactory.getLogger(SOAPValueConverter.class);
     private final HttpClient httpClient;
+    private final int timeout;
 
-    public SOAPValueConverter(HttpClient httpClient) {
+    public SOAPValueConverter(HttpClient httpClient, int timeout) {
         this.httpClient = httpClient;
+        this.timeout = timeout;
     }
 
     /**
@@ -289,7 +291,8 @@ public class SOAPValueConverter {
      */
     private State processCallList(State state, @Nullable String days, CallListType type)
             throws PostProcessingException {
-        Root callListRoot = Util.getAndUnmarshalXML(httpClient, state.toString() + "&days=" + days, Root.class);
+        Root callListRoot = Util.getAndUnmarshalXML(httpClient, state.toString() + "&days=" + days, Root.class,
+                timeout);
         if (callListRoot == null) {
             throw new PostProcessingException("Failed to get call list from URL " + state.toString());
         }

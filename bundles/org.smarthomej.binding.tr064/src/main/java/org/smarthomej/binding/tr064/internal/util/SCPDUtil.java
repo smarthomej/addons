@@ -40,19 +40,22 @@ public class SCPDUtil {
     private SCPDRootType scpdRoot;
     private final List<SCPDDeviceType> scpdDevicesList = new ArrayList<>();
     private final Map<String, SCPDScpdType> serviceMap = new HashMap<>();
+    private final int timeout; // timeout for requests in s
 
-    public SCPDUtil(HttpClient httpClient, String endpoint) throws SCPDException {
-        SCPDRootType scpdRoot = Util.getAndUnmarshalXML(httpClient, endpoint + "/tr64desc.xml", SCPDRootType.class);
+    public SCPDUtil(HttpClient httpClient, String endpoint, int timeout) throws SCPDException {
+        SCPDRootType scpdRoot = Util.getAndUnmarshalXML(httpClient, endpoint + "/tr64desc.xml", SCPDRootType.class,
+                timeout);
         if (scpdRoot == null) {
             throw new SCPDException("could not get SCPD root");
         }
         this.scpdRoot = scpdRoot;
+        this.timeout = timeout;
 
         scpdDevicesList.addAll(flatDeviceList(scpdRoot.getDevice()).collect(Collectors.toList()));
         for (SCPDDeviceType device : scpdDevicesList) {
             for (SCPDServiceType service : device.getServiceList()) {
                 SCPDScpdType scpd = serviceMap.computeIfAbsent(service.getServiceId(), serviceId -> Util
-                        .getAndUnmarshalXML(httpClient, endpoint + service.getSCPDURL(), SCPDScpdType.class));
+                        .getAndUnmarshalXML(httpClient, endpoint + service.getSCPDURL(), SCPDScpdType.class, timeout));
                 if (scpd == null) {
                     throw new SCPDException("could not get SCPD service");
                 }

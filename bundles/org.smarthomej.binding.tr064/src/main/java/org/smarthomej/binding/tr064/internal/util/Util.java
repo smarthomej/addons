@@ -81,7 +81,6 @@ import org.w3c.dom.NodeList;
 @NonNullByDefault
 public class Util {
     private static final Logger LOGGER = LoggerFactory.getLogger(Util.class);
-    private static final int HTTP_REQUEST_TIMEOUT = 5; // in s
     // cache XML content for 5s
     private static final ExpiringCacheMap<String, Object> XML_OBJECT_CACHE = new ExpiringCacheMap<>(
             Duration.ofMillis(3000));
@@ -347,16 +346,17 @@ public class Util {
      *
      * @param uri the uri of the XML file
      * @param clazz the class describing the XML file
+     * @param timeout timeout in s
      * @return unmarshalling result
      */
     @SuppressWarnings("unchecked")
-    public static <T> @Nullable T getAndUnmarshalXML(HttpClient httpClient, String uri, Class<T> clazz) {
+    public static <T> @Nullable T getAndUnmarshalXML(HttpClient httpClient, String uri, Class<T> clazz, int timeout) {
         try {
             T returnValue = (T) XML_OBJECT_CACHE.putIfAbsentAndGet(uri, () -> {
                 try {
                     LOGGER.trace("Refreshing cache for '{}'", uri);
-                    ContentResponse contentResponse = httpClient.newRequest(uri)
-                            .timeout(HTTP_REQUEST_TIMEOUT, TimeUnit.SECONDS).method(HttpMethod.GET).send();
+                    ContentResponse contentResponse = httpClient.newRequest(uri).timeout(timeout, TimeUnit.SECONDS)
+                            .method(HttpMethod.GET).send();
                     byte[] response = contentResponse.getContent();
                     if (LOGGER.isTraceEnabled()) {
                         LOGGER.trace("XML = {}", new String(response));
