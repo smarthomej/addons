@@ -88,6 +88,11 @@
     </dependency>
     <dependency>
       <groupId>org.smarthomej.addons.bundles</groupId>
+      <artifactId>org.smarthomej.transform.format</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.smarthomej.addons.bundles</groupId>
       <artifactId>org.smarthomej.io.repomanager</artifactId>
       <version>${project.version}</version>
     </dependency>

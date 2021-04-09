@@ -35,6 +35,8 @@
     <module>org.smarthomej.binding.tr064</module>
     <!-- persistence -->
     <module>org.smarthomej.persistence.influxdb</module>
+    <!-- transformations -->
+    <module>org.smarthomej.transform.format</module>
     <!-- manager -->
     <module>org.smarthomej.io.repomanager</module>
   </modules>
