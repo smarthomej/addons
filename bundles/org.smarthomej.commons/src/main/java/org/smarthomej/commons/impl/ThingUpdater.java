@@ -14,6 +14,7 @@ package org.smarthomej.commons.impl;
 
 import static org.smarthomej.commons.UpdatingBaseThingHandler.PROPERTY_THING_TYPE_VERSION;
 
+import java.io.File;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -52,7 +53,7 @@ public class ThingUpdater {
         String thingType = thing.getThingTypeUID().getId();
 
         InputStream inputStream = Thread.currentThread().getContextClassLoader()
-                .getResourceAsStream(thingType + ".update");
+                .getResourceAsStream("update" + File.separator + thingType + ".update");
         if (inputStream == null) {
             logger.trace("No update instructions found for thing type '{}'", thingType);
             return;
