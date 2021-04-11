@@ -12,11 +12,14 @@
  */
 package org.smarthomej.io.repomanager.internal;
 
+import static org.smarthomej.io.repomanager.internal.RepoManagerConstants.*;
+
 import java.io.IOException;
 import java.net.URI;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -51,7 +54,8 @@ public class AddonProvider implements AddonService {
     private static final String ADDON_CONFIG_ID = "installedAddons";
     private static final String FEATURE_REPO_CONFIG_ID = "installedFeatureRepos";
     private static final Pattern ADDON_TYPE = Pattern.compile("(smarthomej-[a-zA-Z]+)-.*");
-    private static final Set<String> SUPPORTED_ADDON_TYPES = Set.of("smarthomej-binding", "smarthomej-persistence");
+    private static final Set<String> SUPPORTED_ADDON_TYPES = Set.of("smarthomej-automation", "smarthomej-binding",
+            "smarthomej-persistence", "smarthomej-transform");
 
     private final Logger logger = LoggerFactory.getLogger(AddonProvider.class);
 
@@ -59,6 +63,7 @@ public class AddonProvider implements AddonService {
     private final EventPublisher eventPublisher;
     private final ConfigurationAdmin configurationAdmin;
     private final ScheduledExecutorService scheduler;
+    private final MavenRepoManager mavenRepoManager;
 
     private Map<String, Addon> availableAddons = Map.of();
     private Set<String> installedAddons = new HashSet<>();
@@ -72,22 +77,35 @@ public class AddonProvider implements AddonService {
         this.eventPublisher = eventPublisher;
         this.configurationAdmin = configurationAdmin;
         this.scheduler = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("smarthomej-addons"));
+        this.mavenRepoManager = mavenRepoManager;
 
-        // install all feature repositories (if necessary)
-        String featureRepoString = Objects.requireNonNullElse((String) configuration.get(FEATURE_REPO_CONFIG_ID), "");
-        processFeatureRepoList(Arrays.stream(featureRepoString.split(",")).filter(s -> !s.isEmpty()).map(URI::create)
-                .collect(Collectors.toSet()));
-
-        // install all addons (if necessary)
-        String addonsString = (String) configuration.get(ADDON_CONFIG_ID);
-        if (addonsString != null && !addonsString.isEmpty()) {
-            processAddonList(
-                    Arrays.stream(addonsString.split(",")).filter(s -> !s.isEmpty()).collect(Collectors.toSet()));
-        }
-        buildAddonList();
-
+        initialize(configuration);
         logger.debug("Addon provider started.");
-        logger.trace("Configuration: {}", configuration);
+    }
+
+    private void initialize(Map<String, Object> configuration) {
+        try {
+            // install all feature repositories (if necessary)
+            String featureRepoString = (String) configuration.getOrDefault(FEATURE_REPO_CONFIG_ID, "");
+            processFeatureRepoList(Arrays.stream(featureRepoString.split(",")).filter(s -> !s.isEmpty())
+                    .map(URI::create).collect(Collectors.toSet()));
+
+            // build list (status may be wrong, we install addons in the next step)
+            buildAddonList();
+
+            // install all addons (if necessary)
+            String addonsString = (String) configuration.get(ADDON_CONFIG_ID);
+            if (addonsString != null && !addonsString.isEmpty()) {
+                processAddonList(
+                        Arrays.stream(addonsString.split(",")).filter(s -> !s.isEmpty()).collect(Collectors.toSet()));
+            }
+
+            // refresh status after installation
+            buildAddonList();
+        } catch (MavenRepoManagerException e) {
+            logger.error("Failed to initialize RepoManager AddonProvider: {}, retrying in 10s.", e.getMessage());
+            scheduler.schedule(() -> initialize(configuration), 10, TimeUnit.SECONDS);
+        }
     }
 
     @SuppressWarnings("unused")
@@ -120,19 +138,19 @@ public class AddonProvider implements AddonService {
     /**
      * add a feature repository from Addon provider
      *
-     * @param groupId Maven coordinates (groupId) of the repo
-     * @param artifactId Maven coordinates (artifactId) of the repo
-     * @param version Maven coordinates (version) of the repo
+     * @param gav Maven coordinates (groupId, artifactId, version) of the repo
      */
-    public void addFeatureRepository(String groupId, String artifactId, String version) {
-        URI repoUri = uriFromCoordinates(groupId, artifactId, version);
+    public void addFeatureRepository(GAV gav) throws MavenRepoManagerException {
+        addFeatureRepoUri(uriFromCoordinates(gav));
+        buildAddonList();
+    }
+
+    private void addFeatureRepoUri(URI repoUri) {
         try {
             featuresService.addRepository(repoUri);
             installedFeatureRepos.add(repoUri);
             storeConfiguration();
             logger.debug("Added feature repository '{}'", repoUri);
-
-            buildAddonList();
         } catch (Exception e) {
             logger.warn("Failed to add feature repository '{}': {}", repoUri, e.getMessage());
         }
@@ -141,35 +159,41 @@ public class AddonProvider implements AddonService {
     /**
      * remove a feature repository from Addon provider (also uninstalls all provided features)
      *
-     * @param groupId Maven coordinates (groupId) of the repo
-     * @param artifactId Maven coordinates (artifactId) of the repo
-     * @param version Maven coordinates (version) of the repo
+     * @param gav Maven coordinates (groupId, artifactId, version) of the repo
      */
-    public void removeFeatureRepository(String groupId, String artifactId, String version) {
-        URI repoUri = uriFromCoordinates(groupId, artifactId, version);
+    public void removeFeatureRepository(GAV gav) throws MavenRepoManagerException {
+        removeFeatureRepoURI(uriFromCoordinates(gav));
+        buildAddonList();
+    }
+
+    private void removeFeatureRepoURI(URI repoUri) {
         try {
             featuresService.removeRepository(repoUri, true);
             installedFeatureRepos.remove(repoUri);
             storeConfiguration();
             logger.debug("Removed feature repository '{}'", repoUri);
-
-            buildAddonList();
         } catch (Exception e) {
             logger.warn("Failed to remove feature repository '{}': {}", repoUri, e.getMessage());
         }
     }
 
-    public boolean statusFeatureRepository(String groupId, String artifactId, String version) {
+    /**
+     * get the status of a given feature repository
+     *
+     * @param gav Maven coordinates (groupId, artifactId, version) of the repo
+     * @return true if installed, false if not installed or check failed
+     */
+    public boolean statusFeatureRepository(GAV gav) {
         try {
-            URI uri = uriFromCoordinates(groupId, artifactId, version);
+            URI uri = uriFromCoordinates(gav);
             return Arrays.stream(featuresService.listRepositories()).map(Repository::getURI).anyMatch(uri::equals);
         } catch (Exception e) {
             return false;
         }
     }
 
-    private URI uriFromCoordinates(String groupId, String artifactId, String version) {
-        return URI.create("mvn:" + groupId + "/" + artifactId + "/" + version + "/xml/features");
+    private URI uriFromCoordinates(GAV gav) {
+        return URI.create("mvn:" + gav.groupId + "/" + gav.artifactId + "/" + gav.version + "/xml/features");
     }
 
     private String addonIdFromFeature(Feature f) {
@@ -192,32 +216,82 @@ public class AddonProvider implements AddonService {
         return addonId.substring(addonId.indexOf("_") + 1).replace("_", ".");
     }
 
-    private void buildAddonList() {
+    private boolean isSupportedAddon(Feature f) {
+        return SUPPORTED_ADDON_TYPES.contains(addonTypeFromFeature(f));
+    }
+
+    private String docLinkFromFeature(Feature f) {
+        return "https://github.com/smarthomej/addons/blob/main/bundles/org." + f.getName().replace("-", ".")
+                + "/README.md";
+    }
+
+    private void buildAddonList() throws MavenRepoManagerException {
         try {
-            availableAddons = Arrays.stream(featuresService.listFeatures())
-                    .filter(f -> SUPPORTED_ADDON_TYPES.contains(addonTypeFromFeature(f)))
+            availableAddons = Arrays.stream(featuresService.listFeatures()).filter(this::isSupportedAddon)
                     .map(f -> new Addon(addonIdFromFeature(f), addonTypeFromFeature(f), f.getDescription(),
-                            f.getVersion(),
-                            "https://github.com/smarthomej/addons/blob/main/bundles/org."
-                                    + f.getName().replace("-", ".") + "/README.md",
-                            featuresService.isInstalled(f), f.getDescription(), null, null))
+                            f.getVersion(), docLinkFromFeature(f), featuresService.isInstalled(f), f.getDescription(),
+                            null, null))
                     .collect(Collectors.toMap(Addon::getId, a -> a));
             logger.trace("Available addons: {}", availableAddons);
+        } catch (MavenRepoManagerException e) {
+            throw e;
         } catch (Exception e) {
             logger.warn("Failed to build addon list: {}", e.getMessage());
         }
     }
 
-    private void processFeatureRepoList(Set<URI> featureRepos) {
-        featureRepos.forEach(r -> {
-            try {
-                featuresService.addRepository(r);
-            } catch (Exception e) {
-                logger.warn("Failed to install feature repo '{}', some addons may not be available: {}", r,
-                        e.getMessage());
+    private void processFeatureRepoList(Set<URI> featureRepos) throws MavenRepoManagerException {
+        try {
+            Set<URI> successURIs = new HashSet<>();
+            featureRepos.forEach(repoUri -> {
+                try {
+                    if (repoUri.toString().contains("SNAPSHOT")) {
+                        // SNAPSHOTs may have moved on, check if the version is still available
+                        List<String> availableVersions = mavenRepoManager.getAvailableVersions(SNAPSHOT_REPO_ID,
+                                KARAF_FEATURE_GROUP_ID, KARAF_FEATURE_ARTIFACT_ID);
+                        if (availableVersions.stream().anyMatch(v -> repoUri.toString().contains(v))) {
+                            featuresService.addRepository(repoUri);
+                            successURIs.add(repoUri);
+                        } else {
+                            // selected SNAPSHOT version is not available
+                            availableVersions.stream().min(Comparator.reverseOrder()).ifPresentOrElse(v -> {
+                                // a new version is available
+                                URI newSnapshotRepoURI = URI
+                                        .create(repoUri.toString().replaceAll("\\d+\\.\\d+\\.\\d+-SNAPSHOT", v));
+                                logger.info(
+                                        "Requested feature repository '{}' is no longer available, upgrading to best matching repository '{}'",
+                                        repoUri, newSnapshotRepoURI);
+                                removeFeatureRepoURI(repoUri);
+                                addFeatureRepoUri(newSnapshotRepoURI);
+                                successURIs.add(newSnapshotRepoURI);
+                            }, () -> {
+                                // there is no compatible snapshot
+                                logger.warn(
+                                        "Requested feature repository '{}' is no longer available, can't find matching repository, removing",
+                                        repoUri);
+                                removeFeatureRepoURI(repoUri);
+                                mavenRepoManager.removeRepository(SNAPSHOT_REPO_ID);
+                            });
+                        }
+                    } else {
+                        featuresService.addRepository(repoUri);
+                        successURIs.add(repoUri);
+                    }
+                } catch (MavenRepoManagerException e) {
+                    // encapsulate MavenRepoManagerException in RuntimeException to get it out of the lambda
+                    throw new IllegalStateException(e);
+                } catch (Exception e) {
+                    logger.warn("Failed to install feature repo '{}', some addons may not be available: {}", repoUri,
+                            e.getMessage());
+                }
+            });
+            installedFeatureRepos = new HashSet<>(successURIs);
+        } catch (IllegalStateException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof MavenRepoManagerException) {
+                throw (MavenRepoManagerException) cause;
             }
-        });
-        installedFeatureRepos = new HashSet<>(featureRepos);
+        }
     }
 
     private void processAddonList(Set<String> addons) {
@@ -232,17 +306,40 @@ public class AddonProvider implements AddonService {
 
         Set<String> toBeInstalled = new HashSet<>(addons);
         toBeInstalled.removeAll(installedFeatures);
-
         toBeInstalled.forEach(addonId -> {
             try {
-                featuresService.installFeature(featureIdFromAddonId(addonId), featureVersionFromAddonId(addonId),
-                        EnumSet.of(FeaturesService.Option.NoFailOnFeatureNotFound, FeaturesService.Option.Upgrade));
+                String featureId = featureIdFromAddonId(addonId);
+                String featureVersion = featureVersionFromAddonId(addonId);
+                Feature feature = featuresService.getFeature(featureId, featureVersion);
+                if (feature != null) {
+                    install(addonId);
+                } else {
+                    if (featureVersion.contains("SNAPSHOT")) {
+                        availableAddons.keySet().stream().filter(addon -> addon.contains(featureId))
+                                .filter(addon -> addon.contains("SNAPSHOT")).findAny().ifPresentOrElse(newAddonId -> {
+                                    logger.info(
+                                            "Could not install addon '{}' but found a matching alternative: '{}'. Upgrading.",
+                                            addonId, newAddonId);
+                                    install(newAddonId);
+                                }, () -> logger.warn(
+                                        "Could not install addon '{}' because it is missing in the available repository and no matching alternative version could be found. Removing.",
+                                        addonId));
+                    } else {
+                        logger.warn(
+                                "Could not install addon '{}' because it is missing in the available repositories. Removing.",
+                                addonId);
+                    }
+                    addons.remove(addonId);
+                }
             } catch (Exception e) {
                 logger.warn("Failed to install addon {}: {}", addonId, e.getMessage());
             }
         });
 
-        installedAddons = new HashSet<>(addons);
+        if (!installedAddons.equals(addons)) {
+            installedAddons = new HashSet<>(addons);
+            storeConfiguration();
+        }
     }
 
     @Override
@@ -259,8 +356,10 @@ public class AddonProvider implements AddonService {
     @Override
     @NonNullByDefault({})
     public List<AddonType> getTypes(@Nullable Locale locale) {
-        return List.of(new AddonType("smarthomej-binding", "SmartHome/J Bindings"),
-                new AddonType("smarthomej-persistence", "SmartHome/J Persistence"));
+        return List.of(new AddonType("smarthomej-automation", "SmartHome/J Automation"),
+                new AddonType("smarthomej-binding", "SmartHome/J Binding"),
+                new AddonType("smarthomej-persistence", "SmartHome/J Persistence"),
+                new AddonType("smarthomej-transform", "SmartHome/J Transformation"));
     }
 
     @Override

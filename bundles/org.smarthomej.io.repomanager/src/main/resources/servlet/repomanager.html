@@ -1,0 +1,35 @@
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <title>SmartHome/J Repository Manager</title>
+    <link rel="stylesheet" href="/repomanager/resources/servlet/style.css"/>
+    <script src="/repomanager/resources/servlet/repomanager.js"></script>
+</head>
+<body>
+    <div class="header content-div">SmartHome/J Repository Manager Configuration
+        <input type="button" id="apply-button" value="Apply" onclick="applyClick();"/></div>
+    <div class="main">
+        <section class="table">
+            <div class="table-row">
+                <div class="table-repo-section">
+                    <label for="releases" class="checkbox-input-label">Release Repository</label>
+                    <input type="checkbox" name="releases" id="releases"/>
+                </div>
+                <div class="table-repo-versions" id="release-version-table"></div>
+            </div>
+            <div class="table-row">
+                <div class="table-cell-spacer"></div>
+                <div class="table-cell-spacer"></div>
+            </div>
+            <div class="table-row">
+                <div class="table-repo-section" id="snapshotSection">
+                    <label for="snapshots" class="checkbox-input-label">Snapshot Repository</label>
+                    <input type="checkbox" name="snapshots" id="snapshots"/>
+                </div>
+                <div class="table-repo-versions" id="snapshot-version"></div>
+            </div>
+        </section>
+    </div>
+    <div class="footer content-div">RepoManager-Version:&nbsp;<div id="bundle-version"></div>
+    </div>
+</body>
+</html>
