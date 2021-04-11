@@ -54,8 +54,8 @@ public class AddonProvider implements AddonService {
     private static final String ADDON_CONFIG_ID = "installedAddons";
     private static final String FEATURE_REPO_CONFIG_ID = "installedFeatureRepos";
     private static final Pattern ADDON_TYPE = Pattern.compile("(smarthomej-[a-zA-Z]+)-.*");
-    private static final Set<String> SUPPORTED_ADDON_TYPES = Set.of("smarthomej-binding", "smarthomej-persistence",
-            "smarthomej-transform");
+    private static final Set<String> SUPPORTED_ADDON_TYPES = Set.of("smarthomej-automation", "smarthomej-binding",
+            "smarthomej-persistence", "smarthomej-transform");
 
     private final Logger logger = LoggerFactory.getLogger(AddonProvider.class);
 
@@ -356,7 +356,8 @@ public class AddonProvider implements AddonService {
     @Override
     @NonNullByDefault({})
     public List<AddonType> getTypes(@Nullable Locale locale) {
-        return List.of(new AddonType("smarthomej-binding", "SmartHome/J Bindings"),
+        return List.of(new AddonType("smarthomej-automation", "SmartHome/J Automation"),
+                new AddonType("smarthomej-binding", "SmartHome/J Binding"),
                 new AddonType("smarthomej-persistence", "SmartHome/J Persistence"),
                 new AddonType("smarthomej-transform", "SmartHome/J Transformation"));
     }
