@@ -12,8 +12,15 @@
  */
 package org.smarthomej.io.repomanager.internal;
 
+import static org.smarthomej.io.repomanager.internal.RepoManagerConstants.*;
+
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.Map;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Comparator;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -21,7 +28,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.io.http.servlet.OpenHABServlet;
-import org.osgi.framework.FrameworkUtil;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -29,6 +35,9 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.http.HttpService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 /**
  * The {@link RepoManagerServlet} provides a Servlet for controlling the repo manager
@@ -41,22 +50,13 @@ public class RepoManagerServlet extends OpenHABServlet {
     private static final String SERVLET_URL = "/repomanager";
     private static final long serialVersionUID = 1L;
 
-    private static final String SNAPSHOT_REPO_ID = "@snapshots@id=smarthomej-snapshot";
-    private static final String SNAPSHOT_REPO_URL = "https://oss.sonatype.org/content/repositories/snapshots";
-    private static final String RELEASE_REPO_ID = "@id=smarthomej-release";
-    private static final String RELEASE_REPO_URL = "https://repo1.maven.org/maven2";
-
-    private static final Map<String, String> REPO_URLS = Map.of(SNAPSHOT_REPO_ID, SNAPSHOT_REPO_URL, RELEASE_REPO_ID,
-            RELEASE_REPO_URL);
-
-    public static final String KARAF_FEATURE_GROUP_ID = "org.smarthomej.addons.features.karaf";
-    public static final String KARAF_FEATURE_ARTIFACT_ID = "org.smarthomej.addons.features.karaf.smarthomej-addons";
-
     private final Logger logger = LoggerFactory.getLogger(RepoManagerServlet.class);
 
     private final MavenRepoManager mavenRepoManager;
     private final AddonProvider addonProvider;
-    private final String bundleVersion;
+    private final Gson gson = new Gson();
+
+    private RepomanagerConfigurationDTO oldConfig = new RepomanagerConfigurationDTO();
 
     @Activate
     public RepoManagerServlet(@Reference HttpService httpService, @Reference MavenRepoManager mavenRepoManager,
@@ -66,118 +66,208 @@ public class RepoManagerServlet extends OpenHABServlet {
         this.mavenRepoManager = mavenRepoManager;
         this.addonProvider = addonProvider;
 
-        bundleVersion = FrameworkUtil.getBundle(getClass()).getVersion().toString();
-
         activate(SERVLET_URL);
     }
 
     @SuppressWarnings("unused")
     @Deactivate
     public void deactivate() {
-        stop();
-    }
-
-    @Override
-    protected void doGet(@Nullable HttpServletRequest req, @Nullable HttpServletResponse resp) throws IOException {
-        if (req == null || resp == null) {
-            return;
-        }
-
-        String requestUri = req.getRequestURI();
-        if (requestUri == null) {
-            return;
-        }
-        String uri = requestUri.substring(SERVLET_URL.length());
-        String queryString = req.getQueryString();
-
-        if (!uri.isEmpty()) {
-            doRepoAction(uri, queryString);
-            resp.sendRedirect(SERVLET_URL);
-            return;
-        }
-
-        StringBuilder html = new StringBuilder();
-        html.append("<html><head><title>SmartHome/J Repository Manager</title><head><body>");
-        html.append("<h1>SmartHome/J Repository Manager Configuration</h1>");
-
-        buildRepoEntry(html, "Snapshot", SNAPSHOT_REPO_ID);
-        buildRepoEntry(html, "Release", RELEASE_REPO_ID);
-
-        html.append("<hr/><div style=\"float: right; position:relative;\">RepoManager-Version: ").append(bundleVersion)
-                .append("</div></body></html>");
-        resp.addHeader("content-type", "text/html;charset=UTF-8");
-        try {
-            resp.getWriter().write(html.toString());
-        } catch (IOException e) {
-            logger.warn("Return html failed with uri syntax error", e);
-        }
-    }
-
-    public void stop() {
         httpService.unregister(SERVLET_URL);
     }
 
-    private void doRepoAction(String uri, @Nullable String queryString) {
-        switch (uri) {
-            case "/removeMavenRepo":
-                if (queryString != null && !queryString.isEmpty()) {
-                    // remove all feature repos from this maven repository
-                    mavenRepoManager
-                            .getAvailableVersions(queryString, KARAF_FEATURE_GROUP_ID, KARAF_FEATURE_ARTIFACT_ID)
-                            .forEach(v -> addonProvider.removeFeatureRepository(KARAF_FEATURE_GROUP_ID,
-                                    KARAF_FEATURE_ARTIFACT_ID, v));
-                    mavenRepoManager.removeRepository(queryString);
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
+        String requestUri = Objects.requireNonNull(req.getRequestURI());
+
+        try {
+            if (requestUri.equals(SERVLET_URL + "/config")) {
+                doPostConfig(req);
+
+            } else {
+                resp.sendError(404);
+            }
+        } catch (IOException e) {
+            logger.warn("Processing POST data for '{}' failed: {}", requestUri, e.getMessage());
+        }
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
+        String requestUri = Objects.requireNonNull(req.getRequestURI());
+
+        try {
+            if (requestUri.equals(SERVLET_URL + "/config")) {
+                doGetConfig(resp);
+            } else if (requestUri.startsWith(SERVLET_URL + "/resources")) {
+                doGetResource(resp, requestUri);
+            } else if (requestUri.equals(SERVLET_URL)) {
+                String returnHtml = loadResource("servlet/repomanager.html");
+                if (returnHtml == null) {
+                    logger.warn("Could not load RepoManager");
+                    resp.sendError(500);
+                    return;
                 }
-                break;
-            case "/addMavenRepo":
-                if (queryString != null && !queryString.isEmpty()) {
-                    String repoUrl = REPO_URLS.get(queryString);
-                    if (repoUrl != null) {
-                        mavenRepoManager.addRepository(queryString, repoUrl);
-                    } else {
-                        logger.warn("Could not find URL for maven repository '{}'", queryString);
+
+                resp.addHeader("content-type", "text/html;charset=UTF-8");
+                resp.getWriter().write(returnHtml);
+            } else {
+                resp.sendError(404);
+            }
+        } catch (IOException | MavenRepoManagerException e) {
+            logger.warn("Returning GET data for '{}' failed: {}", requestUri, e.getMessage());
+        }
+    }
+
+    private void doGetConfig(HttpServletResponse resp) throws IOException, MavenRepoManagerException {
+        RepomanagerConfigurationDTO config = new RepomanagerConfigurationDTO();
+
+        // releases
+        config.releasesEnabled = mavenRepoManager.repositoryStatus(RELEASE_REPO_ID);
+        if (config.releasesEnabled) {
+            config.releases = mavenRepoManager
+                    .getAvailableVersions(RELEASE_REPO_ID, KARAF_FEATURE_GROUP_ID, KARAF_FEATURE_ARTIFACT_ID).stream()
+                    .map(v -> new RepomanagerConfigurationDTO.Release(v,
+                            addonProvider.statusFeatureRepository(
+                                    new GAV(KARAF_FEATURE_GROUP_ID, KARAF_FEATURE_ARTIFACT_ID, v))))
+                    .collect(Collectors.toList());
+        }
+
+        // snapshots
+        config.snapshotsEnabled = mavenRepoManager.repositoryStatus(RepoManagerConstants.SNAPSHOT_REPO_ID);
+        if (config.snapshotsEnabled) {
+            config.snapshotVersion = getSnapshotVersion();
+        }
+
+        // store for later comparison and send
+        oldConfig = config;
+        resp.getWriter().write(gson.toJson(config));
+        resp.setContentType("application/json");
+        resp.setHeader("Cache-Control", "private, no-store, no-cache, must-revalidate");
+    }
+
+    private void doGetResource(HttpServletResponse resp, String uri) throws IOException {
+        String path = uri.replace(SERVLET_URL + "/resources", "");
+        String resourceContent = loadResource(path);
+        if (resourceContent == null) {
+            resp.sendError(404);
+            return;
+        }
+        resp.getWriter().write(resourceContent);
+
+        // set content type
+        if (path.endsWith(".css")) {
+            resp.setContentType("text/css");
+        } else {
+            resp.setContentType("text/plain");
+        }
+    }
+
+    private void doPostConfig(HttpServletRequest req) throws IOException {
+        try {
+            RepomanagerConfigurationDTO configuration = Objects.requireNonNull(gson.fromJson(
+                    req.getReader().lines().collect(Collectors.joining()), RepomanagerConfigurationDTO.TYPE_TOKEN));
+            // check repositories
+            if (configuration.releasesEnabled && !oldConfig.releasesEnabled) {
+                mavenRepoManager.addRepository(RELEASE_REPO_ID, RELEASE_REPO_URL);
+            } else if (!configuration.releasesEnabled && oldConfig.releasesEnabled) {
+                // first disable all enabled feature repositories
+                configuration.releases.forEach(release -> {
+                    try {
+                        GAV featureRepoGAV = new GAV(KARAF_FEATURE_GROUP_ID, KARAF_FEATURE_ARTIFACT_ID,
+                                release.version);
+                        if (addonProvider.statusFeatureRepository(featureRepoGAV)) {
+                            addonProvider.removeFeatureRepository(featureRepoGAV);
+                        }
+                    } catch (MavenRepoManagerException e) {
+                        logger.warn(
+                                "Failed to modify feature repository configuration when trying to remove release version {}: {}",
+                                release.version, e.getMessage());
                     }
+                });
+                mavenRepoManager.removeRepository(RELEASE_REPO_ID);
+            }
+            if (configuration.snapshotsEnabled && !oldConfig.snapshotsEnabled) {
+                mavenRepoManager.addRepository(SNAPSHOT_REPO_ID, SNAPSHOT_REPO_URL);
+                try {
+                    GAV gav = new GAV(KARAF_FEATURE_GROUP_ID, KARAF_FEATURE_ARTIFACT_ID, getSnapshotVersion());
+                    addonProvider.addFeatureRepository(gav);
+                } catch (MavenRepoManagerException e) {
+                    logger.warn(
+                            "Failed to modify feature repository configuration when trying to add snapshot version {}: {}",
+                            configuration.snapshotVersion, e.getMessage());
                 }
-                break;
-            case "/addFeatureRepo":
-                if (queryString != null && !queryString.isEmpty()) {
-                    addonProvider.addFeatureRepository(KARAF_FEATURE_GROUP_ID, KARAF_FEATURE_ARTIFACT_ID, queryString);
+            } else if (!configuration.snapshotsEnabled && oldConfig.snapshotsEnabled) {
+                try {
+                    GAV gav = new GAV(KARAF_FEATURE_GROUP_ID, KARAF_FEATURE_ARTIFACT_ID, configuration.snapshotVersion);
+                    addonProvider.removeFeatureRepository(gav);
+                } catch (MavenRepoManagerException e) {
+                    logger.warn(
+                            "Failed to modify feature repository configuration when trying to remove snapshot version {}: {}",
+                            configuration.snapshotVersion, e.getMessage());
                 }
-                break;
-            case "/removeFeatureRepo":
-                if (queryString != null && !queryString.isEmpty()) {
-                    addonProvider.removeFeatureRepository(KARAF_FEATURE_GROUP_ID, KARAF_FEATURE_ARTIFACT_ID,
-                            queryString);
-                }
-                break;
-            default:
-                logger.warn("Unknown request: {}", uri);
+                mavenRepoManager.removeRepository(SNAPSHOT_REPO_ID);
+            }
+
+            // check release version features
+            if (configuration.releasesEnabled) {
+                configuration.releases.forEach(release -> {
+                    try {
+                        GAV featureRepoGAV = new GAV(KARAF_FEATURE_GROUP_ID, KARAF_FEATURE_ARTIFACT_ID,
+                                release.version);
+                        if (release.enabled && !addonProvider.statusFeatureRepository(featureRepoGAV)) {
+                            addonProvider.addFeatureRepository(featureRepoGAV);
+                        } else if (!release.enabled && addonProvider.statusFeatureRepository(featureRepoGAV)) {
+                            addonProvider.removeFeatureRepository(featureRepoGAV);
+                        }
+                    } catch (MavenRepoManagerException e) {
+                        logger.warn(
+                                "Failed to modify feature repository configuration when trying to {} release version {}: {}",
+                                release.enabled ? "add" : "remove", release.version, e.getMessage());
+                    }
+                });
+            }
+        } catch (JsonSyntaxException e) {
+            logger.warn("Did not receive a valid response");
         }
     }
 
-    private void buildRepoEntry(StringBuilder html, String repoName, String repoId) {
-        boolean mavenRepoInstalled = mavenRepoManager.repositoryStatus(repoId);
-        html.append("<hr/><h2>").append(repoName).append(":</h2><br />Status: ")
-                .append(mavenRepoInstalled ? "active" : "not active").append("<br/><br/>");
+    /**
+     * load a resource from the bundle
+     * 
+     * @param path the path to the resource
+     * @return a string containing the resource content
+     */
+    private @Nullable String loadResource(String path) {
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        if (classLoader == null) {
+            logger.warn("Could not get classloader.");
+            return null;
+        }
 
-        if (mavenRepoInstalled) {
-            mavenRepoManager.getAvailableVersions(repoId, KARAF_FEATURE_GROUP_ID, KARAF_FEATURE_ARTIFACT_ID).stream()
-                    .map(this::buildVersionLink).forEach(html::append);
-
-            html.append("<br/><a href=\"").append(SERVLET_URL).append("/removeMavenRepo?").append(repoId)
-                    .append("\">Remove</a>");
-        } else {
-            html.append("<a href=\"").append(SERVLET_URL).append("/addMavenRepo?").append(repoId).append("\">Add</a>");
+        try (InputStream inputStream = classLoader.getResourceAsStream(path)) {
+            if (inputStream == null) {
+                logger.warn("Requested resource '{}' not found.", path);
+                return null;
+            }
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+                return reader.lines().collect(Collectors.joining(System.lineSeparator()));
+            }
+        } catch (IOException e) {
+            logger.warn("Requested resource '{}' could not be loaded: {}", path, e.getMessage());
+            return null;
         }
     }
 
-    private String buildVersionLink(String versionId) {
-        String versionLink = "<a href=\"" + SERVLET_URL;
-        if (addonProvider.statusFeatureRepository(KARAF_FEATURE_GROUP_ID, KARAF_FEATURE_ARTIFACT_ID, versionId)) {
-            versionLink += "/removeFeatureRepo?" + versionId + "\">" + versionId + " (active)</a><br/>";
-        } else {
-            versionLink += "/addFeatureRepo?" + versionId + "\">" + versionId + " (inactive)</a><br/>";
-        }
-        return versionLink;
+    /**
+     * get the highest compatible SNAPSHOT version
+     *
+     * @return version string (can be empty if no compatible version found)
+     * @throws MavenRepoManagerException
+     */
+    private String getSnapshotVersion() throws MavenRepoManagerException {
+        return Objects.requireNonNull(mavenRepoManager
+                .getAvailableVersions(RepoManagerConstants.SNAPSHOT_REPO_ID,
+                        RepoManagerConstants.KARAF_FEATURE_GROUP_ID, RepoManagerConstants.KARAF_FEATURE_ARTIFACT_ID)
+                .stream().min(Comparator.reverseOrder()).orElse(""));
     }
 }

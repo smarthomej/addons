@@ -12,6 +12,9 @@
  */
 package org.smarthomej.io.repomanager.internal;
 
+import static org.smarthomej.io.repomanager.internal.RepoManagerConstants.COMPATIBLE_VERSION;
+import static org.smarthomej.io.repomanager.internal.RepoManagerConstants.OPENHAB_CORE_VERSION;
+
 import java.io.IOException;
 import java.net.URI;
 import java.util.*;
@@ -40,10 +43,12 @@ import org.slf4j.LoggerFactory;
 @NonNullByDefault
 public class MavenRepoManager {
     public static final String CONFIGURATION_PID = "smarthomej.MavenRepoManager";
-    private static final String KARAF_MAVEN_REPO_PID = "org.ops4j.pax.url.mvn";
-    private static final String KARAF_MAVEN_REPO_CONFIG_ID = "org.ops4j.pax.url.mvn.repositories";
+
     private static final Pattern METADATA_VERSION_PATTERN = Pattern.compile("<version>(.*?)</version>");
     private static final String MAVEN_REPO_CONFIG_ID = "enabledRepos";
+
+    private static final String KARAF_MAVEN_REPO_PID = "org.ops4j.pax.url.mvn";
+    private static final String KARAF_MAVEN_REPO_CONFIG_ID = "org.ops4j.pax.url.mvn.repositories";
 
     private final Logger logger = LoggerFactory.getLogger(MavenRepoManager.class);
 
@@ -94,6 +99,12 @@ public class MavenRepoManager {
      * @param newRepositoryConfig map containing the new repository config
      */
     private void processRepoList(Map<String, String> newRepositoryConfig) {
+        // find repos that need to be removed
+        Map<String, String> toBeRemoved = new HashMap<>(installedRepositories);
+        toBeRemoved.entrySet().removeAll(newRepositoryConfig.entrySet());
+        logger.trace("Removing repositories: {}", toBeRemoved);
+        toBeRemoved.forEach((k, v) -> modifyRepo(k, v, RepoAction.REMOVE));
+
         // find repos that need to be installed
         Map<String, String> toBeAdded = new HashMap<>(newRepositoryConfig);
         toBeAdded.entrySet().removeAll(installedRepositories.entrySet());
@@ -109,7 +120,7 @@ public class MavenRepoManager {
             Configuration karafConfiguration = configurationAdmin.getConfiguration(KARAF_MAVEN_REPO_PID);
             Dictionary<String, Object> properties = karafConfiguration.getProperties();
             String mavenRepos = (String) properties.get(KARAF_MAVEN_REPO_CONFIG_ID);
-            logger.trace("Configured maven repositories: {}", mavenRepos);
+            logger.trace("Configured maven repositories before action: {}", mavenRepos);
             switch (repoAction) {
                 case ADD:
                     if (url == null) {
@@ -135,6 +146,7 @@ public class MavenRepoManager {
                     }
                     break;
             }
+            logger.trace("Configured maven repositories after action: {}", mavenRepos);
             properties.put(KARAF_MAVEN_REPO_CONFIG_ID, mavenRepos);
             karafConfiguration.update(properties);
         } catch (IOException e) {
@@ -186,7 +198,8 @@ public class MavenRepoManager {
         return installedRepositories.get(id) != null;
     }
 
-    public List<String> getAvailableVersions(String repoId, String groupId, String artifactId) {
+    public List<String> getAvailableVersions(String repoId, String groupId, String artifactId)
+            throws MavenRepoManagerException {
         try {
             Configuration configuration = configurationAdmin.getConfiguration(KARAF_MAVEN_REPO_PID);
             Dictionary<String, Object> properties = configuration.getProperties();
@@ -199,16 +212,26 @@ public class MavenRepoManager {
             url += groupId.replace(".", "/") + "/" + artifactId + "/maven-metadata.xml";
             String metaData = httpClient.newRequest(URI.create(url)).send().getContentAsString();
             Matcher matcher = METADATA_VERSION_PATTERN.matcher(metaData);
-            return matcher.results().map(m -> m.group(1)).collect(Collectors.toList());
+            return matcher.results().map(m -> m.group(1)).filter(this::checkReleaseCompatibility)
+                    .collect(Collectors.toList());
         } catch (IOException e) {
             logger.warn("Could not get maven repository list: {}", e.getMessage());
+            throw new MavenRepoManagerException("Failed to get configured repo list.");
         } catch (IllegalArgumentException e) {
             logger.warn("Could not find repository {}", repoId);
         } catch (InterruptedException | TimeoutException | ExecutionException e) {
             logger.warn("Failed to get maven-metadata.xml for '{}/{}' from repository '{}' : {}", groupId, artifactId,
                     repoId, e.getMessage());
+            throw new MavenRepoManagerException("Failed to get maven-metadata.xml");
         }
         return List.of();
+    }
+
+    private boolean checkReleaseCompatibility(String version) {
+        boolean result = COMPATIBLE_VERSION.matcher(version).matches();
+        logger.trace("Checking compatibility of openHAB {} with SmartHome/J {}: {}", OPENHAB_CORE_VERSION, version,
+                result);
+        return result;
     }
 
     /**
