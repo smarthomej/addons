@@ -23,8 +23,8 @@
 	</bridge-type>
 	<channel-type id="owfs-string">
 		<item-type>String</item-type>
-		<label>Direct Access to OWFS-Path (String)</label>
-		<description>Allows direct access to the OWFS</description>
+		<label>Direct Access (String)</label>
+		<description>Allows direct access to an OWFS-path</description>
 		<state readOnly="true"/>
 		<config-description>
 			<parameter name="path" type="text">
@@ -43,8 +43,8 @@
 	</channel-type>
 	<channel-type id="owfs-number">
 		<item-type>Number</item-type>
-		<label>Direct Access to OWFS-Path (Number)</label>
-		<description>Allows direct access to the OWFS</description>
+		<label>Direct Access (Number)</label>
+		<description>Allows direct access to an OWFS-path</description>
 		<state readOnly="true"/>
 		<config-description>
 			<parameter name="path" type="text">

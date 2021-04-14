@@ -210,8 +210,8 @@
 		<supported-bridge-type-refs>
 			<bridge-type-ref id="account"/>
 		</supported-bridge-type-refs>
-		<label>Amazon Echo Whole House Audio Control</label>
-		<description>Amazon Multiroom Music</description>
+		<label>Whole House Audio Control</label>
+		<description>Amazon Multiroom (Whole House Audio) Music</description>
 		<channels>
 			<channel id="player" typeId="player"/>
 			<channel id="mediaProgressTime" typeId="mediaProgressTime"/>
@@ -321,22 +321,22 @@
 	</channel-type>
 	<channel-type id="amazonMusicTrackId" advanced="true">
 		<item-type>String</item-type>
-		<label>Amazon Music Track Id</label>
+		<label>AmazonMusic Track Id</label>
 		<description>Id of the amazon music track</description>
 	</channel-type>
 	<channel-type id="amazonMusic" advanced="true">
 		<item-type>Switch</item-type>
-		<label>Amazon Music</label>
+		<label>AmazonMusic</label>
 		<description>Amazon Music turned on</description>
 	</channel-type>
 	<channel-type id="amazonMusicPlayListId" advanced="true">
 		<item-type>String</item-type>
-		<label>Amazon Music Play List Id</label>
+		<label>AmazonMusic Play List</label>
 		<description>Amazon Music play list id (Write only, no current state)</description>
 	</channel-type>
 	<channel-type id="amazonMusicPlayListIdLastUsed" advanced="true">
 		<item-type>String</item-type>
-		<label>Amazon Music Last Selected Playlist Id</label>
+		<label>AmazonMusic Last Playlist</label>
 		<description>Id of the playlist which was started with openHAB</description>
 	</channel-type>
 	<channel-type id="providerDisplayName" advanced="true">
@@ -539,13 +539,13 @@
 	<!-- Alexa.AcousticEventSensor -->
 	<channel-type id="glassBreakDetectionState">
 		<item-type>Contact</item-type>
-		<label>Glass Break Detection State</label>
+		<label>Glass Break State</label>
 		<description>Glass Break Detection State</description>
 		<state readOnly="true"/>
 	</channel-type>
 	<channel-type id="smokeAlarmDetectionState">
 		<item-type>Contact</item-type>
-		<label>Smoke Alarm Detection State</label>
+		<label>Smoke Alarm State</label>
 		<description>Smoke Alarm Detection State</description>
 		<state readOnly="true"/>
 	</channel-type>
@@ -575,7 +575,7 @@
 	</channel-type>
 	<channel-type id="colorTemperatureInKelvin">
 		<item-type>Number</item-type>
-		<label>Color Temperature In Kelvin</label>
+		<label>Color Temperature</label>
 		<description>Color Temperature In Kelvin</description>
 	</channel-type>
 	<!-- Alexa.PercentageController -->
