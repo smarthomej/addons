@@ -13,12 +13,17 @@
  */
 package org.smarthomej.binding.onewire.internal.device;
 
+import java.util.Arrays;
+
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
+
 /**
  * The {@link OwSensorType} defines all known sensor types
  *
  * @author Jan N. Klug - Initial contribution
  */
-
+@NonNullByDefault
 public enum OwSensorType {
     DS1420,
     DS18S20,
@@ -52,5 +57,9 @@ public enum OwSensorType {
     EDS0066,
     EDS0067,
     EDS0068,
-    UNKNOWN
+    UNKNOWN;
+
+    public static @Nullable OwSensorType fromString(@Nullable String value) {
+        return Arrays.stream(values()).filter(v -> v.name().equals(value)).findAny().orElse(null);
+    }
 }

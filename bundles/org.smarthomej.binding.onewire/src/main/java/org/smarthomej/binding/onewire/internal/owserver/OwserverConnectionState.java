@@ -13,12 +13,14 @@
  */
 package org.smarthomej.binding.onewire.internal.owserver;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+
 /**
  * The {@link OwserverConnectionState} defines the state for connections to owservers
  *
  * @author Jan N. Klug - Initial contribution
  */
-
+@NonNullByDefault
 public enum OwserverConnectionState {
     /**
      * The {@link OwserverConnection} is being torn down (mostly due to dispose of handler).

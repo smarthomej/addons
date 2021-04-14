@@ -42,12 +42,10 @@ public class OwDiscoveryItem {
     private final Logger logger = LoggerFactory.getLogger(OwDiscoveryItem.class);
 
     private final SensorId sensorId;
-    private OwSensorType sensorType = OwSensorType.UNKNOWN;
+    private OwSensorType sensorType;
     private String vendor = "Dallas/Maxim";
 
     private OwPageBuffer pages = new OwPageBuffer();
-
-    private ThingTypeUID thingTypeUID = new ThingTypeUID(BINDING_ID, "");
 
     private final Map<SensorId, OwSensorType> associatedSensors = new HashMap<>();
 

@@ -31,7 +31,14 @@ import org.openhab.core.types.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.onewire.internal.OwDynamicStateDescriptionProvider;
-import org.smarthomej.binding.onewire.internal.device.*;
+import org.smarthomej.binding.onewire.internal.device.AbstractDigitalOwDevice;
+import org.smarthomej.binding.onewire.internal.device.DS18x20;
+import org.smarthomej.binding.onewire.internal.device.DS2401;
+import org.smarthomej.binding.onewire.internal.device.DS2405;
+import org.smarthomej.binding.onewire.internal.device.DS2406DS2413;
+import org.smarthomej.binding.onewire.internal.device.DS2408;
+import org.smarthomej.binding.onewire.internal.device.DS2423;
+import org.smarthomej.binding.onewire.internal.device.OwSensorType;
 
 /**
  * The {@link BasicThingHandler} is responsible for handling simple sensors
