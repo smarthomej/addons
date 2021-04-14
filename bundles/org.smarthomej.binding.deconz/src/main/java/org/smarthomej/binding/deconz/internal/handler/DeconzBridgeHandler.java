@@ -292,6 +292,7 @@ public class DeconzBridgeHandler extends BaseBridgeHandler implements WebSocketC
         logger.debug("Start initializing bridge {}", thing.getUID());
         thingDisposing = false;
         config = getConfigAs(DeconzBridgeConfig.class);
+        updateStatus(ThingStatus.UNKNOWN);
         if (config.apikey == null) {
             requestApiKey();
         } else {
