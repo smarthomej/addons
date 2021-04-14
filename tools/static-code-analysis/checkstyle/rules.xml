@@ -123,8 +123,8 @@
 
     <module name="org.openhab.tools.analysis.checkstyle.OhInfXmlLabelCheck">
         <property name="severity" value="warning"/>
-        <property name="maxLabelLength" value="20"/>
-        <property name="maxLabelLengthError" value="25"/>
+        <property name="maxLabelLength" value="25"/>
+        <property name="maxLabelLengthError" value="30"/>
     </module>
 
     <module name="org.openhab.tools.analysis.checkstyle.OhInfXmlValidationCheck">
