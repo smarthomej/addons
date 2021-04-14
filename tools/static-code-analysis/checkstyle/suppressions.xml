@@ -12,6 +12,8 @@
     <suppress files=".+[\\/]pom\.xml" checks="OnlyTabIndentationCheck|OnlyTabIndentationInXmlFilesCheck"/>
     <!-- DMX is timing sensitive so use scheduleAtFixedRate -->
     <suppress files=".+[\\/]DmxBridgeHandler\.java" checks="AvoidScheduleAtFixedRateCheck"/>
+    <!-- KNX: calimero uses gnu.io -->
+    <suppress files=".+[\\/]knx[\\/].+[\\/]SerialClient\.java" checks="ForbiddenPackageUsageCheck"/>
     <!-- external configuration profiles do not pass usage check -->
     <suppress files=".+\.tr064[\\/].+[\\/]phonebookProfile\.xml" checks="OhInfXmlUsageCheck"/>
     <suppress files=".+\.influxdb[\\/].+[\\/]config\.xml" checks="OhInfXmlUsageCheck"/>
