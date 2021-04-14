@@ -396,7 +396,7 @@ public class RoombaHandler extends BaseThingHandler implements MqttConnectionObs
             String phase = reported.cleanMissionStatus.phase;
             String command;
 
-            if (cycle.equals("none")) {
+            if ("none".equals(cycle)) {
                 command = CMD_STOP;
             } else {
                 switch (phase) {
