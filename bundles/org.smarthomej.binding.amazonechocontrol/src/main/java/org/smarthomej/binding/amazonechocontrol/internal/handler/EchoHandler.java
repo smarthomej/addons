@@ -22,7 +22,12 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -779,11 +784,11 @@ public class EchoHandler extends BaseThingHandler implements IEchoThingHandler {
             if (currentNotification != null) {
                 String type = currentNotification.type;
                 if (type != null) {
-                    if (type.equals("Reminder")) {
+                    if ("Reminder".equals(type)) {
                         updateState(CHANNEL_REMIND, StringType.EMPTY);
                         updateRemind = false;
                     }
-                    if (type.equals("Alarm")) {
+                    if ("Alarm".equals(type)) {
                         updateState(CHANNEL_PLAY_ALARM_SOUND, StringType.EMPTY);
                         updateAlarm = false;
                     }
@@ -860,10 +865,10 @@ public class EchoHandler extends BaseThingHandler implements IEchoThingHandler {
                             if (musicProviderId != null) {
                                 musicProviderId = musicProviderId.toUpperCase();
 
-                                if (musicProviderId.equals("AMAZON MUSIC")) {
+                                if ("AMAZON MUSIC".equals(musicProviderId)) {
                                     musicProviderId = "AMAZON_MUSIC";
                                 }
-                                if (musicProviderId.equals("CLOUD_PLAYER")) {
+                                if ("CLOUD_PLAYER".equals(musicProviderId)) {
                                     musicProviderId = "AMAZON_MUSIC";
                                 }
                                 if (musicProviderId.startsWith("TUNEIN")) {
@@ -872,7 +877,7 @@ public class EchoHandler extends BaseThingHandler implements IEchoThingHandler {
                                 if (musicProviderId.startsWith("IHEARTRADIO")) {
                                     musicProviderId = "I_HEART_RADIO";
                                 }
-                                if (musicProviderId.equals("APPLE") && musicProviderId.contains("MUSIC")) {
+                                if (musicProviderId.startsWith("APPLE") && musicProviderId.contains("MUSIC")) {
                                     musicProviderId = "APPLE_MUSIC";
                                 }
                             }

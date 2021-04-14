@@ -15,7 +15,12 @@ package org.smarthomej.binding.amazonechocontrol.internal.discovery;
 
 import static org.smarthomej.binding.amazonechocontrol.internal.AmazonEchoControlBindingConstants.*;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -56,7 +61,7 @@ public class SmartHomeDevicesDiscovery extends AbstractDiscoveryService {
     }
 
     public void activate() {
-        activate(new Hashtable<String, Object>());
+        activate(new Hashtable<>());
     }
 
     @Override
@@ -208,7 +213,7 @@ public class SmartHomeDevicesDiscovery extends AbstractDiscoveryService {
                 }
                 Set<SmartHomeDevice> supportedChildren = SmartHomeDeviceHandler.getSupportedSmartHomeDevices(shg,
                         deviceList);
-                if (supportedChildren.size() == 0) {
+                if (supportedChildren.isEmpty()) {
                     // No children with an supported interface
                     continue;
                 }

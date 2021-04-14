@@ -77,7 +77,7 @@ public class WebSocketConnection {
         webSocketClient = new WebSocketClient(new SslContextFactory.Client());
         try {
             String host;
-            if (amazonSite.equalsIgnoreCase("amazon.com")) {
+            if ("amazon.com".equalsIgnoreCase(amazonSite)) {
                 host = "dp-gw-na-js." + amazonSite;
             } else {
                 host = "dp-gw-na." + amazonSite;

@@ -21,7 +21,9 @@ import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -145,7 +147,7 @@ public class AccountServlet extends HttpServlet {
         }
 
         Connection connection = this.account.findConnection();
-        if (connection != null && uri.equals("/changedomain")) {
+        if (connection != null && "/changedomain".equals(uri)) {
             Map<String, String[]> map = req.getParameterMap();
             String[] domainArray = map.get("domain");
             if (domainArray == null) {
@@ -199,7 +201,7 @@ public class AccountServlet extends HttpServlet {
             postDataBuilder.append(name);
             postDataBuilder.append('=');
             String value = "";
-            if (name.equals("failedSignInCount")) {
+            if ("failedSignInCount".equals(name)) {
                 value = "ape:AA==";
             } else {
                 String[] strings = map.get(name);
@@ -277,29 +279,29 @@ public class AccountServlet extends HttpServlet {
 
             if (connection != null && connection.verifyLogin()) {
                 // handle commands
-                if (baseUrl.equals("/logout") || baseUrl.equals("/logout/")) {
+                if ("/logout".equals(baseUrl) || "/logout/".equals(baseUrl)) {
                     this.connectionToInitialize = reCreateConnection();
                     this.account.setConnection(null);
                     resp.sendRedirect(this.servletUrl);
                     return;
                 }
                 // handle commands
-                if (baseUrl.equals("/newdevice") || baseUrl.equals("/newdevice/")) {
+                if ("/newdevice".equals(baseUrl) || "/newdevice/".equals(baseUrl)) {
                     this.connectionToInitialize = new Connection(null, this.gson);
                     this.account.setConnection(null);
                     resp.sendRedirect(this.servletUrl);
                     return;
                 }
 
-                if (baseUrl.equals("/devices") || baseUrl.equals("/devices/")) {
+                if ("/devices".equals(baseUrl) || "/devices/".equals(baseUrl)) {
                     handleDevices(resp, connection);
                     return;
                 }
-                if (baseUrl.equals("/changeDomain") || baseUrl.equals("/changeDomain/")) {
+                if ("/changeDomain".equals(baseUrl) || "/changeDomain/".equals(baseUrl)) {
                     handleChangeDomain(resp, connection);
                     return;
                 }
-                if (baseUrl.equals("/ids") || baseUrl.equals("/ids/")) {
+                if ("/ids".equals(baseUrl) || "/ids/".equals(baseUrl)) {
                     String serialNumber = getQueryMap(queryString).get("serialNumber");
                     Device device = account.findDeviceJson(serialNumber);
                     if (device != null) {
@@ -318,7 +320,7 @@ public class AccountServlet extends HttpServlet {
                 this.connectionToInitialize = connection;
             }
 
-            if (!uri.equals("/")) {
+            if (!"/".equals(uri)) {
                 String newUri = req.getServletPath() + "/";
                 resp.sendRedirect(newUri);
                 return;
@@ -610,7 +612,7 @@ public class AccountServlet extends HttpServlet {
             if ((stateDeviceSerialNumber == null && device.serialNumber == null)
                     || (stateDeviceSerialNumber != null && stateDeviceSerialNumber.equals(device.serialNumber))) {
                 List<PairedDevice> pairedDeviceList = state.getPairedDeviceList();
-                if (pairedDeviceList.size() > 0) {
+                if (!pairedDeviceList.isEmpty()) {
                     html.append("<table><tr><th align='left'>Name</th><th align='left'>Value</th></tr>");
                     for (PairedDevice pairedDevice : pairedDeviceList) {
                         html.append("<tr><td>");
