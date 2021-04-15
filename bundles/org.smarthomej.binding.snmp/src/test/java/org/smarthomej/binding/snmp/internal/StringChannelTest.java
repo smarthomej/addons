@@ -15,7 +15,8 @@ package org.smarthomej.binding.snmp.internal;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
 import java.util.Collections;

@@ -53,11 +53,28 @@ import org.smarthomej.binding.snmp.internal.types.SnmpChannelMode;
 import org.smarthomej.binding.snmp.internal.types.SnmpDatatype;
 import org.smarthomej.binding.snmp.internal.types.SnmpProtocolVersion;
 import org.smarthomej.binding.snmp.internal.types.SnmpSecurityModel;
-import org.snmp4j.*;
+import org.snmp4j.AbstractTarget;
+import org.snmp4j.CommandResponder;
+import org.snmp4j.CommandResponderEvent;
+import org.snmp4j.CommunityTarget;
+import org.snmp4j.PDU;
+import org.snmp4j.PDUv1;
+import org.snmp4j.ScopedPDU;
+import org.snmp4j.Snmp;
+import org.snmp4j.UserTarget;
 import org.snmp4j.event.ResponseEvent;
 import org.snmp4j.event.ResponseListener;
 import org.snmp4j.mp.SnmpConstants;
-import org.snmp4j.smi.*;
+import org.snmp4j.smi.Counter64;
+import org.snmp4j.smi.Integer32;
+import org.snmp4j.smi.IpAddress;
+import org.snmp4j.smi.OID;
+import org.snmp4j.smi.OctetString;
+import org.snmp4j.smi.Opaque;
+import org.snmp4j.smi.UdpAddress;
+import org.snmp4j.smi.UnsignedInteger32;
+import org.snmp4j.smi.Variable;
+import org.snmp4j.smi.VariableBinding;
 
 /**
  * The {@link SnmpTargetHandler} is responsible for handling commands, which are
