@@ -84,6 +84,7 @@ public class WebSocketConnection {
             return;
         } else if (connectionState == ConnectionState.DISCONNECTING) {
             logger.warn("{} trying to re-connect while still disconnecting", socketName);
+            return;
         }
         try {
             URI destUri = URI.create("ws://" + ip);
