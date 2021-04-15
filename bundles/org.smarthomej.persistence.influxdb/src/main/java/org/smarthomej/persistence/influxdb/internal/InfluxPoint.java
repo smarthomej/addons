@@ -18,26 +18,30 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.eclipse.jdt.annotation.DefaultLocation;
-import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 
 /**
  * Point data to be stored in InfluxDB
  *
  * @author Joan Pujol Espinar - Initial contribution
  */
-@NonNullByDefault({ DefaultLocation.PARAMETER })
+@NonNullByDefault
 public class InfluxPoint {
-    private String measurementName;
-    private Instant time;
-    private Object value;
-    private Map<String, String> tags;
+    private final String measurementName;
+    private final Instant time;
+    private final Object value;
+    private final Map<String, String> tags;
 
     private InfluxPoint(Builder builder) {
+        Instant builderTime = builder.time;
+        Object builderValue = builder.value;
+        if (builderTime == null || builderValue == null) {
+            throw new IllegalArgumentException("time or value not set");
+        }
         measurementName = builder.measurementName;
-        time = builder.time;
-        value = builder.value;
+        time = builderTime;
+        value = builderValue;
         tags = builder.tags;
     }
 
@@ -63,8 +67,8 @@ public class InfluxPoint {
 
     public static final class Builder {
         private String measurementName;
-        private Instant time;
-        private Object value;
+        private @Nullable Instant time;
+        private @Nullable Object value;
         private Map<String, String> tags = new HashMap<>();
 
         private Builder(String measurementName) {
@@ -92,7 +96,7 @@ public class InfluxPoint {
     }
 
     @Override
-    public @NonNull String toString() {
+    public String toString() {
         return "InfluxPoint{" + "measurementName='" + measurementName + '\'' + ", time=" + time + ", value=" + value
                 + ", tags=" + tags + '}';
     }

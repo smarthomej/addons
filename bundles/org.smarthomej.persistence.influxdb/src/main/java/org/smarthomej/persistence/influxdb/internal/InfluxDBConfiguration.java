@@ -81,12 +81,14 @@ public class InfluxDBConfiguration {
     }
 
     private InfluxDBVersion parseInfluxVersion(@Nullable Object value) {
-        try {
-            return InfluxDBVersion.valueOf((String) value);
-        } catch (RuntimeException e) {
-            logger.warn("Invalid version {}", value);
-            return InfluxDBVersion.UNKNOWN;
+        if (value != null) {
+            try {
+                return InfluxDBVersion.valueOf((String) value);
+            } catch (RuntimeException e) {
+                logger.warn("Invalid version {}", value);
+            }
         }
+        return InfluxDBVersion.UNKNOWN;
     }
 
     public boolean isValid() {
