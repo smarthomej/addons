@@ -980,7 +980,6 @@ public class EchoHandler extends BaseThingHandler implements IEchoThingHandler {
                         break;
                     }
                 }
-
             }
             if (!bluetoothMAC.isEmpty()) {
                 lastKnownBluetoothMAC = bluetoothMAC;
@@ -1039,7 +1038,6 @@ public class EchoHandler extends BaseThingHandler implements IEchoThingHandler {
                             subTitle2 = entry.radioStationLocation;
                         }
                     }
-
                 }
             }
 
