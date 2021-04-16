@@ -126,7 +126,7 @@
 				<limitToOptions>true</limitToOptions>
 			</parameter>
 			<parameter name="pulldevice" type="text">
-				<label>Pull-Up/Pull-Down Resistor</label>
+				<label>Pull-Up/-Down Resistor</label>
 				<options>
 					<option value="disabled">disabled</option>
 					<option value="pullup">Pull-Up</option>

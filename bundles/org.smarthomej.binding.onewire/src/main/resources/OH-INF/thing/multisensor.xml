@@ -7,8 +7,8 @@
 		<supported-bridge-type-refs>
 			<bridge-type-ref id="owserver"/>
 		</supported-bridge-type-refs>
-		<label>Multisensor (T, TC, TH, TL, TV, Generic)</label>
-		<description>A 1-wire multisensor (DS1923/DS2438-based)</description>
+		<label>Multisensor</label>
+		<description>A 1-wire multisensor (DS1923/DS2438-based, types T, TC, TH, TL, TV, Generic)</description>
 		<config-description-ref uri="thing-type:onewire:mstxconfig"/>
 	</thing-type>
 	<thing-type id="bms">
@@ -54,15 +54,15 @@
 				<description>Sensor ID of the DS2438 sensor in format: xx.xxxxxxxxxxxx or a full path including hubs/branches</description>
 				<required>true</required>
 			</parameter>
-			<parameter name="refresh" type="integer" min="1">
-				<label>Refresh Time for Analog Channels</label>
-				<description>Time in seconds after which the thing is refreshed</description>
+			<parameter name="refresh" type="integer" min="1" unit="s">
+				<label>Refresh Time Analog</label>
+				<description>Time after which the analog channels of this thing thing is refreshed</description>
 				<default>300</default>
 				<unitLabel>s</unitLabel>
 				<required>false</required>
 			</parameter>
-			<parameter name="refreshdigital" type="integer" min="1">
-				<label>Refresh Time for Digital Channels</label>
+			<parameter name="refreshdigital" type="integer" min="1" unit="s">
+				<label>Refresh Time Digital</label>
 				<description>Time in seconds after which the digital I/Os are refreshed</description>
 				<default>10</default>
 				<unitLabel>s</unitLabel>

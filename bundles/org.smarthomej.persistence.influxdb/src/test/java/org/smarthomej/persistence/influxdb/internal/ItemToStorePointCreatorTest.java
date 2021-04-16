@@ -82,6 +82,7 @@ public class ItemToStorePointCreatorTest {
         assertThat(point.getValue(), equalTo(new BigDecimal(number.toString())));
     }
 
+    @SuppressWarnings("unused")
     private static Stream<Number> convertBasicItem() {
         return Stream.of(5, 5.5, 5L);
     }

@@ -13,7 +13,9 @@
  */
 package org.smarthomej.binding.tr064.internal.phonebook;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.Optional;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;

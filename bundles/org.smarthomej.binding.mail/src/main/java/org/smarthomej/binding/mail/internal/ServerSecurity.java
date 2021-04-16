@@ -13,12 +13,14 @@
  */
 package org.smarthomej.binding.mail.internal;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+
 /**
  * The {@link ServerSecurity} enum contains security configuration options
  *
  * @author Jan N. Klug - Initial contribution
  */
-
+@NonNullByDefault
 public enum ServerSecurity {
     PLAIN,
     SSL,

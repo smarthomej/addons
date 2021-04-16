@@ -13,7 +13,8 @@
  */
 package org.smarthomej.binding.deconz;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 
@@ -43,7 +44,14 @@ import org.smarthomej.binding.deconz.internal.Util;
 import org.smarthomej.binding.deconz.internal.discovery.ThingDiscoveryService;
 import org.smarthomej.binding.deconz.internal.dto.BridgeFullState;
 import org.smarthomej.binding.deconz.internal.handler.DeconzBridgeHandler;
-import org.smarthomej.binding.deconz.internal.types.*;
+import org.smarthomej.binding.deconz.internal.types.GroupType;
+import org.smarthomej.binding.deconz.internal.types.GroupTypeDeserializer;
+import org.smarthomej.binding.deconz.internal.types.LightType;
+import org.smarthomej.binding.deconz.internal.types.LightTypeDeserializer;
+import org.smarthomej.binding.deconz.internal.types.ResourceType;
+import org.smarthomej.binding.deconz.internal.types.ResourceTypeDeserializer;
+import org.smarthomej.binding.deconz.internal.types.ThermostatMode;
+import org.smarthomej.binding.deconz.internal.types.ThermostatModeGsonTypeAdapter;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

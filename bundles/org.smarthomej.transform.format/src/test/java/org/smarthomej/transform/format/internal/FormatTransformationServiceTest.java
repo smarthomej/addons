@@ -13,9 +13,10 @@
  */
 package org.smarthomej.transform.format.internal;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.Locale;
 import java.util.Scanner;
 

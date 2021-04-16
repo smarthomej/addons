@@ -21,7 +21,7 @@
 				<advanced>true</advanced>
 			</parameter>
 			<parameter name="security" type="text" required="false">
-				<label>SMTP Server Security Protocol</label>
+				<label>SMTP Security Protocol</label>
 				<options>
 					<option value="PLAIN">plain</option>
 					<option value="STARTTLS">STARTTLS</option>
@@ -52,7 +52,7 @@
 				<advanced>true</advanced>
 			</parameter>
 			<parameter name="security" type="text" required="false">
-				<label>SMTP Server Security Protocol</label>
+				<label>SMTP Security Protocol</label>
 				<options>
 					<option value="PLAIN">plain</option>
 					<option value="STARTTLS">STARTTLS</option>
@@ -68,8 +68,9 @@
 				<label>SMTP Server Password</label>
 				<context>password</context>
 			</parameter>
-			<parameter name="refresh" type="integer" required="false">
-				<label>Refresh Time for This Account in S</label>
+			<parameter name="refresh" type="integer" required="false" unit="s">
+				<label>Refresh Time</label>
+				<description>Refresh time for this account</description>
 				<default>60</default>
 			</parameter>
 		</config-description>
@@ -87,7 +88,7 @@
 				<advanced>true</advanced>
 			</parameter>
 			<parameter name="security" type="text" required="false">
-				<label>SMTP Server Security Protocol</label>
+				<label>SMTP Security Protocol</label>
 				<options>
 					<option value="PLAIN">plain</option>
 					<option value="STARTTLS">STARTTLS</option>
@@ -103,8 +104,9 @@
 				<label>SMTP Server Password</label>
 				<context>password</context>
 			</parameter>
-			<parameter name="refresh" type="integer" required="false">
-				<label>Refresh Time for This Account in S</label>
+			<parameter name="refresh" type="integer" required="false" unit="s">
+				<label>Refresh Time</label>
+				<description>Refresh time for this account</description>
 				<default>60</default>
 			</parameter>
 		</config-description>

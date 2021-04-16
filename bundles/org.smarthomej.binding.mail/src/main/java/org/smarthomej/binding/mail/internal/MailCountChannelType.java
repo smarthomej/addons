@@ -13,12 +13,14 @@
  */
 package org.smarthomej.binding.mail.internal;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+
 /**
  * The {@link MailCountChannelType} enum for folder mail count type
  *
  * @author Jan N. Klug - Initial contribution
  */
-
+@NonNullByDefault
 public enum MailCountChannelType {
     UNREAD,
     TOTAL

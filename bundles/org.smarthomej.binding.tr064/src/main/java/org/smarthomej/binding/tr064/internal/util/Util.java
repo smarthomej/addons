@@ -13,7 +13,8 @@
  */
 package org.smarthomej.binding.tr064.internal.util;
 
-import static org.smarthomej.binding.tr064.internal.Tr064BindingConstants.*;
+import static org.smarthomej.binding.tr064.internal.Tr064BindingConstants.BINDING_ID;
+import static org.smarthomej.binding.tr064.internal.Tr064BindingConstants.CHANNEL_TYPES;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
