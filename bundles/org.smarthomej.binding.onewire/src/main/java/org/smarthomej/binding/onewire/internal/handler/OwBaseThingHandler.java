@@ -148,13 +148,13 @@ public abstract class OwBaseThingHandler extends BaseThingHandler {
             }
         }
 
-        sensorType = OwSensorType.valueOf(properties.get(PROPERTY_MODELID));
-        if (!supportedSensorTypes.contains(sensorType)) {
+        OwSensorType sensorType = OwSensorType.fromString(properties.get(PROPERTY_MODELID));
+        if (sensorType == null || !supportedSensorTypes.contains(sensorType)) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
                     "sensor type not supported by this thing type");
             return false;
         }
-
+        this.sensorType = sensorType;
         lastRefresh = 0;
         return true;
     }

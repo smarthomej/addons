@@ -13,7 +13,7 @@
  */
 package org.smarthomej.binding.snmp.internal;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.verify;
@@ -29,7 +29,10 @@ import org.smarthomej.binding.snmp.internal.types.SnmpChannelMode;
 import org.smarthomej.binding.snmp.internal.types.SnmpDatatype;
 import org.snmp4j.PDU;
 import org.snmp4j.event.ResponseEvent;
-import org.snmp4j.smi.*;
+import org.snmp4j.smi.Counter64;
+import org.snmp4j.smi.OID;
+import org.snmp4j.smi.Opaque;
+import org.snmp4j.smi.VariableBinding;
 
 /**
  * Tests cases for {@link SnmpTargetHandler}.

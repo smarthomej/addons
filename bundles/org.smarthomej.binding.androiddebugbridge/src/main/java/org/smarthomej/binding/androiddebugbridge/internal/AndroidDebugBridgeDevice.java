@@ -13,16 +13,11 @@
  */
 package org.smarthomej.binding.androiddebugbridge.internal;
 
-import static org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBridgeBindingConstants.AWAKE_STATE_CHANNEL;
-import static org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBridgeBindingConstants.CURRENT_PACKAGE_CHANNEL;
-import static org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBridgeBindingConstants.HDMI_STATE_CHANNEL;
-import static org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBridgeBindingConstants.MEDIA_CONTROL_CHANNEL;
-import static org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBridgeBindingConstants.MEDIA_VOLUME_CHANNEL;
-import static org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBridgeBindingConstants.SCREEN_STATE_CHANNEL;
-import static org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBridgeBindingConstants.START_PACKAGE_CHANNEL;
-import static org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBridgeBindingConstants.WAKE_LOCK_CHANNEL;
+import static org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBridgeBindingConstants.*;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URLEncoder;
@@ -36,7 +31,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
@@ -166,8 +165,9 @@ public class AndroidDebugBridgeDevice {
         String[] lineParts = targetLine.split(" ");
         if (lineParts.length >= 2) {
             String packageActivityName = lineParts[lineParts.length - 2];
-            if (packageActivityName.contains("/"))
+            if (packageActivityName.contains("/")) {
                 return packageActivityName.split("/")[0];
+            }
         }
         throw new AndroidDebugBridgeDeviceReadException(CURRENT_PACKAGE_CHANNEL, result);
     }
@@ -197,8 +197,8 @@ public class AndroidDebugBridgeDevice {
             return isHDMIOnWithLogcat();
         }
         String result = runAdbShell("cat", "/sys/devices/virtual/switch/hdmi/state");
-        if (result.equals("0") || result.equals("1")) {
-            return Optional.of(result.equals("1"));
+        if ("0".equals(result) || "1".equals(result)) {
+            return Optional.of("1".equals(result));
         } else {
             channelFallbackMap.put(HDMI_STATE_CHANNEL, FallbackModes.LOGCAT);
             return isHDMIOnWithLogcat();
@@ -308,8 +308,9 @@ public class AndroidDebugBridgeDevice {
         String result = runAdbShell("media", "volume", "--show", "--stream", String.valueOf(stream), "--get", "|",
                 "grep", "volume");
         Matcher matcher = VOLUME_PATTERN.matcher(result);
-        if (!matcher.find())
+        if (!matcher.find()) {
             throw new AndroidDebugBridgeDeviceReadException(MEDIA_VOLUME_CHANNEL, result);
+        }
         VolumeInfo volumeInfo = new VolumeInfo(Integer.parseInt(matcher.group("current")),
                 Integer.parseInt(matcher.group("min")), Integer.parseInt(matcher.group("max")));
         LOGGER.debug("Device {}:{} VolumeInfo: current {}, min {}, max {}", this.ip, this.port, volumeInfo.current,

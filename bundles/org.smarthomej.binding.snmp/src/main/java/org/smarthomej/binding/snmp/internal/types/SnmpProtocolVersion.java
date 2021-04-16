@@ -13,12 +13,14 @@
  */
 package org.smarthomej.binding.snmp.internal.types;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+
 /**
  * The {@link SnmpProtocolVersion} enum defines the datatype of SNMP channels
  *
  * @author Jan N. Klug - Initial contribution
  */
-
+@NonNullByDefault
 public enum SnmpProtocolVersion {
     v1(0),
     V1(0),

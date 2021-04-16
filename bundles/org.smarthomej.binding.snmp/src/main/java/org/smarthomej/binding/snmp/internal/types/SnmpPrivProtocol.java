@@ -13,7 +13,10 @@
 package org.smarthomej.binding.snmp.internal.types;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.snmp4j.security.*;
+import org.snmp4j.security.PrivAES128;
+import org.snmp4j.security.PrivAES192;
+import org.snmp4j.security.PrivAES256;
+import org.snmp4j.security.PrivDES;
 import org.snmp4j.smi.OID;
 
 /**

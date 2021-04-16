@@ -15,7 +15,7 @@ package org.smarthomej.binding.tr064.internal;
 
 import static org.smarthomej.binding.tr064.internal.Tr064BindingConstants.THING_TYPE_FRITZBOX;
 
-import java.util.*;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 

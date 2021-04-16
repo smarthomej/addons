@@ -80,7 +80,7 @@ public class RepoManagerServlet extends OpenHABServlet {
         String requestUri = Objects.requireNonNull(req.getRequestURI());
 
         try {
-            if (requestUri.equals(SERVLET_URL + "/config")) {
+            if ((SERVLET_URL + "/config").equals(requestUri)) {
                 doPostConfig(req);
 
             } else {
@@ -96,7 +96,7 @@ public class RepoManagerServlet extends OpenHABServlet {
         String requestUri = Objects.requireNonNull(req.getRequestURI());
 
         try {
-            if (requestUri.equals(SERVLET_URL + "/config")) {
+            if ((SERVLET_URL + "/config").equals(requestUri)) {
                 doGetConfig(resp);
             } else if (requestUri.startsWith(SERVLET_URL + "/resources")) {
                 doGetResource(resp, requestUri);

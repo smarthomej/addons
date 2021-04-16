@@ -9,7 +9,7 @@
 		<label>TCP/UDP Client</label>
 		<description>A remote host that provides information via a TCP or UDP connection.</description>
 
-		<config-description uri="thing-type:client:thing-config"/>
+		<config-description-ref uri="thing-type:tcpudp:thing-config"/>
 	</thing-type>
 
 	<channel-type id="color">

@@ -40,7 +40,6 @@ public class SCPDUtil {
     private SCPDRootType scpdRoot;
     private final List<SCPDDeviceType> scpdDevicesList = new ArrayList<>();
     private final Map<String, SCPDScpdType> serviceMap = new HashMap<>();
-    private final int timeout; // timeout for requests in s
 
     public SCPDUtil(HttpClient httpClient, String endpoint, int timeout) throws SCPDException {
         SCPDRootType scpdRoot = Util.getAndUnmarshalXML(httpClient, endpoint + "/tr64desc.xml", SCPDRootType.class,
@@ -49,7 +48,6 @@ public class SCPDUtil {
             throw new SCPDException("could not get SCPD root");
         }
         this.scpdRoot = scpdRoot;
-        this.timeout = timeout;
 
         scpdDevicesList.addAll(flatDeviceList(scpdRoot.getDevice()).collect(Collectors.toList()));
         for (SCPDDeviceType device : scpdDevicesList) {

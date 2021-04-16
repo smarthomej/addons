@@ -12,6 +12,7 @@
  */
 package org.smarthomej.binding.snmp.internal.types;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.snmp4j.security.SecurityLevel;
 
 /**
@@ -19,7 +20,7 @@ import org.snmp4j.security.SecurityLevel;
  *
  * @author Jan N. Klug - Initial contribution
  */
-
+@NonNullByDefault
 public enum SnmpSecurityModel {
     NO_AUTH_NO_PRIV(SecurityLevel.NOAUTH_NOPRIV),
     AUTH_NO_PRIV(SecurityLevel.AUTH_NOPRIV),

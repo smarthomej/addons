@@ -13,12 +13,14 @@
  */
 package org.smarthomej.binding.snmp.internal.types;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+
 /**
  * The {@link SnmpChannelMode} enum defines the mode of SNMP channels
  *
  * @author Jan N. Klug - Initial contribution
  */
-
+@NonNullByDefault
 public enum SnmpChannelMode {
     READ,
     WRITE,

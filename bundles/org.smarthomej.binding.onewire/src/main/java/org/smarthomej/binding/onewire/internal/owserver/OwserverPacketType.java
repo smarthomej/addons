@@ -13,12 +13,14 @@
  */
 package org.smarthomej.binding.onewire.internal.owserver;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+
 /**
  * The {@link OwserverPacketType} defines owserver packet types
  *
  * @author Jan N. Klug - Initial contribution
  */
-
+@NonNullByDefault
 public enum OwserverPacketType {
     REQUEST,
     RETURN

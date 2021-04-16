@@ -13,11 +13,16 @@
  */
 package org.smarthomej.binding.deconz.internal.handler;
 
-import static org.smarthomej.binding.deconz.internal.BindingConstants.*;
+import static org.smarthomej.binding.deconz.internal.BindingConstants.BRIDGE_TYPE;
+import static org.smarthomej.binding.deconz.internal.BindingConstants.CONFIG_APIKEY;
 import static org.smarthomej.binding.deconz.internal.Util.buildUrl;
 
 import java.net.SocketTimeoutException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ScheduledFuture;
