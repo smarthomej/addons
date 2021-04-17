@@ -64,8 +64,9 @@ public class AndroidDebugBridgeDevice {
     private static final Logger LOGGER = LoggerFactory.getLogger(AndroidDebugBridgeDevice.class);
     private static final Pattern VOLUME_PATTERN = Pattern
             .compile("volume is (?<current>\\d.*) in range \\[(?<min>\\d.*)\\.\\.(?<max>\\d.*)]");
+    private static final Pattern TAP_EVENT_PATTERN = Pattern.compile("(?<x>\\d+),(?<y>\\d+)");
     private static final Pattern PACKAGE_NAME_PATTERN = Pattern
-            .compile("^([A-Za-z]{1}[A-Za-z\\d_]*\\.)+[A-Za-z][A-Za-z\\d_]*$");
+            .compile("^([A-Za-z]{1}[A-Za-z\\d_\\/]*\\.)+[A-Za-z][A-Za-z\\d_]*$");
 
     private static @Nullable AdbCrypto adbCrypto;
 
@@ -92,7 +93,7 @@ public class AndroidDebugBridgeDevice {
     private @Nullable AdbConnection connection;
     private @Nullable Future<String> commandFuture;
 
-    private Lock lock = new ReentrantLock();
+    private Lock commandLock = new ReentrantLock();
 
     AndroidDebugBridgeDevice(ScheduledExecutorService scheduler) {
         this.scheduler = scheduler;
@@ -104,14 +105,6 @@ public class AndroidDebugBridgeDevice {
         this.timeoutSec = timeout;
     }
 
-    public void sendMouseTap(String mouseTap)
-            throws InterruptedException, AndroidDebugBridgeDeviceException, TimeoutException, ExecutionException {
-        String[] splitMouseTap = mouseTap.split(",");
-        if (splitMouseTap.length >= 2) {
-            runAdbShell("input", "mouse", "tap", splitMouseTap[0], splitMouseTap[1]);
-        }
-    }
-
     public void sendKeyEvent(String eventCode)
             throws InterruptedException, AndroidDebugBridgeDeviceException, TimeoutException, ExecutionException {
         runAdbShell("input", "keyevent", eventCode);
@@ -120,6 +113,16 @@ public class AndroidDebugBridgeDevice {
     public void sendText(String text)
             throws AndroidDebugBridgeDeviceException, InterruptedException, TimeoutException, ExecutionException {
         runAdbShell("input", "text", URLEncoder.encode(text, StandardCharsets.UTF_8));
+    }
+
+    public void sendTap(String point)
+            throws InterruptedException, AndroidDebugBridgeDeviceException, TimeoutException, ExecutionException {
+        Matcher matcher = TAP_EVENT_PATTERN.matcher(point);
+        if (!matcher.matches()) {
+            LOGGER.warn("Unable to parse tap event");
+            return;
+        }
+        runAdbShell("input", "mouse", "tap", matcher.group("x"), matcher.group("y"));
     }
 
     public void startPackage(String packageName)
@@ -170,6 +173,24 @@ public class AndroidDebugBridgeDevice {
             }
         }
         throw new AndroidDebugBridgeDeviceReadException(CURRENT_PACKAGE_CHANNEL, result);
+    }
+
+    public void rebootDevice()
+            throws AndroidDebugBridgeDeviceException, InterruptedException, TimeoutException, ExecutionException {
+        try {
+            runAdbShell("reboot", "&", "sleep", "0.1", "&&", "exit");
+        } finally {
+            disconnect();
+        }
+    }
+
+    public void powerOffDevice()
+            throws AndroidDebugBridgeDeviceException, InterruptedException, TimeoutException, ExecutionException {
+        try {
+            runAdbShell("reboot", "-p", "&", "sleep", "0.1", "&&", "exit");
+        } finally {
+            disconnect();
+        }
     }
 
     public boolean isAwake() throws InterruptedException, AndroidDebugBridgeDeviceException,
@@ -361,7 +382,7 @@ public class AndroidDebugBridgeDevice {
         if (adb == null) {
             throw new AndroidDebugBridgeDeviceException("Device not connected");
         }
-        lock.lock();
+        commandLock.lock();
         try {
             stopCommandFuture(); // make sure there is not future
             Future<String> commandFuture = scheduler.submit(() -> {
@@ -385,7 +406,7 @@ public class AndroidDebugBridgeDevice {
             return commandFuture.get(timeoutSec, TimeUnit.SECONDS).trim();
         } finally {
             stopCommandFuture();
-            lock.unlock();
+            commandLock.unlock();
         }
     }
 
