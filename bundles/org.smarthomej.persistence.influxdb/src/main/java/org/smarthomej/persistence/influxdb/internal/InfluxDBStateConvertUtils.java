@@ -54,7 +54,7 @@ import org.slf4j.LoggerFactory;
 public class InfluxDBStateConvertUtils {
     static final Number DIGITAL_VALUE_OFF = 0; // Visible for testing
     static final Number DIGITAL_VALUE_ON = 1; // Visible for testing
-    private static Logger logger = LoggerFactory.getLogger(InfluxDBStateConvertUtils.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(InfluxDBStateConvertUtils.class);
 
     /**
      * Converts {@link State} to objects fitting into influxdb values.
@@ -91,25 +91,19 @@ public class InfluxDBStateConvertUtils {
      *
      * @param value to be converted to a {@link State}
      * @param itemName name of the {@link Item} to get the {@link State} for
+     * @param itemRegistry the itemRegistry
      * @return the state of the item represented by the itemName parameter, else the string value of
      *         the Object parameter
      */
-    public static State objectToState(Object value, String itemName, @Nullable ItemRegistry itemRegistry) {
-        State state = null;
-        if (itemRegistry != null) {
-            try {
-                Item item = itemRegistry.getItem(itemName);
-                state = objectToState(value, item);
-            } catch (ItemNotFoundException e) {
-                logger.info("Could not find item '{}' in registry", itemName);
-            }
+    public static State objectToState(Object value, String itemName, ItemRegistry itemRegistry) {
+        try {
+            Item item = itemRegistry.getItem(itemName);
+            return objectToState(value, item);
+        } catch (ItemNotFoundException e) {
+            LOGGER.info("Could not find item '{}' in registry", itemName);
         }
 
-        if (state == null) {
-            state = new StringType(String.valueOf(value));
-        }
-
-        return state;
+        return new StringType(String.valueOf(value));
     }
 
     public static State objectToState(Object value, Item itemToSetState) {

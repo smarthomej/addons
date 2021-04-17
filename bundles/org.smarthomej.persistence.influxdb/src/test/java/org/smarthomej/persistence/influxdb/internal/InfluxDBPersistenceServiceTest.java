@@ -45,7 +45,8 @@ public class InfluxDBPersistenceServiceTest {
 
     @BeforeEach
     public void before() {
-        instance = new InfluxDBPersistenceService(mock(ItemRegistry.class), mock(MetadataRegistry.class)) {
+        InfluxDBMetadataService influxDBMetadataService = new InfluxDBMetadataService(mock(MetadataRegistry.class));
+        instance = new InfluxDBPersistenceService(mock(ItemRegistry.class), influxDBMetadataService) {
             @Override
             protected InfluxDBRepository createInfluxDBRepository() {
                 return influxDBRepository;

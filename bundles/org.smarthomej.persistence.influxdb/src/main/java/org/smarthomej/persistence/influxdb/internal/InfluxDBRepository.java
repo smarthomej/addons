@@ -72,4 +72,12 @@ public interface InfluxDBRepository {
      * @param influxPoint Point to write
      */
     void write(InfluxPoint influxPoint);
+
+    /**
+     * create a query creator on this repository
+     *
+     * @param metadataRegistry
+     * @return
+     */
+    FilterCriteriaQueryCreator createQueryCreator();
 }

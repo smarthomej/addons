@@ -16,17 +16,14 @@ package org.smarthomej.persistence.influxdb.internal;
 import static org.smarthomej.persistence.influxdb.internal.InfluxDBConstants.*;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.items.Item;
-import org.openhab.core.items.Metadata;
-import org.openhab.core.items.MetadataKey;
-import org.openhab.core.items.MetadataRegistry;
 import org.openhab.core.types.State;
 import org.openhab.core.types.UnDefType;
-import org.smarthomej.persistence.influxdb.InfluxDBPersistenceService;
 
 /**
  * Logic to create an InfluxDB {@link InfluxPoint} from an openHAB {@link Item}
@@ -36,11 +33,11 @@ import org.smarthomej.persistence.influxdb.InfluxDBPersistenceService;
 @NonNullByDefault
 public class ItemToStorePointCreator {
     private final InfluxDBConfiguration configuration;
-    private final @Nullable MetadataRegistry metadataRegistry;
+    private final InfluxDBMetadataService influxDBMetadataService;
 
-    public ItemToStorePointCreator(InfluxDBConfiguration configuration, @Nullable MetadataRegistry metadataRegistry) {
+    public ItemToStorePointCreator(InfluxDBConfiguration configuration, InfluxDBMetadataService influxDBMetadataService) {
         this.configuration = configuration;
-        this.metadataRegistry = metadataRegistry;
+        this.influxDBMetadataService = influxDBMetadataService;
     }
 
     public @Nullable InfluxPoint convert(Item item, @Nullable String storeAlias) {
@@ -65,6 +62,8 @@ public class ItemToStorePointCreator {
     private String calculateMeasurementName(Item item, @Nullable String storeAlias) {
         String name = storeAlias != null && !storeAlias.isBlank() ? storeAlias : item.getName();
 
+        name = influxDBMetadataService.getMeasurementNameOrDefault(item.getName(), name);
+
         if (configuration.isReplaceUnderscore()) {
             name = name.replace('_', '.');
         }
@@ -73,19 +72,9 @@ public class ItemToStorePointCreator {
     }
 
     private State getItemState(Item item) {
-        final State state;
-        final Optional<Class<? extends State>> desiredConversion = calculateDesiredTypeConversionToStore(item);
-        if (desiredConversion.isPresent()) {
-            State convertedState = item.getStateAs(desiredConversion.get());
-            if (convertedState != null) {
-                state = convertedState;
-            } else {
-                state = item.getState();
-            }
-        } else {
-            state = item.getState();
-        }
-        return state;
+        return calculateDesiredTypeConversionToStore(item)
+                .map(desiredClass -> Objects.requireNonNullElseGet(item.getStateAs(desiredClass), item::getState))
+                .orElseGet(item::getState);
     }
 
     private Optional<Class<? extends State>> calculateDesiredTypeConversionToStore(Item item) {
@@ -95,10 +84,7 @@ public class ItemToStorePointCreator {
 
     private void addPointTags(Item item, InfluxPoint.Builder point) {
         if (configuration.isAddCategoryTag()) {
-            String categoryName = item.getCategory();
-            if (categoryName == null) {
-                categoryName = "n/a";
-            }
+            String categoryName = Objects.requireNonNullElse(item.getCategory(), "n/a");
             point.withTag(TAG_CATEGORY_NAME, categoryName);
         }
 
@@ -107,22 +93,11 @@ public class ItemToStorePointCreator {
         }
 
         if (configuration.isAddLabelTag()) {
-            String labelName = item.getLabel();
-            if (labelName == null) {
-                labelName = "n/a";
-            }
+            String labelName = Objects.requireNonNullElse(item.getLabel(), "n/a");
             point.withTag(TAG_LABEL_NAME, labelName);
         }
 
-        final MetadataRegistry currentMetadataRegistry = metadataRegistry;
-        if (currentMetadataRegistry != null) {
-            MetadataKey key = new MetadataKey(InfluxDBPersistenceService.SERVICE_NAME, item.getName());
-            Metadata metadata = currentMetadataRegistry.get(key);
-            if (metadata != null) {
-                metadata.getConfiguration().forEach((tagName, tagValue) -> {
-                    point.withTag(tagName, tagValue.toString());
-                });
-            }
-        }
+        influxDBMetadataService.getMetaData(item.getName())
+                .ifPresent(metadata -> metadata.getConfiguration().forEach(point::withTag));
     }
 }

@@ -18,6 +18,7 @@ import static org.smarthomej.persistence.influxdb.internal.InfluxDBConstants.*;
 import static org.smarthomej.persistence.influxdb.internal.InfluxDBStateConvertUtils.stateToObject;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.influxdb.dto.Query;
 import org.influxdb.querybuilder.Appender;
 import org.influxdb.querybuilder.BuiltQuery;
@@ -26,6 +27,8 @@ import org.influxdb.querybuilder.Where;
 import org.influxdb.querybuilder.clauses.SimpleClause;
 import org.openhab.core.persistence.FilterCriteria;
 import org.smarthomej.persistence.influxdb.internal.FilterCriteriaQueryCreator;
+import org.smarthomej.persistence.influxdb.internal.InfluxDBConfiguration;
+import org.smarthomej.persistence.influxdb.internal.InfluxDBMetadataService;
 import org.smarthomej.persistence.influxdb.internal.InfluxDBVersion;
 
 /**
@@ -34,33 +37,40 @@ import org.smarthomej.persistence.influxdb.internal.InfluxDBVersion;
  * @author Joan Pujol Espinar - Initial contribution
  */
 @NonNullByDefault
-public class Influx1FilterCriteriaQueryCreatorImpl implements FilterCriteriaQueryCreator {
+public class InfluxDB1FilterCriteriaQueryCreatorImpl implements FilterCriteriaQueryCreator {
+    private final InfluxDBConfiguration configuration;
+    private final InfluxDBMetadataService influxDBMetadataService;
+
+    public InfluxDB1FilterCriteriaQueryCreatorImpl(InfluxDBConfiguration configuration,
+            InfluxDBMetadataService influxDBMetadataService) {
+        this.configuration = configuration;
+        this.influxDBMetadataService = influxDBMetadataService;
+    }
 
     @Override
     public String createQuery(FilterCriteria criteria, String retentionPolicy) {
-        final String tableName;
-        boolean hasCriteriaName = criteria.getItemName() != null;
-        if (hasCriteriaName) {
-            tableName = criteria.getItemName();
-        } else {
-            tableName = "/.*/";
-        }
+        final String itemName = criteria.getItemName();
+        final String tableName = calculateTableName(itemName);
+        final boolean hasCriteriaName = itemName != null;
 
-        Select select = select(COLUMN_VALUE_NAME_V1).fromRaw(null,
-                fullQualifiedTableName(retentionPolicy, tableName, hasCriteriaName));
+        Select select = select().column("\"" + COLUMN_VALUE_NAME_V1 + "\"::field")
+                .column("\"" + TAG_ITEM_NAME + "\"::tag")
+                .fromRaw(null, fullQualifiedTableName(retentionPolicy, tableName, hasCriteriaName));
 
         Where where = select.where();
+
+        if (itemName != null && !tableName.equals(itemName)) {
+            where.and(BuiltQuery.QueryBuilder.eq(TAG_ITEM_NAME, itemName));
+        }
         if (criteria.getBeginDate() != null) {
-            where = where.and(
-                    BuiltQuery.QueryBuilder.gte(COLUMN_TIME_NAME_V1, criteria.getBeginDate().toInstant().toString()));
+            where.and(BuiltQuery.QueryBuilder.gte(COLUMN_TIME_NAME_V1, criteria.getBeginDate().toInstant().toString()));
         }
         if (criteria.getEndDate() != null) {
-            where = where.and(
-                    BuiltQuery.QueryBuilder.lte(COLUMN_TIME_NAME_V1, criteria.getEndDate().toInstant().toString()));
+            where.and(BuiltQuery.QueryBuilder.lte(COLUMN_TIME_NAME_V1, criteria.getEndDate().toInstant().toString()));
         }
 
         if (criteria.getState() != null && criteria.getOperator() != null) {
-            where = where.and(new SimpleClause(COLUMN_VALUE_NAME_V1,
+            where.and(new SimpleClause(COLUMN_VALUE_NAME_V1,
                     getOperationSymbol(criteria.getOperator(), InfluxDBVersion.V1),
                     stateToObject(criteria.getState())));
         }
@@ -79,8 +89,23 @@ public class Influx1FilterCriteriaQueryCreatorImpl implements FilterCriteriaQuer
             }
         }
 
-        final Query query = (Query) select;
-        return query.getCommand();
+        return ((Query) select).getCommand();
+    }
+
+    private String calculateTableName(@Nullable String itemName) {
+        if (itemName == null) {
+            return "/.*/";
+        }
+
+        String name = itemName;
+
+        name = influxDBMetadataService.getMeasurementNameOrDefault(itemName, name);
+
+        if (configuration.isReplaceUnderscore()) {
+            name = name.replace('_', '.');
+        }
+
+        return name;
     }
 
     private String fullQualifiedTableName(String retentionPolicy, String tableName, boolean escapeTableName) {

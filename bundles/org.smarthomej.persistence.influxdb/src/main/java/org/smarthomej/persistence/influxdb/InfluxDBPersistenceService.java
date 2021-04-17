@@ -26,7 +26,6 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.config.core.ConfigurableService;
 import org.openhab.core.items.Item;
 import org.openhab.core.items.ItemRegistry;
-import org.openhab.core.items.MetadataRegistry;
 import org.openhab.core.persistence.FilterCriteria;
 import org.openhab.core.persistence.HistoricItem;
 import org.openhab.core.persistence.PersistenceItemInfo;
@@ -45,13 +44,16 @@ import org.slf4j.LoggerFactory;
 import org.smarthomej.persistence.influxdb.internal.FilterCriteriaQueryCreator;
 import org.smarthomej.persistence.influxdb.internal.InfluxDBConfiguration;
 import org.smarthomej.persistence.influxdb.internal.InfluxDBHistoricItem;
+import org.smarthomej.persistence.influxdb.internal.InfluxDBMetadataService;
 import org.smarthomej.persistence.influxdb.internal.InfluxDBPersistentItemInfo;
 import org.smarthomej.persistence.influxdb.internal.InfluxDBRepository;
 import org.smarthomej.persistence.influxdb.internal.InfluxDBStateConvertUtils;
 import org.smarthomej.persistence.influxdb.internal.InfluxPoint;
 import org.smarthomej.persistence.influxdb.internal.InfluxRow;
 import org.smarthomej.persistence.influxdb.internal.ItemToStorePointCreator;
-import org.smarthomej.persistence.influxdb.internal.RepositoryFactory;
+import org.smarthomej.persistence.influxdb.internal.UnnexpectedConditionException;
+import org.smarthomej.persistence.influxdb.internal.influx1.InfluxDB1RepositoryImpl;
+import org.smarthomej.persistence.influxdb.internal.influx2.InfluxDB2RepositoryImpl;
 
 /**
  * This is the implementation of the InfluxDB {@link PersistenceService}. It persists item values
@@ -83,8 +85,7 @@ public class InfluxDBPersistenceService implements QueryablePersistenceService {
 
     // External dependencies
     private final ItemRegistry itemRegistry;
-    private final MetadataRegistry metadataRegistry;
-
+    private final InfluxDBMetadataService influxDBMetadataService;
     // Internal dependencies/state
     private InfluxDBConfiguration configuration = InfluxDBConfiguration.NO_CONFIGURATION;
 
@@ -96,9 +97,9 @@ public class InfluxDBPersistenceService implements QueryablePersistenceService {
 
     @Activate
     public InfluxDBPersistenceService(final @Reference ItemRegistry itemRegistry,
-            final @Reference MetadataRegistry metadataRegistry) {
+            final @Reference InfluxDBMetadataService influxDBMetadataService) {
         this.itemRegistry = itemRegistry;
-        this.metadataRegistry = metadataRegistry;
+        this.influxDBMetadataService = influxDBMetadataService;
     }
 
     /**
@@ -109,7 +110,7 @@ public class InfluxDBPersistenceService implements QueryablePersistenceService {
         logger.debug("InfluxDB persistence service is being activated");
 
         if (loadConfiguration(config)) {
-            itemToStorePointCreator = new ItemToStorePointCreator(configuration, metadataRegistry);
+            itemToStorePointCreator = new ItemToStorePointCreator(configuration, influxDBMetadataService);
             influxDBRepository = createInfluxDBRepository();
             influxDBRepository.connect();
             tryReconnection = true;
@@ -123,7 +124,14 @@ public class InfluxDBPersistenceService implements QueryablePersistenceService {
 
     // Visible for testing
     protected InfluxDBRepository createInfluxDBRepository() {
-        return RepositoryFactory.createRepository(configuration);
+        switch (configuration.getVersion()) {
+            case V1:
+                return new InfluxDB1RepositoryImpl(configuration, influxDBMetadataService);
+            case V2:
+                return new InfluxDB2RepositoryImpl(configuration, influxDBMetadataService);
+            default:
+                throw new UnnexpectedConditionException("Not expected version " + configuration.getVersion());
+        }
     }
 
     /**
@@ -206,8 +214,7 @@ public class InfluxDBPersistenceService implements QueryablePersistenceService {
     @Override
     public Set<PersistenceItemInfo> getItemInfo() {
         if (checkConnection()) {
-            return influxDBRepository.getStoredItemsCount().entrySet().stream()
-                    .map(entry -> new InfluxDBPersistentItemInfo(entry.getKey(), entry.getValue()))
+            return influxDBRepository.getStoredItemsCount().entrySet().stream().map(InfluxDBPersistentItemInfo::new)
                     .collect(Collectors.toUnmodifiableSet());
         } else {
             logger.info("getItemInfo ignored, InfluxDB is not yet connected");
@@ -228,7 +235,7 @@ public class InfluxDBPersistenceService implements QueryablePersistenceService {
                 logger.trace("Storing item {} in InfluxDB point {}", item, point);
                 influxDBRepository.write(point);
             } else {
-                logger.trace("Ignoring item {} as is cannot be converted to a InfluxDB point", item);
+                logger.trace("Ignoring item {}, conversion to a InfluxDB point failed.", item);
             }
         } else {
             logger.debug("store ignored, InfluxDB is not yet connected");
@@ -245,7 +252,7 @@ public class InfluxDBPersistenceService implements QueryablePersistenceService {
                     filter.getItemName(), filter.getOrdering().toString(), filter.getState(), filter.getOperator(),
                     filter.getBeginDate(), filter.getEndDate(), filter.getPageSize(), filter.getPageNumber());
 
-            String query = RepositoryFactory.createQueryCreator(configuration).createQuery(filter,
+            String query = influxDBRepository.createQueryCreator().createQuery(filter,
                     configuration.getRetentionPolicy());
             logger.trace("Query {}", query);
             List<InfluxRow> results = influxDBRepository.query(query);

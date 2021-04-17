@@ -28,8 +28,10 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smarthomej.persistence.influxdb.internal.FilterCriteriaQueryCreator;
 import org.smarthomej.persistence.influxdb.internal.InfluxDBConfiguration;
 import org.smarthomej.persistence.influxdb.internal.InfluxDBConstants;
+import org.smarthomej.persistence.influxdb.internal.InfluxDBMetadataService;
 import org.smarthomej.persistence.influxdb.internal.InfluxDBRepository;
 import org.smarthomej.persistence.influxdb.internal.InfluxPoint;
 import org.smarthomej.persistence.influxdb.internal.InfluxRow;
@@ -53,7 +55,8 @@ import com.influxdb.query.FluxTable;
 @NonNullByDefault
 public class InfluxDB2RepositoryImpl implements InfluxDBRepository {
     private final Logger logger = LoggerFactory.getLogger(InfluxDB2RepositoryImpl.class);
-    private InfluxDBConfiguration configuration;
+    private final InfluxDBConfiguration configuration;
+    private final InfluxDBMetadataService influxDBMetadataService;
     @Nullable
     private InfluxDBClient client;
     @Nullable
@@ -61,8 +64,9 @@ public class InfluxDB2RepositoryImpl implements InfluxDBRepository {
     @Nullable
     private WriteApi writeAPI;
 
-    public InfluxDB2RepositoryImpl(InfluxDBConfiguration configuration) {
+    public InfluxDB2RepositoryImpl(InfluxDBConfiguration configuration, InfluxDBMetadataService influxDBMetadataService) {
         this.configuration = configuration;
+        this.influxDBMetadataService = influxDBMetadataService;
     }
 
     /**
@@ -229,5 +233,10 @@ public class InfluxDB2RepositoryImpl implements InfluxDBRepository {
             logger.warn("Returning empty result  because queryAPI isn't present");
             return Collections.emptyMap();
         }
+    }
+
+    @Override
+    public FilterCriteriaQueryCreator createQueryCreator() {
+        return new InfluxDB2FilterCriteriaQueryCreatorImpl(configuration, influxDBMetadataService);
     }
 }
