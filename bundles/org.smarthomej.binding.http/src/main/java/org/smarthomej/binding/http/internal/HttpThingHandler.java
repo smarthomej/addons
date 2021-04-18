@@ -148,7 +148,7 @@ public class HttpThingHandler extends BaseThingHandler {
         }
 
         // check protocol is set
-        if (!config.baseURL.startsWith("http://") || !config.baseURL.startsWith("https://")) {
+        if (!config.baseURL.startsWith("http://") && !config.baseURL.startsWith("https://")) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
                     "baseURL is invalid: protocol not defined.");
             return;
