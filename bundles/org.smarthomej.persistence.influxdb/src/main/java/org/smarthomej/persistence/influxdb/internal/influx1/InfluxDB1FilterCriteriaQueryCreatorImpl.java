@@ -30,6 +30,7 @@ import org.smarthomej.persistence.influxdb.internal.FilterCriteriaQueryCreator;
 import org.smarthomej.persistence.influxdb.internal.InfluxDBConfiguration;
 import org.smarthomej.persistence.influxdb.internal.InfluxDBMetadataService;
 import org.smarthomej.persistence.influxdb.internal.InfluxDBVersion;
+import org.smarthomej.persistence.influxdb.internal.UnexpectedConditionException;
 
 /**
  * Implementation of {@link FilterCriteriaQueryCreator} for InfluxDB 1.0
@@ -48,7 +49,7 @@ public class InfluxDB1FilterCriteriaQueryCreatorImpl implements FilterCriteriaQu
     }
 
     @Override
-    public String createQuery(FilterCriteria criteria, String retentionPolicy) {
+    public String createQuery(FilterCriteria criteria, String retentionPolicy) throws UnexpectedConditionException {
         final String itemName = criteria.getItemName();
         final String tableName = calculateTableName(itemName);
         final boolean hasCriteriaName = itemName != null;

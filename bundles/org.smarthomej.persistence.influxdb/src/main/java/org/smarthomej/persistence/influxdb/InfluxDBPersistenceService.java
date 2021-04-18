@@ -18,6 +18,7 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -50,7 +51,7 @@ import org.smarthomej.persistence.influxdb.internal.InfluxDBStateConvertUtils;
 import org.smarthomej.persistence.influxdb.internal.InfluxPoint;
 import org.smarthomej.persistence.influxdb.internal.InfluxRow;
 import org.smarthomej.persistence.influxdb.internal.ItemToStorePointCreator;
-import org.smarthomej.persistence.influxdb.internal.UnnexpectedConditionException;
+import org.smarthomej.persistence.influxdb.internal.UnexpectedConditionException;
 import org.smarthomej.persistence.influxdb.internal.influx1.InfluxDB1RepositoryImpl;
 import org.smarthomej.persistence.influxdb.internal.influx2.InfluxDB2RepositoryImpl;
 
@@ -100,9 +101,9 @@ public class InfluxDBPersistenceService implements QueryablePersistenceService {
         this.influxDBMetadataService = influxDBMetadataService;
         this.configuration = new InfluxDBConfiguration(config);
         if (configuration.isValid()) {
-            InfluxDBRepository influxDBRepository = createInfluxDBRepository();
-            influxDBRepository.connect();
-            this.influxDBRepository = influxDBRepository;
+            this.influxDBRepository = createInfluxDBRepository()
+                    .orElseThrow(() -> new IllegalArgumentException("Failed to instantiate repository."));
+            this.influxDBRepository.connect();
             this.itemToStorePointCreator = new ItemToStorePointCreator(configuration, influxDBMetadataService);
             tryReconnection = true;
         } else {
@@ -113,15 +114,18 @@ public class InfluxDBPersistenceService implements QueryablePersistenceService {
     }
 
     // Visible for testing
-    protected InfluxDBRepository createInfluxDBRepository() {
+    protected Optional<InfluxDBRepository> createInfluxDBRepository() {
+        InfluxDBRepository influxDBRepository = null;
         switch (configuration.getVersion()) {
             case V1:
-                return new InfluxDB1RepositoryImpl(configuration, influxDBMetadataService);
+                influxDBRepository = new InfluxDB1RepositoryImpl(configuration, influxDBMetadataService);
+                break;
             case V2:
-                return new InfluxDB2RepositoryImpl(configuration, influxDBMetadataService);
+                influxDBRepository = new InfluxDB2RepositoryImpl(configuration, influxDBMetadataService);
+                break;
             default:
-                throw new UnnexpectedConditionException("Not expected version " + configuration.getVersion());
         }
+        return Optional.ofNullable(influxDBRepository);
     }
 
     /**
@@ -171,7 +175,7 @@ public class InfluxDBPersistenceService implements QueryablePersistenceService {
 
     @Override
     public void store(Item item) {
-        store(item, item.getName());
+        store(item, null);
     }
 
     @Override
@@ -179,8 +183,12 @@ public class InfluxDBPersistenceService implements QueryablePersistenceService {
         if (checkConnection()) {
             InfluxPoint point = itemToStorePointCreator.convert(item, alias);
             if (point != null) {
-                logger.trace("Storing item {} in InfluxDB point {}", item, point);
-                influxDBRepository.write(point);
+                try {
+                    influxDBRepository.write(point);
+                    logger.trace("Stored item {} in InfluxDB point {}", item, point);
+                } catch (UnexpectedConditionException e) {
+                    logger.warn("Failed to store item {} in InfluxDB point {}", point, item);
+                }
             } else {
                 logger.trace("Ignoring item {}, conversion to a InfluxDB point failed.", item);
             }
@@ -198,11 +206,17 @@ public class InfluxDBPersistenceService implements QueryablePersistenceService {
                     filter.getItemName(), filter.getOrdering().toString(), filter.getState(), filter.getOperator(),
                     filter.getBeginDate(), filter.getEndDate(), filter.getPageSize(), filter.getPageNumber());
 
-            String query = influxDBRepository.createQueryCreator().createQuery(filter,
-                    configuration.getRetentionPolicy());
-            logger.trace("Query {}", query);
-            List<InfluxRow> results = influxDBRepository.query(query);
-            return results.stream().map(this::mapRowToHistoricItem).collect(Collectors.toList());
+            try {
+                String query = influxDBRepository.createQueryCreator().createQuery(filter,
+                        configuration.getRetentionPolicy());
+
+                logger.trace("Query {}", query);
+                List<InfluxRow> results = influxDBRepository.query(query);
+                return results.stream().map(this::mapRowToHistoricItem).collect(Collectors.toList());
+            } catch (UnexpectedConditionException e) {
+                logger.warn("Failed to create query:{}", e.getMessage());
+                return List.of();
+            }
         } else {
             logger.debug("query ignored, InfluxDB is not yet connected");
             return List.of();

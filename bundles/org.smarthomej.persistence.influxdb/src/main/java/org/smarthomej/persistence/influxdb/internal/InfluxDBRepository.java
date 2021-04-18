@@ -70,7 +70,7 @@ public interface InfluxDBRepository {
      *
      * @param influxPoint Point to write
      */
-    void write(InfluxPoint influxPoint);
+    void write(InfluxPoint influxPoint) throws UnexpectedConditionException;
 
     /**
      * create a query creator on this repository

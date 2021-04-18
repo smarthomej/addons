@@ -74,7 +74,7 @@ public class InfluxFilterCriteriaQueryCreatorImplTest {
     }
 
     @Test
-    public void testSimpleItemQueryWithoutParams() {
+    public void testSimpleItemQueryWithoutParams() throws UnexpectedConditionException {
         FilterCriteria criteria = createBaseCriteria();
 
         String queryV1 = instanceV1.createQuery(criteria, RETENTION_POLICY);
@@ -86,7 +86,7 @@ public class InfluxFilterCriteriaQueryCreatorImplTest {
     }
 
     @Test
-    public void testSimpleUnboundedItemWithoutParams() {
+    public void testSimpleUnboundedItemWithoutParams() throws UnexpectedConditionException {
         FilterCriteria criteria = new FilterCriteria();
         criteria.setOrdering(null);
 
@@ -98,7 +98,7 @@ public class InfluxFilterCriteriaQueryCreatorImplTest {
     }
 
     @Test
-    public void testRangeCriteria() {
+    public void testRangeCriteria() throws UnexpectedConditionException {
         FilterCriteria criteria = createBaseCriteria();
         ZonedDateTime now = ZonedDateTime.now();
         ZonedDateTime tomorrow = now.plus(1, ChronoUnit.DAYS);
@@ -120,7 +120,7 @@ public class InfluxFilterCriteriaQueryCreatorImplTest {
     }
 
     @Test
-    public void testValueOperator() {
+    public void testValueOperator() throws UnexpectedConditionException {
         FilterCriteria criteria = createBaseCriteria();
         criteria.setOperator(FilterCriteria.Operator.LTE);
         criteria.setState(new PercentType(90));
@@ -136,7 +136,7 @@ public class InfluxFilterCriteriaQueryCreatorImplTest {
     }
 
     @Test
-    public void testPagination() {
+    public void testPagination() throws UnexpectedConditionException {
         FilterCriteria criteria = createBaseCriteria();
         criteria.setPageNumber(2);
         criteria.setPageSize(10);
@@ -150,7 +150,7 @@ public class InfluxFilterCriteriaQueryCreatorImplTest {
     }
 
     @Test
-    public void testOrdering() {
+    public void testOrdering() throws UnexpectedConditionException {
         FilterCriteria criteria = createBaseCriteria();
         criteria.setOrdering(FilterCriteria.Ordering.ASCENDING);
 
@@ -176,7 +176,7 @@ public class InfluxFilterCriteriaQueryCreatorImplTest {
     }
 
     @Test
-    public void testMeasurementNameFromMetadata() {
+    public void testMeasurementNameFromMetadata() throws UnexpectedConditionException {
         FilterCriteria criteria = createBaseCriteria();
         MetadataKey metadataKey = new MetadataKey(InfluxDBPersistenceService.SERVICE_NAME, "sampleItem");
 

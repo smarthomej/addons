@@ -52,12 +52,12 @@ public class ItemToStorePointCreator {
 
         Object value = InfluxDBStateConvertUtils.stateToObject(state);
 
-        InfluxPoint.Builder point = InfluxPoint.newBuilder(measurementName).withTime(Instant.now()).withValue(value)
-                .withTag(TAG_ITEM_NAME, itemName);
+        InfluxPoint.Builder pointBuilder = InfluxPoint.newBuilder(measurementName).withTime(Instant.now())
+                .withValue(value).withTag(TAG_ITEM_NAME, itemName);
 
-        addPointTags(item, point);
+        addPointTags(item, pointBuilder);
 
-        return point.build();
+        return pointBuilder.build();
     }
 
     private String calculateMeasurementName(Item item, @Nullable String storeAlias) {
@@ -82,22 +82,22 @@ public class ItemToStorePointCreator {
                 .findFirst().map(commandType -> commandType.asSubclass(State.class));
     }
 
-    private void addPointTags(Item item, InfluxPoint.Builder point) {
+    private void addPointTags(Item item, InfluxPoint.Builder pointBuilder) {
         if (configuration.isAddCategoryTag()) {
             String categoryName = Objects.requireNonNullElse(item.getCategory(), "n/a");
-            point.withTag(TAG_CATEGORY_NAME, categoryName);
+            pointBuilder.withTag(TAG_CATEGORY_NAME, categoryName);
         }
 
         if (configuration.isAddTypeTag()) {
-            point.withTag(TAG_TYPE_NAME, item.getType());
+            pointBuilder.withTag(TAG_TYPE_NAME, item.getType());
         }
 
         if (configuration.isAddLabelTag()) {
             String labelName = Objects.requireNonNullElse(item.getLabel(), "n/a");
-            point.withTag(TAG_LABEL_NAME, labelName);
+            pointBuilder.withTag(TAG_LABEL_NAME, labelName);
         }
 
         influxDBMetadataService.getMetaData(item.getName())
-                .ifPresent(metadata -> metadata.getConfiguration().forEach(point::withTag));
+                .ifPresent(metadata -> metadata.getConfiguration().forEach(pointBuilder::withTag));
     }
 }

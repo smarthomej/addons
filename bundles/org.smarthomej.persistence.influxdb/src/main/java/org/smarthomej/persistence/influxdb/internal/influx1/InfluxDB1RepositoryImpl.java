@@ -40,7 +40,7 @@ import org.smarthomej.persistence.influxdb.internal.InfluxDBMetadataService;
 import org.smarthomej.persistence.influxdb.internal.InfluxDBRepository;
 import org.smarthomej.persistence.influxdb.internal.InfluxPoint;
 import org.smarthomej.persistence.influxdb.internal.InfluxRow;
-import org.smarthomej.persistence.influxdb.internal.UnnexpectedConditionException;
+import org.smarthomej.persistence.influxdb.internal.UnexpectedConditionException;
 
 /**
  * Implementation of {@link InfluxDBRepository} for InfluxDB 1.0
@@ -116,7 +116,7 @@ public class InfluxDB1RepositoryImpl implements InfluxDBRepository {
     }
 
     @Override
-    public void write(InfluxPoint point) {
+    public void write(InfluxPoint point) throws UnexpectedConditionException {
         final InfluxDB currentClient = this.client;
         if (currentClient != null) {
             Point clientPoint = convertPointToClientFormat(point);
@@ -126,7 +126,7 @@ public class InfluxDB1RepositoryImpl implements InfluxDBRepository {
         }
     }
 
-    private Point convertPointToClientFormat(InfluxPoint point) {
+    private Point convertPointToClientFormat(InfluxPoint point) throws UnexpectedConditionException {
         Point.Builder clientPoint = Point.measurement(point.getMeasurementName()).time(point.getTime().toEpochMilli(),
                 TimeUnit.MILLISECONDS);
         setPointValue(point.getValue(), clientPoint);
@@ -134,7 +134,7 @@ public class InfluxDB1RepositoryImpl implements InfluxDBRepository {
         return clientPoint.build();
     }
 
-    private void setPointValue(@Nullable Object value, Point.Builder point) {
+    private void setPointValue(@Nullable Object value, Point.Builder point) throws UnexpectedConditionException {
         if (value instanceof String) {
             point.addField(FIELD_VALUE_NAME, (String) value);
         } else if (value instanceof Number) {
@@ -144,7 +144,7 @@ public class InfluxDB1RepositoryImpl implements InfluxDBRepository {
         } else if (value == null) {
             point.addField(FIELD_VALUE_NAME, "null");
         } else {
-            throw new UnnexpectedConditionException("Not expected value type");
+            throw new UnexpectedConditionException("Not expected value type");
         }
     }
 

@@ -26,6 +26,7 @@ import org.smarthomej.persistence.influxdb.internal.FilterCriteriaQueryCreator;
 import org.smarthomej.persistence.influxdb.internal.InfluxDBConfiguration;
 import org.smarthomej.persistence.influxdb.internal.InfluxDBMetadataService;
 import org.smarthomej.persistence.influxdb.internal.InfluxDBVersion;
+import org.smarthomej.persistence.influxdb.internal.UnexpectedConditionException;
 
 import com.influxdb.query.dsl.Flux;
 import com.influxdb.query.dsl.functions.RangeFlux;
@@ -48,7 +49,7 @@ public class InfluxDB2FilterCriteriaQueryCreatorImpl implements FilterCriteriaQu
     }
 
     @Override
-    public String createQuery(FilterCriteria criteria, String retentionPolicy) {
+    public String createQuery(FilterCriteria criteria, String retentionPolicy) throws UnexpectedConditionException {
         Flux flux = Flux.from(retentionPolicy);
 
         RangeFlux range = flux.range();

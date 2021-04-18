@@ -20,8 +20,8 @@ import static org.smarthomej.persistence.influxdb.internal.InfluxDBConfiguration
 import static org.smarthomej.persistence.influxdb.internal.InfluxDBConfiguration.RETENTION_POLICY_PARAM;
 
 import java.util.Map;
+import java.util.Optional;
 
-import org.eclipse.jdt.annotation.DefaultLocation;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,7 +35,7 @@ import org.smarthomej.persistence.influxdb.InfluxDBPersistenceService;
  * @author Joan Pujol Espinar - Initial contribution
  */
 @ExtendWith(MockitoExtension.class)
-@NonNullByDefault(value = { DefaultLocation.PARAMETER, DefaultLocation.RETURN_TYPE })
+@NonNullByDefault
 public class InfluxDBPersistenceServiceTest {
     private static final Map<String, Object> VALID_V1_CONFIGURATION = Map.of(URL_PARAM, "http://localhost:8086",
             VERSION_PARAM, InfluxDBVersion.V1.name(), USER_PARAM, "user", PASSWORD_PARAM, "password", DATABASE_PARAM,
@@ -52,7 +52,9 @@ public class InfluxDBPersistenceServiceTest {
     private static final Map<String, Object> INVALID_V2_CONFIGURATION = Map.of(URL_PARAM, "http://localhost:8086",
             VERSION_PARAM, InfluxDBVersion.V2.name(), DATABASE_PARAM, "openhab", RETENTION_POLICY_PARAM, "default");
 
-    private @Mock InfluxDBRepository influxDBRepository;
+    @Mock
+    private @NonNullByDefault({}) InfluxDBRepository influxDBRepository;
+
     private final InfluxDBMetadataService influxDBMetadataService = new InfluxDBMetadataService(
             mock(MetadataRegistry.class));
 
@@ -86,7 +88,7 @@ public class InfluxDBPersistenceServiceTest {
     }
 
     @Test
-    public void storeItemWithConnectedRepository() {
+    public void storeItemWithConnectedRepository() throws UnexpectedConditionException {
         InfluxDBPersistenceService instance = getService(VALID_V2_CONFIGURATION);
         when(influxDBRepository.isConnected()).thenReturn(true);
         instance.store(ItemTestHelper.createNumberItem("number", 5));
@@ -94,7 +96,7 @@ public class InfluxDBPersistenceServiceTest {
     }
 
     @Test
-    public void storeItemWithDisconnectedRepositoryIsIgnored() {
+    public void storeItemWithDisconnectedRepositoryIsIgnored() throws UnexpectedConditionException {
         InfluxDBPersistenceService instance = getService(VALID_V2_CONFIGURATION);
         when(influxDBRepository.isConnected()).thenReturn(false);
         instance.store(ItemTestHelper.createNumberItem("number", 5));
@@ -104,8 +106,8 @@ public class InfluxDBPersistenceServiceTest {
     private InfluxDBPersistenceService getService(Map<String, Object> config) {
         return new InfluxDBPersistenceService(mock(ItemRegistry.class), influxDBMetadataService, config) {
             @Override
-            protected InfluxDBRepository createInfluxDBRepository() {
-                return influxDBRepository;
+            protected Optional<InfluxDBRepository> createInfluxDBRepository() {
+                return Optional.of(influxDBRepository);
             }
         };
     }

@@ -35,7 +35,7 @@ import org.smarthomej.persistence.influxdb.internal.InfluxDBMetadataService;
 import org.smarthomej.persistence.influxdb.internal.InfluxDBRepository;
 import org.smarthomej.persistence.influxdb.internal.InfluxPoint;
 import org.smarthomej.persistence.influxdb.internal.InfluxRow;
-import org.smarthomej.persistence.influxdb.internal.UnnexpectedConditionException;
+import org.smarthomej.persistence.influxdb.internal.UnexpectedConditionException;
 
 import com.influxdb.client.InfluxDBClient;
 import com.influxdb.client.InfluxDBClientFactory;
@@ -140,13 +140,8 @@ public class InfluxDB2RepositoryImpl implements InfluxDBRepository {
         }
     }
 
-    /**
-     * Write point to database
-     *
-     * @param point
-     */
     @Override
-    public void write(InfluxPoint point) {
+    public void write(InfluxPoint point) throws UnexpectedConditionException {
         final WriteApi currentWriteAPI = writeAPI;
         if (currentWriteAPI != null) {
             currentWriteAPI.writePoint(convertPointToClientFormat(point));
@@ -155,14 +150,14 @@ public class InfluxDB2RepositoryImpl implements InfluxDBRepository {
         }
     }
 
-    private Point convertPointToClientFormat(InfluxPoint point) {
+    private Point convertPointToClientFormat(InfluxPoint point) throws UnexpectedConditionException {
         Point clientPoint = Point.measurement(point.getMeasurementName()).time(point.getTime(), WritePrecision.MS);
         setPointValue(point.getValue(), clientPoint);
-        point.getTags().entrySet().forEach(e -> clientPoint.addTag(e.getKey(), e.getValue()));
+        point.getTags().forEach(clientPoint::addTag);
         return clientPoint;
     }
 
-    private void setPointValue(@Nullable Object value, Point point) {
+    private void setPointValue(@Nullable Object value, Point point) throws UnexpectedConditionException {
         if (value instanceof String) {
             point.addField(FIELD_VALUE_NAME, (String) value);
         } else if (value instanceof Number) {
@@ -172,7 +167,7 @@ public class InfluxDB2RepositoryImpl implements InfluxDBRepository {
         } else if (value == null) {
             point.addField(FIELD_VALUE_NAME, (String) null);
         } else {
-            throw new UnnexpectedConditionException("Not expected value type");
+            throw new UnexpectedConditionException("Not expected value type");
         }
     }
 
