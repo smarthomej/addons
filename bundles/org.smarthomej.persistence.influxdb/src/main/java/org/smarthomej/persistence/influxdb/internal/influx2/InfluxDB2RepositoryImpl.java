@@ -60,12 +60,10 @@ public class InfluxDB2RepositoryImpl implements InfluxDBRepository {
     private final Logger logger = LoggerFactory.getLogger(InfluxDB2RepositoryImpl.class);
     private final InfluxDBConfiguration configuration;
     private final InfluxDBMetadataService influxDBMetadataService;
-    @Nullable
-    private InfluxDBClient client;
-    @Nullable
-    private QueryApi queryAPI;
-    @Nullable
-    private WriteApi writeAPI;
+
+    private @Nullable InfluxDBClient client;
+    private @Nullable QueryApi queryAPI;
+    private @Nullable WriteApi writeAPI;
 
     public InfluxDB2RepositoryImpl(InfluxDBConfiguration configuration,
             InfluxDBMetadataService influxDBMetadataService) {
@@ -102,9 +100,11 @@ public class InfluxDB2RepositoryImpl implements InfluxDBRepository {
 
         final InfluxDBClient createdClient = InfluxDBClientFactory.create(clientOptions);
         this.client = createdClient;
-        logger.debug("Successfully connected to InfluxDB. Instance ready={}", createdClient.ready());
+
         queryAPI = createdClient.getQueryApi();
         writeAPI = createdClient.getWriteApi();
+        logger.debug("Successfully connected to InfluxDB. Instance ready={}", createdClient.ready());
+
         return checkConnectionStatus();
     }
 

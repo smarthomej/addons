@@ -108,7 +108,7 @@ public class InfluxDBPersistenceService implements QueryablePersistenceService {
             throw new IllegalArgumentException("Configuration invalid.");
         }
 
-        logger.info("InfluxDB persistence service started");
+        logger.info("InfluxDB persistence service started.");
     }
 
     // Visible for testing
@@ -131,7 +131,7 @@ public class InfluxDBPersistenceService implements QueryablePersistenceService {
      */
     @Deactivate
     public void deactivate() {
-        logger.debug("InfluxDB persistence service deactivated");
+        logger.info("InfluxDB persistence service stopped.");
         influxDBRepository.disconnect();
         tryReconnection = false;
     }
