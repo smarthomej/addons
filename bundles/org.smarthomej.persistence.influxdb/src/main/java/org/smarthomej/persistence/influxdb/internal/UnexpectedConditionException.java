@@ -16,19 +16,15 @@ package org.smarthomej.persistence.influxdb.internal;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
- * Throw to indicate an unnexpected condition that should not have happened (a bug)
+ * Thrown to indicate an unexpected condition that should not have happened (a bug)
  *
  * @author Joan Pujol Espinar - Initial contribution
  */
 @NonNullByDefault
-public class UnnexpectedConditionException extends RuntimeException {
+public class UnexpectedConditionException extends Exception {
     private static final long serialVersionUID = 1128380327167959556L;
 
-    public UnnexpectedConditionException(String message) {
+    public UnexpectedConditionException(String message) {
         super(message);
-    }
-
-    public UnnexpectedConditionException(String message, Throwable cause) {
-        super(message, cause);
     }
 }
