@@ -13,7 +13,10 @@
  */
 package org.smarthomej.persistence.influxdb.internal.influx1;
 
-import static org.smarthomej.persistence.influxdb.internal.InfluxDBConstants.*;
+import static org.smarthomej.persistence.influxdb.internal.InfluxDBConstants.COLUMN_TIME_NAME_V1;
+import static org.smarthomej.persistence.influxdb.internal.InfluxDBConstants.COLUMN_VALUE_NAME_V1;
+import static org.smarthomej.persistence.influxdb.internal.InfluxDBConstants.FIELD_VALUE_NAME;
+import static org.smarthomej.persistence.influxdb.internal.InfluxDBConstants.TAG_ITEM_NAME;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -53,8 +56,7 @@ public class InfluxDB1RepositoryImpl implements InfluxDBRepository {
     private final Logger logger = LoggerFactory.getLogger(InfluxDB1RepositoryImpl.class);
     private final InfluxDBConfiguration configuration;
     private final InfluxDBMetadataService influxDBMetadataService;
-    @Nullable
-    private InfluxDB client;
+    private @Nullable InfluxDB client;
 
     public InfluxDB1RepositoryImpl(InfluxDBConfiguration configuration,
             InfluxDBMetadataService influxDBMetadataService) {

@@ -16,7 +16,7 @@ package org.smarthomej.persistence.influxdb.internal;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
- * Throw to indicate an unnexpected condition that should not have happened (a bug)
+ * Thrown to indicate an unexpected condition that should not have happened (a bug)
  *
  * @author Joan Pujol Espinar - Initial contribution
  */

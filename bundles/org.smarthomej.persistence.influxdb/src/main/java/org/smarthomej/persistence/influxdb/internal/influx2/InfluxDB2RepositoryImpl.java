@@ -13,7 +13,10 @@
  */
 package org.smarthomej.persistence.influxdb.internal.influx2;
 
-import static org.smarthomej.persistence.influxdb.internal.InfluxDBConstants.*;
+import static org.smarthomej.persistence.influxdb.internal.InfluxDBConstants.COLUMN_TIME_NAME_V2;
+import static org.smarthomej.persistence.influxdb.internal.InfluxDBConstants.COLUMN_VALUE_NAME_V2;
+import static org.smarthomej.persistence.influxdb.internal.InfluxDBConstants.FIELD_VALUE_NAME;
+import static org.smarthomej.persistence.influxdb.internal.InfluxDBConstants.TAG_ITEM_NAME;
 
 import java.time.Instant;
 import java.util.Collections;
@@ -99,7 +102,7 @@ public class InfluxDB2RepositoryImpl implements InfluxDBRepository {
 
         final InfluxDBClient createdClient = InfluxDBClientFactory.create(clientOptions);
         this.client = createdClient;
-        logger.debug("Succesfully connected to InfluxDB. Instance ready={}", createdClient.ready());
+        logger.debug("Successfully connected to InfluxDB. Instance ready={}", createdClient.ready());
         queryAPI = createdClient.getQueryApi();
         writeAPI = createdClient.getWriteApi();
         return checkConnectionStatus();

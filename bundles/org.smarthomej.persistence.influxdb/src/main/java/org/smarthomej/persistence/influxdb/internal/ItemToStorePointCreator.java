@@ -13,7 +13,10 @@
  */
 package org.smarthomej.persistence.influxdb.internal;
 
-import static org.smarthomej.persistence.influxdb.internal.InfluxDBConstants.*;
+import static org.smarthomej.persistence.influxdb.internal.InfluxDBConstants.TAG_CATEGORY_NAME;
+import static org.smarthomej.persistence.influxdb.internal.InfluxDBConstants.TAG_ITEM_NAME;
+import static org.smarthomej.persistence.influxdb.internal.InfluxDBConstants.TAG_LABEL_NAME;
+import static org.smarthomej.persistence.influxdb.internal.InfluxDBConstants.TAG_TYPE_NAME;
 
 import java.time.Instant;
 import java.util.Objects;

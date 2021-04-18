@@ -15,7 +15,8 @@ package org.smarthomej.persistence.influxdb.internal.influx2;
 
 import static com.influxdb.query.dsl.functions.restriction.Restrictions.measurement;
 import static com.influxdb.query.dsl.functions.restriction.Restrictions.tag;
-import static org.smarthomej.persistence.influxdb.internal.InfluxDBConstants.*;
+import static org.smarthomej.persistence.influxdb.internal.InfluxDBConstants.COLUMN_TIME_NAME_V2;
+import static org.smarthomej.persistence.influxdb.internal.InfluxDBConstants.FIELD_VALUE_NAME;
 import static org.smarthomej.persistence.influxdb.internal.InfluxDBStateConvertUtils.stateToObject;
 
 import java.time.temporal.ChronoUnit;
@@ -65,7 +66,7 @@ public class InfluxDB2FilterCriteriaQueryCreatorImpl implements FilterCriteriaQu
 
         String itemName = criteria.getItemName();
         if (itemName != null) {
-            String measurementName = calculateMeasurementName(itemName);
+            String measurementName = getMeasurementName(itemName);
             flux = flux.filter(measurement().equal(measurementName));
             if (!measurementName.equals(itemName)) {
                 flux = flux.filter(tag("item").equal(itemName));
@@ -92,7 +93,7 @@ public class InfluxDB2FilterCriteriaQueryCreatorImpl implements FilterCriteriaQu
         return flux.toString();
     }
 
-    private String calculateMeasurementName(String itemName) {
+    private String getMeasurementName(String itemName) {
         String name = influxDBMetadataService.getMeasurementNameOrDefault(itemName, itemName);
 
         if (configuration.isReplaceUnderscore()) {

@@ -90,13 +90,11 @@ public class InfluxDBPersistenceService implements QueryablePersistenceService {
     private final InfluxDBConfiguration configuration;
     private final ItemToStorePointCreator itemToStorePointCreator;
     private final InfluxDBRepository influxDBRepository;
-    private final boolean tryReconnection;
+    private boolean tryReconnection;
 
     @Activate
     public InfluxDBPersistenceService(final @Reference ItemRegistry itemRegistry,
             final @Reference InfluxDBMetadataService influxDBMetadataService, Map<String, Object> config) {
-        logger.debug("InfluxDB persistence service is being activated");
-
         this.itemRegistry = itemRegistry;
         this.influxDBMetadataService = influxDBMetadataService;
         this.configuration = new InfluxDBConfiguration(config);
@@ -110,7 +108,7 @@ public class InfluxDBPersistenceService implements QueryablePersistenceService {
             throw new IllegalArgumentException("Configuration invalid.");
         }
 
-        logger.debug("InfluxDB persistence service is now activated");
+        logger.info("InfluxDB persistence service started");
     }
 
     // Visible for testing
@@ -135,6 +133,7 @@ public class InfluxDBPersistenceService implements QueryablePersistenceService {
     public void deactivate() {
         logger.debug("InfluxDB persistence service deactivated");
         influxDBRepository.disconnect();
+        tryReconnection = false;
     }
 
     @Override

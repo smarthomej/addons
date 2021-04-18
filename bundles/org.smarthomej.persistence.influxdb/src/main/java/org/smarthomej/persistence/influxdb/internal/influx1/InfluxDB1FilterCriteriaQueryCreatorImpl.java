@@ -13,8 +13,12 @@
  */
 package org.smarthomej.persistence.influxdb.internal.influx1;
 
-import static org.influxdb.querybuilder.BuiltQuery.QueryBuilder.*;
-import static org.smarthomej.persistence.influxdb.internal.InfluxDBConstants.*;
+import static org.influxdb.querybuilder.BuiltQuery.QueryBuilder.asc;
+import static org.influxdb.querybuilder.BuiltQuery.QueryBuilder.desc;
+import static org.influxdb.querybuilder.BuiltQuery.QueryBuilder.select;
+import static org.smarthomej.persistence.influxdb.internal.InfluxDBConstants.COLUMN_TIME_NAME_V1;
+import static org.smarthomej.persistence.influxdb.internal.InfluxDBConstants.COLUMN_VALUE_NAME_V1;
+import static org.smarthomej.persistence.influxdb.internal.InfluxDBConstants.TAG_ITEM_NAME;
 import static org.smarthomej.persistence.influxdb.internal.InfluxDBStateConvertUtils.stateToObject;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -51,7 +55,7 @@ public class InfluxDB1FilterCriteriaQueryCreatorImpl implements FilterCriteriaQu
     @Override
     public String createQuery(FilterCriteria criteria, String retentionPolicy) throws UnexpectedConditionException {
         final String itemName = criteria.getItemName();
-        final String tableName = calculateTableName(itemName);
+        final String tableName = getTableName(itemName);
         final boolean hasCriteriaName = itemName != null;
 
         Select select = select().column("\"" + COLUMN_VALUE_NAME_V1 + "\"::field")
@@ -93,7 +97,7 @@ public class InfluxDB1FilterCriteriaQueryCreatorImpl implements FilterCriteriaQu
         return ((Query) select).getCommand();
     }
 
-    private String calculateTableName(@Nullable String itemName) {
+    private String getTableName(@Nullable String itemName) {
         if (itemName == null) {
             return "/.*/";
         }
