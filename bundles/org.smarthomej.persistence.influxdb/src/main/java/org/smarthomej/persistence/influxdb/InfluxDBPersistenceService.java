@@ -37,7 +37,6 @@ import org.osgi.framework.Constants;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,37 +85,28 @@ public class InfluxDBPersistenceService implements QueryablePersistenceService {
     // External dependencies
     private final ItemRegistry itemRegistry;
     private final InfluxDBMetadataService influxDBMetadataService;
-    // Internal dependencies/state
-    private InfluxDBConfiguration configuration = InfluxDBConfiguration.NO_CONFIGURATION;
 
-    // Relax rules because can only be null if component is not active
-    private @NonNullByDefault({}) ItemToStorePointCreator itemToStorePointCreator;
-    private @NonNullByDefault({}) InfluxDBRepository influxDBRepository;
-
-    private boolean tryReconnection = false;
+    private final InfluxDBConfiguration configuration;
+    private final ItemToStorePointCreator itemToStorePointCreator;
+    private final InfluxDBRepository influxDBRepository;
+    private final boolean tryReconnection;
 
     @Activate
     public InfluxDBPersistenceService(final @Reference ItemRegistry itemRegistry,
-            final @Reference InfluxDBMetadataService influxDBMetadataService) {
-        this.itemRegistry = itemRegistry;
-        this.influxDBMetadataService = influxDBMetadataService;
-    }
-
-    /**
-     * Connect to database when service is activated
-     */
-    @Activate
-    public void activate(final @Nullable Map<String, Object> config) {
+            final @Reference InfluxDBMetadataService influxDBMetadataService, Map<String, Object> config) {
         logger.debug("InfluxDB persistence service is being activated");
 
-        if (loadConfiguration(config)) {
-            itemToStorePointCreator = new ItemToStorePointCreator(configuration, influxDBMetadataService);
-            influxDBRepository = createInfluxDBRepository();
+        this.itemRegistry = itemRegistry;
+        this.influxDBMetadataService = influxDBMetadataService;
+        this.configuration = new InfluxDBConfiguration(config);
+        if (configuration.isValid()) {
+            InfluxDBRepository influxDBRepository = createInfluxDBRepository();
             influxDBRepository.connect();
+            this.influxDBRepository = influxDBRepository;
+            this.itemToStorePointCreator = new ItemToStorePointCreator(configuration, influxDBMetadataService);
             tryReconnection = true;
         } else {
-            logger.error("Cannot load configuration, persistence service wont work");
-            tryReconnection = false;
+            throw new IllegalArgumentException("Configuration invalid.");
         }
 
         logger.debug("InfluxDB persistence service is now activated");
@@ -140,47 +130,7 @@ public class InfluxDBPersistenceService implements QueryablePersistenceService {
     @Deactivate
     public void deactivate() {
         logger.debug("InfluxDB persistence service deactivated");
-        if (influxDBRepository != null) {
-            tryReconnection = false;
-            influxDBRepository.disconnect();
-            influxDBRepository = null;
-        }
-        if (itemToStorePointCreator != null) {
-            itemToStorePointCreator = null;
-        }
-    }
-
-    /**
-     * Rerun deactivation/activation code each time configuration is changed
-     */
-    @Modified
-    protected void modified(@Nullable Map<String, Object> config) {
-        if (config != null) {
-            logger.debug("Config has been modified will deactivate/activate with new config");
-
-            deactivate();
-            activate(config);
-        } else {
-            logger.warn("Null configuration, ignoring");
-        }
-    }
-
-    private boolean loadConfiguration(@Nullable Map<String, Object> config) {
-        boolean configurationIsValid;
-        if (config != null) {
-            configuration = new InfluxDBConfiguration(config);
-            configurationIsValid = configuration.isValid();
-            if (configurationIsValid) {
-                logger.debug("Loaded configuration {}", config);
-            } else {
-                logger.warn("Some configuration properties are not valid {}", config);
-            }
-        } else {
-            configuration = InfluxDBConfiguration.NO_CONFIGURATION;
-            configurationIsValid = false;
-            logger.warn("Ignoring configuration because it's null");
-        }
-        return configurationIsValid;
+        influxDBRepository.disconnect();
     }
 
     @Override
@@ -199,14 +149,11 @@ public class InfluxDBPersistenceService implements QueryablePersistenceService {
      * @return true if connected
      */
     private boolean checkConnection() {
-        if (influxDBRepository == null) {
-            return false;
-        } else if (influxDBRepository.isConnected()) {
+        if (influxDBRepository.isConnected()) {
             return true;
         } else if (tryReconnection) {
             logger.debug("Connection lost, trying re-connection");
-            influxDBRepository.connect();
-            return influxDBRepository.isConnected();
+            return influxDBRepository.connect();
         }
         return false;
     }
@@ -245,7 +192,6 @@ public class InfluxDBPersistenceService implements QueryablePersistenceService {
     @Override
     public Iterable<HistoricItem> query(FilterCriteria filter) {
         logger.debug("Got a query for historic points!");
-
         if (checkConnection()) {
             logger.trace(
                     "Filter: itemname: {}, ordering: {}, state: {},  operator: {}, getBeginDate: {}, getEndDate: {}, getPageSize: {}, getPageNumber: {}",
@@ -256,14 +202,14 @@ public class InfluxDBPersistenceService implements QueryablePersistenceService {
                     configuration.getRetentionPolicy());
             logger.trace("Query {}", query);
             List<InfluxRow> results = influxDBRepository.query(query);
-            return results.stream().map(this::mapRow2HistoricItem).collect(Collectors.toList());
+            return results.stream().map(this::mapRowToHistoricItem).collect(Collectors.toList());
         } else {
             logger.debug("query ignored, InfluxDB is not yet connected");
             return List.of();
         }
     }
 
-    private HistoricItem mapRow2HistoricItem(InfluxRow row) {
+    private HistoricItem mapRowToHistoricItem(InfluxRow row) {
         State state = InfluxDBStateConvertUtils.objectToState(row.getValue(), row.getItemName(), itemRegistry);
         return new InfluxDBHistoricItem(row.getItemName(), state,
                 ZonedDateTime.ofInstant(row.getTime(), ZoneId.systemDefault()));

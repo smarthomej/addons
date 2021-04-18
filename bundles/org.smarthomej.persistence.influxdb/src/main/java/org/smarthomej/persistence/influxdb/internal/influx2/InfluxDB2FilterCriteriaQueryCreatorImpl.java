@@ -92,9 +92,7 @@ public class InfluxDB2FilterCriteriaQueryCreatorImpl implements FilterCriteriaQu
     }
 
     private String calculateMeasurementName(String itemName) {
-        String name = itemName;
-
-        name = influxDBMetadataService.getMeasurementNameOrDefault(itemName, name);
+        String name = influxDBMetadataService.getMeasurementNameOrDefault(itemName, itemName);
 
         if (configuration.isReplaceUnderscore()) {
             name = name.replace('_', '.');

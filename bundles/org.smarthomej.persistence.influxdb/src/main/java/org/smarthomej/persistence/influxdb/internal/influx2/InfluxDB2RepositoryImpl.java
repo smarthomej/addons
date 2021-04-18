@@ -64,7 +64,8 @@ public class InfluxDB2RepositoryImpl implements InfluxDBRepository {
     @Nullable
     private WriteApi writeAPI;
 
-    public InfluxDB2RepositoryImpl(InfluxDBConfiguration configuration, InfluxDBMetadataService influxDBMetadataService) {
+    public InfluxDB2RepositoryImpl(InfluxDBConfiguration configuration,
+            InfluxDBMetadataService influxDBMetadataService) {
         this.configuration = configuration;
         this.influxDBMetadataService = influxDBMetadataService;
     }

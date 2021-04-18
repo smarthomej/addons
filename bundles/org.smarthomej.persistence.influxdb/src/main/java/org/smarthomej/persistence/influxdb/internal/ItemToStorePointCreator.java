@@ -35,7 +35,8 @@ public class ItemToStorePointCreator {
     private final InfluxDBConfiguration configuration;
     private final InfluxDBMetadataService influxDBMetadataService;
 
-    public ItemToStorePointCreator(InfluxDBConfiguration configuration, InfluxDBMetadataService influxDBMetadataService) {
+    public ItemToStorePointCreator(InfluxDBConfiguration configuration,
+            InfluxDBMetadataService influxDBMetadataService) {
         this.configuration = configuration;
         this.influxDBMetadataService = influxDBMetadataService;
     }
@@ -61,7 +62,6 @@ public class ItemToStorePointCreator {
 
     private String calculateMeasurementName(Item item, @Nullable String storeAlias) {
         String name = storeAlias != null && !storeAlias.isBlank() ? storeAlias : item.getName();
-
         name = influxDBMetadataService.getMeasurementNameOrDefault(item.getName(), name);
 
         if (configuration.isReplaceUnderscore()) {

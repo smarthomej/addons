@@ -13,15 +13,16 @@
  */
 package org.smarthomej.persistence.influxdb.internal;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.smarthomej.persistence.influxdb.internal.InfluxDBConfiguration.*;
+import static org.smarthomej.persistence.influxdb.internal.InfluxDBConfiguration.RETENTION_POLICY_PARAM;
 
 import java.util.Map;
 
 import org.eclipse.jdt.annotation.DefaultLocation;
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -36,63 +37,57 @@ import org.smarthomej.persistence.influxdb.InfluxDBPersistenceService;
 @ExtendWith(MockitoExtension.class)
 @NonNullByDefault(value = { DefaultLocation.PARAMETER, DefaultLocation.RETURN_TYPE })
 public class InfluxDBPersistenceServiceTest {
-    private InfluxDBPersistenceService instance;
+    private static final Map<String, Object> VALID_V1_CONFIGURATION = Map.of(URL_PARAM, "http://localhost:8086",
+            VERSION_PARAM, InfluxDBVersion.V1.name(), USER_PARAM, "user", PASSWORD_PARAM, "password", DATABASE_PARAM,
+            "openhab", RETENTION_POLICY_PARAM, "default");
+
+    private static final Map<String, Object> VALID_V2_CONFIGURATION = Map.of(URL_PARAM, "http://localhost:8086",
+            VERSION_PARAM, InfluxDBVersion.V2.name(), TOKEN_PARAM, "sampletoken", DATABASE_PARAM, "openhab",
+            RETENTION_POLICY_PARAM, "default");
+
+    private static final Map<String, Object> INVALID_V1_CONFIGURATION = Map.of(URL_PARAM, "http://localhost:8086",
+            VERSION_PARAM, InfluxDBVersion.V1.name(), USER_PARAM, "user", DATABASE_PARAM, "openhab",
+            RETENTION_POLICY_PARAM, "default");
+
+    private static final Map<String, Object> INVALID_V2_CONFIGURATION = Map.of(URL_PARAM, "http://localhost:8086",
+            VERSION_PARAM, InfluxDBVersion.V2.name(), DATABASE_PARAM, "openhab", RETENTION_POLICY_PARAM, "default");
 
     private @Mock InfluxDBRepository influxDBRepository;
-
-    private Map<String, Object> validConfig;
-    private Map<String, Object> invalidConfig;
-
-    @BeforeEach
-    public void before() {
-        InfluxDBMetadataService influxDBMetadataService = new InfluxDBMetadataService(mock(MetadataRegistry.class));
-        instance = new InfluxDBPersistenceService(mock(ItemRegistry.class), influxDBMetadataService) {
-            @Override
-            protected InfluxDBRepository createInfluxDBRepository() {
-                return influxDBRepository;
-            }
-        };
-
-        validConfig = ConfigurationTestHelper.createValidConfigurationParameters();
-        invalidConfig = ConfigurationTestHelper.createInvalidConfigurationParameters();
-    }
-
-    @AfterEach
-    public void after() {
-        validConfig = null;
-        invalidConfig = null;
-        instance = null;
-        influxDBRepository = null;
-    }
+    private final InfluxDBMetadataService influxDBMetadataService = new InfluxDBMetadataService(
+            mock(MetadataRegistry.class));
 
     @Test
-    public void activateWithValidConfigShouldConnectRepository() {
-        instance.activate(validConfig);
+    public void activateWithValidV1ConfigShouldConnectRepository() {
+        getService(VALID_V1_CONFIGURATION);
         verify(influxDBRepository).connect();
     }
 
     @Test
-    public void activateWithInvalidConfigShouldNotConnectRepository() {
-        instance.activate(invalidConfig);
-        verify(influxDBRepository, never()).connect();
+    public void activateWithValidV2ConfigShouldConnectRepository() {
+        getService(VALID_V2_CONFIGURATION);
+        verify(influxDBRepository).connect();
     }
 
     @Test
-    public void activateWithNullConfigShouldNotConnectRepository() {
-        instance.activate(null);
-        verify(influxDBRepository, never()).connect();
+    public void activateWithInvalidV1ConfigShouldFail() {
+        assertThrows(IllegalArgumentException.class, () -> getService(INVALID_V1_CONFIGURATION));
+    }
+
+    @Test
+    public void activateWithInvalidV2ShouldFail() {
+        assertThrows(IllegalArgumentException.class, () -> getService(INVALID_V2_CONFIGURATION));
     }
 
     @Test
     public void deactivateShouldDisconnectRepository() {
-        instance.activate(validConfig);
+        InfluxDBPersistenceService instance = getService(VALID_V2_CONFIGURATION);
         instance.deactivate();
         verify(influxDBRepository).disconnect();
     }
 
     @Test
     public void storeItemWithConnectedRepository() {
-        instance.activate(validConfig);
+        InfluxDBPersistenceService instance = getService(VALID_V2_CONFIGURATION);
         when(influxDBRepository.isConnected()).thenReturn(true);
         instance.store(ItemTestHelper.createNumberItem("number", 5));
         verify(influxDBRepository).write(any());
@@ -100,9 +95,18 @@ public class InfluxDBPersistenceServiceTest {
 
     @Test
     public void storeItemWithDisconnectedRepositoryIsIgnored() {
-        instance.activate(validConfig);
+        InfluxDBPersistenceService instance = getService(VALID_V2_CONFIGURATION);
         when(influxDBRepository.isConnected()).thenReturn(false);
         instance.store(ItemTestHelper.createNumberItem("number", 5));
         verify(influxDBRepository, never()).write(any());
+    }
+
+    private InfluxDBPersistenceService getService(Map<String, Object> config) {
+        return new InfluxDBPersistenceService(mock(ItemRegistry.class), influxDBMetadataService, config) {
+            @Override
+            protected InfluxDBRepository createInfluxDBRepository() {
+                return influxDBRepository;
+            }
+        };
     }
 }

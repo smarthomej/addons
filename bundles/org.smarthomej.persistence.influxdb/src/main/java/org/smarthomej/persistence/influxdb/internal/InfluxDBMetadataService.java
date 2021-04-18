@@ -24,7 +24,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.smarthomej.persistence.influxdb.InfluxDBPersistenceService;
 
 /**
- * Utility classes for using item metadata in InfluxDB
+ * Utility service for using item metadata in InfluxDB
  *
  * @author Jan N. Klug - Initial contribution
  */

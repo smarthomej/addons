@@ -56,7 +56,8 @@ public class InfluxDB1RepositoryImpl implements InfluxDBRepository {
     @Nullable
     private InfluxDB client;
 
-    public InfluxDB1RepositoryImpl(InfluxDBConfiguration configuration, InfluxDBMetadataService influxDBMetadataService) {
+    public InfluxDB1RepositoryImpl(InfluxDBConfiguration configuration,
+            InfluxDBMetadataService influxDBMetadataService) {
         this.configuration = configuration;
         this.influxDBMetadataService = influxDBMetadataService;
     }
@@ -129,7 +130,7 @@ public class InfluxDB1RepositoryImpl implements InfluxDBRepository {
         Point.Builder clientPoint = Point.measurement(point.getMeasurementName()).time(point.getTime().toEpochMilli(),
                 TimeUnit.MILLISECONDS);
         setPointValue(point.getValue(), clientPoint);
-        point.getTags().entrySet().forEach(e -> clientPoint.tag(e.getKey(), e.getValue()));
+        point.getTags().forEach(clientPoint::tag);
         return clientPoint.build();
     }
 
@@ -141,7 +142,7 @@ public class InfluxDB1RepositoryImpl implements InfluxDBRepository {
         } else if (value instanceof Boolean) {
             point.addField(FIELD_VALUE_NAME, (Boolean) value);
         } else if (value == null) {
-            point.addField(FIELD_VALUE_NAME, (String) null);
+            point.addField(FIELD_VALUE_NAME, "null");
         } else {
             throw new UnnexpectedConditionException("Not expected value type");
         }

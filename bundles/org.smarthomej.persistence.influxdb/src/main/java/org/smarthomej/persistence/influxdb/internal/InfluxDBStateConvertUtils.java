@@ -68,7 +68,7 @@ public class InfluxDBStateConvertUtils {
         if (state instanceof HSBType) {
             value = state.toString();
         } else if (state instanceof PointType) {
-            value = point2String((PointType) state);
+            value = state.toString();
         } else if (state instanceof DecimalType) {
             value = ((DecimalType) state).toBigDecimal();
         } else if (state instanceof QuantityType<?>) {
@@ -122,7 +122,7 @@ public class InfluxDBStateConvertUtils {
         } else if (item instanceof DimmerItem) {
             return new PercentType(valueStr);
         } else if (item instanceof SwitchItem) {
-            return toBoolean(valueStr) ? OnOffType.ON : OnOffType.OFF;
+            return OnOffType.from(toBoolean(valueStr));
         } else if (item instanceof ContactItem) {
             return toBoolean(valueStr) ? OpenClosedType.OPEN : OpenClosedType.CLOSED;
         } else if (item instanceof RollershutterItem) {
@@ -143,22 +143,10 @@ public class InfluxDBStateConvertUtils {
             if ("1".equals(object) || "1.0".equals(object)) {
                 return true;
             } else {
-                return Boolean.valueOf(String.valueOf(object));
+                return Boolean.parseBoolean(String.valueOf(object));
             }
         } else {
             return false;
         }
-    }
-
-    private static String point2String(PointType point) {
-        StringBuilder buf = new StringBuilder();
-        buf.append(point.getLatitude().toString());
-        buf.append(",");
-        buf.append(point.getLongitude().toString());
-        if (!point.getAltitude().equals(DecimalType.ZERO)) {
-            buf.append(",");
-            buf.append(point.getAltitude().toString());
-        }
-        return buf.toString(); // latitude, longitude, altitude
     }
 }
