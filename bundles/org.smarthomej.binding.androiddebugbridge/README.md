@@ -56,15 +56,16 @@ This is a sample of the mediaStateJSONConfig thing configuration:
 
 | channel  | type   | description                  |
 |----------|--------|------------------------------|
-| mouse-tap  | String | Send mouse tap to android device. With the pattern x,y |
 | key-event  | String | Send key event to android device. Possible values listed below |
 | text  | String | Send text to android device |
+| tap  | String | Send tap event to android device (format x,y) |
 | media-volume  | Dimmer | Set or get media volume level on android device |
 | media-control  | Player | Control media on android device |
 | start-package  | String | Run application by package name |
 | stop-package  | String | Stop application by package name |
 | stop-open-url  | String | Open a URL with the default application (http, rtsp, aso) |
 | current-package  | String | Package name of the top application in screen |
+| shutdown  | String | Power off/reboot device (allowed values POWER_OFF, REBOOT) |
 | wake-lock  | Number | Power wake lock value |
 | screen-state  | Switch | Screen power state |
 | hdmi-state  | Switch | HDMI power state |
