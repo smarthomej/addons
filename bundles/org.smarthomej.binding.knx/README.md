@@ -15,10 +15,6 @@ Since the protocol is identical, the KNX binding can also communicate with it tr
 The KNX binding supports two types of bridges, and one type of things to access the KNX bus.
 There is an *ip* bridge to connect to KNX IP Gateways, and a *serial* bridge for connection over a serial port to a host-attached gateway.
 
-## Binding Configuration
-
-The binding itself does not require any special configuration.
-
 ## Bridges
 
 The following two bridge types are supported. Bridges don't have channels on their own.
@@ -110,6 +106,9 @@ Note: After changing the DPT of already existing Channels, openHAB needs to be r
 |-----------|---------------|-------------|
 | ga        | Group address | 1.009       |
 
+*Attention:* Due to a bug in the original implementation the states for DPT 1.009 are inverted (i.e. `1` is mapped to `OPEN` instead of `CLOSE`). 
+A change would break all existing installations and is therefore not implemented.
+
 ##### Channel Type "number"
 
 | Parameter | Description   | Default DPT |
@@ -164,6 +163,9 @@ If from the KNX bus a `GroupValueRead` telegram is sent to a *-control Channel, 
 | Parameter | Description   | Default DPT |
 |-----------|---------------|-------------|
 | ga        | Group address | 1.009       |
+
+*Attention:* Due to a bug in the original implementation the states for DPT 1.009 are inverted (i.e. `1` is mapped to `OPEN` instead of `CLOSE`).
+A change would break all existing installations and is therefore not implemented.
 
 ##### Channel Type "number-control"
 
