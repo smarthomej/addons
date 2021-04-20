@@ -13,15 +13,16 @@ Since the protocol is identical, the KNX binding can also communicate with it tr
 ## Supported Things
 
 The KNX binding supports two types of bridges, and one type of things to access the KNX bus.
-There is an *ip* bridge to connect to KNX IP Gateways, and a *serial* bridge for connection over a serial port to a host-attached gateway.
+There is an `ip` bridge to connect to KNX IP Gateways, and a `serial` bridge for connection over a serial port to a host-attached gateway.
 
 ## Bridges
 
-The following two bridge types are supported. Bridges don't have channels on their own.
+Bridges don't have channels on their own.
 
 ### IP Gateway
 
-The IP Gateway is the most commonly used way to connect to the KNX bus. At its base, the *ip* bridge accepts the following configuration parameters:
+The IP Gateway is the most commonly used way to connect to the KNX bus.
+At its base, the `ip` bridge accepts the following configuration parameters:
 
 | Name                | Required     | Description                                                                                                  | Default value                                        |
 |---------------------|--------------|--------------------------------------------------------------------------------------------------------------|------------------------------------------------------|
@@ -31,23 +32,29 @@ The IP Gateway is the most commonly used way to connect to the KNX bus. At its b
 | localIp             | No           | Network address of the local host to be used to set up the connection to the KNX/IP gateway                  | the system-wide configured primary interface address |
 | localSourceAddr     | No           | The (virtual) individual address for identification of this KNX/IP gateway within the KNX bus <br/><br/>Note: Use a free adress, not the one of the interface. Or leave it at `0.0.0` and let openHAB decide which address to use.                | 0.0.0                                                |
 | useNAT              | No           | Whether there is network address translation between the server and the gateway                              | false                                                |
-| readingPause        | No           | Time in milliseconds of how long should be paused between two read requests to the bus during initialization | 50                                                   |
-| responseTimeout     | No           | Timeout in seconds to wait for a response from the KNX bus                                                   | 10                                                   |
-| readRetriesLimit    | No           | Limits the read retries while initialization from the KNX bus                                                | 3                                                    |
-| autoReconnectPeriod | No           | Seconds between connect retries when KNX link has been lost (0 means never).                                 | 0                                                    |
-
 
 ### Serial Gateway
 
-The *serial* bridge accepts the following configuration parameters:
+The `serial` bridge accepts the following configuration parameters:
 
 | Name                | Required | Description                                                                                                  | Default value |
 |---------------------|----------|--------------------------------------------------------------------------------------------------------------|---------------|
 | serialPort          | Y        | The serial port to use for connecting to the KNX bus                                                         | -             |
-| readingPause        | N        | Time in milliseconds of how long should be paused between two read requests to the bus during initialization | 50            |
-| responseTimeout     | N        | Timeout in seconds to wait for a response from the KNX bus                                                   | 10            |
-| readRetriesLimit    | N        | Limits the read retries while initialization from the KNX bus                                                | 3             |
-| autoReconnectPeriod | N        | Seconds between connect retries when KNX link has been lost, 0 means never retry                             | 0             |
+
+### Common parameters for both bridges
+
+| Name                | Required     | Description                                                                                                  | Default value                                        |
+|---------------------|--------------|--------------------------------------------------------------------------------------------------------------|------------------------------------------------------|
+| readingPause        | No           | Time in milliseconds of how long should be paused between two read requests to the bus during initialization | 50                                                   |
+| responseTimeout     | No           | Timeout in seconds to wait for a response from the KNX bus                                                   | 10                                                   |
+| readRetriesLimit    | No           | Limits the read retries while initialization from the KNX bus                                                | 3                                                    |
+| autoReconnectPeriod | No           | Seconds between connect retries when KNX link has been lost (0 means never).                                 | 0                                                    |
+| keyringFile         | No           | Filename of the KNX Secure keyring (exported from ETS) |
+| keyringPassword     | No           | Password for the KNX Secure keyring defined during the export |
+
+If you want to use KNX Secure, you can export the keyring from the project file using the ETS.
+The keyring needs to be put in `<openhab-configuration-directory>/misc`.
+KNX Secure is enabled by setting `keyringFile` to a non-empty value.
 
 ## Things
 
@@ -337,12 +344,6 @@ Bridge knx:serial:bridge [
     }
 }
 
-Bridge hue:bridge:bridge "Philips Hue Bridge" [
-    ipAddress="...",
-    userName="..."
-] {
-    Thing 0210 1 "Color Lamp" [ lightId="1" ]
-}
 ```
 
 knx.items:

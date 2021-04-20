@@ -13,6 +13,10 @@
  */
 package org.smarthomej.binding.knx.internal.client;
 
+import java.io.File;
+import java.net.URI;
+import java.time.Duration;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -23,6 +27,7 @@ import java.util.function.Consumer;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.core.OpenHAB;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.ThingUID;
@@ -35,12 +40,14 @@ import org.smarthomej.binding.knx.internal.handler.GroupAddressListener;
 
 import tuwien.auto.calimero.CloseEvent;
 import tuwien.auto.calimero.DetachEvent;
+import tuwien.auto.calimero.DeviceDescriptor;
 import tuwien.auto.calimero.FrameEvent;
 import tuwien.auto.calimero.GroupAddress;
 import tuwien.auto.calimero.IndividualAddress;
 import tuwien.auto.calimero.KNXException;
 import tuwien.auto.calimero.datapoint.CommandDP;
 import tuwien.auto.calimero.datapoint.Datapoint;
+import tuwien.auto.calimero.device.BaseKnxDevice;
 import tuwien.auto.calimero.device.ProcessCommunicationResponder;
 import tuwien.auto.calimero.link.KNXNetworkLink;
 import tuwien.auto.calimero.link.NetworkLinkListener;
@@ -54,8 +61,6 @@ import tuwien.auto.calimero.process.ProcessCommunicator;
 import tuwien.auto.calimero.process.ProcessCommunicatorImpl;
 import tuwien.auto.calimero.process.ProcessEvent;
 import tuwien.auto.calimero.process.ProcessListener;
-import tuwien.auto.calimero.secure.SecureApplicationLayer;
-import tuwien.auto.calimero.secure.Security;
 
 /**
  * KNX Client which encapsulates the communication with the KNX bus via the calimero libary.
@@ -67,12 +72,13 @@ import tuwien.auto.calimero.secure.Security;
 public abstract class AbstractKNXClient implements NetworkLinkListener, KNXClient {
 
     private static final int MAX_SEND_ATTEMPTS = 2;
+    private static final String IOS_PASSWORD = ""; // store sequence file unencrypted
 
     private final Logger logger = LoggerFactory.getLogger(AbstractKNXClient.class);
     private final KNXTypeMapper typeHelper = new KNXCoreTypeMapper();
 
     private final ThingUID thingUID;
-    private final int responseTimeout;
+    private final Duration responseTimeout;
     private final int readingPause;
     private final int autoReconnectPeriod;
     private final int readRetriesLimit;
@@ -130,7 +136,7 @@ public abstract class AbstractKNXClient implements NetworkLinkListener, KNXClien
             int readRetriesLimit, ScheduledExecutorService knxScheduler, StatusUpdateCallback statusUpdateCallback) {
         this.autoReconnectPeriod = autoReconnectPeriod;
         this.thingUID = thingUID;
-        this.responseTimeout = responseTimeout;
+        this.responseTimeout = Duration.ofSeconds(responseTimeout);
         this.readingPause = readingPause;
         this.readRetriesLimit = readRetriesLimit;
         this.knxScheduler = knxScheduler;
@@ -138,17 +144,13 @@ public abstract class AbstractKNXClient implements NetworkLinkListener, KNXClien
     }
 
     public void initialize() {
-        if (!scheduleReconnectJob()) {
-            connect();
-        }
+        // first connection attempt is started immediately
+        connectJob = knxScheduler.schedule(this::connect, 0, TimeUnit.SECONDS);
     }
 
-    private boolean scheduleReconnectJob() {
+    private void scheduleReconnectJob() {
         if (autoReconnectPeriod > 0) {
             connectJob = knxScheduler.schedule(this::connect, autoReconnectPeriod, TimeUnit.SECONDS);
-            return true;
-        } else {
-            return false;
         }
     }
 
@@ -164,7 +166,7 @@ public abstract class AbstractKNXClient implements NetworkLinkListener, KNXClien
 
     private synchronized boolean connectIfNotAutomatic() {
         if (!isConnected()) {
-            return connectJob != null ? false : connect();
+            return connectJob == null && connect();
         }
         return true;
     }
@@ -184,23 +186,32 @@ public abstract class AbstractKNXClient implements NetworkLinkListener, KNXClien
             managementProcedures = new ManagementProceduresImpl(link);
 
             ManagementClient managementClient = new ManagementClientImpl(link);
-            managementClient.setResponseTimeout(responseTimeout);
+            managementClient.responseTimeout(responseTimeout);
             this.managementClient = managementClient;
 
             deviceInfoClient = new DeviceInfoClientImpl(managementClient);
 
-            ProcessCommunicator processCommunicator = new ProcessCommunicatorImpl(link);
-            processCommunicator.setResponseTimeout(responseTimeout);
-            processCommunicator.addProcessListener(processListener);
-            this.processCommunicator = processCommunicator;
+            // KNX secure "device" needs to store properties, e.g. sequence numbers.
+            // TODO: ensure this is written from time to time to safeguard against sudden crashes, this needs changes in
+            // Calimero because the methods are not visible
+            String fileLocation = OpenHAB.getUserDataFolder() + File.separator + "knx_secure_device.xml";
+            URI ios = URI.create("file://" + fileLocation.replace("\\", "/"));
+            BaseKnxDevice dev = new BaseKnxDevice("openHAB", DeviceDescriptor.DD0.TYPE_07B0, null, null, ios,
+                    IOS_PASSWORD.toCharArray());
+            // use existing link, derive address from link setting, manually setting the address is only allowed if we
+            // inherit BaseKnxDevice
+            dev.setDeviceLink(link);
 
-            ProcessCommunicationResponder responseCommunicator = new ProcessCommunicationResponder(link,
-                    new SecureApplicationLayer(link, Security.defaultInstallation()));
-            this.responseCommunicator = responseCommunicator;
+            ProcessCommunicator processCommunicator = new ProcessCommunicatorImpl(link, dev.secureApplicationLayer());
+            processCommunicator.responseTimeout(responseTimeout);
+            processCommunicator.addProcessListener(processListener);
+
+            this.processCommunicator = processCommunicator;
+            this.responseCommunicator = new ProcessCommunicationResponder(link, dev.secureApplicationLayer());
 
             link.addLinkListener(this);
 
-            busJob = knxScheduler.scheduleWithFixedDelay(() -> readNextQueuedDatapoint(), 0, readingPause,
+            busJob = knxScheduler.scheduleWithFixedDelay(this::readNextQueuedDatapoint, 5, readingPause,
                     TimeUnit.MILLISECONDS);
 
             statusUpdateCallback.updateStatus(ThingStatus.ONLINE);
@@ -217,9 +228,8 @@ public abstract class AbstractKNXClient implements NetworkLinkListener, KNXClien
     private void disconnect(@Nullable Exception e) {
         releaseConnection();
         if (e != null) {
-            String message = e.getLocalizedMessage();
             statusUpdateCallback.updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-                    message != null ? message : "");
+                    Objects.requireNonNullElse(e.getLocalizedMessage(), ""));
         } else {
             statusUpdateCallback.updateStatus(ThingStatus.OFFLINE);
         }
@@ -230,9 +240,9 @@ public abstract class AbstractKNXClient implements NetworkLinkListener, KNXClien
         readDatapoints.clear();
         busJob = nullify(busJob, j -> j.cancel(true));
         deviceInfoClient = null;
-        managementProcedures = nullify(managementProcedures, mp -> mp.detach());
-        managementClient = nullify(managementClient, mc -> mc.detach());
-        link = nullify(link, l -> l.close());
+        managementProcedures = nullify(managementProcedures, ManagementProcedures::detach);
+        managementClient = nullify(managementClient, ManagementClient::detach);
+        link = nullify(link, KNXNetworkLink::close);
         processCommunicator = nullify(processCommunicator, pc -> {
             pc.removeProcessListener(processListener);
             pc.detach();
