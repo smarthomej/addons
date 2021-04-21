@@ -113,6 +113,11 @@
 				<default>false</default>
 				<advanced>true</advanced>
 			</parameter>
+			<parameter name="userAgent" type="text">
+				<label>User Agent</label>
+				<description>Sets a custom user agent (default is "Jetty/version", e.g. "Jetty/9.4.20.v20190813").</description>
+				<advanced>true</advanced>
+			</parameter>
 		</config-description>
 	</thing-type>
 

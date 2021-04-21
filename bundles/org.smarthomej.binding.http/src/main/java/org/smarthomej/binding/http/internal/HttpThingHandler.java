@@ -345,14 +345,7 @@ public class HttpThingHandler extends BaseThingHandler {
                 }
             }
 
-            config.headers.forEach(header -> {
-                String[] keyValuePair = header.split("=", 2);
-                if (keyValuePair.length == 2) {
-                    request.header(keyValuePair[0], keyValuePair[1]);
-                } else {
-                    logger.warn("Splitting header '{}' failed. No '=' was found. Ignoring", header);
-                }
-            });
+            config.getHeaders().forEach(request::header);
 
             if (logger.isTraceEnabled()) {
                 logger.trace("Sending to '{}': {}", uri, Util.requestToLogString(request));
