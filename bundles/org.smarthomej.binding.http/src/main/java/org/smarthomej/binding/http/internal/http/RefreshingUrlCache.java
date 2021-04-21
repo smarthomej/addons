@@ -17,7 +17,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Date;
-import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
@@ -55,7 +55,7 @@ public class RefreshingUrlCache {
     private final int bufferSize;
     private final @Nullable String fallbackEncoding;
     private final Set<Consumer<ContentWrapper>> consumers = ConcurrentHashMap.newKeySet();
-    private final List<String> headers;
+    private final Map<String, String> headers;
     private final HttpMethod httpMethod;
     private final String httpContent;
 
@@ -68,8 +68,8 @@ public class RefreshingUrlCache {
         this.url = url;
         this.timeout = thingConfig.timeout;
         this.bufferSize = thingConfig.bufferSize;
-        this.headers = thingConfig.headers;
         this.httpMethod = thingConfig.stateMethod;
+        this.headers = thingConfig.getHeaders();
         this.httpContent = httpContent;
         fallbackEncoding = thingConfig.encoding;
 
@@ -94,15 +94,7 @@ public class RefreshingUrlCache {
 
             httpClient.newRequest(uri, httpMethod, httpContent).thenAccept(request -> {
                 request.timeout(timeout, TimeUnit.MILLISECONDS);
-
-                headers.forEach(header -> {
-                    String[] keyValuePair = header.split("=", 2);
-                    if (keyValuePair.length == 2) {
-                        request.header(keyValuePair[0].trim(), keyValuePair[1].trim());
-                    } else {
-                        logger.warn("Splitting header '{}' failed. No '=' was found. Ignoring", header);
-                    }
-                });
+                headers.forEach(request::header);
 
                 CompletableFuture<@Nullable ContentWrapper> response = new CompletableFuture<>();
                 response.exceptionally(e -> {
