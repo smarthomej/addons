@@ -60,13 +60,8 @@ public class HttpThingConfig {
     public Map<String, String> getHeaders() {
         Map<String, String> headersMap = new HashMap<>();
         // add user agent first, in case it is also defined in the headers, it'll be overwritten
-        if (!userAgent.isBlank()) {
-            // custom user agent
-            headersMap.put(HttpHeader.USER_AGENT.asString(), userAgent.trim());
-        } else {
-            // use default: Jetty/<version>
-            headersMap.put(HttpHeader.USER_AGENT.asString(), "Jetty/" + Jetty.VERSION);
-        }
+        headersMap.put(HttpHeader.USER_AGENT.asString(),
+                userAgent.isBlank() ? "Jetty/" + Jetty.VERSION : userAgent.trim());
         headers.forEach(header -> {
             String[] keyValuePair = header.split("=", 2);
             if (keyValuePair.length == 2) {
