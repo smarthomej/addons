@@ -14,10 +14,16 @@
 package org.smarthomej.binding.http.internal.config;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpMethod;
+import org.eclipse.jetty.util.Jetty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The {@link HttpThingConfig} class contains fields mapping thing configuration parameters.
@@ -26,6 +32,8 @@ import org.eclipse.jetty.http.HttpMethod;
  */
 @NonNullByDefault
 public class HttpThingConfig {
+    private final Logger logger = LoggerFactory.getLogger(HttpThingConfig.class);
+
     public String baseURL = "";
     public int refresh = 30;
     public int timeout = 3000;
@@ -47,4 +55,28 @@ public class HttpThingConfig {
 
     // ArrayList is required as implementation because list may be modified later
     public ArrayList<String> headers = new ArrayList<>();
+    public String userAgent = "";
+
+    public Map<String, String> getHeaders() {
+        Map<String, String> headersMap = new HashMap<>();
+        // add user agent first, in case it is also defined in the headers, it'll be overwritten
+        if (userAgent.isBlank()) {
+            // custom user agent
+            headersMap.put(HttpHeader.USER_AGENT.asString(), userAgent.trim());
+        } else {
+            // use default: Jetty/<version>
+            headersMap.put(HttpHeader.USER_AGENT.asString(), "Jetty/" + Jetty.VERSION);
+        }
+        headersMap.put(HttpHeader.USER_AGENT.asString(), userAgent);
+        headers.forEach(header -> {
+            String[] keyValuePair = header.split("=", 2);
+            if (keyValuePair.length == 2) {
+                headersMap.put(keyValuePair[0].trim(), keyValuePair[1].trim());
+            } else {
+                logger.warn("Splitting header '{}' failed. No '=' was found. Ignoring", header);
+            }
+        });
+
+        return headersMap;
+    }
 }
