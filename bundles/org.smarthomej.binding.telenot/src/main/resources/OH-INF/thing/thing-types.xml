@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="telenot"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+
+	<!-- Telenot Bridge -->
+	<bridge-type id="ipbridge">
+		<label>Telenot Serial IP Bridge</label>
+		<description>Telenot Complex 400 IP Bridge</description>
+		<properties>
+			<property name="vendor">Telenot</property>
+		</properties>
+
+		<config-description>
+			<parameter name="hostname" type="text" required="true">
+				<label>Host Name</label>
+				<context>network-address</context>
+				<description>The hostname or IP address of the Telenot Serial IP Bridge</description>
+			</parameter>
+			<parameter name="tcpPort" type="integer">
+				<label>TCP Port</label>
+				<description>TCP port number for the Telenot connection</description>
+				<default>20108</default>
+			</parameter>
+			<parameter name="discovery" type="boolean">
+				<label>Enable Discovery</label>
+				<description>Enable automatic discovery. After saving this, it goes to off and the discovery will start. </description>
+				<default>false</default>
+			</parameter>
+			<parameter name="refreshData" type="integer" min="0" max="60" unit="min">
+				<label>Refresh Data Interval</label>
+				<description>The period in minutes that the handler will refresh the data to eventbus</description>
+				<unitLabel>minutes</unitLabel>
+				<default>10</default>
+				<advanced>true</advanced>
+			</parameter>
+			<parameter name="reconnect" type="integer" min="1" max="60" unit="min">
+				<label>Reconnect Interval</label>
+				<description>The period in minutes that the handler will wait between connection attempts and checks</description>
+				<unitLabel>minutes</unitLabel>
+				<default>2</default>
+				<advanced>true</advanced>
+			</parameter>
+			<parameter name="timeout" type="integer" min="0" max="60" unit="min">
+				<label>Message Receive Timeout</label>
+				<description>The period in minutes after which the connection will be reset if no valid messages have been received.
+					Set to 0 to disable.</description>
+				<unitLabel>minutes</unitLabel>
+				<default>5</default>
+				<advanced>true</advanced>
+			</parameter>
+		</config-description>
+	</bridge-type>
+
+	<!-- Sicherungsbereiche Thing Type -->
+	<thing-type id="sb">
+		<supported-bridge-type-refs>
+			<bridge-type-ref id="ipbridge"/>
+		</supported-bridge-type-refs>
+
+		<label>Telenot security area</label>
+		<description>State of Telenot security area</description>
+
+		<channels>
+			<channel id="intArmedDatetime" typeId="datetime-channel">
+				<label>Internally Armed DateTime</label>
+			</channel>
+			<channel id="intArmedContact" typeId="text-channel">
+				<label>Internally Armed Contact</label>
+			</channel>
+			<channel id="extArmedDatetime" typeId="datetime-channel">
+				<label>Externally Armed DateTime</label>
+			</channel>
+			<channel id="extArmedContact" typeId="text-channel">
+				<label>Externally Armed Contact</label>
+			</channel>
+			<channel id="disarmedDatetime" typeId="datetime-channel">
+				<label>Disarmed DateTime</label>
+			</channel>
+			<channel id="disarmedContact" typeId="text-channel">
+				<label>Disarmed Contact</label>
+			</channel>
+			<channel id="alarmDatetime" typeId="datetime-channel">
+				<label>Alarm DateTime</label>
+			</channel>
+			<channel id="alarmContact" typeId="text-channel">
+				<label>Alarm Contact</label>
+			</channel>
+			<channel id="alarmSetClear" typeId="indicator-channel">
+				<label>Alarm Set/Clear</label>
+			</channel>
+			<channel id="disarmed" typeId="indicator-channel">
+				<label>Disarmed</label>
+			</channel>
+			<channel id="internallyArmed" typeId="indicator-channel">
+				<label>Internally Armed</label>
+			</channel>
+			<channel id="externallyArmed" typeId="indicator-channel">
+				<label>Externally Armed</label>
+			</channel>
+			<channel id="alarm" typeId="indicator-channel">
+				<label>Alarm</label>
+			</channel>
+			<channel id="malfunction" typeId="indicator-channel">
+				<label>Malfunction</label>
+			</channel>
+			<channel id="readyToArmInternally" typeId="indicator-channel">
+				<label>Ready to arm internally</label>
+			</channel>
+			<channel id="readyToArmExternally" typeId="indicator-channel">
+				<label>Ready to arm Externally</label>
+			</channel>
+			<channel id="statusInternalSignalHorn" typeId="indicator-channel">
+				<label>Status int. signal horn</label>
+			</channel>
+			<channel id="externalArm" typeId="switch-channel">
+				<label>Arm external</label>
+			</channel>
+			<channel id="internalArm" typeId="switch-channel">
+				<label>Arm internal</label>
+			</channel>
+			<channel id="disarm" typeId="switch-channel">
+				<label>Disarm</label>
+			</channel>
+			<channel id="resetAlarm" typeId="switch-channel">
+				<label>Reset alarm</label>
+			</channel>
+		</channels>
+
+		<representation-property>id</representation-property>
+
+		<config-description>
+			<parameter name="address" type="integer" required="true">
+				<label>Number (i.e. 1)</label>
+			</parameter>
+		</config-description>
+	</thing-type>
+
+	<!-- Telenot MB Thing Type -->
+	<thing-type id="mb">
+		<supported-bridge-type-refs>
+			<bridge-type-ref id="ipbridge"/>
+		</supported-bridge-type-refs>
+
+		<label>Telenot MB-Number</label>
+		<description>The number of each single Telenot reporting area</description>
+
+		<channels>
+			<channel id="contactMB" typeId="contact-channel">
+				<label>Contact</label>
+			</channel>
+			<channel id="disableMB" typeId="switch-channel">
+				<label>Disable Contact</label>
+			</channel>
+		</channels>
+
+		<representation-property>id</representation-property>
+
+		<config-description>
+			<parameter name="address" type="integer" required="true">
+				<label>Number (i.e. 1)</label>
+			</parameter>
+		</config-description>
+	</thing-type>
+
+	<!-- Telenot MP Thing Type -->
+	<thing-type id="mp">
+		<supported-bridge-type-refs>
+			<bridge-type-ref id="ipbridge"/>
+		</supported-bridge-type-refs>
+
+		<label>Telenot reporting point</label>
+		<description>The address of each single Telenot reporting point</description>
+
+		<channels>
+			<channel id="contact" typeId="contact-channel"/>
+		</channels>
+
+		<representation-property>id</representation-property>
+
+		<config-description>
+			<parameter name="address" type="integer" required="true">
+				<label>Number (i.e. 1)</label>
+			</parameter>
+		</config-description>
+	</thing-type>
+
+
+	<!-- Telenot system state Thing Type -->
+	<thing-type id="emaState">
+		<supported-bridge-type-refs>
+			<bridge-type-ref id="ipbridge"/>
+		</supported-bridge-type-refs>
+
+		<label>Telenot EMA State</label>
+		<description>Telenot EMA State</description>
+
+		<channels>
+			<channel id="intrusionDatetime" typeId="datetime-channel">
+				<label>Intrusion Date/Time</label>
+			</channel>
+			<channel id="intrusionContact" typeId="text-channel">
+				<label>Intrusion Contact</label>
+			</channel>
+			<channel id="intrusionSetClear" typeId="indicator-channel">
+				<label>Intrusion Set/Clear</label>
+			</channel>
+			<channel id="batteryMalfunctionDatetime" typeId="datetime-channel">
+				<label>Battery malfunc. DateTime</label>
+			</channel>
+			<channel id="batteryMalfunctionContact" typeId="text-channel">
+				<label>Battery malfunc. Contact</label>
+			</channel>
+			<channel id="batteryMalfunctionSetClear" typeId="indicator-channel">
+				<label>Battery malfunc. SetClear</label>
+			</channel>
+			<channel id="powerOutageDatetime" typeId="datetime-channel">
+				<label>Power outage DateTime</label>
+			</channel>
+			<channel id="powerOutageContact" typeId="text-channel">
+				<label>Power outage Contact</label>
+			</channel>
+			<channel id="powerOutageSetClear" typeId="indicator-channel">
+				<label>Power outage SetClear</label>
+			</channel>
+			<channel id="flasherMalfunctionDatetime" typeId="datetime-channel">
+				<label>Flasher malfunc. DateTime</label>
+			</channel>
+			<channel id="flasherMalfunctionContact" typeId="text-channel">
+				<label>Flasher malfunc. Contact</label>
+			</channel>
+			<channel id="flasherMalfunctionSetClear" typeId="indicator-channel">
+				<label>Flasher malfunc. SetClear</label>
+			</channel>
+			<channel id="horn1MalfunctionDatetime" typeId="datetime-channel">
+				<label>Horn 1 malfunc. DateTime</label>
+			</channel>
+			<channel id="horn1MalfunctionContact" typeId="text-channel">
+				<label>Horn 1 malfunc. Contact</label>
+			</channel>
+			<channel id="horn1MalfunctionSetClear" typeId="indicator-channel">
+				<label>Horn 1 malfunc. SetClear</label>
+			</channel>
+			<channel id="horn2MalfunctionDatetime" typeId="datetime-channel">
+				<label>Horn 2 malfunc DateTime</label>
+			</channel>
+			<channel id="horn2MalfunctionContact" typeId="text-channel">
+				<label>Horn 2 malfunc. Contact</label>
+			</channel>
+			<channel id="horn2MalfunctionSetClear" typeId="indicator-channel">
+				<label>Horn 2 malfunc. SetClear</label>
+			</channel>
+		</channels>
+
+		<representation-property>id</representation-property>
+
+	</thing-type>
+
+	<!-- Telenot Input Thing Type -->
+	<thing-type id="input">
+		<supported-bridge-type-refs>
+			<bridge-type-ref id="ipbridge"/>
+		</supported-bridge-type-refs>
+
+		<label>Telenot Reporting Group</label>
+		<description>Thing for Telenot all discovered reporting group</description>
+
+		<representation-property>id</representation-property>
+	</thing-type>
+
+	<!-- Telenot Output Thing Type -->
+	<thing-type id="output">
+		<supported-bridge-type-refs>
+			<bridge-type-ref id="ipbridge"/>
+		</supported-bridge-type-refs>
+
+		<label>Telenot Reporting Area</label>
+		<description>Thing for Telenot all discovered reporting area</description>
+
+		<representation-property>id</representation-property>
+
+	</thing-type>
+
+	<!-- ===== Channel Type Definitions ===== -->
+
+	<!-- Contact Channel Type -->
+	<channel-type id="contact-channel">
+		<item-type>Contact</item-type>
+		<label>Contact State</label>
+		<category>Switch</category>
+		<state readOnly="true"/>
+	</channel-type>
+
+	<!-- Indicator Channel Type -->
+	<channel-type id="indicator-channel">
+		<item-type>Switch</item-type>
+		<label>Indicator State</label>
+		<category>Switch</category>
+		<state readOnly="true"/>
+	</channel-type>
+
+	<!-- Switch Channel Type -->
+	<channel-type id="switch-channel">
+		<item-type>Switch</item-type>
+		<label>Switch State</label>
+		<category>Switch</category>
+		<state readOnly="false"/>
+	</channel-type>
+
+	<!-- Number Channel Type -->
+	<channel-type id="number-channel">
+		<item-type>Number</item-type>
+		<label>Number</label>
+		<category>Number</category>
+		<state readOnly="true"/>
+	</channel-type>
+
+	<!-- Date channel type -->
+	<channel-type id="datetime-channel">
+		<item-type>DateTime</item-type>
+		<label>DateTime Channel</label>
+		<state readOnly="true"/>
+	</channel-type>
+
+	<!-- Text channel type -->
+	<channel-type id="text-channel">
+		<item-type>String</item-type>
+		<label>Text Channel</label>
+		<state readOnly="true"/>
+	</channel-type>
+
+	<!-- Command channel type -->
+	<channel-type id="command-channel" advanced="true">
+		<item-type>String</item-type>
+		<label>Command Channel</label>
+	</channel-type>
+
+	<!-- Integer Command channel type -->
+	<channel-type id="int-command-channel" advanced="true">
+		<item-type>Number</item-type>
+		<label>Integer Command Channel</label>
+	</channel-type>
+
+	<!-- Contact command channel type -->
+	<channel-type id="contact-command-channel">
+		<item-type>String</item-type>
+		<label>Contact Command</label>
+		<command>
+			<options>
+				<option value="OPEN">Open</option>
+				<option value="CLOSED">Closed</option>
+			</options>
+		</command>
+	</channel-type>
+
+</thing:thing-descriptions>
