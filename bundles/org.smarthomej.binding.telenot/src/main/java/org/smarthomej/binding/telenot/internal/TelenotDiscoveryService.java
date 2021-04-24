@@ -20,13 +20,16 @@ import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.config.discovery.AbstractDiscoveryService;
 import org.openhab.core.config.discovery.DiscoveryResult;
 import org.openhab.core.config.discovery.DiscoveryResultBuilder;
+import org.openhab.core.thing.ThingTypeUID;
 import org.openhab.core.thing.ThingUID;
+import org.openhab.core.thing.binding.ThingHandler;
+import org.openhab.core.thing.binding.ThingHandlerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthomej.binding.telenot.internal.handler.SBHandler;
 import org.smarthomej.binding.telenot.internal.handler.TelenotBridgeHandler;
 
 /**
@@ -36,16 +39,43 @@ import org.smarthomej.binding.telenot.internal.handler.TelenotBridgeHandler;
  * @author Ronny Grun - Initial contribution
  */
 @NonNullByDefault
-public class TelenotDiscoveryService extends AbstractDiscoveryService {
+public class TelenotDiscoveryService extends AbstractDiscoveryService implements ThingHandlerService {
 
     private final Logger logger = LoggerFactory.getLogger(TelenotDiscoveryService.class);
 
-    private TelenotBridgeHandler bridgeHandler;
+    private @Nullable TelenotBridgeHandler bridgeHandler;
+    // private @Nullable ThingUID bridgeUID;
     private final Set<String> discoveredSBSet = new HashSet<>();
 
-    public TelenotDiscoveryService(TelenotBridgeHandler bridgeHandler) throws IllegalArgumentException {
+    public TelenotDiscoveryService() {
         super(DISCOVERABLE_DEVICE_TYPE_UIDS, 0, false);
-        this.bridgeHandler = bridgeHandler;
+    }
+
+    @Override
+    public void setThingHandler(ThingHandler thingHandler) {
+        if (thingHandler instanceof TelenotBridgeHandler) {
+            this.bridgeHandler = (TelenotBridgeHandler) thingHandler;
+        }
+    }
+
+    @Override
+    public Set<ThingTypeUID> getSupportedThingTypes() {
+        return DISCOVERABLE_DEVICE_TYPE_UIDS;
+    }
+
+    @Override
+    public @Nullable ThingHandler getThingHandler() {
+        return bridgeHandler;
+    }
+
+    @Override
+    public void activate() {
+        super.activate(null);
+    }
+
+    @Override
+    public void deactivate() {
+        super.deactivate();
     }
 
     @Override
@@ -54,7 +84,7 @@ public class TelenotDiscoveryService extends AbstractDiscoveryService {
     }
 
     public void processSB(int address) {
-        String token = SBHandler.sbID(address);
+        String token = String.valueOf(address);
         if (!discoveredSBSet.contains(token)) {
             notifyDiscoveryOfSB(address, token);
             discoveredSBSet.add(token);
