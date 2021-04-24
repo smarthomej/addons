@@ -13,7 +13,7 @@
  */
 package org.smarthomej.binding.http.internal;
 
-import static org.smarthomej.binding.http.internal.HttpBindingConstants.*;
+import static org.smarthomej.binding.http.internal.HttpBindingConstants.THING_TYPE_URL;
 
 import java.util.Set;
 
@@ -61,13 +61,16 @@ public class HttpHandlerFactory extends BaseThingHandlerFactory implements HttpC
         this.secureClient = new HttpClient(new SslContextFactory.Client());
         this.insecureClient = new HttpClient(new SslContextFactory.Client(true));
         this.valueTransformationProvider = valueTransformationProvider;
+        // clear user agent, this needs to be set later in the thing configuration as additional header
+        this.secureClient.setUserAgentField(null);
+        this.insecureClient.setUserAgentField(null);
         try {
             this.secureClient.start();
             this.insecureClient.start();
         } catch (Exception e) {
             // catching exception is necessary due to the signature of HttpClient.start()
-            logger.warn("Failed to start insecure http client: {}", e.getMessage());
-            throw new IllegalStateException("Could not create insecure HttpClient");
+            logger.warn("Failed to start http client: {}", e.getMessage());
+            throw new IllegalStateException("Could not create HttpClient", e);
         }
         this.httpDynamicStateDescriptionProvider = httpDynamicStateDescriptionProvider;
     }

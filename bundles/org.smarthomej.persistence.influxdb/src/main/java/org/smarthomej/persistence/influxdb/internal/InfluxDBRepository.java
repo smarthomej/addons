@@ -33,9 +33,8 @@ public interface InfluxDBRepository {
     boolean isConnected();
 
     /**
-     * Connect to InfluxDB server
+     * connect to InfluxDB server
      *
-     * @return True if successful, otherwise false
      */
     boolean connect();
 
@@ -71,5 +70,12 @@ public interface InfluxDBRepository {
      *
      * @param influxPoint Point to write
      */
-    void write(InfluxPoint influxPoint);
+    void write(InfluxPoint influxPoint) throws UnexpectedConditionException;
+
+    /**
+     * create a query creator on this repository
+     *
+     * @return the query creator for this repository
+     */
+    FilterCriteriaQueryCreator createQueryCreator();
 }

@@ -97,8 +97,13 @@ public class Tr064PhonebookImpl implements Phonebook {
         return "Phonebook{" + "phonebookName='" + phonebookName + "', phonebook=" + phonebook + '}';
     }
 
-    private String normalizeNumber(String number) {
-        // Naive normalization: remove all non-digit characters
-        return number.replaceAll("[^0-9]\\+\\*", "");
+    /**
+     * normalize a phone number (remove everything except digits and *) for comparison
+     *
+     * @param number the input phone number string
+     * @return normalized phone number string
+     */
+    public final String normalizeNumber(String number) {
+        return number.replaceAll("[^0-9\\*\\+]", "");
     }
 }

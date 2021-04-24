@@ -30,9 +30,10 @@ public interface FilterCriteriaQueryCreator {
      * @param retentionPolicy Name of the retentionPolicy/bucket to use in query
      * @return Created query as an String
      */
-    String createQuery(FilterCriteria criteria, String retentionPolicy);
+    String createQuery(FilterCriteria criteria, String retentionPolicy) throws UnexpectedConditionException;
 
-    default String getOperationSymbol(FilterCriteria.Operator operator, InfluxDBVersion version) {
+    default String getOperationSymbol(FilterCriteria.Operator operator, InfluxDBVersion version)
+            throws UnexpectedConditionException {
         switch (operator) {
             case EQ:
                 return "=";
@@ -47,7 +48,7 @@ public interface FilterCriteriaQueryCreator {
             case NEQ:
                 return version == InfluxDBVersion.V1 ? "<>" : "!=";
             default:
-                throw new UnnexpectedConditionException("Not expected operator " + operator);
+                throw new UnexpectedConditionException("Not expected operator " + operator);
         }
     }
 }

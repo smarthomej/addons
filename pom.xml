@@ -11,7 +11,7 @@
 
   <groupId>org.smarthomej.addons</groupId>
   <artifactId>org.smarthomej.addons.reactor</artifactId>
-  <version>3.1.1-SNAPSHOT</version>
+  <version>3.1.2-SNAPSHOT</version>
 
   <packaging>pom</packaging>
 
@@ -77,7 +77,7 @@
     <maven.compiler.target>${oh.java.version}</maven.compiler.target>
     <maven.compiler.compilerVersion>${oh.java.version}</maven.compiler.compilerVersion>
 
-    <ohc.version>3.0.0</ohc.version>
+    <ohc.version>3.0.2</ohc.version>
     <bnd.version>5.3.0</bnd.version>
     <commons.net.version>3.7.2</commons.net.version>
     <eea.version>2.3.0</eea.version>

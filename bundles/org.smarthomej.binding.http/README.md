@@ -25,8 +25,9 @@ It can be extended with different channels.
 | `encoding`        | yes      |    -    | Encoding to be used if no encoding is found in responses (advanced parameter). |  
 | `headers`         | yes      |    -    | Additional headers that are sent along with the request. Format is "header=value". Multiple values can be stored as `headers="key1=value1", "key2=value2", "key3=value3",`| 
 | `ignoreSSLErrors` | no       |  false  | If set to true ignores invalid SSL certificate errors. This is potentially dangerous.|
+| `userAgent`       | yes      |   yes   | Sets a custom user agent (default is "Jetty/version", e.g. "Jetty/9.4.20.v20190813"). |
 
-*Note:* Optional "no" means that you have to configure a value unless a default is provided and you are ok with that setting.
+*Note:* Optional "no" means that you have to configure a value unless a default is provided, and you are ok with that setting.
 
 *Note:* The `BASIC_PREEMPTIVE` mode adds basic authentication headers even if the server did not request authentication.
 This is dangerous and might be misused.

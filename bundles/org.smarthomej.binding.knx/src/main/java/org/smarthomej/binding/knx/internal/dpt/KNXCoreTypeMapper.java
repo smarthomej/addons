@@ -529,6 +529,17 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
         // Example since calimero 2.4: dptTypeMap.put(DptXlator8BitSet.DptGeneralStatus.getID(), StringType.class);
 
         /**
+         * MainType: 22
+         * unsupported: 22.100: DHW Controller Status
+         * 22.101: RHCC Status (enumeration)
+         * unsupported: 22.102: HVAC combined status
+         * unsupported: 22.103: RTC status
+         * 22.1000: KNX medium (enumeration)
+         * unsupported: 22.1010: 16 channel activation
+         */
+        dptMainTypeMap.put(22, StringType.class);
+
+        /**
          * MainType: 28
          * 28.001: UTF-8
          */
@@ -706,6 +717,10 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
                         case 8:
                             return translatorBoolean.getValueBoolean() ? UpDownType.DOWN : UpDownType.UP;
                         case 9:
+                            // This is wrong. It should be true -> CLOSE, false -> OPEN, but can't be fixed without
+                            // breaking
+                            // a lot of working installations. The documentation has been updated to reflect that. /
+                            // @J-N-K
                             return translatorBoolean.getValueBoolean() ? OpenClosedType.OPEN : OpenClosedType.CLOSED;
                         case 10:
                             return translatorBoolean.getValueBoolean() ? StopMoveType.MOVE : StopMoveType.STOP;

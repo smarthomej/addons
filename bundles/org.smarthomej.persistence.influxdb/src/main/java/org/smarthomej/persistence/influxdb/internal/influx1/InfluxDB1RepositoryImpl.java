@@ -16,12 +16,14 @@ package org.smarthomej.persistence.influxdb.internal.influx1;
 import static org.smarthomej.persistence.influxdb.internal.InfluxDBConstants.COLUMN_TIME_NAME_V1;
 import static org.smarthomej.persistence.influxdb.internal.InfluxDBConstants.COLUMN_VALUE_NAME_V1;
 import static org.smarthomej.persistence.influxdb.internal.InfluxDBConstants.FIELD_VALUE_NAME;
+import static org.smarthomej.persistence.influxdb.internal.InfluxDBConstants.TAG_ITEM_NAME;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -35,11 +37,13 @@ import org.influxdb.dto.QueryResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.persistence.influxdb.InfluxDBPersistenceService;
+import org.smarthomej.persistence.influxdb.internal.FilterCriteriaQueryCreator;
 import org.smarthomej.persistence.influxdb.internal.InfluxDBConfiguration;
+import org.smarthomej.persistence.influxdb.internal.InfluxDBMetadataService;
 import org.smarthomej.persistence.influxdb.internal.InfluxDBRepository;
 import org.smarthomej.persistence.influxdb.internal.InfluxPoint;
 import org.smarthomej.persistence.influxdb.internal.InfluxRow;
-import org.smarthomej.persistence.influxdb.internal.UnnexpectedConditionException;
+import org.smarthomej.persistence.influxdb.internal.UnexpectedConditionException;
 
 /**
  * Implementation of {@link InfluxDBRepository} for InfluxDB 1.0
@@ -50,12 +54,14 @@ import org.smarthomej.persistence.influxdb.internal.UnnexpectedConditionExceptio
 @NonNullByDefault
 public class InfluxDB1RepositoryImpl implements InfluxDBRepository {
     private final Logger logger = LoggerFactory.getLogger(InfluxDB1RepositoryImpl.class);
-    private InfluxDBConfiguration configuration;
-    @Nullable
-    private InfluxDB client;
+    private final InfluxDBConfiguration configuration;
+    private final InfluxDBMetadataService influxDBMetadataService;
+    private @Nullable InfluxDB client;
 
-    public InfluxDB1RepositoryImpl(InfluxDBConfiguration configuration) {
+    public InfluxDB1RepositoryImpl(InfluxDBConfiguration configuration,
+            InfluxDBMetadataService influxDBMetadataService) {
         this.configuration = configuration;
+        this.influxDBMetadataService = influxDBMetadataService;
     }
 
     @Override
@@ -112,7 +118,7 @@ public class InfluxDB1RepositoryImpl implements InfluxDBRepository {
     }
 
     @Override
-    public void write(InfluxPoint point) {
+    public void write(InfluxPoint point) throws UnexpectedConditionException {
         final InfluxDB currentClient = this.client;
         if (currentClient != null) {
             Point clientPoint = convertPointToClientFormat(point);
@@ -122,15 +128,15 @@ public class InfluxDB1RepositoryImpl implements InfluxDBRepository {
         }
     }
 
-    private Point convertPointToClientFormat(InfluxPoint point) {
+    private Point convertPointToClientFormat(InfluxPoint point) throws UnexpectedConditionException {
         Point.Builder clientPoint = Point.measurement(point.getMeasurementName()).time(point.getTime().toEpochMilli(),
                 TimeUnit.MILLISECONDS);
         setPointValue(point.getValue(), clientPoint);
-        point.getTags().entrySet().forEach(e -> clientPoint.tag(e.getKey(), e.getValue()));
+        point.getTags().forEach(clientPoint::tag);
         return clientPoint.build();
     }
 
-    private void setPointValue(@Nullable Object value, Point.Builder point) {
+    private void setPointValue(@Nullable Object value, Point.Builder point) throws UnexpectedConditionException {
         if (value instanceof String) {
             point.addField(FIELD_VALUE_NAME, (String) value);
         } else if (value instanceof Number) {
@@ -138,9 +144,9 @@ public class InfluxDB1RepositoryImpl implements InfluxDBRepository {
         } else if (value instanceof Boolean) {
             point.addField(FIELD_VALUE_NAME, (Boolean) value);
         } else if (value == null) {
-            point.addField(FIELD_VALUE_NAME, (String) null);
+            point.addField(FIELD_VALUE_NAME, "null");
         } else {
-            throw new UnnexpectedConditionException("Not expected value type");
+            throw new UnexpectedConditionException("Not expected value type");
         }
     }
 
@@ -150,51 +156,47 @@ public class InfluxDB1RepositoryImpl implements InfluxDBRepository {
         if (currentClient != null) {
             Query parsedQuery = new Query(query, configuration.getDatabaseName());
             List<QueryResult.Result> results = currentClient.query(parsedQuery, TimeUnit.MILLISECONDS).getResults();
-            return convertClientResutToRepository(results);
+            return convertClientResultToRepository(results);
         } else {
             logger.warn("Returning empty list because queryAPI isn't present");
-            return Collections.emptyList();
+            return List.of();
         }
     }
 
-    private List<InfluxRow> convertClientResutToRepository(List<QueryResult.Result> results) {
+    private List<InfluxRow> convertClientResultToRepository(List<QueryResult.Result> results) {
         List<InfluxRow> rows = new ArrayList<>();
         for (QueryResult.Result result : results) {
-            List<QueryResult.Series> seriess = result.getSeries();
+            List<QueryResult.Series> allSeries = result.getSeries();
             if (result.getError() != null) {
                 logger.warn("{}", result.getError());
                 continue;
             }
-            if (seriess == null) {
+            if (allSeries == null) {
                 logger.debug("query returned no series");
             } else {
-                for (QueryResult.Series series : seriess) {
-                    logger.trace("series {}", series.toString());
-                    String itemName = series.getName();
-                    List<List<Object>> valuess = series.getValues();
-                    if (valuess == null) {
+                for (QueryResult.Series series : allSeries) {
+                    logger.trace("series {}", series);
+                    String defaultItemName = series.getName();
+                    List<List<Object>> allValues = series.getValues();
+                    if (allValues == null) {
                         logger.debug("query returned no values");
                     } else {
                         List<String> columns = series.getColumns();
                         logger.trace("columns {}", columns);
                         if (columns != null) {
-                            Integer timestampColumn = null;
-                            Integer valueColumn = null;
-                            for (int i = 0; i < columns.size(); i++) {
-                                String columnName = columns.get(i);
-                                if (columnName.equals(COLUMN_TIME_NAME_V1)) {
-                                    timestampColumn = i;
-                                } else if (columnName.equals(COLUMN_VALUE_NAME_V1)) {
-                                    valueColumn = i;
-                                }
-                            }
-                            if (valueColumn == null || timestampColumn == null) {
+                            int timestampColumn = columns.indexOf(COLUMN_TIME_NAME_V1);
+                            int valueColumn = columns.indexOf(COLUMN_VALUE_NAME_V1);
+                            int itemNameColumn = columns.indexOf(TAG_ITEM_NAME);
+                            if (valueColumn == -1 || timestampColumn == -1) {
                                 throw new IllegalStateException("missing column");
                             }
-                            for (int i = 0; i < valuess.size(); i++) {
-                                Double rawTime = (Double) valuess.get(i).get(timestampColumn);
+                            for (List<Object> valueObject : allValues) {
+                                Double rawTime = (Double) valueObject.get(timestampColumn);
                                 Instant time = Instant.ofEpochMilli(rawTime.longValue());
-                                Object value = valuess.get(i).get(valueColumn);
+                                Object value = valueObject.get(valueColumn);
+                                String itemName = itemNameColumn == -1 ? defaultItemName
+                                        : Objects.requireNonNullElse((String) valueObject.get(itemNameColumn),
+                                                defaultItemName);
                                 logger.trace("adding historic item {}: time {} value {}", itemName, time, value);
                                 rows.add(new InfluxRow(time, itemName, value));
                             }
@@ -209,5 +211,10 @@ public class InfluxDB1RepositoryImpl implements InfluxDBRepository {
     @Override
     public Map<String, Integer> getStoredItemsCount() {
         return Collections.emptyMap();
+    }
+
+    @Override
+    public FilterCriteriaQueryCreator createQueryCreator() {
+        return new InfluxDB1FilterCriteriaQueryCreatorImpl(configuration, influxDBMetadataService);
     }
 }

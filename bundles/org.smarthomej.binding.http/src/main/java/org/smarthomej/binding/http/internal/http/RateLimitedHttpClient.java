@@ -56,7 +56,7 @@ public class RateLimitedHttpClient {
      */
     public void shutdown() {
         stopProcessJob();
-        requestQueue.forEach(queueEntry -> queueEntry.future.completeExceptionally(new CancellationException()));
+        requestQueue.forEach(RequestQueueEntry::cancel);
     }
 
     /**
@@ -154,6 +154,13 @@ public class RateLimitedHttpClient {
                 request.content(new StringContentProvider(content));
             }
             future.complete(request);
+        }
+
+        /**
+         * cancel this request and complete the future with a {@link CancellationException}
+         */
+        public void cancel() {
+            future.completeExceptionally(new CancellationException());
         }
     }
 }

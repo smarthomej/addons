@@ -89,14 +89,14 @@ This binding includes rule actions for sending email.
 Six different actions available:
 
 * `boolean success = sendMail(String recipient, String subject, String text)`
-* `boolean success = sendMail(String recipient, String subject, String text, String URL)`
-* `boolean success = sendMail(String recipient, String subject, String text, List<String> URL)`
+* `boolean success = sendMailWithAttachment(String recipient, String subject, String text, String URL)`
+* `boolean success = sendMailWithAttachments(String recipient, String subject, String text, List<String> URL)`
 * `boolean success = sendHtmlMail(String recipient, String subject, String htmlContent)`
-* `boolean success = sendHtmlMail(String recipient, String subject, String htmlContent, String URL)`
-* `boolean success = sendHtmlMail(String recipient, String subject, String htmlContent, List<String> URL)`
+* `boolean success = sendHtmlMailWithAttachment(String recipient, String subject, String htmlContent, String URL)`
+* `boolean success = sendHtmlMailWithAttachments(String recipient, String subject, String htmlContent, List<String> URL)`
 
-The `sendMail(...)` send a plain text mail (with attachments if supplied).
-The `sendHtmlMail(...)` send a HTML mail (with attachments if supplied).
+The `sendMail(...)` actions send a plain text mail (with attachments if supplied).
+The `sendHtmlMail(...)` actions send an HTML mail (with attachments if supplied).
 
 Both functions return a boolean as the result of the operation.
 
@@ -109,7 +109,7 @@ Once this action instance is retrieved, you can invoke the action method on it.
 Please note: All strings are expected to be UTF-8 encoded.
 Using different character sets may produce unwanted results.
 
-Examples:
+Examples (Rules DSL):
 
 ```
 val mailActions = getActions("mail","mail:smtp:samplesmtp")
