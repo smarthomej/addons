@@ -26,6 +26,7 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.thing.Channel;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
@@ -41,6 +42,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Jan N. Klug - Initial contribution
  */
+@NonNullByDefault
 public class ThingUpdater {
     private static final Pattern UPDATE_INSTRUCTION = Pattern
             .compile("(?<version>\\d+);(?<action>ADD_CHANNEL|UPDATE_CHANNEL|REMOVE_CHANNEL);(?<parameters>.*)");
@@ -101,9 +103,9 @@ public class ThingUpdater {
         updateInstructions.forEach((targetThingTypeVersion, updateInstruction) -> {
             logger.info("Updating {} from version {} to {}", thingUid, currentThingTypeVersion, targetThingTypeVersion);
             updateInstruction.forEach(instruction -> processUpdateInstruction(instruction, thingBuilder));
+            currentThingTypeVersion = targetThingTypeVersion;
         });
         thingBuilder.withProperties(Map.of(PROPERTY_THING_TYPE_VERSION, String.valueOf(updateInstructions.lastKey())));
-        currentThingTypeVersion = updateInstructions.lastKey();
         return thingBuilder;
     }
 
