@@ -21,7 +21,7 @@ If no thing-type version is present, the thing is considered to have version `0`
 
 Three actions are available (see examples below):
 
-- `ADD_CHANNEL`: Add a new channel. Parameters are `<id>,<acceptedItemType>,<channelTypeUid>,<label>`.  
+- `ADD_CHANNEL`: Add a new channel. Parameters are `<id>,<acceptedItemType>,<channelTypeUid>[,<label>,[<description>]]`.  
 - `DELETE_CHANNEL`: Delete a channel. The only parameter is `<id>`.
 - `UPDATE_CHANNNEL`: Update an existing channel. Parameters are the same as for `ADD_CHANNEL`.
 
@@ -32,7 +32,7 @@ After some time the binding evolves and two modifications are needed.
 `testChannel1` modified (e.g. changed the label) and a new channel `testChannel2` is added.
 
 ```
-1;UPDATE_CHANNEL;testChannel1,String,testBinding:testChannelTypeNewId,Test Label
+1;UPDATE_CHANNEL;testChannel1,String,testBinding:testChannelTypeNewId
 1;ADD_CHANNEL;testChannel2,Switch,testBinding:testChannelTypeId,TestLabel
 ```
 
@@ -41,7 +41,7 @@ For things already at version `1`, only the last instruction is processed.
 Things that are still version `0` are first upgraded to version `1` and then immediately to version `2`
 
 ```
-1;UPDATE_CHANNEL;testChannel1,String,testBinding:testChannelTypeNewId,Test Label
+1;UPDATE_CHANNEL;testChannel1,String,testBinding:testChannelTypeNewId
 1;ADD_CHANNEL;testChannel2,Switch,testBinding:testChannelTypeId,TestLabel
 2;REMOVE_CHANNEL;testChannel0
 ```

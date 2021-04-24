@@ -85,14 +85,29 @@ public class UpdatingBaseBridgeHandlerTest {
         Mockito.verify(callback).thingUpdated(thingCaptor.capture());
         Bridge newBridge = thingCaptor.getValue();
 
-        Channel newChannel = newBridge.getChannel("testChannel");
+        Channel newChannel = newBridge.getChannel("testChannel1");
         Assertions.assertNotNull(newChannel);
         Objects.requireNonNull(newChannel);
-
         Assertions.assertEquals("String", newChannel.getAcceptedItemType());
-        Assertions.assertEquals("Test Label", newChannel.getLabel());
+        Assertions.assertNull(newChannel.getLabel());
+        Assertions.assertNull(newChannel.getDescription());
         Assertions.assertEquals(CHANNEL_TYPE_UID, newChannel.getChannelTypeUID());
 
+        newChannel = newBridge.getChannel("testChannel2");
+        Assertions.assertNotNull(newChannel);
+        Objects.requireNonNull(newChannel);
+        Assertions.assertEquals("String", newChannel.getAcceptedItemType());
+        Assertions.assertEquals("Test Label", newChannel.getLabel());
+        Assertions.assertNull(newChannel.getDescription());
+        Assertions.assertEquals(CHANNEL_TYPE_UID, newChannel.getChannelTypeUID());
+
+        newChannel = newBridge.getChannel("testChannel3");
+        Assertions.assertNotNull(newChannel);
+        Objects.requireNonNull(newChannel);
+        Assertions.assertEquals("String", newChannel.getAcceptedItemType());
+        Assertions.assertEquals("Test Label", newChannel.getLabel());
+        Assertions.assertEquals("Test Description", newChannel.getDescription());
+        Assertions.assertEquals(CHANNEL_TYPE_UID, newChannel.getChannelTypeUID());
         Assertions.assertEquals("1", newBridge.getProperties().get(PROPERTY_THING_TYPE_VERSION));
     }
 

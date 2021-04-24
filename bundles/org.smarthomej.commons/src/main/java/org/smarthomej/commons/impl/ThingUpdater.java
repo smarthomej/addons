@@ -27,7 +27,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.openhab.core.thing.Channel;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingUID;
@@ -116,10 +115,17 @@ public class ThingUpdater {
                 thingBuilder.withoutChannel(affectedChannelUid);
                 // fall-through to add channel
             case ADD_CHANNEL:
-                Channel channel = ChannelBuilder.create(affectedChannelUid, instruction.parameters.get(0))
-                        .withType(new ChannelTypeUID(instruction.parameters.get(1)))
-                        .withLabel(instruction.parameters.get(2)).build();
-                thingBuilder.withChannel(channel);
+                ChannelBuilder channelBuilder = ChannelBuilder.create(affectedChannelUid, instruction.parameters.get(0))
+                        .withType(new ChannelTypeUID(instruction.parameters.get(1)));
+                if (instruction.parameters.size() >= 3) {
+                    // label is optional (could be inherited from thing-type)
+                    channelBuilder.withLabel(instruction.parameters.get(2));
+                }
+                if (instruction.parameters.size() == 4) {
+                    // label is optional (could be inherited from thing-type)
+                    channelBuilder.withDescription(instruction.parameters.get(3));
+                }
+                thingBuilder.withChannel(channelBuilder.build());
                 break;
             case REMOVE_CHANNEL:
                 thingBuilder.withoutChannel(affectedChannelUid);
@@ -138,25 +144,27 @@ public class ThingUpdater {
             // first is always channelId
             this.channelId = this.parameters.remove(0);
 
-            if (this.parameters.size() != this.updateCommand.getParameterCount()) {
+            if (!this.updateCommand.checkParameterCount(this.parameters.size())) {
                 throw new IllegalArgumentException("Wrong number of parameters: " + this.parameters.size());
             }
         }
     }
 
     private enum UpdateCommand {
-        ADD_CHANNEL(3),
-        REMOVE_CHANNEL(0),
-        UPDATE_CHANNEL(3);
+        ADD_CHANNEL(2, 4),
+        REMOVE_CHANNEL(0, 0),
+        UPDATE_CHANNEL(2, 4);
 
-        private final int parameterCount;
+        private final int minParameterCount;
+        private final int maxParameterCount;
 
-        UpdateCommand(int parameterCount) {
-            this.parameterCount = parameterCount;
+        UpdateCommand(int minParameterCount, int maxParameterCount) {
+            this.minParameterCount = minParameterCount;
+            this.maxParameterCount = maxParameterCount;
         }
 
-        public int getParameterCount() {
-            return parameterCount;
+        public boolean checkParameterCount(int parameterCount) {
+            return parameterCount >= minParameterCount && parameterCount <= maxParameterCount;
         }
     }
 }
