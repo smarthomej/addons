@@ -1,1 +1,2 @@
+# simple instruction to add a channel
 1;ADD_CHANNEL;testChannel,String,testBinding:testChannelId,Test Label

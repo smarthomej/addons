@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.openhab.core.thing.Channel;
@@ -41,6 +42,9 @@ import org.slf4j.LoggerFactory;
  * @author Jan N. Klug - Initial contribution
  */
 public class ThingUpdater {
+    private static final Pattern UPDATE_INSTRUCTION = Pattern
+            .compile("(?<version>\\d+);(?<action>ADD_CHANNEL|UPDATE_CHANNEL|REMOVE_CHANNEL);(?<parameters>.*)");
+
     private final Logger logger = LoggerFactory.getLogger(ThingUpdater.class);
     private final TreeMap<Integer, List<UpdateInstruction>> updateInstructions = new TreeMap<>();
     private final ThingUID thingUid;
@@ -62,23 +66,23 @@ public class ThingUpdater {
         try (Scanner scanner = new Scanner(inputStream, StandardCharsets.UTF_8)) {
             scanner.useDelimiter(Pattern.compile("\\r|\\n|\\r\\n"));
             while (scanner.hasNext()) {
-                String line = scanner.next();
-                if (line.isEmpty()) {
+                String line = scanner.next().trim();
+                if (line.startsWith("#") || line.isEmpty()) {
+                    continue;
+                }
+                Matcher matcher = UPDATE_INSTRUCTION.matcher(line);
+                if (!matcher.matches()) {
+                    logger.warn("Line '{}' did not match format for instruction. Ignoring.", line);
                     continue;
                 }
 
                 // create update instruction: version;command;parameter(s)
-                String[] parts = line.split(";");
-                if (parts.length != 3) {
-                    logger.warn("Illegal thing update instruction '{}': Could not split command", line);
-                    continue;
-                }
-                int targetThingTypeVersion = Integer.parseInt(parts[0]);
+                int targetThingTypeVersion = Integer.parseInt(matcher.group("version"));
                 if (targetThingTypeVersion > currentThingTypeVersion) {
                     try {
                         updateInstructions.compute(targetThingTypeVersion, (k, v) -> {
                             List<UpdateInstruction> list = Objects.requireNonNullElse(v, new ArrayList<>());
-                            list.add(new UpdateInstruction(parts[1], parts[2]));
+                            list.add(new UpdateInstruction(matcher.group("action"), matcher.group("parameters")));
                             return list;
                         });
                     } catch (IllegalArgumentException e) {
