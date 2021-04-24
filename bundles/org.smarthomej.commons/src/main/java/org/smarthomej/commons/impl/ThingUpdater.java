@@ -14,7 +14,6 @@ package org.smarthomej.commons.impl;
 
 import static org.smarthomej.commons.UpdatingBaseThingHandler.PROPERTY_THING_TYPE_VERSION;
 
-import java.io.File;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -51,14 +50,21 @@ public class ThingUpdater {
     private final ThingUID thingUid;
     private int currentThingTypeVersion;
 
-    public ThingUpdater(Thing thing) {
+    public ThingUpdater(Thing thing, Class clazz) {
         currentThingTypeVersion = Integer
                 .parseInt(thing.getProperties().getOrDefault(PROPERTY_THING_TYPE_VERSION, "0"));
         thingUid = thing.getUID();
         String thingType = thing.getThingTypeUID().getId();
 
-        InputStream inputStream = Thread.currentThread().getContextClassLoader()
-                .getResourceAsStream("update" + File.separator + thingType + ".update");
+        // we need the classloader of the bundle that our handler belongs to
+        ClassLoader classLoader = clazz.getClassLoader();
+        if (classLoader == null) {
+            logger.warn("Could not get classloader for class {}", clazz);
+            return;
+        }
+
+        String fileName = "update/" + thingType + ".update";
+        InputStream inputStream = classLoader.getResourceAsStream(fileName);
         if (inputStream == null) {
             logger.trace("No update instructions found for thing type '{}'", thingType);
             return;

@@ -39,7 +39,7 @@ public abstract class UpdatingBaseThingHandler extends BaseThingHandler {
     public UpdatingBaseThingHandler(Thing thing) {
         super(thing);
 
-        thingUpdater = new ThingUpdater(thing);
+        thingUpdater = new ThingUpdater(thing, this.getClass());
     }
 
     @Override

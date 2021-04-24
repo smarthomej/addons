@@ -40,7 +40,7 @@ public abstract class UpdatingBaseBridgeHandler extends BaseBridgeHandler {
     public UpdatingBaseBridgeHandler(Bridge bridge) {
         super(bridge);
 
-        thingUpdater = new ThingUpdater(bridge);
+        thingUpdater = new ThingUpdater(bridge, this.getClass());
     }
 
     @Override
