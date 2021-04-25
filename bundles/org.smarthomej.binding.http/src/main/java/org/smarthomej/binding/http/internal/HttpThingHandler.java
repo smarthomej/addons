@@ -13,6 +13,10 @@
  */
 package org.smarthomej.binding.http.internal;
 
+import static org.smarthomej.binding.http.internal.HttpBindingConstants.CHANNEL_LAST_FAILURE;
+import static org.smarthomej.binding.http.internal.HttpBindingConstants.CHANNEL_LAST_SUCCESS;
+import static org.smarthomej.binding.http.internal.HttpBindingConstants.REQUEST_DATE_TIME_CHANNELTYPE_UID;
+
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -40,7 +44,6 @@ import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
-import org.openhab.core.thing.binding.BaseThingHandler;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.RefreshType;
 import org.openhab.core.types.State;
@@ -55,6 +58,7 @@ import org.smarthomej.binding.http.internal.http.HttpResponseListener;
 import org.smarthomej.binding.http.internal.http.RateLimitedHttpClient;
 import org.smarthomej.binding.http.internal.http.RefreshingUrlCache;
 import org.smarthomej.commons.SimpleDynamicStateDescriptionProvider;
+import org.smarthomej.commons.UpdatingBaseThingHandler;
 import org.smarthomej.commons.itemvalueconverter.ChannelMode;
 import org.smarthomej.commons.itemvalueconverter.ContentWrapper;
 import org.smarthomej.commons.itemvalueconverter.ItemValueConverter;
@@ -76,7 +80,7 @@ import org.smarthomej.commons.transform.ValueTransformationProvider;
  * @author Jan N. Klug - Initial contribution
  */
 @NonNullByDefault
-public class HttpThingHandler extends BaseThingHandler implements HttpStatusListener {
+public class HttpThingHandler extends UpdatingBaseThingHandler implements HttpStatusListener {
     private static final Set<Character> URL_PART_DELIMITER = Set.of('/', '?', '&');
 
     private final Logger logger = LoggerFactory.getLogger(HttpThingHandler.class);
@@ -241,6 +245,10 @@ public class HttpThingHandler extends BaseThingHandler implements HttpStatusList
      * @param channel a thing channel
      */
     private void createChannel(Channel channel) {
+        if (REQUEST_DATE_TIME_CHANNELTYPE_UID.equals(channel.getChannelTypeUID())) {
+            // do not generate refreshUrls for lastSuccess / lastFailure channels
+            return;
+        }
         ChannelUID channelUID = channel.getUID();
         HttpChannelConfig channelConfig = channel.getConfiguration().as(HttpChannelConfig.class);
 
@@ -322,12 +330,14 @@ public class HttpThingHandler extends BaseThingHandler implements HttpStatusList
 
     @Override
     public void onHttpError(@Nullable String message) {
+        updateState(CHANNEL_LAST_FAILURE, new DateTimeType());
         updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
                 Objects.requireNonNullElse(message, ""));
     }
 
     @Override
     public void onHttpSuccess() {
+        updateState(CHANNEL_LAST_SUCCESS, new DateTimeType());
         updateStatus(ThingStatus.ONLINE);
     }
 
