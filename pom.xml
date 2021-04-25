@@ -90,6 +90,7 @@
     <bnd.exportpackage/>
     <bnd.fixupmessages/>
     <bnd.includeresource>-${.}/NOTICE, -${.}/*.xsd</bnd.includeresource>
+    <bnd.smarthomejversion>[${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion},${parsedVersion.majorVersion}.${parsedVersion.nextMinorVersion})</bnd.smarthomejversion>
 
     <feature.directory>src/main/feature/feature.xml</feature.directory>
   </properties>
@@ -156,6 +157,7 @@ Import-Package: \\
   org.eclipse.jdt.annotation.*;resolution:=optional,\\
   org.openhab.core.automation.annotation.*;resolution:=optional,\\
   com.google.common.*;version="14.0",\\
+  org.smarthomej.*;version="${bnd.smarthomejversion}",\\
   ${bnd.importpackage},\\
   *
 -exportcontents: \\
@@ -633,6 +635,22 @@ Import-Package: \\
     </pluginManagement>
 
     <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>generate-sources</phase>
+            <id>create-bundle-version</id>
+            <goals>
+              <goal>parse-version</goal>
+            </goals>
+            <configuration>
+              <propertyPrefix>parsedVersion</propertyPrefix>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.commonjava.maven.plugins</groupId>
         <artifactId>directory-maven-plugin</artifactId>
