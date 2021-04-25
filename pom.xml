@@ -90,7 +90,7 @@
     <bnd.exportpackage/>
     <bnd.fixupmessages/>
     <bnd.includeresource>-${.}/NOTICE, -${.}/*.xsd</bnd.includeresource>
-    <!-- The commons bundle is not following semver, even micro versions must be at least identical -->
+    <!-- The commons bundle is not following semver, even micro versions must be at least identical: strategy is [===,=+) -->
     <bnd.smarthomejversion>[${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion},${parsedVersion.majorVersion}.${parsedVersion.nextMinorVersion})</bnd.smarthomejversion>
 
     <feature.directory>src/main/feature/feature.xml</feature.directory>
