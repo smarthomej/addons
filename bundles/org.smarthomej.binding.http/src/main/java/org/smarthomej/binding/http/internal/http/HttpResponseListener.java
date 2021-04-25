@@ -27,6 +27,7 @@ import org.eclipse.jetty.http.HttpField;
 import org.eclipse.jetty.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smarthomej.binding.http.internal.HttpStatusListener;
 import org.smarthomej.commons.itemvalueconverter.ContentWrapper;
 
 /**
@@ -38,6 +39,7 @@ import org.smarthomej.commons.itemvalueconverter.ContentWrapper;
 public class HttpResponseListener extends BufferingResponseListener {
     private final Logger logger = LoggerFactory.getLogger(HttpResponseListener.class);
     private final CompletableFuture<@Nullable ContentWrapper> future;
+    private final HttpStatusListener httpStatusListener;
     private final String fallbackEncoding;
 
     /**
@@ -48,10 +50,11 @@ public class HttpResponseListener extends BufferingResponseListener {
      * @param bufferSize the buffer size for the content in kB (default 2048 kB)
      */
     public HttpResponseListener(CompletableFuture<@Nullable ContentWrapper> future, @Nullable String fallbackEncoding,
-            int bufferSize) {
+            int bufferSize, HttpStatusListener httpStatusListener) {
         super(bufferSize * 1024);
         this.future = future;
         this.fallbackEncoding = fallbackEncoding != null ? fallbackEncoding : StandardCharsets.UTF_8.name();
+        this.httpStatusListener = httpStatusListener;
     }
 
     @Override
@@ -62,9 +65,10 @@ public class HttpResponseListener extends BufferingResponseListener {
         }
         Request request = result.getRequest();
         if (result.isFailed()) {
-            logger.warn("Requesting '{}' (method='{}', content='{}') failed: {}", request.getURI(), request.getMethod(),
-                    request.getContent(), result.getFailure().getMessage());
+            logger.debug("Requesting '{}' (method='{}', content='{}') failed: {}", request.getURI(),
+                    request.getMethod(), request.getContent(), result.getFailure().getMessage());
             future.complete(null);
+            httpStatusListener.onHttpError(result.getFailure().getMessage());
         } else {
             switch (response.getStatus()) {
                 case HttpStatus.OK_200:
@@ -83,6 +87,7 @@ public class HttpResponseListener extends BufferingResponseListener {
                     } else {
                         future.complete(null);
                     }
+                    httpStatusListener.onHttpSuccess();
                     break;
                 case HttpStatus.UNAUTHORIZED_401:
                     logger.debug("Requesting '{}' (method='{}', content='{}') failed: Authorization error",
@@ -90,9 +95,10 @@ public class HttpResponseListener extends BufferingResponseListener {
                     future.completeExceptionally(new HttpAuthException());
                     break;
                 default:
-                    logger.warn("Requesting '{}' (method='{}', content='{}') failed: {} {}", request.getURI(),
+                    logger.debug("Requesting '{}' (method='{}', content='{}') failed: {} {}", request.getURI(),
                             request.getMethod(), request.getContent(), response.getStatus(), response.getReason());
-                    future.completeExceptionally(new IllegalStateException("Response - Code" + response.getStatus()));
+                    future.complete(null);
+                    httpStatusListener.onHttpError(response.getReason());
             }
         }
     }
