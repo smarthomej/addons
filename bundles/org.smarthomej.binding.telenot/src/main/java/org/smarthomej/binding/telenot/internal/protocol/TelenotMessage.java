@@ -12,42 +12,25 @@
  */
 package org.smarthomej.binding.telenot.internal.protocol;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
- * Superclass for all Alarm Decoder protocol message types.
+ * Superclass for all Telenot protocol message types.
  * 
  * @author Ronny Grun - Initial contribution
  */
 @NonNullByDefault
 public abstract class TelenotMessage {
 
-    protected static final Pattern SPLIT_REGEX = Pattern.compile("[^\\,\"]+|\"[^\"]*\"");
-
     /** string containing the original unparsed message */
     public final String message;
 
-    public TelenotMessage(String message2) {
-        this.message = message2;
+    public TelenotMessage(String message) {
+        this.message = message;
     }
 
     @Override
     public String toString() {
         return message;
-    }
-
-    /** Utility routine to split an Telenot message into its component parts */
-    protected static List<String> splitMsg(String msg) {
-        List<String> l = new ArrayList<String>();
-        Matcher regexMatcher = SPLIT_REGEX.matcher(msg);
-        while (regexMatcher.find()) {
-            l.add(regexMatcher.group());
-        }
-        return l;
     }
 }

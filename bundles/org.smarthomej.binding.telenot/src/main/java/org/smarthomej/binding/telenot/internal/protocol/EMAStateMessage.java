@@ -14,6 +14,7 @@ package org.smarthomej.binding.telenot.internal.protocol;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.library.types.DateTimeType;
+import org.smarthomej.binding.telenot.internal.TelenotMessageException;
 
 /**
  * The {@link EMAStateMessage} class represents a parsed SB message.
@@ -31,14 +32,14 @@ public class EMAStateMessage extends TelenotMessage {
     public final String contact;
     public final boolean alarmSetClear;
 
-    public EMAStateMessage(String message) throws IllegalArgumentException {
+    public EMAStateMessage(String message) throws TelenotMessageException {
         super(message);
         StringBuilder strBuilder = new StringBuilder();
 
         String parts[] = message.split(":");
 
         if (parts.length != 2) {
-            throw new IllegalArgumentException("Multiple colons found in emaState Message");
+            throw new TelenotMessageException("Multiple colons found in emaState Message");
         }
 
         String msg = parts[1];
@@ -110,7 +111,7 @@ public class EMAStateMessage extends TelenotMessage {
             contact = strcontact;
             alarmSetClear = bool;
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException(" emaState message contains invalid number: " + e.getMessage(), e);
+            throw new TelenotMessageException(" emaState message contains invalid number: " + e.getMessage());
         }
     }
 }

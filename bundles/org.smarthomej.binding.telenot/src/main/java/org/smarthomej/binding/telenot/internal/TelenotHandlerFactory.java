@@ -14,12 +14,9 @@ package org.smarthomej.binding.telenot.internal;
 
 import static org.smarthomej.binding.telenot.internal.TelenotBindingConstants.*;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -54,9 +51,8 @@ import org.smarthomej.binding.telenot.internal.handler.TelenotBridgeHandler;
 @Component(configurationPid = "binding.telenot", service = ThingHandlerFactory.class)
 public class TelenotHandlerFactory extends BaseThingHandlerFactory {
 
-    private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Collections
-            .unmodifiableSet(Stream.of(THING_TYPE_IPBRIDGE, THING_TYPE_SB, THING_TYPE_MP, THING_TYPE_MB,
-                    THING_TYPE_EMA_STATE, THING_TYPE_INPUT, THING_TYPE_OUTPUT).collect(Collectors.toSet()));
+    private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Set.of(THING_TYPE_IPBRIDGE, THING_TYPE_SB,
+            THING_TYPE_MP, THING_TYPE_MB, THING_TYPE_EMA_STATE, THING_TYPE_INPUT, THING_TYPE_OUTPUT);
 
     private final Logger logger = LoggerFactory.getLogger(TelenotHandlerFactory.class);
 

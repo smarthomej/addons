@@ -22,10 +22,10 @@ import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.types.Command;
-import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthomej.binding.telenot.internal.config.MBConfig;
+import org.smarthomej.binding.telenot.internal.TelenotCommandException;
+import org.smarthomej.binding.telenot.internal.config.ThingsConfig;
 import org.smarthomej.binding.telenot.internal.protocol.MBDMessage;
 import org.smarthomej.binding.telenot.internal.protocol.MBMessage;
 import org.smarthomej.binding.telenot.internal.protocol.TelenotCommand;
@@ -42,20 +42,15 @@ public class MBHandler extends TelenotThingHandler {
 
     private final Logger logger = LoggerFactory.getLogger(MBHandler.class);
 
-    private MBConfig config = new MBConfig();
+    private ThingsConfig config = new ThingsConfig();
 
     public MBHandler(Thing thing) {
         super(thing);
     }
 
-    /** Construct zone id from address */
-    public static final String mbID(int address) {
-        return String.format("%d", address);
-    }
-
     @Override
     public void initialize() {
-        config = getConfigAs(MBConfig.class);
+        config = getConfigAs(ThingsConfig.class);
 
         if (config.address < 0) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "Invalid address setting");
@@ -63,23 +58,14 @@ public class MBHandler extends TelenotThingHandler {
         }
         logger.debug("MB handler initializing for address {}", config.address);
 
-        String id = mbID(config.address);
-        updateProperty(PROPERTY_ID, id); // set representation property used by discovery
+        updateProperty(PROPERTY_ID, String.valueOf(config.address)); // set representation property used by discovery
 
         initDeviceState();
         logger.trace("MB handler finished initializing");
     }
 
-    /**
-     * Set contact channel state to "UNDEF" at init time. The real state will be set either when the first message
-     * arrives for the zone, or it should be set to "CLOSED" the first time the panel goes into the "READY" state.
-     */
     @Override
     public void initChannelState() {
-        UnDefType state = UnDefType.UNDEF;
-        updateState(CHANNEL_CONTACT_MB, state);
-        updateState(CHANNEL_DISABLE_MB, state);
-        firstUpdateReceived.set(false);
     }
 
     @Override
@@ -87,13 +73,19 @@ public class MBHandler extends TelenotThingHandler {
         if (channelUID.getId().equals(CHANNEL_DISABLE_MB)) {
             if (command instanceof OnOffType) {
                 if (command == OnOffType.OFF) {
-                    // sendCommand(TelenotCommand.sendNorm());
                     logger.debug("Received command: ENABLE_REPORTING_POINT");
-                    sendCommand(TelenotCommand.disableReportingPoint(config.address, 0));
+                    try {
+                        sendCommand(TelenotCommand.disableReportingPoint(config.address, 0));
+                    } catch (TelenotCommandException e) {
+                        logger.error(e.getMessage());
+                    }
                 } else if (command == OnOffType.ON) {
-                    // sendCommand(TelenotCommand.sendNorm());
                     logger.debug("Received command: DISABLE_REPORTING_POINT");
-                    sendCommand(TelenotCommand.disableReportingPoint(config.address, 1));
+                    try {
+                        sendCommand(TelenotCommand.disableReportingPoint(config.address, 1));
+                    } catch (TelenotCommandException e) {
+                        logger.error(e.getMessage());
+                    }
                 }
             }
         }

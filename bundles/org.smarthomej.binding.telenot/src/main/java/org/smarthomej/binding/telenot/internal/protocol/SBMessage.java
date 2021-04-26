@@ -12,9 +12,8 @@
  */
 package org.smarthomej.binding.telenot.internal.protocol;
 
-import java.util.List;
-
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.smarthomej.binding.telenot.internal.TelenotMessageException;
 
 /**
  * The {@link SBMessage} class represents a parsed SB message.
@@ -28,37 +27,37 @@ public class SBMessage extends TelenotMessage {
     /** Address number */
     public final int address;
 
-    public final int disarmed;
-    public final int internallyArmed;
-    public final int externallyArmed;
-    public final int alarm;
-    public final int malfunction;
-    public final int readyToArmInternally;
-    public final int readyToArmExternally;
-    public final int statusInternalSignalHorn;
+    public final boolean disarmed;
+    public final boolean internallyArmed;
+    public final boolean externallyArmed;
+    public final boolean alarm;
+    public final boolean malfunction;
+    public final boolean readyToArmInternally;
+    public final boolean readyToArmExternally;
+    public final boolean statusInternalSignalHorn;
 
-    public SBMessage(String message) throws IllegalArgumentException {
+    public SBMessage(String message) throws TelenotMessageException {
         super(message);
 
-        List<String> parts = splitMsg(message);
+        String parts[] = message.split(",");
 
-        if (parts.size() != 9) {
-            throw new IllegalArgumentException("Invalid number of parts in SB message");
+        if (parts.length != 9) {
+            throw new TelenotMessageException("Invalid number of parts in SB message");
         }
 
         try {
-            address = Integer.parseInt(parts.get(0));
-            disarmed = Integer.parseInt(parts.get(1));
-            internallyArmed = Integer.parseInt(parts.get(2));
-            externallyArmed = Integer.parseInt(parts.get(3));
-            alarm = Integer.parseInt(parts.get(4));
-            malfunction = Integer.parseInt(parts.get(5));
-            readyToArmInternally = Integer.parseInt(parts.get(6));
-            readyToArmExternally = Integer.parseInt(parts.get(7));
-            statusInternalSignalHorn = Integer.parseInt(parts.get(8));
+            address = Integer.parseInt(parts[0]);
+            disarmed = parts[1].equals("0") ? true : false;
+            internallyArmed = parts[2].equals("0") ? true : false;
+            externallyArmed = parts[3].equals("0") ? true : false;
+            alarm = parts[4].equals("0") ? true : false;
+            malfunction = parts[5].equals("0") ? true : false;
+            readyToArmInternally = parts[6].equals("0") ? true : false;
+            readyToArmExternally = parts[7].equals("0") ? true : false;
+            statusInternalSignalHorn = parts[8].equals("0") ? true : false;
 
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("SB message contains invalid number: " + e.getMessage(), e);
+            throw new TelenotMessageException("SB message contains invalid number: " + e.getMessage());
         }
     }
 }

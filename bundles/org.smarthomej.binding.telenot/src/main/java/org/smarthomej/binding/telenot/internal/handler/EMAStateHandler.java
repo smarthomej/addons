@@ -20,7 +20,6 @@ import org.openhab.core.library.types.StringType;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.types.Command;
-import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.telenot.internal.protocol.EMAStateMessage;
@@ -40,46 +39,14 @@ public class EMAStateHandler extends TelenotThingHandler {
         super(thing);
     }
 
-    /** Construct mp id from address */
-    public static final String mpID(int address) {
-        return String.format("%d", address);
-    }
-
     @Override
     public void initialize() {
         initDeviceState();
         logger.trace("emaState handler finished initializing");
     }
 
-    /**
-     * Set contact channel state to "UNDEF" at init time. The real state will be set either when the first message
-     * arrives for the zone, or it should be set to "CLOSED" the first time the panel goes into the "READY" state.
-     */
     @Override
     public void initChannelState() {
-        UnDefType state = UnDefType.UNDEF;
-        updateState(CHANNEL_INTRUSION_DATETIME, state);
-        updateState(CHANNEL_BATTERY_MALFUNCTION_DATETIME, state);
-        updateState(CHANNEL_POWER_OUTAGE_DATETIME, state);
-        updateState(CHANNEL_OPTICAL_FLASHER_MALFUNCTION_DATETIME, state);
-        updateState(CHANNEL_HORN_1_MALFUNCTION_DATETIME, state);
-        updateState(CHANNEL_HORN_2_MALFUNCTION_DATETIME, state);
-
-        updateState(CHANNEL_INTRUSION_CONTACT, state);
-        updateState(CHANNEL_BATTERY_MALFUNCTION_CONTACT, state);
-        updateState(CHANNEL_POWER_OUTAGE_CONTACT, state);
-        updateState(CHANNEL_OPTICAL_FLASHER_MALFUNCTION_CONTACT, state);
-        updateState(CHANNEL_HORN_1_MALFUNCTION_CONTACT, state);
-        updateState(CHANNEL_HORN_2_MALFUNCTION_CONTACT, state);
-
-        updateState(CHANNEL_INTRUSION_SET_CLEAR, state);
-        updateState(CHANNEL_BATTERY_MALFUNCTION_SET_CLEAR, state);
-        updateState(CHANNEL_POWER_OUTAGE_SET_CLEAR, state);
-        updateState(CHANNEL_OPTICAL_FLASHER_MALFUNCTION_SET_CLEAR, state);
-        updateState(CHANNEL_HORN_1_MALFUNCTION_SET_CLEAR, state);
-        updateState(CHANNEL_HORN_2_MALFUNCTION_SET_CLEAR, state);
-
-        firstUpdateReceived.set(false);
     }
 
     @Override
@@ -89,7 +56,6 @@ public class EMAStateHandler extends TelenotThingHandler {
 
     @Override
     public void handleUpdateChannel(TelenotMessage msg) {
-        logger.trace("handleUpdateChannel");
     }
 
     @Override
@@ -107,33 +73,32 @@ public class EMAStateHandler extends TelenotThingHandler {
             case "INTRUSION":
                 updateState(CHANNEL_INTRUSION_DATETIME, emaMsg.date);
                 updateState(CHANNEL_INTRUSION_CONTACT, new StringType(emaMsg.contact));
-                updateState(CHANNEL_INTRUSION_SET_CLEAR, emaMsg.alarmSetClear ? OnOffType.ON : OnOffType.OFF);
+                updateState(CHANNEL_INTRUSION_SET_CLEAR, OnOffType.from(emaMsg.alarmSetClear));
                 break;
             case "BATTERY_MALFUNCTION":
                 updateState(CHANNEL_BATTERY_MALFUNCTION_DATETIME, emaMsg.date);
                 updateState(CHANNEL_BATTERY_MALFUNCTION_CONTACT, new StringType(emaMsg.contact));
-                updateState(CHANNEL_BATTERY_MALFUNCTION_SET_CLEAR, emaMsg.alarmSetClear ? OnOffType.ON : OnOffType.OFF);
+                updateState(CHANNEL_BATTERY_MALFUNCTION_SET_CLEAR, OnOffType.from(emaMsg.alarmSetClear));
                 break;
             case "POWER_OUTAGE":
                 updateState(CHANNEL_POWER_OUTAGE_DATETIME, emaMsg.date);
                 updateState(CHANNEL_POWER_OUTAGE_CONTACT, new StringType(emaMsg.contact));
-                updateState(CHANNEL_POWER_OUTAGE_SET_CLEAR, emaMsg.alarmSetClear ? OnOffType.ON : OnOffType.OFF);
+                updateState(CHANNEL_POWER_OUTAGE_SET_CLEAR, OnOffType.from(emaMsg.alarmSetClear));
                 break;
             case "OPTICAL_FLASHER_MALFUNCTION":
                 updateState(CHANNEL_OPTICAL_FLASHER_MALFUNCTION_DATETIME, emaMsg.date);
                 updateState(CHANNEL_OPTICAL_FLASHER_MALFUNCTION_CONTACT, new StringType(emaMsg.contact));
-                updateState(CHANNEL_OPTICAL_FLASHER_MALFUNCTION_SET_CLEAR,
-                        emaMsg.alarmSetClear ? OnOffType.ON : OnOffType.OFF);
+                updateState(CHANNEL_OPTICAL_FLASHER_MALFUNCTION_SET_CLEAR, OnOffType.from(emaMsg.alarmSetClear));
                 break;
             case "HORN_1_MALFUNCTION":
                 updateState(CHANNEL_HORN_1_MALFUNCTION_DATETIME, emaMsg.date);
                 updateState(CHANNEL_HORN_1_MALFUNCTION_CONTACT, new StringType(emaMsg.contact));
-                updateState(CHANNEL_HORN_1_MALFUNCTION_SET_CLEAR, emaMsg.alarmSetClear ? OnOffType.ON : OnOffType.OFF);
+                updateState(CHANNEL_HORN_1_MALFUNCTION_SET_CLEAR, OnOffType.from(emaMsg.alarmSetClear));
                 break;
             case "HORN_2_MALFUNCTION":
                 updateState(CHANNEL_HORN_2_MALFUNCTION_DATETIME, emaMsg.date);
                 updateState(CHANNEL_HORN_2_MALFUNCTION_CONTACT, new StringType(emaMsg.contact));
-                updateState(CHANNEL_HORN_2_MALFUNCTION_SET_CLEAR, emaMsg.alarmSetClear ? OnOffType.ON : OnOffType.OFF);
+                updateState(CHANNEL_HORN_2_MALFUNCTION_SET_CLEAR, OnOffType.from(emaMsg.alarmSetClear));
                 break;
             default:
                 break;

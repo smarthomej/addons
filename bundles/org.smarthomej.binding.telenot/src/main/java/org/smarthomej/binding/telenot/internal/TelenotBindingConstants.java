@@ -12,10 +12,7 @@
  */
 package org.smarthomej.binding.telenot.internal;
 
-import java.util.Collections;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.thing.ThingTypeUID;
@@ -41,13 +38,11 @@ public class TelenotBindingConstants {
     public static final ThingTypeUID THING_TYPE_INPUT = new ThingTypeUID(BINDING_ID, "input");
     public static final ThingTypeUID THING_TYPE_OUTPUT = new ThingTypeUID(BINDING_ID, "output");
 
-    public static final Set<ThingTypeUID> DISCOVERABLE_DEVICE_TYPE_UIDS = Collections.unmodifiableSet(
-            Stream.of(THING_TYPE_MP, THING_TYPE_SB, THING_TYPE_MB, THING_TYPE_INPUT).collect(Collectors.toSet()));
+    public static final Set<ThingTypeUID> DISCOVERABLE_DEVICE_TYPE_UIDS = Set.of(THING_TYPE_MP, THING_TYPE_SB,
+            THING_TYPE_MB, THING_TYPE_INPUT);
 
     public static final ChannelTypeUID CHANNEL_TYPE_CONTACT = new ChannelTypeUID(BINDING_ID, "contact-channel");
     public static final ChannelTypeUID CHANNEL_TYPE_SWITCH = new ChannelTypeUID(BINDING_ID, "switch-channel");
-
-    // public static final String CHANNEL_SET_DATE_TIME = "setDateTime";
 
     // Channel request used contacts
     public static final String GET_USED_STATE = "getUsedState";

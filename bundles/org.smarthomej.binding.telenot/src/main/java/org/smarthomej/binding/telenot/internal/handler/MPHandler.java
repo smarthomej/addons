@@ -21,10 +21,9 @@ import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.types.Command;
-import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthomej.binding.telenot.internal.config.MPConfig;
+import org.smarthomej.binding.telenot.internal.config.ThingsConfig;
 import org.smarthomej.binding.telenot.internal.protocol.MPMessage;
 import org.smarthomej.binding.telenot.internal.protocol.TelenotMessage;
 
@@ -39,20 +38,16 @@ public class MPHandler extends TelenotThingHandler {
 
     private final Logger logger = LoggerFactory.getLogger(MPHandler.class);
 
-    private MPConfig config = new MPConfig();
+    // private MPConfig config = new MPConfig();
+    private ThingsConfig config = new ThingsConfig();
 
     public MPHandler(Thing thing) {
         super(thing);
     }
 
-    /** Construct zone id from address */
-    public static final String mpID(int address) {
-        return String.format("%d", address);
-    }
-
     @Override
     public void initialize() {
-        config = getConfigAs(MPConfig.class);
+        config = getConfigAs(ThingsConfig.class);
 
         if (config.address < 0) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "Invalid address setting");
@@ -60,22 +55,14 @@ public class MPHandler extends TelenotThingHandler {
         }
         logger.debug("MP handler initializing for address {}", config.address);
 
-        String id = mpID(config.address);
-        updateProperty(PROPERTY_ID, id); // set representation property used by discovery
+        updateProperty(PROPERTY_ID, String.valueOf(config.address)); // set representation property used by discovery
 
         initDeviceState();
         logger.trace("MP handler finished initializing");
     }
 
-    /**
-     * Set contact channel state to "UNDEF" at init time. The real state will be set either when the first message
-     * arrives for the zone, or it should be set to "CLOSED" the first time the panel goes into the "READY" state.
-     */
     @Override
     public void initChannelState() {
-        UnDefType state = UnDefType.UNDEF;
-        updateState(CHANNEL_CONTACT, state);
-        firstUpdateReceived.set(false);
     }
 
     @Override

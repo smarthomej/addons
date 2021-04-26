@@ -21,8 +21,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
+import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -37,9 +37,11 @@ import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.binding.BaseBridgeHandler;
 import org.openhab.core.thing.binding.ThingHandlerService;
 import org.openhab.core.types.Command;
+import org.openhab.core.util.HexUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.telenot.internal.TelenotDiscoveryService;
+import org.smarthomej.binding.telenot.internal.TelenotMessageException;
 import org.smarthomej.binding.telenot.internal.actions.BridgeActions;
 import org.smarthomej.binding.telenot.internal.protocol.EMAStateMessage;
 import org.smarthomej.binding.telenot.internal.protocol.InputMessage;
@@ -72,7 +74,7 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
     protected @Nullable InputStreamReader ireader = null;
     protected @Nullable BufferedWriter writer = null;
     protected @Nullable Thread msgReaderThread = null;
-    private final Object msgReaderThreadLock = new Object();
+    private final Object Lock = new Object();
     protected @Nullable TelenotDiscoveryService discoveryService;
     protected boolean discovery;
     protected boolean refresh;
@@ -106,7 +108,7 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
 
     @Override
     public Collection<Class<? extends ThingHandlerService>> getServices() {
-        return Collections.singletonList(BridgeActions.class);
+        return Set.of(BridgeActions.class, TelenotDiscoveryService.class);
     }
 
     public void setDiscoveryService(TelenotDiscoveryService discoveryService) {
@@ -128,7 +130,7 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
         try {
             OutputStream bw = outputStream;
             if (bw != null) {
-                bw.write(hexStringToByteArray(command.toString()));
+                bw.write(HexUtils.hexToBytes(command.toString()));
             }
         } catch (IOException e) {
             logger.info("Exception while sending command: {}", e.getMessage());
@@ -146,8 +148,8 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
     }
 
     protected void startMsgReader() {
-        synchronized (msgReaderThreadLock) {
-            Thread mrt = new Thread(this::readerThread, "OH-binding-" + getThing().getUID() + "-TelenotReader");
+        synchronized (Lock) {
+            Thread mrt = new Thread(this::readerThread, "SHJ-binding-" + getThing().getUID() + "-TelenotReader");
             mrt.setDaemon(true);
             mrt.start();
             msgReaderThread = mrt;
@@ -155,7 +157,7 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
     }
 
     protected void stopMsgReader() {
-        synchronized (msgReaderThreadLock) {
+        synchronized (Lock) {
             Thread mrt = msgReaderThread;
             if (mrt != null) {
                 logger.trace("Stopping reader thread.");
@@ -189,7 +191,7 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
                 baos.reset();
                 baos.write(content, 0, bytesRead);
 
-                message = toHexString(baos.toByteArray());
+                message = HexUtils.bytesToHex(baos.toByteArray());
 
                 TelenotMsgType msgType = TelenotMsgType.getMsgType(message);
                 if (msgType != TelenotMsgType.INVALID) {
@@ -330,7 +332,7 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
                 try {
                     mpMsg = new MPMessage(sb.toString());
                     inpMsg = new InputMessage(sb.toString());
-                } catch (IllegalArgumentException e) {
+                } catch (TelenotMessageException e) {
                     throw new MessageParseException(e.getMessage());
                 }
                 if (lastMsgReverseBinaryArrayMP.length != msgReverseBinaryArray.length) {
@@ -383,7 +385,7 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
                 }
                 try {
                     sbMsg = new SBMessage(strBuilder.toString());
-                } catch (IllegalArgumentException e) {
+                } catch (TelenotMessageException e) {
                     throw new MessageParseException(e.getMessage());
                 }
                 notifyChildHandlers(sbMsg);
@@ -407,7 +409,7 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
                 strBuilder.append(value);
                 try {
                     mbMsg = new MBMessage(strBuilder.toString());
-                } catch (IllegalArgumentException e) {
+                } catch (TelenotMessageException e) {
                     throw new MessageParseException(e.getMessage());
                 }
                 if (lastMsgReverseBinaryArrayMB.length != msgReverseBinaryArrayMb.length) {
@@ -438,7 +440,7 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
                 strBuilder.append(value);
                 try {
                     mbdMsg = new MBDMessage(strBuilder.toString());
-                } catch (IllegalArgumentException e) {
+                } catch (TelenotMessageException e) {
                     throw new MessageParseException(e.getMessage());
                 }
                 if (lastMsgReverseBinaryArrayMBD.length != msgReverseBinaryArrayMbd.length) {
@@ -473,7 +475,7 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
 
         try {
             sbStateMessage = new SBStateMessage(sb.toString());
-        } catch (IllegalArgumentException e) {
+        } catch (TelenotMessageException e) {
             throw new MessageParseException(e.getMessage());
         }
         notifyChildHandlers(sbStateMessage);
@@ -552,6 +554,7 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
                 address++;
             }
         }
+
         TelenotDiscoveryService ds = discoveryService;
         if (discovery && ds != null) {
             for (String i : usedSecurityArea) {
@@ -576,7 +579,7 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
             String address = usedInputContact.get(0);
             try {
                 uciStateMessage = new UsedContactInfoMessage(address + ":" + msg);
-            } catch (IllegalArgumentException e) {
+            } catch (TelenotMessageException e) {
                 throw new MessageParseException(e.getMessage());
             }
             notifyChildHandlersChannel(uciStateMessage);
@@ -588,7 +591,7 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
             String address = usedReportingArea.get(0);
             try {
                 umbStateMessage = new UsedMbMessage(address + ":" + msg);
-            } catch (IllegalArgumentException e) {
+            } catch (TelenotMessageException e) {
                 throw new MessageParseException(e.getMessage());
             }
             notifyChildHandlersChannel(umbStateMessage);
@@ -605,18 +608,11 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
      * @throws MessageParseException
      */
     private void parseEmaStateMessage(TelenotMsgType mt, String msg) throws MessageParseException {
-        EMAStateMessage emaMessage;
-        StringBuilder sb = new StringBuilder();
-        sb.append(mt);
-        sb.append(":");
-        sb.append(msg);
-
         try {
-            emaMessage = new EMAStateMessage(sb.toString());
-        } catch (IllegalArgumentException e) {
+            notifyChildHandlers(new EMAStateMessage(mt + ":" + msg));
+        } catch (TelenotMessageException e) {
             throw new MessageParseException(e.getMessage());
         }
-        notifyChildHandlers(emaMessage);
     }
 
     /**
@@ -676,30 +672,6 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
             }
         }
         return sb.toString();
-    }
-
-    /**
-     * Converts hex string to binary array
-     */
-    public static byte[] hexStringToByteArray(String s) {
-        int len = s.length() - 2;
-        byte[] data = new byte[len / 2];
-        for (int i = 0; i < len; i += 2) {
-            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4) + Character.digit(s.charAt(i + 1), 16));
-        }
-        return data;
-    }
-
-    /**
-     * Converts hex string into an array
-     */
-    public static String[] hexStringToArray(String s) {
-        int len = s.length();
-        String[] data = new String[len / 2];
-        for (int i = 0; i < len; i += 2) {
-            data[i / 2] = s.substring(i, i + 2);
-        }
-        return data;
     }
 
     /**

@@ -53,20 +53,6 @@ public class BridgeActions implements ThingActions {
     }
 
     /**
-     * Reboot thing action
-     */
-    @RuleAction(label = "reboot the device", description = "Reboot the Telenot IP Serial device.")
-    public void reboot() {
-        TelenotBridgeHandler bridge = this.bridge;
-        if (bridge != null) {
-            bridge.sendTelenotCommand(TelenotCommand.reboot());
-            logger.debug("Sending reboot command.");
-        } else {
-            logger.debug("Request for reboot action, but bridge is undefined.");
-        }
-    }
-
-    /**
      * Set date/time thing action
      */
     @RuleAction(label = "set date/time", description = "Set's the current date and time.")
@@ -78,11 +64,6 @@ public class BridgeActions implements ThingActions {
         } else {
             logger.debug("Request for set date/time action, but bridge is undefined.");
         }
-    }
-
-    // Static method for Rules DSL backward compatibility
-    public static void reboot(ThingActions actions) {
-        ((BridgeActions) actions).reboot();
     }
 
     // Static method for Rules DSL backward compatibility

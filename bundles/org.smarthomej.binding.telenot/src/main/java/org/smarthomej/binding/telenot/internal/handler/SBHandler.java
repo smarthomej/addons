@@ -22,10 +22,10 @@ import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.types.Command;
-import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthomej.binding.telenot.internal.config.SBConfig;
+import org.smarthomej.binding.telenot.internal.TelenotCommandException;
+import org.smarthomej.binding.telenot.internal.config.ThingsConfig;
 import org.smarthomej.binding.telenot.internal.protocol.SBMessage;
 import org.smarthomej.binding.telenot.internal.protocol.SBStateMessage;
 import org.smarthomej.binding.telenot.internal.protocol.TelenotCommand;
@@ -41,20 +41,15 @@ public class SBHandler extends TelenotThingHandler {
 
     private final Logger logger = LoggerFactory.getLogger(SBHandler.class);
 
-    private SBConfig config = new SBConfig();
+    private ThingsConfig config = new ThingsConfig();
 
     public SBHandler(Thing thing) {
         super(thing);
     }
 
-    /** Construct SB id from address */
-    public static final String sbID(int address) {
-        return String.format("%d", address);
-    }
-
     @Override
     public void initialize() {
-        config = getConfigAs(SBConfig.class);
+        config = getConfigAs(ThingsConfig.class);
 
         if (config.address < 0) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "Invalid address setting");
@@ -62,42 +57,14 @@ public class SBHandler extends TelenotThingHandler {
         }
         logger.debug("SB handler initializing for address {}", config.address);
 
-        String id = sbID(config.address);
-        updateProperty(PROPERTY_ID, id); // set representation property used by discovery
+        updateProperty(PROPERTY_ID, String.valueOf(config.address)); // set representation property used by discovery
 
         initDeviceState();
         logger.trace("SB handler finished initializing");
     }
 
-    /**
-     * Set contact channel state to "UNDEF" at init time. The real state will be set either when the first message
-     * arrives for the zone, or it should be set to "CLOSED" the first time the panel goes into the "READY" state.
-     */
     @Override
     public void initChannelState() {
-        UnDefType state = UnDefType.UNDEF;
-        updateState(CHANNEL_INT_ARMED_DATETIME, state);
-        updateState(CHANNEL_EXT_ARMED_DATETIME, state);
-        updateState(CHANNEL_DISARMED_DATETIME, state);
-        updateState(CHANNEL_ALARM_DATETIME, state);
-
-        updateState(CHANNEL_INT_ARMED_CONTACT, state);
-        updateState(CHANNEL_EXT_ARMED_CONTACT, state);
-        updateState(CHANNEL_DISARMED_CONTACT, state);
-        updateState(CHANNEL_ALARM_CONTACT, state);
-
-        updateState(CHANNEL_ALARM_SET_CLEAR, state);
-
-        updateState(CHANNEL_DISARMED, state);
-        updateState(CHANNEL_INTERNALLY_ARMED, state);
-        updateState(CHANNEL_EXTERNALLY_ARMED, state);
-        updateState(CHANNEL_ALARM, state);
-        updateState(CHANNEL_MALFUNCTION, state);
-        updateState(CHANNEL_READY_TO_ARM_INTERNALLY, state);
-        updateState(CHANNEL_READY_TO_ARM_EXTERNALLY, state);
-        updateState(CHANNEL_STATE_INTERNAL_SIGNAL_HORN, state);
-
-        firstUpdateReceived.set(false);
     }
 
     @Override
@@ -106,20 +73,29 @@ public class SBHandler extends TelenotThingHandler {
             if (command instanceof OnOffType) {
                 if (command == OnOffType.ON) {
                     logger.debug("Received command: DISARM security area");
-                    sendCommand(TelenotCommand.disarmArea(config.address));
-                    // setChannelState(OnOffType.ON);
+                    try {
+                        sendCommand(TelenotCommand.disarmArea(config.address));
+                    } catch (TelenotCommandException e) {
+                        logger.error(e.getMessage());
+                    }
                 }
             }
         } else if (channelUID.getId().equals(CHANNEL_INTERNAL_ARM)) {
             if (command instanceof OnOffType) {
                 if (command == OnOffType.OFF) {
-                    // sendCommand(TelenotCommand.sendNorm());
                     logger.debug("Received command: DISARM security area");
-                    sendCommand(TelenotCommand.disarmArea(config.address));
+                    try {
+                        sendCommand(TelenotCommand.disarmArea(config.address));
+                    } catch (TelenotCommandException e) {
+                        logger.error(e.getMessage());
+                    }
                 } else if (command == OnOffType.ON) {
-                    // sendCommand(TelenotCommand.sendNorm());
                     logger.debug("Received command: INT_ARM security area");
-                    sendCommand(TelenotCommand.intArmArea(config.address));
+                    try {
+                        sendCommand(TelenotCommand.intArmArea(config.address));
+                    } catch (TelenotCommandException e) {
+                        logger.error(e.getMessage());
+                    }
                 }
             }
         } else if (channelUID.getId().equals(CHANNEL_EXTERNAL_ARM)) {
@@ -127,11 +103,19 @@ public class SBHandler extends TelenotThingHandler {
                 if (command == OnOffType.OFF) {
                     // sendCommand(TelenotCommand.sendNorm());
                     logger.debug("Received command: DISARM security area");
-                    sendCommand(TelenotCommand.disarmArea(config.address));
+                    try {
+                        sendCommand(TelenotCommand.disarmArea(config.address));
+                    } catch (TelenotCommandException e) {
+                        logger.error(e.getMessage());
+                    }
                 } else if (command == OnOffType.ON) {
                     // sendCommand(TelenotCommand.sendNorm());
                     logger.debug("Received command: EXT_ARM security area");
-                    sendCommand(TelenotCommand.extArmArea(config.address));
+                    try {
+                        sendCommand(TelenotCommand.extArmArea(config.address));
+                    } catch (TelenotCommandException e) {
+                        logger.error(e.getMessage());
+                    }
                 }
             }
         } else if (channelUID.getId().equals(CHANNEL_RESET_ALARM)) {
@@ -139,7 +123,11 @@ public class SBHandler extends TelenotThingHandler {
                 if (command == OnOffType.ON) {
                     // sendCommand(TelenotCommand.sendNorm());
                     logger.debug("Received command: RESET_ALARM security area");
-                    sendCommand(TelenotCommand.resetAlarm(config.address));
+                    try {
+                        sendCommand(TelenotCommand.resetAlarm(config.address));
+                    } catch (TelenotCommandException e) {
+                        logger.error(e.getMessage());
+                    }
                     updateState(CHANNEL_RESET_ALARM, OnOffType.OFF);
                 }
             }
@@ -162,23 +150,20 @@ public class SBHandler extends TelenotThingHandler {
 
                 firstUpdateReceived.set(true);
 
-                updateState(CHANNEL_DISARMED, sbMsg.disarmed == 0 ? OnOffType.ON : OnOffType.OFF);
-                updateState(CHANNEL_DISARM, sbMsg.disarmed == 0 ? OnOffType.ON : OnOffType.OFF);
+                updateState(CHANNEL_DISARMED, OnOffType.from(sbMsg.disarmed));
+                updateState(CHANNEL_DISARM, OnOffType.from(sbMsg.disarmed));
 
-                updateState(CHANNEL_INTERNALLY_ARMED, sbMsg.internallyArmed == 0 ? OnOffType.ON : OnOffType.OFF);
-                updateState(CHANNEL_INTERNAL_ARM, sbMsg.internallyArmed == 0 ? OnOffType.ON : OnOffType.OFF);
+                updateState(CHANNEL_INTERNALLY_ARMED, OnOffType.from(sbMsg.internallyArmed));
+                updateState(CHANNEL_INTERNAL_ARM, OnOffType.from(sbMsg.internallyArmed));
 
-                updateState(CHANNEL_EXTERNALLY_ARMED, sbMsg.externallyArmed == 0 ? OnOffType.ON : OnOffType.OFF);
-                updateState(CHANNEL_EXTERNAL_ARM, sbMsg.externallyArmed == 0 ? OnOffType.ON : OnOffType.OFF);
+                updateState(CHANNEL_EXTERNALLY_ARMED, OnOffType.from(sbMsg.externallyArmed));
+                updateState(CHANNEL_EXTERNAL_ARM, OnOffType.from(sbMsg.externallyArmed));
 
-                updateState(CHANNEL_ALARM, sbMsg.alarm == 0 ? OnOffType.ON : OnOffType.OFF);
-                updateState(CHANNEL_MALFUNCTION, sbMsg.malfunction == 0 ? OnOffType.ON : OnOffType.OFF);
-                updateState(CHANNEL_READY_TO_ARM_INTERNALLY,
-                        sbMsg.readyToArmInternally == 0 ? OnOffType.ON : OnOffType.OFF);
-                updateState(CHANNEL_READY_TO_ARM_EXTERNALLY,
-                        sbMsg.readyToArmExternally == 0 ? OnOffType.ON : OnOffType.OFF);
-                updateState(CHANNEL_STATE_INTERNAL_SIGNAL_HORN,
-                        sbMsg.statusInternalSignalHorn == 0 ? OnOffType.ON : OnOffType.OFF);
+                updateState(CHANNEL_ALARM, OnOffType.from(sbMsg.alarm));
+                updateState(CHANNEL_MALFUNCTION, OnOffType.from(sbMsg.malfunction));
+                updateState(CHANNEL_READY_TO_ARM_INTERNALLY, OnOffType.from(sbMsg.readyToArmInternally));
+                updateState(CHANNEL_READY_TO_ARM_EXTERNALLY, OnOffType.from(sbMsg.readyToArmExternally));
+                updateState(CHANNEL_STATE_INTERNAL_SIGNAL_HORN, OnOffType.from(sbMsg.statusInternalSignalHorn));
             }
         } else if (msg instanceof SBStateMessage) {
             SBStateMessage emaMsg = (SBStateMessage) msg;
@@ -199,7 +184,7 @@ public class SBHandler extends TelenotThingHandler {
                     case "ALARM":
                         updateState(CHANNEL_ALARM_DATETIME, emaMsg.date);
                         updateState(CHANNEL_ALARM_CONTACT, new StringType(emaMsg.contact));
-                        updateState(CHANNEL_ALARM_SET_CLEAR, emaMsg.alarmSetClear ? OnOffType.ON : OnOffType.OFF);
+                        updateState(CHANNEL_ALARM_SET_CLEAR, OnOffType.from(emaMsg.alarmSetClear));
                         if (!emaMsg.alarmSetClear) {
                             updateState(CHANNEL_RESET_ALARM, OnOffType.OFF);
                         }

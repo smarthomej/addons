@@ -10,17 +10,20 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.smarthomej.binding.telenot.internal.config;
+package org.smarthomej.binding.telenot.internal;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
- * The {@link InputConfig} class contains fields mapping thing configuration parameters for InputHandler.
+ * The {@link TelenoCommand) Telenot Command.
  *
  * @author Ronny Grun - Initial contribution
  */
 @NonNullByDefault
-public class InputConfig {
-    public int address = -1;
-    public boolean discovery = false;
+public class TelenotCommandException extends Exception {
+    private static final long serialVersionUID = 2021042422231712346L;
+
+    public TelenotCommandException(String message) {
+        super(message);
+    }
 }

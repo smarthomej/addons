@@ -41,59 +41,25 @@ public class InputHandler extends TelenotThingHandler {
 
     private final Logger logger = LoggerFactory.getLogger(InputHandler.class);
 
-    // private InputConfig config = new InputConfig();
-
     public InputHandler(Thing thing) {
         super(thing);
     }
 
-    /** Construct zone id from address */
-    public static final String mbID(int address) {
-        return String.format("%d", address);
-    }
-
     @Override
     public void initialize() {
-        // config = getConfigAs(InputConfig.class);
-
-        // if (config.address < 0) {
-        // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "Invalid address setting");
-        // return;
-        // }
-        // logger.debug("Output handler initializing for address {}", config.address);
-
-        // String id = mbID(config.address);
-        // updateProperty(PROPERTY_ID, id); // set representation property used by discovery
-        // if (config.discovery) {
-        // logger.info("Start discovery input contacts");
-        // sendCommand(TelenotCommand.sendUsedState());
-        // Configuration conf = editConfiguration();
-        // conf.put("discovery", false);
-        // updateConfiguration(conf);
-        // }
         initDeviceState();
         logger.trace("Input handler finished initializing");
     }
 
-    /**
-     * Set contact channel state to "UNDEF" at init time. The real state will be set either when the first message
-     * arrives for the zone, or it should be set to "CLOSED" the first time the panel goes into the "READY" state.
-     */
     @Override
     public void initChannelState() {
-        // UnDefType state = UnDefType.UNDEF;
-        // updateState(GET_USED_STATE, state);
-        // updateState(CHANNEL_DISABLE_MB, state);
-        // firstUpdateReceived.set(false);
     }
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
         if (channelUID.getId().equals(GET_USED_STATE)) {
-            if (command instanceof OnOffType) {
-                if (command == OnOffType.ON) {
-                    sendCommand(TelenotCommand.sendUsedState());
-                }
+            if (OnOffType.ON.equals(command)) {
+                sendCommand(TelenotCommand.sendUsedState());
             }
         }
     }

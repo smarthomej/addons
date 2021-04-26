@@ -13,6 +13,7 @@
 package org.smarthomej.binding.telenot.internal.protocol;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.smarthomej.binding.telenot.internal.TelenotMessageException;
 
 /**
  * The {@link UsedContactInfoMessage} class represents a parsed contact info message.
@@ -27,14 +28,14 @@ public class UsedContactInfoMessage extends TelenotMessage {
     public final String address;
     public final String name;
 
-    public UsedContactInfoMessage(String message) throws IllegalArgumentException {
+    public UsedContactInfoMessage(String message) throws TelenotMessageException {
         super(message);
         StringBuilder strBuilder = new StringBuilder();
 
         String parts[] = message.split(":");
 
         if (parts.length != 2) {
-            throw new IllegalArgumentException("Multiple colons found in Used contacts info Message");
+            throw new TelenotMessageException("Multiple colons found in Used contacts info Message");
         }
 
         String msg = parts[1];
@@ -59,8 +60,7 @@ public class UsedContactInfoMessage extends TelenotMessage {
             address = parts[0];
             name = strcontact;
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Used contacts info message contains invalid number: " + e.getMessage(),
-                    e);
+            throw new TelenotMessageException("Used contacts info message contains invalid number: " + e.getMessage());
         }
     }
 }

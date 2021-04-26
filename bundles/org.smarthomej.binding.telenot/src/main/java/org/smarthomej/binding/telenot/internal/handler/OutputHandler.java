@@ -14,6 +14,9 @@ package org.smarthomej.binding.telenot.internal.handler;
 
 import static org.smarthomej.binding.telenot.internal.TelenotBindingConstants.*;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.OnOffType;
@@ -25,6 +28,7 @@ import org.openhab.core.thing.binding.ThingHandlerCallback;
 import org.openhab.core.types.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smarthomej.binding.telenot.internal.TelenotCommandException;
 import org.smarthomej.binding.telenot.internal.protocol.MBDMessage;
 import org.smarthomej.binding.telenot.internal.protocol.MBMessage;
 import org.smarthomej.binding.telenot.internal.protocol.TelenotCommand;
@@ -41,62 +45,43 @@ import org.smarthomej.binding.telenot.internal.protocol.UsedMbMessage;
 public class OutputHandler extends TelenotThingHandler {
 
     private final Logger logger = LoggerFactory.getLogger(OutputHandler.class);
-    private static String regexDisable = "(0x)([0-9A-Fa-f]){4}";
-
-    // private MBConfig config = new MBConfig();
+    private static final Pattern REGEX_DISABLE = Pattern.compile("0x([0-9A-Fa-f]){4}");
 
     public OutputHandler(Thing thing) {
         super(thing);
     }
 
-    /** Construct zone id from address */
-    public static final String mbID(int address) {
-        return String.format("%d", address);
-    }
-
     @Override
     public void initialize() {
-        // config = getConfigAs(MBConfig.class);
-
-        // if (config.address < 0) {
-        // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "Invalid address setting");
-        // return;
-        // }
-        // logger.debug("Output handler initializing for address {}", config.address);
-
-        // String id = mbID(config.address);
-        // updateProperty(PROPERTY_ID, id); // set representation property used by discovery
-
         initDeviceState();
         logger.trace("Input handler finished initializing");
     }
 
-    /**
-     * Set contact channel state to "UNDEF" at init time. The real state will be set either when the first message
-     * arrives for the zone, or it should be set to "CLOSED" the first time the panel goes into the "READY" state.
-     */
     @Override
     public void initChannelState() {
-        // UnDefType state = UnDefType.UNDEF;
-        // updateState(GET_USED_STATE, state);
-        // updateState(CHANNEL_DISABLE_MB, state);
-        // firstUpdateReceived.set(false);
     }
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
         String cuid = channelUID.getId();
-        if (cuid.matches(regexDisable)) {
-            String parts[] = cuid.split("0x");
+        Matcher m = REGEX_DISABLE.matcher(cuid);
+        if (m.matches()) {
+            String addr = cuid.substring(2);
             if (command instanceof OnOffType) {
                 if (command == OnOffType.OFF) {
-                    // sendCommand(TelenotCommand.sendNorm());
-                    logger.debug("Received command: ENABLE_REPORTING_POINT for address: {}", parts[1]);
-                    sendCommand(TelenotCommand.disableHexReportingPoint(parts[1], 0));
+                    logger.debug("Received command: ENABLE_REPORTING_POINT for address: {}", addr);
+                    try {
+                        sendCommand(TelenotCommand.disableHexReportingPoint(addr, 0));
+                    } catch (TelenotCommandException e) {
+                        logger.error(e.getMessage());
+                    }
                 } else if (command == OnOffType.ON) {
-                    // sendCommand(TelenotCommand.sendNorm());
-                    logger.debug("Received command: DISABLE_REPORTING_POINT for address: {}", parts[1]);
-                    sendCommand(TelenotCommand.disableHexReportingPoint(parts[1], 1));
+                    logger.debug("Received command: DISABLE_REPORTING_POINT for address: {}", addr);
+                    try {
+                        sendCommand(TelenotCommand.disableHexReportingPoint(addr, 1));
+                    } catch (TelenotCommandException e) {
+                        logger.error(e.getMessage());
+                    }
                 }
             }
         }
@@ -130,14 +115,12 @@ public class OutputHandler extends TelenotThingHandler {
 
         if (msg instanceof MBMessage) {
             MBMessage mbMsg = (MBMessage) msg;
-            String addr = Integer.toHexString(mbMsg.address + 1391);
-            String hex = String.format("%s" + "%0" + (4 - addr.length()) + "d%s", "0x", 0, addr);
+            String hex = String.format("0x%04x", mbMsg.address + 1391);
             OpenClosedType state = (mbMsg.data == 0 ? OpenClosedType.OPEN : OpenClosedType.CLOSED);
             updateState(hex, state);
         } else if (msg instanceof MBDMessage) {
             MBDMessage mbdMsg = (MBDMessage) msg;
-            String addr = Integer.toHexString(mbdMsg.address + 1519);
-            String hex = String.format("%s" + "%0" + (4 - addr.length()) + "d%s", "0x", 0, addr);
+            String hex = String.format("0x%04x", mbdMsg.address + 1519);
             OnOffType state = (mbdMsg.data == 0 ? OnOffType.ON : OnOffType.OFF);
             updateState(hex, state);
         } else {
@@ -160,9 +143,7 @@ public class OutputHandler extends TelenotThingHandler {
             Channel channel = callback.createChannelBuilder(channelUID, CHANNEL_TYPE_CONTACT).withLabel(label).build();
             updateThing(editThing().withoutChannel(channelUID).withChannel(channel).build());
 
-            String parts[] = channelId.split("0x");
-            String addr = Integer.toHexString(Integer.parseInt(parts[1], 16) + 128);
-            String hex = String.format("%s" + "%0" + (4 - addr.length()) + "d%s", "0x", 0, addr);
+            String hex = String.format("0x%04x", Integer.parseInt(channelId.substring(2), 16) + 128);
 
             channelUID = new ChannelUID(thing.getUID(), hex);
             channel = callback.createChannelBuilder(channelUID, CHANNEL_TYPE_SWITCH).withLabel("Disable " + label)

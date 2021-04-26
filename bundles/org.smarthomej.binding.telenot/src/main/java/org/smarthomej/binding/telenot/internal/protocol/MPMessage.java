@@ -12,9 +12,8 @@
  */
 package org.smarthomej.binding.telenot.internal.protocol;
 
-import java.util.List;
-
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.smarthomej.binding.telenot.internal.TelenotMessageException;
 
 /**
  * The {@link MPMessage} class represents a parsed MP message.
@@ -31,24 +30,24 @@ public class MPMessage extends TelenotMessage {
     /** Message data */
     public final int data;
 
-    public MPMessage(String message) throws IllegalArgumentException {
+    public MPMessage(String message) throws TelenotMessageException {
         super(message);
 
-        List<String> parts = splitMsg(message);
+        String parts[] = message.split(",");
 
-        if (parts.size() != 2) {
-            throw new IllegalArgumentException("Invalid number of parts in MP message");
+        if (parts.length != 2) {
+            throw new TelenotMessageException("Invalid number of parts in MP message");
         }
 
         try {
-            address = Integer.parseInt(parts.get(0));
-            data = Integer.parseInt(parts.get(1));
+            address = Integer.parseInt(parts[0]);
+            data = Integer.parseInt(parts[1]);
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("MP message contains invalid number: " + e.getMessage(), e);
+            throw new TelenotMessageException("MP message contains invalid number: " + e.getMessage());
         }
 
         if ((data & ~0x1) != 0) {
-            throw new IllegalArgumentException("MP status should only be 0 or 1");
+            throw new TelenotMessageException("MP status should only be 0 or 1");
         }
     }
 }

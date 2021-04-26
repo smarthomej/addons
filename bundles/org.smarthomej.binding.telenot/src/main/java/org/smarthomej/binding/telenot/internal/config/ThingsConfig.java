@@ -15,11 +15,11 @@ package org.smarthomej.binding.telenot.internal.config;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
- * The {@link MPConfig} class contains fields mapping thing configuration parameters for MBHandler.
+ * The {@link ThingsConfig} class contains fields mapping thing configuration parameters for Things.
  *
  * @author Ronny Grun - Initial contribution
  */
 @NonNullByDefault
-public class MPConfig {
+public class ThingsConfig {
     public int address = -1;
 }

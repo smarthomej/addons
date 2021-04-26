@@ -44,11 +44,12 @@ public class TelenotDiscoveryService extends AbstractDiscoveryService implements
     private final Logger logger = LoggerFactory.getLogger(TelenotDiscoveryService.class);
 
     private @Nullable TelenotBridgeHandler bridgeHandler;
-    // private @Nullable ThingUID bridgeUID;
+    private @Nullable ThingUID bridgeUID;
     private final Set<String> discoveredSBSet = new HashSet<>();
 
-    public TelenotDiscoveryService() {
+    public TelenotDiscoveryService(TelenotBridgeHandler bridgeHandler) {
         super(DISCOVERABLE_DEVICE_TYPE_UIDS, 0, false);
+        this.bridgeHandler = (TelenotBridgeHandler) bridgeHandler;
     }
 
     @Override
@@ -92,6 +93,11 @@ public class TelenotDiscoveryService extends AbstractDiscoveryService implements
     }
 
     private void notifyDiscoveryOfSB(int address, String idString) {
+        TelenotBridgeHandler bridgeHandler = this.bridgeHandler;
+        if (bridgeHandler == null) {
+            logger.warn("Bridgehandler is null but discovery result has been produced. This should not happen.");
+            return;
+        }
         ThingUID bridgeUID = bridgeHandler.getThing().getUID();
         ThingUID uid = new ThingUID(THING_TYPE_SB, bridgeUID, idString);
 

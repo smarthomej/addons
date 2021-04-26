@@ -13,10 +13,8 @@
 package org.smarthomej.binding.telenot.internal.handler;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.net.ConnectException;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -92,10 +90,10 @@ public class IPBridgeHandler extends TelenotBridgeHandler {
                     config.reconnect, TimeUnit.MINUTES);
             refreshSendDataJob = scheduler.scheduleWithFixedDelay(this::refreshSendData, config.refreshData,
                     config.refreshData, TimeUnit.MINUTES);
-        } catch (UnknownHostException e) {
-            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "unknown host");
-            logger.debug("UnknownHostException");
+        } catch (ConnectException e) {
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, e.getMessage());
             disconnect();
+            scheduleConnectRetry(config.reconnect); // Possibly a retryable error. Try again later.
         } catch (IOException e) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
             disconnect();
@@ -166,18 +164,6 @@ public class IPBridgeHandler extends TelenotBridgeHandler {
 
         stopMsgReader();
 
-        try {
-            OutputStream os = outputStream;
-            if (os != null) {
-                os.close();
-            }
-            InputStream is = inputStream;
-            if (is != null) {
-                is.close();
-            }
-        } catch (IOException e) {
-            logger.debug("error closing reader/writer: {}", e.getMessage());
-        }
         outputStream = null;
         inputStream = null;
     }
