@@ -33,7 +33,6 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.http.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthomej.binding.http.internal.HttpStatusListener;
 import org.smarthomej.binding.http.internal.Util;
 import org.smarthomej.binding.http.internal.config.HttpThingConfig;
 import org.smarthomej.commons.itemvalueconverter.ContentWrapper;
@@ -50,10 +49,11 @@ public class RefreshingUrlCache {
 
     private final String url;
     private final RateLimitedHttpClient httpClient;
+    private final boolean strictErrorHandling;
     private final int timeout;
     private final int bufferSize;
     private final @Nullable String fallbackEncoding;
-    private final Set<Consumer<ContentWrapper>> consumers = ConcurrentHashMap.newKeySet();
+    private final Set<Consumer<@Nullable ContentWrapper>> consumers = ConcurrentHashMap.newKeySet();
     private final Map<String, String> headers;
     private final HttpMethod httpMethod;
     private final String httpContent;
@@ -66,6 +66,7 @@ public class RefreshingUrlCache {
             HttpThingConfig thingConfig, String httpContent, HttpStatusListener httpStatusListener) {
         this.httpClient = httpClient;
         this.url = url;
+        this.strictErrorHandling = thingConfig.strictErrorHandling;
         this.timeout = thingConfig.timeout;
         this.bufferSize = thingConfig.bufferSize;
         this.httpMethod = thingConfig.stateMethod;
@@ -136,22 +137,17 @@ public class RefreshingUrlCache {
         logger.trace("Stopped refresh task for URL '{}'", url);
     }
 
-    public void addConsumer(Consumer<ContentWrapper> consumer) {
+    public void addConsumer(Consumer<@Nullable ContentWrapper> consumer) {
         consumers.add(consumer);
     }
 
     public Optional<ContentWrapper> get() {
-        final ContentWrapper content = lastContent;
-        if (content == null) {
-            return Optional.empty();
-        } else {
-            return Optional.of(content);
-        }
+        return Optional.ofNullable(lastContent);
     }
 
     private void processResult(@Nullable ContentWrapper content) {
-        if (content != null) {
-            for (Consumer<ContentWrapper> consumer : consumers) {
+        if (content != null || strictErrorHandling) {
+            for (Consumer<@Nullable ContentWrapper> consumer : consumers) {
                 try {
                     consumer.accept(content);
                 } catch (IllegalArgumentException | IllegalStateException e) {

@@ -55,6 +55,7 @@ import org.smarthomej.binding.http.internal.config.HttpChannelConfig;
 import org.smarthomej.binding.http.internal.config.HttpThingConfig;
 import org.smarthomej.binding.http.internal.http.HttpAuthException;
 import org.smarthomej.binding.http.internal.http.HttpResponseListener;
+import org.smarthomej.binding.http.internal.http.HttpStatusListener;
 import org.smarthomej.binding.http.internal.http.RateLimitedHttpClient;
 import org.smarthomej.binding.http.internal.http.RefreshingUrlCache;
 import org.smarthomej.commons.SimpleDynamicStateDescriptionProvider;
@@ -86,7 +87,7 @@ public class HttpThingHandler extends UpdatingBaseThingHandler implements HttpSt
     private final Logger logger = LoggerFactory.getLogger(HttpThingHandler.class);
     private final ValueTransformationProvider valueTransformationProvider;
     private final HttpClientProvider httpClientProvider;
-    private RateLimitedHttpClient rateLimitedHttpClient;
+    private final RateLimitedHttpClient rateLimitedHttpClient;
     private final SimpleDynamicStateDescriptionProvider httpDynamicStateDescriptionProvider;
 
     private HttpThingConfig config = new HttpThingConfig();
@@ -118,7 +119,10 @@ public class HttpThingHandler extends UpdatingBaseThingHandler implements HttpSt
                 RefreshingUrlCache refreshingUrlCache = urlHandlers.get(key);
                 if (refreshingUrlCache != null) {
                     try {
-                        refreshingUrlCache.get().ifPresent(itemValueConverter::process);
+                        refreshingUrlCache.get().ifPresentOrElse(itemValueConverter::process, () -> {
+                            if (config.strictErrorHandling)
+                                itemValueConverter.process(null);
+                        });
                     } catch (IllegalArgumentException | IllegalStateException e) {
                         logger.warn("Failed processing REFRESH command for channel {}: {}", channelUID, e.getMessage());
                     }
@@ -331,8 +335,10 @@ public class HttpThingHandler extends UpdatingBaseThingHandler implements HttpSt
     @Override
     public void onHttpError(@Nullable String message) {
         updateState(CHANNEL_LAST_FAILURE, new DateTimeType());
-        updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-                Objects.requireNonNullElse(message, ""));
+        if (config.strictErrorHandling) {
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
+                    Objects.requireNonNullElse(message, ""));
+        }
     }
 
     @Override

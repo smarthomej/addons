@@ -27,7 +27,6 @@ import org.eclipse.jetty.http.HttpField;
 import org.eclipse.jetty.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthomej.binding.http.internal.HttpStatusListener;
 import org.smarthomej.commons.itemvalueconverter.ContentWrapper;
 
 /**
