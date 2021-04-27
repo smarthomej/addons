@@ -20,6 +20,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.State;
+import org.openhab.core.types.UnDefType;
 import org.smarthomej.commons.itemvalueconverter.ChannelMode;
 import org.smarthomej.commons.itemvalueconverter.ContentWrapper;
 import org.smarthomej.commons.itemvalueconverter.ItemValueConverter;
@@ -53,7 +54,11 @@ public abstract class AbstractTransformingItemConverter implements ItemValueConv
     }
 
     @Override
-    public void process(ContentWrapper content) {
+    public void process(@Nullable ContentWrapper content) {
+        if (content == null) {
+            updateState.accept(UnDefType.UNDEF);
+            return;
+        }
         if (channelConfig.mode != ChannelMode.WRITEONLY) {
             stateTransformations.apply(content.getAsString()).ifPresent(transformedValue -> {
                 Command command = toCommand(transformedValue);
