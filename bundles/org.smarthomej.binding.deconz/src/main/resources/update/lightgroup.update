@@ -1,2 +1,2 @@
 # the color channel changed from a custom type to the system-type
-1,UPDATE_CHANNEL,color,Color,system:color
+1;UPDATE_CHANNEL;color,Color,system:color
