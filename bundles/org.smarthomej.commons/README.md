@@ -57,7 +57,7 @@ Things that are still version `0` are first upgraded to version `1` and then imm
 ### package `itemvalueconverter`
 
 - `ChannelMode`: enum defines control modes for channels (READONLY, READWRITE etc.)
-- `ContentWrapper`: wrapper for a byte content and conversion to String (input to converters)
+- `ContentWrapper`: wrapper for a byte content and conversion to String (input to converters), `null` represents `UNDEF`
 - `ItemValueConverter`: interface for the converters (used by the channel handlers)
 - `ItemValueConverterChannelConfig`: base class for channel configurations that use the value converters with fields for special values
 
