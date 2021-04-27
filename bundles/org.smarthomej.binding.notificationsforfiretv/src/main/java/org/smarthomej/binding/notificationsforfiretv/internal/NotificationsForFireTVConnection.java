@@ -22,17 +22,24 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.UUID;
+
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author Tom Blum - Initial contribution
  */
+@NonNullByDefault
 public class NotificationsForFireTVConnection {
+
+    private final Logger logger = LoggerFactory.getLogger(NotificationsForFireTVConnection.class);
 
     private String boundary;
     private static final String LINE = "\r\n";
+    private static final String PROTOCOL = "http";
     private HttpURLConnection httpConn;
     private OutputStream outputStream;
     private PrintWriter writer;
@@ -41,14 +48,13 @@ public class NotificationsForFireTVConnection {
      * This constructor initializes a new HTTP POST request with content
      * type is set to multipart/form-data
      *
-     * @param requestURL
-     * @param charset
-     * @param headers
+     * @param ip
+     * @param port
      * @throws IOException
      */
-    public NotificationsForFireTVConnection(String requestURL) throws IOException {
+    public NotificationsForFireTVConnection(String ip, int port) throws IOException {
         boundary = UUID.randomUUID().toString();
-        URL url = new URL(requestURL);
+        URL url = new URL(PROTOCOL + "://" + ip + ":" + port);
         httpConn = (HttpURLConnection) url.openConnection();
         httpConn.setUseCaches(false);
         httpConn.setDoOutput(true); // indicates POST method
@@ -67,7 +73,6 @@ public class NotificationsForFireTVConnection {
     public void addFormField(String name, String value) {
         writer.append("--" + boundary).append(LINE);
         writer.append("Content-Disposition: form-data; name=\"" + name + "\"").append(LINE);
-        writer.append("Content-Type: text/plain; charset=utf-8").append(LINE);
         writer.append(LINE);
         writer.append(value).append(LINE);
         writer.flush();
@@ -85,8 +90,7 @@ public class NotificationsForFireTVConnection {
         writer.append("--" + boundary).append(LINE);
         writer.append("Content-Disposition: form-data; name=\"" + fieldName + "\"; filename=\"" + fileName + "\"")
                 .append(LINE);
-        writer.append("Content-Type: " + URLConnection.guessContentTypeFromName(fileName)).append(LINE);
-        writer.append("Content-Transfer-Encoding: binary").append(LINE);
+        writer.append("Content-Type: application/octet-stream").append(LINE);
         writer.append(LINE);
         writer.flush();
 

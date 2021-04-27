@@ -19,7 +19,7 @@
 				<description>Device port listening to connections.</description>
 				<default>7676</default>
 			</parameter>
-			<!-- parameter name="type" type="integer" required="false" min="0" max="65535">
+			<!-- NO EFFECT parameter name="type" type="integer" required="false" min="0" max="65535">
 				<label>Type</label>
 				<description>Type of the notification.</description>
 				<default>0</default>

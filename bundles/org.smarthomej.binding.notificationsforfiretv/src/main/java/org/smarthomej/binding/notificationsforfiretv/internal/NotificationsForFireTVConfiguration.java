@@ -13,11 +13,14 @@
  */
 package org.smarthomej.binding.notificationsforfiretv.internal;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+
 /**
  * The {@link NotificationsForFireTVConfiguration} class contains fields mapping thing configuration parameters.
  *
  * @author Tom Blum - Initial contribution
  */
+@NonNullByDefault
 public class NotificationsForFireTVConfiguration {
 
     public String ip = "";
@@ -33,5 +36,5 @@ public class NotificationsForFireTVConfiguration {
     public int offsety = 0;
     public String app = title;
     public Boolean force = true;
-    public Boolean interrupt = true;
+    public int interrupt = 0;
 }

@@ -32,7 +32,7 @@ import static org.smarthomej.binding.notificationsforfiretv.internal.Notificatio
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -56,7 +56,7 @@ public class NotificationsForFireTVHandler extends BaseThingHandler {
 
     private final Logger logger = LoggerFactory.getLogger(NotificationsForFireTVHandler.class);
 
-    private @Nullable NotificationsForFireTVConfiguration config;
+    private NotificationsForFireTVConfiguration config = new NotificationsForFireTVConfiguration();
 
     public NotificationsForFireTVHandler(Thing thing) {
         super(thing);
@@ -70,30 +70,18 @@ public class NotificationsForFireTVHandler extends BaseThingHandler {
     public void initialize() {
         config = getConfigAs(NotificationsForFireTVConfiguration.class);
 
-        updateStatus(ThingStatus.UNKNOWN);
-
-        // Example for background initialization:
-        scheduler.execute(() -> {
-            boolean thingReachable = true; // <background task with long running initialization here>
-            // when done do:
-            if (thingReachable) {
-                updateStatus(ThingStatus.ONLINE);
-            } else {
-                updateStatus(ThingStatus.OFFLINE);
-            }
-        });
+        updateStatus(ThingStatus.ONLINE);
     }
 
-    public boolean sendNotificationForFireTV(@Nullable String msg, @Nullable String filename,
-            @Nullable String filename2) {
+    public boolean sendNotification(@Nullable String msg, @Nullable String filename, @Nullable String filename2) {
         try {
             // CREATE CONNECTION
             NotificationsForFireTVConnection notificationsForFireTVConnection = new NotificationsForFireTVConnection(
-                    config.ip);
+                    config.ip, config.port);
             // ADD FORM FIELDS
             notificationsForFireTVConnection.addFormField(TYPE, String.valueOf(config.type));
             notificationsForFireTVConnection.addFormField(TITLE, config.title);
-            notificationsForFireTVConnection.addFormField(MSG, msg);
+            notificationsForFireTVConnection.addFormField(MSG, msg != null ? msg : "");
             notificationsForFireTVConnection.addFormField(DURATION, String.valueOf(config.duration));
             notificationsForFireTVConnection.addFormField(FONTSIZE, String.valueOf(config.fontsize));
             notificationsForFireTVConnection.addFormField(POSITION, String.valueOf(config.position));
@@ -105,28 +93,33 @@ public class NotificationsForFireTVHandler extends BaseThingHandler {
             notificationsForFireTVConnection.addFormField(FORCE, String.valueOf(config.force));
             notificationsForFireTVConnection.addFormField(INTERRUPT, String.valueOf(config.interrupt));
             // ADD FILES
-            File file = new File(filename);
-            if (!file.exists()) {
-                throw new IOException("File doesn't exist: " + filename);
+            if (filename != null) {
+                File file = new File(filename);
+                if (!file.exists()) {
+                    throw new IOException("File doesn't exist: " + filename);
+                }
+                notificationsForFireTVConnection.addFilePart(FILENAME, file);
             }
-            File file2 = new File(filename2);
-            if (!file2.exists()) {
-                throw new IOException("File doesn't exist: " + filename2);
+            if (filename2 != null) {
+                File file2 = new File(filename2);
+                if (!file2.exists()) {
+                    throw new IOException("File doesn't exist: " + filename2);
+                }
+                notificationsForFireTVConnection.addFilePart(FILENAME2, file2);
             }
-            notificationsForFireTVConnection.addFilePart(FILENAME, new File(filename));
-            notificationsForFireTVConnection.addFilePart(FILENAME2, new File(filename2));
             // POST FORM
-            String response = notificationsForFireTVConnection.finish();
-            System.out.println(response);
+            notificationsForFireTVConnection.finish();
+
+            return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Unable to connect: {}", e.getMessage());
         }
 
-        return true;
+        return false;
     }
 
     @Override
     public Collection<Class<? extends ThingHandlerService>> getServices() {
-        return Collections.singletonList(NotificationsForFireTVThingActions.class);
+        return Set.of(NotificationsForFireTVThingActions.class);
     }
 }

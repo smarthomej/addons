@@ -37,8 +37,21 @@ public class NotificationsForFireTVThingActions implements ThingActions {
 
     private @Nullable NotificationsForFireTVHandler handler;
 
-    @RuleAction(label = "Notification for Fire TV sendNotificationForFireTV", description = "Action that sends notification to Fire TV")
-    public @ActionOutput(name = "success", type = "java.lang.Boolean") Boolean sendNotificationForFireTV(
+    @RuleAction(label = "Notifications For Fire TV sendNotification", description = "Action that sends notification to Fire TV")
+    public @ActionOutput(name = "success", type = "java.lang.Boolean") Boolean sendNotification(
+            @ActionInput(name = "message") @Nullable String msg,
+            @ActionInput(name = "icon") @Nullable String filename) {
+        final NotificationsForFireTVHandler handler = this.handler;
+        if (handler == null) {
+            logger.warn("Handler is null, cannot send notification.");
+            return false;
+        } else {
+            return handler.sendNotification(msg, filename, null);
+        }
+    }
+
+    @RuleAction(label = "Notifications For Fire TV sendNotification", description = "Action that sends notification to Fire TV")
+    public @ActionOutput(name = "success", type = "java.lang.Boolean") Boolean sendNotification(
             @ActionInput(name = "message") @Nullable String msg, @ActionInput(name = "icon") @Nullable String filename,
             @ActionInput(name = "image") @Nullable String filename2) {
         final NotificationsForFireTVHandler handler = this.handler;
@@ -46,13 +59,17 @@ public class NotificationsForFireTVThingActions implements ThingActions {
             logger.warn("Handler is null, cannot send notification.");
             return false;
         } else {
-            return handler.sendNotificationForFireTV(msg, filename, filename2);
+            return handler.sendNotification(msg, filename, filename2);
         }
     }
 
-    public static boolean sendNotificationForFireTV(ThingActions actions, @Nullable String msg,
-            @Nullable String filename, @Nullable String filename2) {
-        return ((NotificationsForFireTVThingActions) actions).sendNotificationForFireTV(msg, filename, filename2);
+    public static boolean sendNotification(ThingActions actions, @Nullable String msg, @Nullable String filename) {
+        return ((NotificationsForFireTVThingActions) actions).sendNotification(msg, filename, null);
+    }
+
+    public static boolean sendNotification(ThingActions actions, @Nullable String msg, @Nullable String filename,
+            @Nullable String filename2) {
+        return ((NotificationsForFireTVThingActions) actions).sendNotification(msg, filename, filename2);
     }
 
     @Override

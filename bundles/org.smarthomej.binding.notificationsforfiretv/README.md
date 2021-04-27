@@ -1,56 +1,57 @@
-# NotificationsForFireTV Binding
+# Notifications For Fire TV Binding
 
-_Give some details about what this binding is meant for - a protocol, system, specific device._
-
-_If possible, provide some resources like pictures, a video, etc. to give an impression of what can be done with this binding. You can place such resources into a `doc` folder next to this README.md._
+The Notifications For Fire TV Binding provides support for sending notifications to a Fire TV from rule.
+To use the binding it is necessary to install the free app `Notifications For Fire TV` by Christian Fees on the Fire TV.
+The app is available on the Amazon app store by searching for the name.
 
 ## Supported Things
 
-_Please describe the different supported things / devices within this section._
-_Which different types are supported, which models were tested etc.?_
-_Note that it is planned to generate some part of this based on the XML files within ```src/main/resources/OH-INF/thing``` of your binding._
-
-## Discovery
-
-_Describe the available auto-discovery features here. Mention for what it works and what needs to be kept in mind when using it._
-
-## Binding Configuration
-
-_If your binding requires or supports general configuration settings, please create a folder ```cfg``` and place the configuration file ```<bindingId>.cfg``` inside it. In this section, you should link to this file and provide some information about the options. The file could e.g. look like:_
-
-```
-# Configuration for the NotificationsForFireTV Binding
-#
-# Default secret key for the pairing of the NotificationsForFireTV Thing.
-# It has to be between 10-40 (alphanumeric) characters.
-# This may be changed by the user for security reasons.
-secret=openHABSecret
-```
-
-_Note that it is planned to generate some part of this based on the information that is available within ```src/main/resources/OH-INF/binding``` of your binding._
-
-_If your binding does not offer any generic configurations, you can remove this section completely._
+There is only one thing: `notification` which represents a Fire TV.
 
 ## Thing Configuration
 
-_Describe what is needed to manually configure a thing, either through the UI or via a thing-file. This should be mainly about its mandatory and optional configuration parameters. A short example entry for a thing file can help!_
+There are two mandatory parameters `ip` and `host`.
 
-_Note that it is planned to generate some part of this based on the XML files within ```src/main/resources/OH-INF/thing``` of your binding._
+The `ip address` must be a valid ip address to a Fire TV.
+The `port` should be the default port `7676` of the app Notifications For Fire TV.
+
+The other parameters are optional but recommendable.
+
+The `tile` parameter may be the sender of the notification.
+The `duration` defines how long the notifications stay on the screen.
+The `position` is used to set the location of the notification on the screen.
+The `transparency` set the alpha channel of the notification background.
+The `horizontal offset` changes the x coordinate of the notification relative to the `position`.
+The `vertical offset` changes the y coordinate of the notification relative to the `position`.
+The `force` parameter can instruct the Fire TV to show the notification in any case.
 
 ## Channels
 
-_Here you should provide information about available channel types, what their meaning is and how they can be used._
+There are no channels for the `notification` thing.
 
-_Note that it is planned to generate some part of this based on the XML files within ```src/main/resources/OH-INF/thing``` of your binding._
+## Rule Action
 
-| channel  | type   | description                  |
-|----------|--------|------------------------------|
-| control  | Switch | This is the control channel  |
+This binding includes rule actions for sending notifications to a Fire TV.
+Two different actions available:
 
-## Full Example
+* `boolean success = sendNotification(String message, String icon)`
+* `boolean success = sendNotification(String message, String icon, String image)`
 
-_Provide a full usage example based on textual configuration files (*.things, *.items, *.sitemap)._
+The `sendNotification(...)` actions send a notification with icon (with image if supplied) to the Fire TV.
 
-## Any custom content here!
+The function returns a boolean as the result of the operation.
 
-_Feel free to add additional sections for whatever you think should also be mentioned about your binding!_
+`icon` and `image` must be a valid path to an image in png format.
+`icon` should be a small icon which shows the topic of the notification.
+`image` can be a larger image like a picture captured from a camera.
+
+Please note: All strings are expected to be UTF-8 encoded.
+Using different character sets may produce unwanted results.
+
+Examples (Rules DSL):
+
+```
+val notificationsForFireTVActions = getActions("notificationsforfiretv","notificationsforfiretv:notification:1")
+var boolean success = notificationsForFireTVActions.sendNotification("This is the notification content.", "/path/to/icon.png")
+success = notificationsForFireTVActions.sendNotification("This is the notification content.", "/path/to/icon.png", "/path/to/image.png")
+```
