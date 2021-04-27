@@ -77,6 +77,7 @@ public class ItemValueConverterChannelConfig {
     public @Nullable String previousValue;
     public @Nullable String rewindValue;
     public @Nullable String fastforwardValue;
+
     private boolean initialized = false;
 
     /**

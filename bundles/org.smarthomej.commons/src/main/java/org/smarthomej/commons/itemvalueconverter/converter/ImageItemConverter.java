@@ -16,9 +16,11 @@ package org.smarthomej.commons.itemvalueconverter.converter;
 import java.util.function.Consumer;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.RawType;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.State;
+import org.openhab.core.types.UnDefType;
 import org.smarthomej.commons.itemvalueconverter.ContentWrapper;
 import org.smarthomej.commons.itemvalueconverter.ItemValueConverter;
 
@@ -37,7 +39,11 @@ public class ImageItemConverter implements ItemValueConverter {
     }
 
     @Override
-    public void process(ContentWrapper content) {
+    public void process(@Nullable ContentWrapper content) {
+        if (content == null) {
+            updateState.accept(UnDefType.UNDEF);
+            return;
+        }
         String mediaType = content.getMediaType();
         updateState.accept(
                 new RawType(content.getRawContent(), mediaType != null ? mediaType : RawType.DEFAULT_MIME_TYPE));

@@ -14,6 +14,7 @@
 package org.smarthomej.commons.itemvalueconverter;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.types.Command;
 
 /**
@@ -28,9 +29,9 @@ public interface ItemValueConverter {
     /**
      * called to process a given content for this channel
      *
-     * @param content content of the HTTP request
+     * @param content content of the HTTP request (null results in UNDEF)
      */
-    void process(ContentWrapper content);
+    void process(@Nullable ContentWrapper content);
 
     /**
      * called to send a command to this channel
