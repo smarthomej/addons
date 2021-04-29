@@ -111,7 +111,7 @@ public class NotificationsForFireTVHandler extends BaseThingHandler {
 
             return true;
         } catch (Exception e) {
-            logger.error("Unable to connect: {}", e.getMessage());
+            logger.warn("Unable to connect: {}", e.getMessage());
         }
         return false;
     }
