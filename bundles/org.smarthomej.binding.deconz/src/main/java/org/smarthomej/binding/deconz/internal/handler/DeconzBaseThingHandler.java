@@ -31,7 +31,6 @@ import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.ThingStatusInfo;
-import org.openhab.core.thing.binding.BaseThingHandler;
 import org.openhab.core.thing.binding.builder.ChannelBuilder;
 import org.openhab.core.thing.binding.builder.ThingBuilder;
 import org.openhab.core.thing.type.ChannelKind;
@@ -44,6 +43,7 @@ import org.smarthomej.binding.deconz.internal.dto.DeconzBaseMessage;
 import org.smarthomej.binding.deconz.internal.netutils.WebSocketConnection;
 import org.smarthomej.binding.deconz.internal.netutils.WebSocketMessageListener;
 import org.smarthomej.binding.deconz.internal.types.ResourceType;
+import org.smarthomej.commons.UpdatingBaseThingHandler;
 
 import com.google.gson.Gson;
 
@@ -57,7 +57,7 @@ import com.google.gson.Gson;
  * @author Jan N. Klug - Refactored to abstract class
  */
 @NonNullByDefault
-public abstract class DeconzBaseThingHandler extends BaseThingHandler implements WebSocketMessageListener {
+public abstract class DeconzBaseThingHandler extends UpdatingBaseThingHandler implements WebSocketMessageListener {
     private final Logger logger = LoggerFactory.getLogger(DeconzBaseThingHandler.class);
     protected final ResourceType resourceType;
     protected ThingConfig config = new ThingConfig();

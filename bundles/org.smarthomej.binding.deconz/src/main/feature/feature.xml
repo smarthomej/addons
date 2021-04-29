@@ -6,6 +6,7 @@
 		<feature>openhab-runtime-base</feature>
 		<feature>openhab-transport-http</feature>
 		<feature>openhab-transport-upnp</feature>
+		<bundle dependency="true">mvn:org.smarthomej.addons.bundles/org.smarthomej.commons/${project.version}</bundle>
 		<bundle start-level="80">mvn:org.smarthomej.addons.bundles/org.smarthomej.binding.deconz/${project.version}</bundle>
 	</feature>
 </features>
