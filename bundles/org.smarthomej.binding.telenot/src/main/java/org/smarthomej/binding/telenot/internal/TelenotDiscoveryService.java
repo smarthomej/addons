@@ -44,7 +44,6 @@ public class TelenotDiscoveryService extends AbstractDiscoveryService implements
     private final Logger logger = LoggerFactory.getLogger(TelenotDiscoveryService.class);
 
     private @Nullable TelenotBridgeHandler bridgeHandler;
-    private @Nullable ThingUID bridgeUID;
     private final Set<String> discoveredSBSet = new HashSet<>();
 
     public TelenotDiscoveryService(TelenotBridgeHandler bridgeHandler) {
