@@ -25,10 +25,13 @@ import java.util.concurrent.TimeUnit;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.client.api.Authentication;
 import org.eclipse.jetty.client.api.AuthenticationStore;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.client.util.StringContentProvider;
 import org.eclipse.jetty.http.HttpMethod;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The {@link RateLimitedHttpClient} is a wrapper for a Jetty HTTP client that limits the number of requests by delaying
@@ -39,10 +42,14 @@ import org.eclipse.jetty.http.HttpMethod;
 @NonNullByDefault
 public class RateLimitedHttpClient {
     private static final int MAX_QUEUE_SIZE = 1000; // maximum queue size
+    private final Logger logger = LoggerFactory.getLogger(RateLimitedHttpClient.class);
+
     private HttpClient httpClient;
     private int delay = 0; // in ms
     private final ScheduledExecutorService scheduler;
     private final LinkedBlockingQueue<RequestQueueEntry> requestQueue = new LinkedBlockingQueue<>(MAX_QUEUE_SIZE);
+    private final LinkedBlockingQueue<RequestQueueEntry> priorityRequestQueue = new LinkedBlockingQueue<>(
+            MAX_QUEUE_SIZE);
 
     private @Nullable ScheduledFuture<?> processJob;
 
@@ -61,7 +68,7 @@ public class RateLimitedHttpClient {
 
     /**
      * Set a new delay
-     * 
+     *
      * @param delay in ms between to requests
      */
     public void setDelay(int delay) {
@@ -78,7 +85,7 @@ public class RateLimitedHttpClient {
     /**
      * Set the HTTP client
      *
-     * @param httpClient secure or insecure Jetty http client
+     * @param httpClient secure or insecure {@link HttpClient}
      */
     public void setHttpClient(HttpClient httpClient) {
         this.httpClient = httpClient;
@@ -90,29 +97,68 @@ public class RateLimitedHttpClient {
      * @param finalUrl the request URL
      * @param method http request method GET/PUT/POST
      * @param content the content (if method PUT/POST)
-     * @return a CompletableFuture that completes with the request
+     * @return a {@link CompletableFuture} that completes with the request
      */
-    public CompletableFuture<Request> newRequest(URI finalUrl, HttpMethod method, String content) {
+    public CompletableFuture<Request> newRequest(URI finalUrl, HttpMethod method, String content,
+            @Nullable String contentType) {
+        return queueRequest(finalUrl, method, content, contentType, requestQueue);
+    }
+
+    /**
+     * Create a new priority request (executed as next request) to the given URL respecting rate-limits
+     *
+     * @param finalUrl the request URL
+     * @param method http request method GET/PUT/POST
+     * @param content the content (if method PUT/POST)
+     * @return a {@link CompletableFuture} that completes with the request
+     */
+    public CompletableFuture<Request> newPriorityRequest(URI finalUrl, HttpMethod method, String content,
+            @Nullable String contentType) {
+        return queueRequest(finalUrl, method, content, contentType, priorityRequestQueue);
+    }
+
+    private CompletableFuture<Request> queueRequest(URI finalUrl, HttpMethod method, String content,
+            @Nullable String contentType, LinkedBlockingQueue<RequestQueueEntry> queue) {
         // if no delay is set, return a completed CompletableFuture
         CompletableFuture<Request> future = new CompletableFuture<>();
-        RequestQueueEntry queueEntry = new RequestQueueEntry(finalUrl, method, content, future);
+        RequestQueueEntry queueEntry = new RequestQueueEntry(finalUrl, method, content, contentType, future);
         if (delay == 0) {
             queueEntry.completeFuture(httpClient);
         } else {
-            if (!requestQueue.offer(queueEntry)) {
+            if (!queue.offer(queueEntry)) {
                 future.completeExceptionally(new RejectedExecutionException("Maximum queue size exceeded."));
             }
+
         }
         return future;
     }
 
     /**
-     * Get the AuthenticationStore from the wrapped client
+     * Get the {@link AuthenticationStore} from the wrapped {@link HttpClient}
      *
      * @return
      */
     public AuthenticationStore getAuthenticationStore() {
         return httpClient.getAuthenticationStore();
+    }
+
+    /**
+     * Remove authentication result from the wrapped {@link HttpClient} and force re-auth
+     *
+     * @param uri the {@link URI} associated with the authentication result
+     * @return true if a result was found and cleared, false if not authenticated at all
+     */
+    public boolean reAuth(URI uri) {
+        AuthenticationStore authStore = httpClient.getAuthenticationStore();
+        Authentication.Result authResult = authStore.findAuthenticationResult(uri);
+        if (authResult != null) {
+            authStore.removeAuthenticationResult(authResult);
+            logger.debug("Cleared authentication result for '{}', retrying immediately", uri);
+            return true;
+        } else {
+            logger.warn("Could not find authentication result for '{}', failing here", uri);
+            return false;
+        }
     }
 
     private void stopProcessJob() {
@@ -123,8 +169,15 @@ public class RateLimitedHttpClient {
         }
     }
 
+    /**
+     * Gets an request from either the priority queue or tge regular queue and creates the request
+     */
     private void processQueue() {
-        RequestQueueEntry queueEntry = requestQueue.poll();
+        RequestQueueEntry queueEntry = priorityRequestQueue.poll();
+        if (queueEntry == null) {
+            // no entry in priorityRequestQueue, try the regular queue
+            queueEntry = requestQueue.poll();
+        }
         if (queueEntry != null) {
             queueEntry.completeFuture(httpClient);
         }
@@ -134,12 +187,15 @@ public class RateLimitedHttpClient {
         private URI finalUrl;
         private HttpMethod method;
         private String content;
+        private @Nullable String contentType;
         private CompletableFuture<Request> future;
 
-        public RequestQueueEntry(URI finalUrl, HttpMethod method, String content, CompletableFuture<Request> future) {
+        public RequestQueueEntry(URI finalUrl, HttpMethod method, String content, @Nullable String contentType,
+                CompletableFuture<Request> future) {
             this.finalUrl = finalUrl;
             this.method = method;
             this.content = content;
+            this.contentType = contentType;
             this.future = future;
         }
 
@@ -151,7 +207,11 @@ public class RateLimitedHttpClient {
         public void completeFuture(HttpClient httpClient) {
             Request request = httpClient.newRequest(finalUrl).method(method);
             if (method != HttpMethod.GET && !content.isEmpty()) {
-                request.content(new StringContentProvider(content));
+                if (contentType == null) {
+                    request.content(new StringContentProvider(content));
+                } else {
+                    request.content(new StringContentProvider(content), contentType);
+                }
             }
             future.complete(request);
         }

@@ -24,8 +24,9 @@ It can be extended with different channels.
 | `contentType`     | yes      |    -    | MIME content-type of the command requests. Only used for  `PUT` and `POST`. |
 | `encoding`        | yes      |    -    | Encoding to be used if no encoding is found in responses (advanced parameter). |  
 | `headers`         | yes      |    -    | Additional headers that are sent along with the request. Format is "header=value". Multiple values can be stored as `headers="key1=value1", "key2=value2", "key3=value3",`| 
-| `ignoreSSLErrors` | no       |  false  | If set to true ignores invalid SSL certificate errors. This is potentially dangerous.|
-| `userAgent`       | yes      |   yes   | Sets a custom user agent (default is "Jetty/version", e.g. "Jetty/9.4.20.v20190813"). |
+| `ignoreSSLErrors` | no       |  false  | If set to true, ignores invalid SSL certificate errors. This is potentially dangerous.|
+| `strictErrorHandling` | no   |  false  | If set to true, thing status is changed depending on last request result (failed = `OFFLINE`). Failed requests result in `UNDEF` for channel values. |
+| `userAgent`       | yes      |  (yes ) | Sets a custom user agent (default is "Jetty/version", e.g. "Jetty/9.4.20.v20190813"). |
 
 *Note:* Optional "no" means that you have to configure a value unless a default is provided, and you are ok with that setting.
 
@@ -42,6 +43,9 @@ Using escaped strings in URL parameters may lead to problems with the formatting
 
 ## Channels
 
+The thing has two channels of type `requestDateTime` which provide the timestamp of the last successful (`lastSuccess`) and last failed (`lastFailure`) request.
+
+Additionally, the thing can be extended with data channels.
 Each item type has its own channel-type.
 Depending on the channel-type, channels have different configuration options.
 All channel-types (except `image`) have `stateExtension`, `commandExtension`, `stateTransformation`, `commandTransformation` and `mode` parameters.
