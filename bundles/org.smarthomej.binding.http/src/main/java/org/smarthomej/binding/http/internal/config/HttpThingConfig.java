@@ -52,6 +52,7 @@ public class HttpThingConfig {
     public @Nullable String contentType = null;
 
     public boolean ignoreSSLErrors = false;
+    public boolean strictErrorHandling = false;
 
     // ArrayList is required as implementation because list may be modified later
     public ArrayList<String> headers = new ArrayList<>();

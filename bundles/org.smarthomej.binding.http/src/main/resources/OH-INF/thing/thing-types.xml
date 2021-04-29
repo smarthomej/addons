@@ -9,6 +9,19 @@
 		<label>HTTP URL Thing</label>
 		<description>Represents a base URL and all associated requests.</description>
 
+		<channels>
+			<channel typeId="requestDateTime" id="lastFailure">
+				<label>Last Failure</label>
+			</channel>
+			<channel typeId="requestDateTime" id="lastSuccess">
+				<label>Last Success</label>
+			</channel>
+		</channels>
+
+		<properties>
+			<property name="thingTypeVersion">1</property>
+		</properties>
+
 		<config-description>
 			<parameter name="baseURL" type="text" required="true">
 				<label>Base URL</label>
@@ -120,6 +133,12 @@
 			</parameter>
 		</config-description>
 	</thing-type>
+
+	<channel-type id="requestDateTime">
+		<item-type>DateTime</item-type>
+		<label>Dummy </label>
+		<state readOnly="true" pattern="%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS"/>
+	</channel-type>
 
 	<channel-type id="color">
 		<item-type>Color</item-type>
