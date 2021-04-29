@@ -1,0 +1,2 @@
+# the brightness channel changed from a custom type to the system-type
+1;UPDATE_CHANNEL;brightness,Dimmer,system:brightness

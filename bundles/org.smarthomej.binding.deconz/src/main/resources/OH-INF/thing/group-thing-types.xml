@@ -19,6 +19,10 @@
 			<channel typeId="scene" id="scene"/>
 		</channels>
 
+		<properties>
+			<property name="thingTypeVersion">1</property>
+		</properties>
+
 		<representation-property>uid</representation-property>
 
 		<config-description-ref uri="thing-type:deconz:group"/>

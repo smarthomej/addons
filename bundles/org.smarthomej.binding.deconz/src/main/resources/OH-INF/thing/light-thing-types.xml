@@ -12,7 +12,7 @@
 		<description>A warning device</description>
 		<category>Siren</category>
 		<channels>
-			<channel id="alert" typeId="alert"></channel>
+			<channel typeId="alert" id="alert"></channel>
 		</channels>
 
 		<representation-property>uid</representation-property>
@@ -40,12 +40,18 @@
 		<supported-bridge-type-refs>
 			<bridge-type-ref id="deconz"/>
 		</supported-bridge-type-refs>
+
 		<label>On/Off Light</label>
 		<description>A light that can be turned on or off.</description>
+
 		<channels>
 			<channel typeId="system.power" id="switch"/>
 			<channel typeId="ontime" id="ontime"/>
 		</channels>
+
+		<properties>
+			<property name="thingTypeVersion">1</property>
+		</properties>
 
 		<representation-property>uid</representation-property>
 
@@ -62,8 +68,12 @@
 		<channels>
 			<channel typeId="system.brightness" id="brightness"/>
 			<channel typeId="ontime" id="ontime"/>
-			<channel id="alert" typeId="alert"></channel>
+			<channel typeId="alert" id="alert"></channel>
 		</channels>
+
+		<properties>
+			<property name="thingTypeVersion">1</property>
+		</properties>
 
 		<representation-property>uid</representation-property>
 
@@ -81,8 +91,12 @@
 			<channel typeId="system.brightness" id="brightness"/>
 			<channel typeId="ct" id="color_temperature"/>
 			<channel typeId="ontime" id="ontime"/>
-			<channel id="alert" typeId="alert"></channel>
+			<channel typeId="alert" id="alert"></channel>
 		</channels>
+
+		<properties>
+			<property name="thingTypeVersion">1</property>
+		</properties>
 
 		<representation-property>uid</representation-property>
 
@@ -99,8 +113,12 @@
 		<channels>
 			<channel typeId="system.color" id="color"/>
 			<channel typeId="ontime" id="ontime"/>
-			<channel id="alert" typeId="alert"></channel>
+			<channel typeId="alert" id="alert"></channel>
 		</channels>
+
+		<properties>
+			<property name="thingTypeVersion">1</property>
+		</properties>
 
 		<representation-property>uid</representation-property>
 
@@ -118,8 +136,12 @@
 			<channel typeId="system.color" id="color"/>
 			<channel typeId="ct" id="color_temperature"/>
 			<channel typeId="ontime" id="ontime"/>
-			<channel id="alert" typeId="alert"></channel>
+			<channel typeId="alert" id="alert"></channel>
 		</channels>
+
+		<properties>
+			<property name="thingTypeVersion">1</property>
+		</properties>
 
 		<representation-property>uid</representation-property>
 

@@ -1,0 +1,3 @@
+# the presence channel and enabled channel changed from a custom type to the system-type
+1;UPDATE_CHANNEL;presence,Switch,system:motion
+1;UPDATE_CHANNEL;enabled,Switch,system:power

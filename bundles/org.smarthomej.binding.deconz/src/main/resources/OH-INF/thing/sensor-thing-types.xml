@@ -16,6 +16,10 @@
 			<channel typeId="system.power" id="enabled"/>
 		</channels>
 
+		<properties>
+			<property name="thingTypeVersion">1</property>
+		</properties>
+
 		<representation-property>uid</representation-property>
 
 		<config-description-ref uri="thing-type:deconz:sensor"/>
@@ -112,6 +116,10 @@
 			<channel typeId="button" id="button"/>
 			<channel typeId="last_updated" id="last_updated"/>
 		</channels>
+
+		<properties>
+			<property name="thingTypeVersion">1</property>
+		</properties>
 
 		<representation-property>uid</representation-property>
 
@@ -463,6 +471,10 @@
 			<channel typeId="system.battery-level" id="battery_level"/>
 			<channel typeId="last_updated" id="last_updated"/>
 		</channels>
+
+		<properties>
+			<property name="thingTypeVersion">1</property>
+		</properties>
 
 		<representation-property>uid</representation-property>
 
