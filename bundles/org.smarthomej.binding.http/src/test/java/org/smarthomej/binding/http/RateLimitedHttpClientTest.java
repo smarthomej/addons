@@ -17,10 +17,13 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.hamcrest.CoreMatchers.allOf;
+import static org.hamcrest.CoreMatchers.anyOf;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.lessThan;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.net.URI;
 import java.util.List;
@@ -84,9 +87,11 @@ public class RateLimitedHttpClientTest extends AbstractWireMockTest {
     public void testWithLimitAndPriority() {
         doLimitTest(500, List.of(false, false, true));
 
-        // we except to receive the responses of request 3 before request two
-        assertEquals(0, responses.get(0).seqNumber);
-        assertEquals(2, responses.get(1).seqNumber);
+        // we expect to receive the responses of request 3 before request two, exact order of 1 and 3 depends on timing,
+        // so accept both
+        assertThat(responses.get(0).seqNumber, anyOf(equalTo(0), equalTo(2)));
+        assertThat(responses.get(1).seqNumber, anyOf(equalTo(0), equalTo(2)));
+        assertNotEquals(responses.get(1).seqNumber, responses.get(0).seqNumber);
         assertEquals(1, responses.get(2).seqNumber);
 
         // we expect at least 2*500=1000ms delay between the first and last request, but less than 2*500+100=1100 ms
