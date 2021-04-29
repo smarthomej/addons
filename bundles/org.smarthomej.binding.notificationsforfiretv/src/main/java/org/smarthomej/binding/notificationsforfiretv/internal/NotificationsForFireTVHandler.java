@@ -1,5 +1,4 @@
 /**
- * Copyright (c) 2010-2021 Contributors to the openHAB project
  * Copyright (c) 2021 Contributors to the SmartHome/J project
  *
  * See the NOTICE file(s) distributed with this work for additional
@@ -22,8 +21,8 @@ import static org.smarthomej.binding.notificationsforfiretv.internal.Notificatio
 import static org.smarthomej.binding.notificationsforfiretv.internal.NotificationsForFireTVBindingConstants.FORCE;
 import static org.smarthomej.binding.notificationsforfiretv.internal.NotificationsForFireTVBindingConstants.INTERRUPT;
 import static org.smarthomej.binding.notificationsforfiretv.internal.NotificationsForFireTVBindingConstants.MSG;
-import static org.smarthomej.binding.notificationsforfiretv.internal.NotificationsForFireTVBindingConstants.OFFSET;
-import static org.smarthomej.binding.notificationsforfiretv.internal.NotificationsForFireTVBindingConstants.OFFSETY;
+import static org.smarthomej.binding.notificationsforfiretv.internal.NotificationsForFireTVBindingConstants.OFFSET_X;
+import static org.smarthomej.binding.notificationsforfiretv.internal.NotificationsForFireTVBindingConstants.OFFSET_Y;
 import static org.smarthomej.binding.notificationsforfiretv.internal.NotificationsForFireTVBindingConstants.POSITION;
 import static org.smarthomej.binding.notificationsforfiretv.internal.NotificationsForFireTVBindingConstants.TITLE;
 import static org.smarthomej.binding.notificationsforfiretv.internal.NotificationsForFireTVBindingConstants.TRANSPARENCY;
@@ -77,7 +76,7 @@ public class NotificationsForFireTVHandler extends BaseThingHandler {
         try {
             // CREATE CONNECTION
             NotificationsForFireTVConnection notificationsForFireTVConnection = new NotificationsForFireTVConnection(
-                    config.ip, config.port);
+                    config.hostname, config.port);
             // ADD FORM FIELDS
             notificationsForFireTVConnection.addFormField(TYPE, String.valueOf(config.type));
             notificationsForFireTVConnection.addFormField(TITLE, config.title);
@@ -87,8 +86,8 @@ public class NotificationsForFireTVHandler extends BaseThingHandler {
             notificationsForFireTVConnection.addFormField(POSITION, String.valueOf(config.position));
             notificationsForFireTVConnection.addFormField(BKCOLOR, config.bkgcolor);
             notificationsForFireTVConnection.addFormField(TRANSPARENCY, String.valueOf(config.transparency));
-            notificationsForFireTVConnection.addFormField(OFFSET, String.valueOf(config.offset));
-            notificationsForFireTVConnection.addFormField(OFFSETY, String.valueOf(config.offsety));
+            notificationsForFireTVConnection.addFormField(OFFSET_X, String.valueOf(config.offsetX));
+            notificationsForFireTVConnection.addFormField(OFFSET_Y, String.valueOf(config.offsetY));
             notificationsForFireTVConnection.addFormField(APP, config.app);
             notificationsForFireTVConnection.addFormField(FORCE, String.valueOf(config.force));
             notificationsForFireTVConnection.addFormField(INTERRUPT, String.valueOf(config.interrupt));
@@ -114,7 +113,6 @@ public class NotificationsForFireTVHandler extends BaseThingHandler {
         } catch (Exception e) {
             logger.error("Unable to connect: {}", e.getMessage());
         }
-
         return false;
     }
 

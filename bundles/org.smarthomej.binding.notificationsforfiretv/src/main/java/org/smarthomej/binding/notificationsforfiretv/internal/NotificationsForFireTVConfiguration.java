@@ -1,5 +1,4 @@
 /**
- * Copyright (c) 2010-2021 Contributors to the openHAB project
  * Copyright (c) 2021 Contributors to the SmartHome/J project
  *
  * See the NOTICE file(s) distributed with this work for additional
@@ -23,18 +22,18 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 @NonNullByDefault
 public class NotificationsForFireTVConfiguration {
 
-    public String ip = "";
+    public String hostname = "";
     public int port = 7676;
     public int type = 0;
-    public String title = "OpenHAB";
+    public String title = "Smarthome";
     public int duration = 10;
     public int fontsize = 0;
     public int position = 0;
     public String bkgcolor = "#607d8b";
     public int transparency = 2;
-    public int offset = 0;
-    public int offsety = 0;
+    public int offsetX = 0;
+    public int offsetY = 0;
     public String app = title;
-    public Boolean force = true;
+    public boolean force = true;
     public int interrupt = 0;
 }

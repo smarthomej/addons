@@ -9,36 +9,20 @@
 		<description>Notifications for Fire TV Binding</description>
 
 		<config-description>
-			<parameter name="ip" type="text" required="true">
-				<context>network-address</context>
-				<label>IP Address</label>
-				<description>Device ip address.</description>
+			<parameter name="hostname" type="text" required="true">
+				<label>Server Hostname</label>
+				<description>Device IP address or a FQDN.</description>
 			</parameter>
-			<parameter name="port" type="integer" required="true" min="0" max="65535">
-				<label>Port</label>
-				<description>Device port listening to connections.</description>
-				<default>7676</default>
-			</parameter>
-			<!-- NO EFFECT parameter name="type" type="integer" required="false" min="0" max="65535">
-				<label>Type</label>
-				<description>Type of the notification.</description>
-				<default>0</default>
-				</parameter -->
 			<parameter name="title" type="text" required="false">
 				<label>Title</label>
 				<description>Title of the notification.</description>
-				<default>OpenHAB</default>
+				<default>Smarthome</default>
 			</parameter>
 			<parameter name="duration" type="integer" required="false" min="0" max="65535">
 				<label>Duration</label>
 				<description>Duration of the notification.</description>
 				<default>10</default>
 			</parameter>
-			<!-- NO EFFECT parameter name="fontsize" type="integer" required="false" min="0" max="65535">
-				<label>Font size</label>
-				<description>Font size of the notification.</description>
-				<default>0</default>
-				</parameter -->
 			<parameter name="position" type="integer" required="false" min="0" max="65535">
 				<label>Position</label>
 				<description>Position of the notification.</description>
@@ -52,41 +36,26 @@
 					<option value="5">Slide top right</option>
 				</options>
 			</parameter>
-			<!-- NO EFFECT parameter name="bkgcolor" type="text" required="false">
-				<label>Background color</label>
-				<description>Background color of the notification.</description>
-				<default>#607d8b</default>
-				</parameter -->
 			<parameter name="transparency" type="integer" required="false" min="0" max="65535">
 				<label>Transparency</label>
 				<description>Transparency of the notification.</description>
 				<default>2</default>
 			</parameter>
-			<parameter name="offset" type="integer" required="false" min="0" max="65535">
-				<label>Horizontal offset</label>
+			<parameter name="offsetX" type="integer" required="false" min="0" max="65535">
+				<label>OffsetX</label>
 				<description>Horizontal offset of the notification.</description>
 				<default>0</default>
 			</parameter>
-			<parameter name="offsety" type="integer" required="false" min="0" max="65535">
-				<label>Vertical offset</label>
+			<parameter name="offsetY" type="integer" required="false" min="0" max="65535">
+				<label>OffsetY</label>
 				<description>Vertical offset of the notification.</description>
 				<default>0</default>
 			</parameter>
-			<!-- SAME AS TITLE parameter name="app" type="text" required="false">
-				<label>Application name</label>
-				<description>Application name of the notification.</description>
-				<default>OpenHAB</default>
-				</parameter -->
 			<parameter name="force" type="boolean" required="false">
 				<label>Force</label>
 				<description>Force to show the notification.</description>
 				<default>true</default>
 			</parameter>
-			<!-- NO EFFECT parameter name="interrupt" type="integer" required="false" min="0" max="65535">
-				<label>Interrupt</label>
-				<description>Interruptable notification.</description>
-				<default>0</default>
-				</parameter -->
 		</config-description>
 	</thing-type>
 </thing:thing-descriptions>

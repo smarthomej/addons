@@ -1,5 +1,4 @@
 /**
- * Copyright (c) 2010-2021 Contributors to the openHAB project
  * Copyright (c) 2021 Contributors to the SmartHome/J project
  *
  * See the NOTICE file(s) distributed with this work for additional
@@ -38,8 +37,8 @@ public class NotificationsForFireTVBindingConstants {
     public static final String POSITION = "position";
     public static final String BKCOLOR = "bkgcolor";
     public static final String TRANSPARENCY = "transparency";
-    public static final String OFFSET = "offset";
-    public static final String OFFSETY = "offsety";
+    public static final String OFFSET_X = "offset";
+    public static final String OFFSET_Y = "offsety";
     public static final String APP = "app";
     public static final String FORCE = "force";
     public static final String INTERRUPT = "interrupt";

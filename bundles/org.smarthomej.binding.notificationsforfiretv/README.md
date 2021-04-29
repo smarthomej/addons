@@ -1,7 +1,7 @@
-# Notifications For Fire TV Binding
+# Notifications for Fire TV Binding
 
-The Notifications For Fire TV Binding provides support for sending notifications to a Fire TV from rule.
-To use the binding it is necessary to install the free app `Notifications For Fire TV` by Christian Fees on the Fire TV.
+The Notifications for Fire TV Binding provides support for sending notifications to a Fire TV from rule.
+To use the binding it is necessary to install the free app `Notifications for Fire TV` by Christian Fees on the Fire TV.
 The app is available on the Amazon app store by searching for the name.
 
 ## Supported Things
@@ -10,19 +10,18 @@ There is only one thing: `notification` which represents a Fire TV.
 
 ## Thing Configuration
 
-There are two mandatory parameters `ip` and `host`.
+There is only one mandatory parameter `hostname`.
 
-The `ip address` must be a valid ip address to a Fire TV.
-The `port` should be the default port `7676` of the app Notifications For Fire TV.
+The `hostname` must be an valid IP address or a FQDN.
 
-The other parameters are optional but recommendable.
+The other parameters are optional but recommended.
 
 The `tile` parameter may be the sender of the notification.
 The `duration` defines how long the notifications stay on the screen.
 The `position` is used to set the location of the notification on the screen.
 The `transparency` set the alpha channel of the notification background.
-The `horizontal offset` changes the x coordinate of the notification relative to the `position`.
-The `vertical offset` changes the y coordinate of the notification relative to the `position`.
+The `offsetX` changes the x (horizontal) coordinate of the notification relative to the `position`.
+The `offsetY` changes the y (vertical) coordinate of the notification relative to the `position`.
 The `force` parameter can instruct the Fire TV to show the notification in any case.
 
 ## Channels
