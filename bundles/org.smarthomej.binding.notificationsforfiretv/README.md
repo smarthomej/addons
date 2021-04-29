@@ -34,7 +34,7 @@ This binding includes rule actions for sending notifications to a Fire TV.
 Two different actions available:
 
 * `boolean success = sendNotification(String message, String icon)`
-* `boolean success = sendNotification(String message, String icon, String image)`
+* `boolean success = sendNotificationWithImage(String message, String icon, String image)`
 
 The `sendNotification(...)` actions send a notification with icon (with image if supplied) to the Fire TV.
 
@@ -52,5 +52,9 @@ Examples (Rules DSL):
 ```
 val notificationsForFireTVActions = getActions("notificationsforfiretv","notificationsforfiretv:notification:1")
 var boolean success = notificationsForFireTVActions.sendNotification("This is the notification content.", "/path/to/icon.png")
-success = notificationsForFireTVActions.sendNotification("This is the notification content.", "/path/to/icon.png", "/path/to/image.png")
+```
+
+```
+val notificationsForFireTVActions = getActions("notificationsforfiretv","notificationsforfiretv:notification:1")
+var success = notificationsForFireTVActions.sendNotificationWithImage("This is the notification content.", "/path/to/icon.png", "/path/to/image.png")
 ```
