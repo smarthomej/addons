@@ -13,7 +13,6 @@
 package org.smarthomej.binding.telenot.internal.protocol;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.smarthomej.binding.telenot.internal.TelenotMessageException;
 
 /**
  * The {@link SBMessage} class represents a parsed SB message.
@@ -36,13 +35,13 @@ public class SBMessage extends TelenotMessage {
     public final boolean readyToArmExternally;
     public final boolean statusInternalSignalHorn;
 
-    public SBMessage(String message) throws TelenotMessageException {
+    public SBMessage(String message) throws IllegalArgumentException {
         super(message);
 
         String parts[] = message.split(",");
 
         if (parts.length != 9) {
-            throw new TelenotMessageException("Invalid number of parts in SB message");
+            throw new IllegalArgumentException("Invalid number of parts in SB message");
         }
 
         try {
@@ -57,7 +56,7 @@ public class SBMessage extends TelenotMessage {
             statusInternalSignalHorn = parts[8].equals("0") ? true : false;
 
         } catch (NumberFormatException e) {
-            throw new TelenotMessageException("SB message contains invalid number: " + e.getMessage());
+            throw new IllegalArgumentException("SB message contains invalid number: " + e.getMessage());
         }
     }
 }

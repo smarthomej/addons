@@ -13,7 +13,6 @@
 package org.smarthomej.binding.telenot.internal.protocol;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.smarthomej.binding.telenot.internal.TelenotMessageException;
 
 /**
  * The {@link MBDMessage} class represents a parsed MPD message.
@@ -30,24 +29,24 @@ public class MBDMessage extends TelenotMessage {
     /** Message data */
     public final int data;
 
-    public MBDMessage(String message) throws TelenotMessageException {
+    public MBDMessage(String message) throws IllegalArgumentException {
         super(message);
 
         String parts[] = message.split(",");
 
         if (parts.length != 2) {
-            throw new TelenotMessageException("Invalid number of parts in MBD message");
+            throw new IllegalArgumentException("Invalid number of parts in MBD message");
         }
 
         try {
             address = Integer.parseInt(parts[0]);
             data = Integer.parseInt(parts[1]);
         } catch (NumberFormatException e) {
-            throw new TelenotMessageException("MBD message contains invalid number: " + e.getMessage());
+            throw new IllegalArgumentException("MBD message contains invalid number: " + e.getMessage());
         }
 
         if ((data & ~0x1) != 0) {
-            throw new TelenotMessageException("MBD status should only be 0 or 1");
+            throw new IllegalArgumentException("MBD status should only be 0 or 1");
         }
     }
 }
