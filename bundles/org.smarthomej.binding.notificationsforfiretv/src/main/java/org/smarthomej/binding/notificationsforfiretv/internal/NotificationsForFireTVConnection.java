@@ -24,8 +24,6 @@ import java.net.URL;
 import java.util.UUID;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -33,8 +31,6 @@ import org.slf4j.LoggerFactory;
  */
 @NonNullByDefault
 public class NotificationsForFireTVConnection {
-
-    private final Logger logger = LoggerFactory.getLogger(NotificationsForFireTVConnection.class);
 
     private String boundary;
     private static final String LINE = "\r\n";

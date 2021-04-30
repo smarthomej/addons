@@ -76,21 +76,21 @@ public class NotificationsForFireTVHandler extends BaseThingHandler {
         try {
             // CREATE CONNECTION
             NotificationsForFireTVConnection notificationsForFireTVConnection = new NotificationsForFireTVConnection(
-                    config.hostname, config.port);
+                    config.hostname, 7676);
             // ADD FORM FIELDS
-            notificationsForFireTVConnection.addFormField(TYPE, String.valueOf(config.type));
+            notificationsForFireTVConnection.addFormField(TYPE, String.valueOf(0));
             notificationsForFireTVConnection.addFormField(TITLE, config.title);
             notificationsForFireTVConnection.addFormField(MSG, msg != null ? msg : "");
             notificationsForFireTVConnection.addFormField(DURATION, String.valueOf(config.duration));
-            notificationsForFireTVConnection.addFormField(FONTSIZE, String.valueOf(config.fontsize));
+            notificationsForFireTVConnection.addFormField(FONTSIZE, String.valueOf(0));
             notificationsForFireTVConnection.addFormField(POSITION, String.valueOf(config.position));
-            notificationsForFireTVConnection.addFormField(BKCOLOR, config.bkgcolor);
+            notificationsForFireTVConnection.addFormField(BKCOLOR, "#607d8b");
             notificationsForFireTVConnection.addFormField(TRANSPARENCY, String.valueOf(config.transparency));
             notificationsForFireTVConnection.addFormField(OFFSET_X, String.valueOf(config.offsetX));
             notificationsForFireTVConnection.addFormField(OFFSET_Y, String.valueOf(config.offsetY));
-            notificationsForFireTVConnection.addFormField(APP, config.app);
+            notificationsForFireTVConnection.addFormField(APP, config.title);
             notificationsForFireTVConnection.addFormField(FORCE, String.valueOf(config.force));
-            notificationsForFireTVConnection.addFormField(INTERRUPT, String.valueOf(config.interrupt));
+            notificationsForFireTVConnection.addFormField(INTERRUPT, String.valueOf(0));
             // ADD FILES
             if (filename != null) {
                 File file = new File(filename);

@@ -23,17 +23,11 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 public class NotificationsForFireTVConfiguration {
 
     public String hostname = "";
-    public int port = 7676;
-    public int type = 0;
     public String title = "Smarthome";
     public int duration = 10;
-    public int fontsize = 0;
     public int position = 0;
-    public String bkgcolor = "#607d8b";
     public int transparency = 2;
     public int offsetX = 0;
     public int offsetY = 0;
-    public String app = title;
     public boolean force = true;
-    public int interrupt = 0;
 }
