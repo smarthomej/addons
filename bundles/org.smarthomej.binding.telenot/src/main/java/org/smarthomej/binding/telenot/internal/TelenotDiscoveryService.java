@@ -44,9 +44,8 @@ public class TelenotDiscoveryService extends AbstractDiscoveryService implements
     private @Nullable TelenotBridgeHandler bridgeHandler;
     private @Nullable ThingUID bridgeUID;
 
-    public TelenotDiscoveryService(TelenotBridgeHandler bridgeHandler) {
+    public TelenotDiscoveryService() {
         super(DISCOVERABLE_DEVICE_TYPE_UIDS, 0, false);
-        this.bridgeHandler = (TelenotBridgeHandler) bridgeHandler;
     }
 
     @Override
