@@ -15,7 +15,6 @@ package org.smarthomej.binding.telenot.internal;
 import static java.util.Map.entry;
 import static org.smarthomej.binding.telenot.internal.TelenotBindingConstants.*;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -85,31 +84,27 @@ public class TelenotDiscoveryService extends AbstractDiscoveryService implements
             logger.warn("Tried to scan for results but bridge handler is not set in discovery service");
             return;
         }
-        buildDiscoveryResults(bridgeHandler.getUsedSecurityArea());
+        bridgeHandler.getUsedSecurityArea().forEach(this::buildDiscoveryResult);
 
         // we clear all older results, they are not valid any longer and we created new results
         removeOlderResults(getTimestampOfLastScan());
     }
 
-    private void buildDiscoveryResults(List<String> addresses) {
-        TelenotBridgeHandler bridgeHandler = this.bridgeHandler;
+    private void buildDiscoveryResult(String address) {
         ThingUID bridgeUID = this.bridgeUID;
-        if (bridgeHandler == null || bridgeUID == null) {
-            logger.warn("Bridgehandler is null but discovery result has been produced. This should not happen.");
+        if (bridgeUID == null) {
+            logger.warn("BridgeUid is not set but a discovery result has been produced. This should not happen.");
             return;
         }
 
-        addresses.forEach(address -> {
-            ThingUID uid = new ThingUID(THING_TYPE_SB, bridgeUID, address);
-
-            Map<String, Object> properties = Map.ofEntries( //
-                    entry(PROPERTY_ADDRESS, Integer.parseInt(address)), //
-                    entry(PROPERTY_ID, address));
-            String label = "Telenot Security Area " + address;
-            DiscoveryResult result = DiscoveryResultBuilder.create(uid).withBridge(bridgeUID).withProperties(properties)
-                    .withRepresentationProperty(PROPERTY_ID).withLabel(label).build();
-            thingDiscovered(result);
-            logger.debug("Discovered SB {}", uid);
-        });
+        ThingUID uid = new ThingUID(THING_TYPE_SB, bridgeUID, address);
+        Map<String, Object> properties = Map.ofEntries( //
+                entry(PROPERTY_ADDRESS, Integer.parseInt(address)), //
+                entry(PROPERTY_ID, address));
+        String label = "Telenot Security Area " + address;
+        DiscoveryResult result = DiscoveryResultBuilder.create(uid).withBridge(bridgeUID).withProperties(properties)
+                .withRepresentationProperty(PROPERTY_ID).withLabel(label).build();
+        thingDiscovered(result);
+        logger.debug("Discovered SB {}", uid);
     }
 }
