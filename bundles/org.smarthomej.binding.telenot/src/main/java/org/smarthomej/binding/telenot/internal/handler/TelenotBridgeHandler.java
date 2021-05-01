@@ -86,11 +86,11 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
     protected volatile @Nullable Date lastReceivedTime;
     protected volatile boolean writeException;
 
-    protected volatile ArrayList<String> usedInputContact = new ArrayList<String>();
-    protected volatile ArrayList<String> usedOutputContact = new ArrayList<String>();
-    protected volatile ArrayList<String> usedSecurityArea = new ArrayList<String>();
-    protected volatile ArrayList<String> usedSecurityAreaContact = new ArrayList<String>();
-    protected volatile ArrayList<String> usedReportingArea = new ArrayList<String>();
+    protected volatile List<String> usedInputContact = new ArrayList<>();
+    protected volatile List<String> usedOutputContact = new ArrayList<>();
+    protected volatile List<String> usedSecurityArea = new ArrayList<>();
+    protected volatile List<String> usedSecurityAreaContact = new ArrayList<>();
+    protected volatile List<String> usedReportingArea = new ArrayList<>();
 
     protected volatile BitSet lastMsgReverseBinaryArrayMP = new BitSet(8);
     protected volatile BitSet lastMsgReverseBinaryArraySB = new BitSet(64);
@@ -113,12 +113,17 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
 
     @Override
     public Collection<Class<? extends ThingHandlerService>> getServices() {
-        // return Set.of(BridgeActions.class, TelenotDiscoveryService.class);
-        return Set.of(BridgeActions.class);
+        return Set.of(BridgeActions.class, TelenotDiscoveryService.class);
     }
 
-    public void setDiscoveryService(TelenotDiscoveryService discoveryService) {
-        this.discoveryService = discoveryService;
+    /**
+     * get the used security areas (needed for discovery)
+     *
+     * @return a list of the used security arreas
+     */
+    public List<String> getUsedSecurityArea() {
+        // return a copy of the list, so we don't run into concurrency problems
+        return new ArrayList<>(usedSecurityArea);
     }
 
     @Override
@@ -457,11 +462,6 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
                 }
             }
             address++;
-        }
-
-        TelenotDiscoveryService ds = discoveryService;
-        if (discovery && ds != null) {
-            usedSecurityArea.forEach(i -> ds.processSB(Integer.parseInt(i)));
         }
     }
 
