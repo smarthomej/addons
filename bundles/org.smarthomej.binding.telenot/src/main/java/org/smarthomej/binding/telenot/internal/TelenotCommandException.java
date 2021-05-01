@@ -15,7 +15,7 @@ package org.smarthomej.binding.telenot.internal;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
- * The {@link TelenoCommand) Telenot Command.
+ * The {@link TelenotCommand) Telenot Command.
  *
  * @author Ronny Grun - Initial contribution
  */

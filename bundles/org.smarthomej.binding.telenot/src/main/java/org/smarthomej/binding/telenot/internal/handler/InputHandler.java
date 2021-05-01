@@ -21,7 +21,7 @@ import org.openhab.core.library.types.OpenClosedType;
 import org.openhab.core.thing.Channel;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
-import org.openhab.core.thing.binding.ThingHandlerCallback;
+import org.openhab.core.thing.binding.builder.ChannelBuilder;
 import org.openhab.core.types.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,11 +95,9 @@ public class InputHandler extends TelenotThingHandler {
         if (label == null) {
             label = "Contact " + channelId;
         }
-        ThingHandlerCallback callback = getCallback();
-        if (callback != null) {
-            ChannelUID channelUID = new ChannelUID(thing.getUID(), channelId);
-            Channel channel = callback.createChannelBuilder(channelUID, CHANNEL_TYPE_CONTACT).withLabel(label).build();
-            updateThing(editThing().withoutChannel(channelUID).withChannel(channel).build());
-        }
+        ChannelUID channelUID = new ChannelUID(thing.getUID(), channelId);
+        Channel channel = ChannelBuilder.create(channelUID, "Contact").withType(CHANNEL_TYPE_CONTACT).withLabel(label)
+                .build();
+        updateThing(editThing().withoutChannel(channelUID).withChannel(channel).build());
     }
 }

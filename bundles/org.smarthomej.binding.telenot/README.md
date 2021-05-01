@@ -1,6 +1,6 @@
 # Telenot Binding
 
-_The Telenot binding connects the Telenot Complex 400 to openhab._
+_The Telenot binding connects the Telenot Complex 400 to openHAB or compatible systems._
 
 _It is able to read the states of the contacts and the security areas._
 
@@ -18,7 +18,8 @@ The binding supports the following thing types:
 
 ## Discovery
 
-You have to enable discovery in the ipbridge thing. After turning on the discovery will start and the switch goes to off
+You have to enable discovery in the ipbridge thing.
+After turning on the discovery will start and the switch goes to off
 
 ## Thing Configuration
 
@@ -41,34 +42,34 @@ Bridge telenot:ipbridge:device [ hostname="xxx.xxx.xxx.xxx", tcpPort=4116 ] {
 }
 ```
 
-### input
+### `input`
 
 The `input` thing provides all channels with the state of each single reporting group.
 
-### ouput
+### `ouput`
 
 The `input` thing provides all channels with the state of each single reporting area.
 
-### mb
+### `mb`
 
 The `mb` thing provides the state of each single reporting area (Meldebereich).
 
 * `address` (required) The number of reporting area.
 
-### mp
+### `mp`
 
 The `mp` thing provides the state of each single reporting point (Meldepunkt).
 
 * `address` (required) The number of reporting ponit.
 
-### sb
+### `sb`
 
 The `sb` thing provides the state of each single security area (Sicherungsbereich).
 
 * `address` (required) The number of security area.
 
 
-### emaState
+### `emaState`
 
 The `emaState` thing currently provides the state of the system.
 
@@ -76,76 +77,70 @@ The `emaState` thing currently provides the state of the system.
 
 The Telenot things expose the following channels:
 
-### mb
+### `mb`
 
-| channel   | type    | RO/RW | description                    |
-|-----------|---------|-------|--------------------------------|
-| contactMB | Contact |   RO  | Reporting area contact state   |
-| disableMB | Switch  |   RW  | Disable Reporting area contact |
+| channel     | type    | RO/RW | description                    |
+|-------------|---------|-------|--------------------------------|
+| `contactMB` | Contact |   RO  | Reporting area contact state   |
+| `disableMB` | Switch  |   RW  | Disable Reporting area contact |
 
-### mp
+### `mp`
 
-| channel   | type    | RO/RW | description                   |
-|-----------|---------|-------|-------------------------------|
-| contact   | Contact |  RO   | Reporting point contact state |
+| channel     | type    | RO/RW | description                   |
+|-------------|---------|-------|-------------------------------|
+| `contact`   | Contact |  RO   | Reporting point contact state |
 
-### sb
-
-| channel                    | type     | RO/RW | description                                                |
-|----------------------------|----------|-------|------------------------------------------------------------|
-| disarmed                   | Switch   |  RO   | State for security area is disarmend                       |
-| internallyArmed            | Switch   |  RO   | State for security area is internally armend               |
-| externallyArmed            | Switch   |  RO   | State for security area is externally armend               |
-| alarm                      | Switch   |  RO   | Security area alarm                                        |
-| disarm                     | Switch   |  RW   | Disarm security area                                       |
-| internalArm                | Switch   |  RW   | Arm internally security area                               |
-| externalArm                | Switch   |  RW   | Arm externally security area                               |
-| resetAlarm                 | Switch   |  RW   | Reset security area alarm                                  |
-| malfunction                | Switch   |  RO   | Security area malfunction                                  |
-| readyToArmInternally       | Switch   |  RO   | Security area is ready to arm internally                   |
-| readyToArmExternally       | Switch   |  RO   | Security area is ready to arm externally                   |
-| statusInternalSignalHorn   | Switch   |  RO   | Security area state of internally horn                     |
-| disarmedDatetime           | Datetime |  RO   | Date and time the system was disarmed                      |
-| disarmedContact            | String   |  RO   | Name of the contact wich dis armed the system              |
-| intArmedDatetime           | Datetime |  RO   | Date and time the system was internally armed              |
-| intArmedContact            | String   |  RO   | Name of the contact wich armed intenally the system        |
-| extArmedDatetime           | Datetime |  RO   | Date and time the system was externally armed              |
-| extArmedContact            | String   |  RO   | Name of the contact wich armed extenally the system        |
-| alarmDatetime              | Datetime |  RO   | Date and time alarm was detected                           |
-| alarmContact               | String   |  RO   | Name of the contact where alarm was detected               |
-| alarmSetClear              | Switch   |  RO   | State alarm was set / clear                                |
-
-
-### emaState
+### `sb`
 
 | channel                    | type     | RO/RW | description                                                |
 |----------------------------|----------|-------|------------------------------------------------------------|
-| intrusionDatetime          | Datetime |  RO   | Date and time intrusion was detected                       |
-| intrusionContact           | String   |  RO   | Name of the contact where intrusion was detected           |
-| intrusionSetClear          | Switch   |  RO   | State intrusion was set / clear                            |
-| batteryMalfunctionDatetime | Datetime |  RO   | Date and time battery malfunction was detected             |
-| batteryMalfunctionContact  | String   |  RO   | Name of the contact where battery malfunction was detected |
-| batteryMalfunctionSetClear | Switch   |  RO   | State battery malfunction was set / clear                  |
-| powerOutageDatetime        | Datetime |  RO   | Date and time power outage was detected                    |
-| powerOutageContact         | String   |  RO   | Name of the contact where power outage was detected        |
-| powerOutageSetClear        | Switch   |  RO   | State power outage was set / clear                         |
-| flasherMalfunctionDatetime | Datetime |  RO   | Date and time flasher malfunction was detected             |
-| flasherMalfunctionContact  | String   |  RO   | Name of the contact where flasher malfunction was detected |
-| flasherMalfunctionClear    | Switch   |  RO   | State flasher malfunction was set / clear                  |
-| horn1MalfunctionDatetime   | Datetime |  RO   | Date and time horn 1 malfunction was detected              |
-| horn1MalfunctionContact    | String   |  RO   | Name of the contact where horn 1 malfunction was detected  |
-| horn1MalfunctionClear      | Switch   |  RO   | State horn 1 malfunction was set / clear                   |
-| horn2MalfunctionDatetime   | Datetime |  RO   | Date and time horn 2 malfunction was detected              |
-| horn2MalfunctionContact    | String   |  RO   | Name of the contact where horn 2 malfunction was detected  |
-| horn2MalfunctionClear      | Switch   |  RO   | State horn 2 malfunction was set / clear                   |
+| `disarmed`                 | Switch   |  RO   | State for security area is disarmend                       |
+| `internallyArmed`          | Switch   |  RO   | State for security area is internally armend               |
+| `externallyArmed`          | Switch   |  RO   | State for security area is externally armend               |
+| `alarm`                    | Switch   |  RO   | Security area alarm                                        |
+| `disarm`                   | Switch   |  RW   | Disarm security area                                       |
+| `internalArm`              | Switch   |  RW   | Arm internally security area                               |
+| `externalArm`              | Switch   |  RW   | Arm externally security area                               |
+| `resetAlarm`               | Switch   |  RW   | Reset security area alarm                                  |
+| `malfunction`              | Switch   |  RO   | Security area malfunction                                  |
+| `readyToArmInternally`     | Switch   |  RO   | Security area is ready to arm internally                   |
+| `readyToArmExternally`     | Switch   |  RO   | Security area is ready to arm externally                   |
+| `statusInternalSignalHorn` | Switch   |  RO   | Security area state of internally horn                     |
+| `disarmedDatetime`         | Datetime |  RO   | Date and time the system was disarmed                      |
+| `disarmedContact`          | String   |  RO   | Name of the contact wich dis armed the system              |
+| `intArmedDatetime`         | Datetime |  RO   | Date and time the system was internally armed              |
+| `intArmedContact`          | String   |  RO   | Name of the contact wich armed intenally the system        |
+| `extArmedDatetime`         | Datetime |  RO   | Date and time the system was externally armed              |
+| `extArmedContact`          | String   |  RO   | Name of the contact wich armed extenally the system        |
+| `alarmDatetime`            | Datetime |  RO   | Date and time alarm was detected                           |
+| `alarmContact`             | String   |  RO   | Name of the contact where alarm was detected               |
+| `alarmSetClear`            | Switch   |  RO   | State alarm was set / clear                                |
 
-## Full Example
 
-_Provide a full usage example based on textual configuration files (*.things, *.items, *.sitemap)._
+### `emaState`
 
-The `ipbridge` thing expose the following action to the automation engine:
+| channel                      | type     | RO/RW | description                                                |
+|------------------------------|----------|-------|------------------------------------------------------------|
+| `intrusionDatetime`          | Datetime |  RO   | Date and time intrusion was detected                       |
+| `intrusionContact`           | String   |  RO   | Name of the contact where intrusion was detected           |
+| `intrusionSetClear`          | Switch   |  RO   | State intrusion was set / clear                            |
+| `batteryMalfunctionDatetime` | Datetime |  RO   | Date and time battery malfunction was detected             |
+| `batteryMalfunctionContact`  | String   |  RO   | Name of the contact where battery malfunction was detected |
+| `batteryMalfunctionSetClear` | Switch   |  RO   | State battery malfunction was set / clear                  |
+| `powerOutageDatetime`        | Datetime |  RO   | Date and time power outage was detected                    |
+| `powerOutageContact`         | String   |  RO   | Name of the contact where power outage was detected        |
+| `powerOutageSetClear`        | Switch   |  RO   | State power outage was set / clear                         |
+| `flasherMalfunctionDatetime` | Datetime |  RO   | Date and time flasher malfunction was detected             |
+| `flasherMalfunctionContact`  | String   |  RO   | Name of the contact where flasher malfunction was detected |
+| `flasherMalfunctionClear`    | Switch   |  RO   | State flasher malfunction was set / clear                  |
+| `horn1MalfunctionDatetime`   | Datetime |  RO   | Date and time horn 1 malfunction was detected              |
+| `horn1MalfunctionContact`    | String   |  RO   | Name of the contact where horn 1 malfunction was detected  |
+| `horn1MalfunctionClear`      | Switch   |  RO   | State horn 1 malfunction was set / clear                   |
+| `horn2MalfunctionDatetime`   | Datetime |  RO   | Date and time horn 2 malfunction was detected              |
+| `horn2MalfunctionContact`    | String   |  RO   | Name of the contact where horn 2 malfunction was detected  |
+| `horn2MalfunctionClear`      | Switch   |  RO   | State horn 2 malfunction was set / clear                   |
 
+## Actions
+
+The `ipbridge` thing exposes the following action to the automation engine:
 *setDateTime* - Send the date and time Telenot device. Accepts no parameters.
-## Any custom content here!
-
-_Feel free to add additional sections for whatever you think should also be mentioned about your binding!_

@@ -15,7 +15,7 @@ package org.smarthomej.binding.telenot.internal;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
- * The {@link TelenotMessage} Telenot Message.
+ * The {@link TelenotMessage} Telenot Message Exception.
  *
  * @author Ronny Grun - Initial contribution
  */

@@ -24,7 +24,7 @@ import org.openhab.core.library.types.OpenClosedType;
 import org.openhab.core.thing.Channel;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
-import org.openhab.core.thing.binding.ThingHandlerCallback;
+import org.openhab.core.thing.binding.builder.ChannelBuilder;
 import org.openhab.core.types.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,12 +107,6 @@ public class OutputHandler extends TelenotThingHandler {
 
     @Override
     public void handleUpdate(TelenotMessage msg) {
-        // InputMessage inpMsg = (InputMessage) msg;
-        // logger.trace("Output handler received update: {}", inpMsg.address);
-        // firstUpdateReceived.set(true);
-        // OpenClosedType state = (inpMsg.data == 0 ? OpenClosedType.OPEN : OpenClosedType.CLOSED);
-        // updateState(inpMsg.address, state);
-
         if (msg instanceof MBMessage) {
             MBMessage mbMsg = (MBMessage) msg;
             String hex = String.format("0x%04x", mbMsg.address + 1391);
@@ -137,19 +131,15 @@ public class OutputHandler extends TelenotThingHandler {
         if (label == null) {
             label = "Contact " + channelId;
         }
-        ThingHandlerCallback callback = getCallback();
-        if (callback != null) {
-            ChannelUID channelUID = new ChannelUID(thing.getUID(), channelId);
-            Channel channel = callback.createChannelBuilder(channelUID, CHANNEL_TYPE_CONTACT).withLabel(label).build();
-            updateThing(editThing().withoutChannel(channelUID).withChannel(channel).build());
+        ChannelUID contactChannelUID = new ChannelUID(thing.getUID(), channelId);
+        Channel contactChannel = ChannelBuilder.create(contactChannelUID, "Contact").withType(CHANNEL_TYPE_CONTACT)
+                .withLabel(label).build();
 
-            String hex = String.format("0x%04x", Integer.parseInt(channelId.substring(2), 16) + 128);
-
-            channelUID = new ChannelUID(thing.getUID(), hex);
-            channel = callback.createChannelBuilder(channelUID, CHANNEL_TYPE_SWITCH).withLabel("Disable " + label)
-                    .build();
-            updateThing(editThing().withoutChannel(channelUID).withChannel(channel).build());
-
-        }
+        String hex = String.format("0x%04x", Integer.parseInt(channelId.substring(2), 16) + 128);
+        ChannelUID switchChannelUID = new ChannelUID(thing.getUID(), hex);
+        Channel switchChannel = ChannelBuilder.create(switchChannelUID, "Switch").withType(CHANNEL_TYPE_SWITCH)
+                .withLabel("Disable " + label).build();
+        updateThing(editThing().withoutChannel(contactChannelUID).withChannel(contactChannel)
+                .withoutChannel(switchChannelUID).withChannel(switchChannel).build());
     }
 }
