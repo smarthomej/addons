@@ -14,21 +14,16 @@ package org.smarthomej.binding.telenot.internal;
 
 import static org.smarthomej.binding.telenot.internal.TelenotBindingConstants.*;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.core.config.discovery.DiscoveryService;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingTypeUID;
-import org.openhab.core.thing.ThingUID;
 import org.openhab.core.thing.binding.BaseThingHandlerFactory;
 import org.openhab.core.thing.binding.ThingHandler;
 import org.openhab.core.thing.binding.ThingHandlerFactory;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +34,6 @@ import org.smarthomej.binding.telenot.internal.handler.MBHandler;
 import org.smarthomej.binding.telenot.internal.handler.MPHandler;
 import org.smarthomej.binding.telenot.internal.handler.OutputHandler;
 import org.smarthomej.binding.telenot.internal.handler.SBHandler;
-import org.smarthomej.binding.telenot.internal.handler.TelenotBridgeHandler;
 
 /**
  * The {@link TelenotHandlerFactory} is responsible for creating things and thing
@@ -61,17 +55,12 @@ public class TelenotHandlerFactory extends BaseThingHandlerFactory {
         return SUPPORTED_THING_TYPES_UIDS.contains(thingTypeUID);
     }
 
-    private final Map<ThingUID, ServiceRegistration<?>> discoveryServiceRegMap = new HashMap<>();
-    // Marked as Nullable only to fix incorrect redundant null check complaints from null annotations
-
     @Override
     protected @Nullable ThingHandler createHandler(Thing thing) {
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
 
         if (THING_TYPE_IPBRIDGE.equals(thingTypeUID)) {
-            IPBridgeHandler bridgeHandler = new IPBridgeHandler((Bridge) thing);
-            registerDiscoveryService(bridgeHandler);
-            return bridgeHandler;
+            return new IPBridgeHandler((Bridge) thing);
         } else if (THING_TYPE_SB.equals(thingTypeUID)) {
             return new SBHandler(thing);
         } else if (THING_TYPE_MB.equals(thingTypeUID)) {
@@ -86,29 +75,5 @@ public class TelenotHandlerFactory extends BaseThingHandlerFactory {
             return new OutputHandler(thing);
         }
         return null;
-    }
-
-    @Override
-    protected synchronized void removeHandler(ThingHandler thingHandler) {
-        if (thingHandler instanceof TelenotBridgeHandler) {
-            ServiceRegistration<?> serviceReg = discoveryServiceRegMap.remove(thingHandler.getThing().getUID());
-            if (serviceReg != null) {
-                logger.debug("Unregistering discovery service.");
-                serviceReg.unregister();
-            }
-        }
-    }
-
-    /**
-     * Register a discovery service for a bridge handler.
-     *
-     * @param bridgeHandler bridge handler for which to register the discovery service
-     */
-    private synchronized void registerDiscoveryService(TelenotBridgeHandler bridgeHandler) {
-        logger.debug("Registering discovery service.");
-        TelenotDiscoveryService discoveryService = new TelenotDiscoveryService(bridgeHandler);
-        bridgeHandler.setDiscoveryService(discoveryService);
-        discoveryServiceRegMap.put(bridgeHandler.getThing().getUID(),
-                bundleContext.registerService(DiscoveryService.class.getName(), discoveryService, null));
     }
 }

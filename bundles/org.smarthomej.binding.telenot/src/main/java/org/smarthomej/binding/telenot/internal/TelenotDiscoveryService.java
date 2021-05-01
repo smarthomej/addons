@@ -12,10 +12,9 @@
  */
 package org.smarthomej.binding.telenot.internal;
 
+import static java.util.Map.entry;
 import static org.smarthomej.binding.telenot.internal.TelenotBindingConstants.*;
 
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -34,7 +33,6 @@ import org.smarthomej.binding.telenot.internal.handler.TelenotBridgeHandler;
 
 /**
  * The {@link TelenotDiscoveryService} handles discovery of devices as they are identified by the bridge handler.
- * Requests from the framework to startScan() are ignored, since no active scanning is possible.
  *
  * @author Ronny Grun - Initial contribution
  */
@@ -44,7 +42,7 @@ public class TelenotDiscoveryService extends AbstractDiscoveryService implements
     private final Logger logger = LoggerFactory.getLogger(TelenotDiscoveryService.class);
 
     private @Nullable TelenotBridgeHandler bridgeHandler;
-    private final Set<String> discoveredSBSet = new HashSet<>();
+    private @Nullable ThingUID bridgeUID;
 
     public TelenotDiscoveryService(TelenotBridgeHandler bridgeHandler) {
         super(DISCOVERABLE_DEVICE_TYPE_UIDS, 0, false);
@@ -55,6 +53,7 @@ public class TelenotDiscoveryService extends AbstractDiscoveryService implements
     public void setThingHandler(ThingHandler thingHandler) {
         if (thingHandler instanceof TelenotBridgeHandler) {
             this.bridgeHandler = (TelenotBridgeHandler) thingHandler;
+            this.bridgeUID = thingHandler.getThing().getUID();
         }
     }
 
@@ -80,30 +79,29 @@ public class TelenotDiscoveryService extends AbstractDiscoveryService implements
 
     @Override
     protected void startScan() {
-        // Ignore start scan requests
-    }
-
-    public void processSB(int address) {
-        String token = String.valueOf(address);
-        if (!discoveredSBSet.contains(token)) {
-            notifyDiscoveryOfSB(address, token);
-            discoveredSBSet.add(token);
-        }
-    }
-
-    private void notifyDiscoveryOfSB(int address, String idString) {
         TelenotBridgeHandler bridgeHandler = this.bridgeHandler;
         if (bridgeHandler == null) {
-            logger.warn("Bridgehandler is null but discovery result has been produced. This should not happen.");
+            logger.warn("Tried to scan for results but bridge handler is not set in discovery service");
             return;
         }
-        ThingUID bridgeUID = bridgeHandler.getThing().getUID();
-        ThingUID uid = new ThingUID(THING_TYPE_SB, bridgeUID, idString);
+        bridgeHandler.getUsedSecurityArea().forEach(this::buildDiscoveryResult);
 
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(PROPERTY_ADDRESS, address);
-        properties.put(PROPERTY_ID, idString);
-        String label = "Telenot Security Area " + idString;
+        // we clear all older results, they are not valid any longer and we created new results
+        removeOlderResults(getTimestampOfLastScan());
+    }
+
+    private void buildDiscoveryResult(String address) {
+        ThingUID bridgeUID = this.bridgeUID;
+        if (bridgeUID == null) {
+            logger.warn("BridgeUid is not set but a discovery result has been produced. This should not happen.");
+            return;
+        }
+
+        ThingUID uid = new ThingUID(THING_TYPE_SB, bridgeUID, address);
+        Map<String, Object> properties = Map.ofEntries( //
+                entry(PROPERTY_ADDRESS, Integer.parseInt(address)), //
+                entry(PROPERTY_ID, address));
+        String label = "Telenot Security Area " + address;
         DiscoveryResult result = DiscoveryResultBuilder.create(uid).withBridge(bridgeUID).withProperties(properties)
                 .withRepresentationProperty(PROPERTY_ID).withLabel(label).build();
         thingDiscovered(result);
