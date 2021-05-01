@@ -25,8 +25,6 @@ import org.openhab.core.thing.binding.BaseThingHandlerFactory;
 import org.openhab.core.thing.binding.ThingHandler;
 import org.openhab.core.thing.binding.ThingHandlerFactory;
 import org.osgi.service.component.annotations.Component;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.telenot.internal.handler.EMAStateHandler;
 import org.smarthomej.binding.telenot.internal.handler.IPBridgeHandler;
 import org.smarthomej.binding.telenot.internal.handler.InputHandler;
@@ -47,8 +45,6 @@ public class TelenotHandlerFactory extends BaseThingHandlerFactory {
 
     private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Set.of(THING_TYPE_IPBRIDGE, THING_TYPE_SB,
             THING_TYPE_MP, THING_TYPE_MB, THING_TYPE_EMA_STATE, THING_TYPE_INPUT, THING_TYPE_OUTPUT);
-
-    private final Logger logger = LoggerFactory.getLogger(TelenotHandlerFactory.class);
 
     @Override
     public boolean supportsThingType(ThingTypeUID thingTypeUID) {
