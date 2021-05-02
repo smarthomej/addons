@@ -17,6 +17,8 @@ import static org.smarthomej.binding.telenot.internal.TelenotBindingConstants.*;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -41,11 +43,12 @@ public class TelenotDiscoveryService extends AbstractDiscoveryService implements
 
     private final Logger logger = LoggerFactory.getLogger(TelenotDiscoveryService.class);
 
+    private @Nullable ScheduledFuture<?> scanningJob;
     private @Nullable TelenotBridgeHandler bridgeHandler;
     private @Nullable ThingUID bridgeUID;
 
     public TelenotDiscoveryService() {
-        super(DISCOVERABLE_DEVICE_TYPE_UIDS, 0, false);
+        super(DISCOVERABLE_DEVICE_TYPE_UIDS, 0, true);
     }
 
     @Override
@@ -83,11 +86,36 @@ public class TelenotDiscoveryService extends AbstractDiscoveryService implements
             logger.warn("Tried to scan for results but bridge handler is not set in discovery service");
             return;
         }
+        stopScan();
         bridgeHandler.getUsedSecurityArea().forEach(this::buildDiscoveryResult);
 
         // we clear all older results, they are not valid any longer and we created new results
         removeOlderResults(getTimestampOfLastScan());
     }
+
+    @Override
+    protected void startBackgroundDiscovery() {
+        scheduler.schedule(() -> {
+            startScan();
+        }, 15, TimeUnit.SECONDS);
+        /*
+         * final ScheduledFuture<?> scanningJob = this.scanningJob;
+         * if (scanningJob == null || scanningJob.isCancelled()) {
+         * this.scanningJob = scheduler.scheduleWithFixedDelay(this::startScan, 0, 20, TimeUnit.SECONDS);
+         * }
+         */
+    }
+
+    /*
+     * @Override
+     * protected void stopBackgroundDiscovery() {
+     * final ScheduledFuture<?> scanningJob = this.scanningJob;
+     * if (scanningJob != null) {
+     * scanningJob.cancel(true);
+     * this.scanningJob = null;
+     * }
+     * }
+     */
 
     private void buildDiscoveryResult(String address) {
         ThingUID bridgeUID = this.bridgeUID;
