@@ -326,7 +326,7 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
                     logger.debug("Error connecting to device; [{}]: {}", e.getClass().getCanonicalName(),
                             e.getMessage());
                     adbConnection.disconnect();
-                    updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR);
+                    updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
                     return;
                 }
                 if (adbConnection.isConnected()) {

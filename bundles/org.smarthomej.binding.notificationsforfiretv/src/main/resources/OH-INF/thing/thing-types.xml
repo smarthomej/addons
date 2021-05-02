@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="notificationsforfiretv"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+
+	<thing-type id="notification">
+		<label>Notifications for Fire TV</label>
+		<description>Notifications for Fire TV Binding</description>
+
+		<config-description>
+			<parameter name="hostname" type="text" required="true">
+				<label>Server Hostname</label>
+				<description>Device IP address or a FQDN.</description>
+			</parameter>
+			<parameter name="title" type="text" required="false">
+				<label>Title</label>
+				<description>Title of the notification.</description>
+				<default>Smarthome</default>
+			</parameter>
+			<parameter name="duration" type="integer" required="false" min="0" max="65535">
+				<label>Duration</label>
+				<description>Duration of the notification.</description>
+				<default>10</default>
+			</parameter>
+			<parameter name="position" type="integer" required="false" min="0" max="65535">
+				<label>Position</label>
+				<description>Position of the notification.</description>
+				<default>0</default>
+				<options>
+					<option value="0">Bottom right</option>
+					<option value="1">Bottom left</option>
+					<option value="2">Top right</option>
+					<option value="3">Top left</option>
+					<option value="4">Center</option>
+					<option value="5">Slide top right</option>
+				</options>
+			</parameter>
+			<parameter name="transparency" type="integer" required="false" min="0" max="65535">
+				<label>Transparency</label>
+				<description>Transparency of the notification.</description>
+				<default>2</default>
+			</parameter>
+			<parameter name="offsetX" type="integer" required="false" min="0" max="65535">
+				<label>OffsetX</label>
+				<description>Horizontal offset of the notification.</description>
+				<default>0</default>
+			</parameter>
+			<parameter name="offsetY" type="integer" required="false" min="0" max="65535">
+				<label>OffsetY</label>
+				<description>Vertical offset of the notification.</description>
+				<default>0</default>
+			</parameter>
+			<parameter name="force" type="boolean" required="false">
+				<label>Force</label>
+				<description>Force to show the notification.</description>
+				<default>true</default>
+			</parameter>
+		</config-description>
+	</thing-type>
+</thing:thing-descriptions>
