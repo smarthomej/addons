@@ -48,7 +48,7 @@ public class TelenotDiscoveryService extends AbstractDiscoveryService implements
     private @Nullable ThingUID bridgeUID;
 
     public TelenotDiscoveryService() {
-        super(DISCOVERABLE_DEVICE_TYPE_UIDS, 0, true);
+        super(DISCOVERABLE_DEVICE_TYPE_UIDS, 30, true);
     }
 
     @Override
@@ -95,27 +95,20 @@ public class TelenotDiscoveryService extends AbstractDiscoveryService implements
 
     @Override
     protected void startBackgroundDiscovery() {
-        scheduler.schedule(() -> {
-            startScan();
-        }, 15, TimeUnit.SECONDS);
-        /*
-         * final ScheduledFuture<?> scanningJob = this.scanningJob;
-         * if (scanningJob == null || scanningJob.isCancelled()) {
-         * this.scanningJob = scheduler.scheduleWithFixedDelay(this::startScan, 0, 20, TimeUnit.SECONDS);
-         * }
-         */
+        final ScheduledFuture<?> scanningJob = this.scanningJob;
+        if (scanningJob == null || scanningJob.isCancelled()) {
+            this.scanningJob = scheduler.scheduleWithFixedDelay(this::startScan, 0, 15, TimeUnit.SECONDS);
+        }
     }
 
-    /*
-     * @Override
-     * protected void stopBackgroundDiscovery() {
-     * final ScheduledFuture<?> scanningJob = this.scanningJob;
-     * if (scanningJob != null) {
-     * scanningJob.cancel(true);
-     * this.scanningJob = null;
-     * }
-     * }
-     */
+    @Override
+    protected void stopBackgroundDiscovery() {
+        final ScheduledFuture<?> scanningJob = this.scanningJob;
+        if (scanningJob != null) {
+            scanningJob.cancel(true);
+            this.scanningJob = null;
+        }
+    }
 
     private void buildDiscoveryResult(String address) {
         ThingUID bridgeUID = this.bridgeUID;
