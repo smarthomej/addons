@@ -361,8 +361,9 @@ public class AndroidDebugBridgeDevice {
             if ("Socket closed".equals(e.getMessage())) {
                 // Connection aborted by us
                 throw new InterruptedException();
-            } else if ("No route to host (Host unreachable)".equals(e.getMessage())) {
-                throw new TimeoutException();
+            } else if ("No route to host (Host unreachable)".equals(e.getMessage())
+                    || "Connection failed".equals(e.getMessage())) {
+                throw new TimeoutException(e.getMessage());
             }
             throw new AndroidDebugBridgeDeviceException("Unable to open socket " + ip + ":" + port);
         }
@@ -371,7 +372,11 @@ public class AndroidDebugBridgeDevice {
             connection = adbConnection;
             adbConnection.connect(15, TimeUnit.SECONDS, false);
         } catch (IOException e) {
-            LOGGER.debug("Error connecting to {}: {}", ip, e.getMessage());
+            LOGGER.debug("Error connecting to {}: [{}] {}", ip, e.getClass().getName(), e.getMessage());
+            if ("No route to host (Host unreachable)".equals(e.getMessage())
+                    || "Connection failed".equals(e.getMessage())) {
+                throw new TimeoutException(e.getMessage());
+            }
             throw new AndroidDebugBridgeDeviceException("Unable to open adb connection " + ip + ":" + port);
         }
     }
