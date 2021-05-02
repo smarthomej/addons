@@ -4,6 +4,22 @@ _The Telenot binding connects the Telenot Complex 400 to openHAB or compatible s
 
 _It is able to read the states of the contacts and the security areas._
 
+## Hardware
+
+To get the serial data to the ethernet bus use the following converter or another like this: USR-TCP232-302 Tiny - RS232 to Ethernet TCP-IP-Server-Modul. 
+Connect this module to the GMS-Port (Serial).
+You have to enable the GMS-Protocol in the CompasX Software.
+
+## Note
+The Building management protocol is a two-way street. 
+Not only can you get info from your alarm system, that same protocol can be used to send commands to the alarm system too! 
+A black hatter might use this to tell your system to disarm itself using the cimmunications infrastructure that we have conveniently built for him. 
+While we will not use those functions in our integration, someone that knows the right binary data to send can disable the system without setting foot into your home and entering the security code or otherwise authenticate himself to the system. 
+Especially if you have a clause in your theft protection policy, that you are only covered if the alarm system is turned on, I can only strongly discourage you from enabling the building management protocol on your alarm system.
+You have been warned! Take care that you protect your home installation, and make sure that you have locked down external access properly. 
+At the very least, I’d recommend using a proper firewall and VPN server rather than just drilling holes into your NAT and exposing ports.
+Assuming that you have adressed those issues successfully, let me explain the setup, shown in the picture below.
+
 ## Supported Things
 
 The binding supports the following thing types:
@@ -143,4 +159,5 @@ The Telenot things expose the following channels:
 ## Actions
 
 The `ipbridge` thing exposes the following action to the automation engine:
-*setDateTime* - Send the date and time Telenot device. Accepts no parameters.
+*setDateTime* - Send the date and time to Telenot device. 
+Accepts no parameters.
