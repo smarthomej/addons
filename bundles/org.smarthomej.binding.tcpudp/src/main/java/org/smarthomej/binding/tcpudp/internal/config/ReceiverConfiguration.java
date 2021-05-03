@@ -14,22 +14,27 @@ package org.smarthomej.binding.tcpudp.internal.config;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.smarthomej.commons.itemvalueconverter.ItemValueConverterChannelConfig;
 
 /**
- * The {@link TcpUdpChannelConfig} class contains fields mapping channel configuration parameters.
+ * The {@link ReceiverConfiguration} class contains fields mapping thing configuration parameters.
  *
  * @author Jan N. Klug - Initial contribution
  */
 @NonNullByDefault
-public class TcpUdpChannelConfig extends ItemValueConverterChannelConfig {
+public class ReceiverConfiguration {
+    public String localAddress = "0.0.0.0";
+    public int port = 0;
 
-    public @Nullable String stateTransformation;
+    public int timeout = 3000;
 
-    // used by client channels
-    public @Nullable String commandTransformation;
-    public String stateContent = "";
+    public int bufferSize = 2048;
 
-    // used by receiver channels
-    public String addressFilter = "*";
+    public Protocol protocol = Protocol.TCP;
+
+    public @Nullable String encoding = null;
+
+    public enum Protocol {
+        UDP,
+        TCP
+    }
 }

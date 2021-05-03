@@ -10,26 +10,25 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.smarthomej.binding.tcpudp.internal.config;
+package org.smarthomej.binding.tcpudp.internal.receiver;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.smarthomej.commons.itemvalueconverter.ItemValueConverterChannelConfig;
 
 /**
- * The {@link TcpUdpChannelConfig} class contains fields mapping channel configuration parameters.
+ * The {@link ReceiverListener} is an interface for TCP and UDP receiver connection listeners
  *
  * @author Jan N. Klug - Initial contribution
  */
 @NonNullByDefault
-public class TcpUdpChannelConfig extends ItemValueConverterChannelConfig {
+public interface ReceiverListener {
+    /**
+     * report the connection state to the thing handler
+     * 
+     * @param state true if successfully installed, false if failed
+     * @param message optional message (only used for failed connections)
+     */
+    void reportConnectionState(boolean state, @Nullable String message);
 
-    public @Nullable String stateTransformation;
-
-    // used by client channels
-    public @Nullable String commandTransformation;
-    public String stateContent = "";
-
-    // used by receiver channels
-    public String addressFilter = "*";
+    void onReceive(String sender, byte[] content);
 }

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="tcpudp"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+
+	<thing-type id="receiver"
+		extensible="receiver-color,receiver-contact,receiver-datetime,receiver-dimmer,receiver-image,receiver-location,receiver-number,receiver-player,receiver-rollershutter,receiver-string,receiver-switch">
+		<label>TCP/UDP Receiver</label>
+		<description>Opens a port to receive data via incoming TCP/UDP connections.</description>
+
+		<config-description-ref uri="thing-type:tcpudp:receiver-thing-config"/>
+	</thing-type>
+
+	<channel-type id="receiver-color">
+		<item-type>Color</item-type>
+		<label>Color Channel</label>
+		<config-description-ref uri="channel-type:tcpudp:receiver-channel-config-color"/>
+	</channel-type>
+
+	<channel-type id="receiver-contact">
+		<item-type>Contact</item-type>
+		<label>Contact Channel</label>
+		<config-description-ref uri="channel-type:tcpudp:receiver-channel-config-contact"/>
+	</channel-type>
+
+	<channel-type id="receiver-datetime">
+		<item-type>DateTime</item-type>
+		<label>DateTime Channel</label>
+		<config-description-ref uri="channel-type:tcpudp:receiver-channel-config"/>
+	</channel-type>
+
+	<channel-type id="receiver-dimmer">
+		<item-type>Dimmer</item-type>
+		<label>Dimmer Channel</label>
+		<config-description-ref uri="channel-type:tcpudp:receiver-channel-config-dimmer"/>
+	</channel-type>
+
+	<channel-type id="receiver-image">
+		<item-type>Image</item-type>
+		<label>Image Channel</label>
+		<config-description-ref uri="channel-type:tcpudp:receiver-channel-config-image"/>
+	</channel-type>
+
+	<channel-type id="receiver-location">
+		<item-type>Location</item-type>
+		<label>Location Channel</label>
+		<config-description-ref uri="channel-type:tcpudp:receiver-channel-config"/>
+	</channel-type>
+
+	<channel-type id="receiver-number">
+		<item-type>Number</item-type>
+		<label>Number Channel</label>
+		<config-description-ref uri="channel-type:tcpudp:receiver-channel-config-number"/>
+	</channel-type>
+
+	<channel-type id="receiver-player">
+		<item-type>Player</item-type>
+		<label>Player Channel</label>
+		<config-description-ref uri="channel-type:tcpudp:receiver-channel-config-player"/>
+	</channel-type>
+
+	<channel-type id="receiver-rollershutter">
+		<item-type>Rollershutter</item-type>
+		<label>Rollershutter Channel</label>
+		<config-description-ref uri="channel-type:tcpudp:receiver-channel-config-rollershutter"/>
+	</channel-type>
+
+	<channel-type id="receiver-string">
+		<item-type>String</item-type>
+		<label>String Channel</label>
+		<config-description-ref uri="channel-type:tcpudp:receiver-channel-config"/>
+	</channel-type>
+
+	<channel-type id="receiver-switch">
+		<item-type>Switch</item-type>
+		<label>Switch Channel</label>
+		<config-description-ref uri="channel-type:tcpudp:receiver-channel-config-switch"/>
+	</channel-type>
+
+</thing:thing-descriptions>
