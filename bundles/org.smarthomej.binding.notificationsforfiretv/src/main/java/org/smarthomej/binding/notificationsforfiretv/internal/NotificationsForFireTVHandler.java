@@ -120,8 +120,6 @@ public class NotificationsForFireTVHandler extends BaseThingHandler {
 
             return true;
         } catch (IOException e) {
-            logger.debug("Unable to send notification: {}", e.getMessage());
-
             // UPDATE STATUS
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
 
