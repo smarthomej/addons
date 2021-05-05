@@ -38,6 +38,7 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
+import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.binding.BaseThingHandler;
 import org.openhab.core.thing.binding.ThingHandlerService;
 import org.openhab.core.types.Command;
@@ -69,7 +70,8 @@ public class NotificationsForFireTVHandler extends BaseThingHandler {
     public void initialize() {
         config = getConfigAs(NotificationsForFireTVConfiguration.class);
 
-        updateStatus(ThingStatus.ONLINE);
+        updateStatus(ThingStatus.UNKNOWN);
+        sendNotification(null, null, null);
     }
 
     public boolean sendNotification(@Nullable String msg, @Nullable String filename, @Nullable String filename2) {
@@ -91,29 +93,38 @@ public class NotificationsForFireTVHandler extends BaseThingHandler {
             notificationsForFireTVConnection.addFormField(APP, config.title);
             notificationsForFireTVConnection.addFormField(FORCE, String.valueOf(config.force));
             notificationsForFireTVConnection.addFormField(INTERRUPT, String.valueOf(0));
-            // ADD FILES
+            // ADD FILE PARTS
             if (filename != null) {
                 File file = new File(filename);
                 if (!file.exists()) {
-                    throw new IOException("File doesn't exist: " + filename);
+                    logger.warn("File doesn't exist: {}", filename);
+
+                    return false;
                 }
                 notificationsForFireTVConnection.addFilePart(FILENAME, file);
             }
             if (filename2 != null) {
                 File file2 = new File(filename2);
                 if (!file2.exists()) {
-                    throw new IOException("File doesn't exist: " + filename2);
+                    logger.warn("File doesn't exist: {}", filename2);
+
+                    return false;
                 }
                 notificationsForFireTVConnection.addFilePart(FILENAME2, file2);
             }
             // POST FORM
             notificationsForFireTVConnection.finish();
 
+            // UPDATE STATUS
+            updateStatus(ThingStatus.ONLINE);
+
             return true;
-        } catch (Exception e) {
-            logger.warn("Unable to connect: {}", e.getMessage());
+        } catch (IOException e) {
+            // UPDATE STATUS
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
+
+            return false;
         }
-        return false;
     }
 
     @Override
