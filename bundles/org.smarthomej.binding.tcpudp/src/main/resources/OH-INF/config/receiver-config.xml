@@ -22,7 +22,7 @@
 				<option value="UDP">UDP</option>
 			</options>
 			<limitToOptions>true</limitToOptions>
-		</parameter
+		</parameter>
 		<parameter name="bufferSize" type="integer" min="0">
 			<label>Buffer Size</label>
 			<description>Size of the response buffer (default 2048 kB)</description>

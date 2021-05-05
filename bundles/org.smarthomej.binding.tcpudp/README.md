@@ -46,11 +46,11 @@ Depending on the channel-type, channels have different configuration options.
 
 ### Common parameters for channels
 
-All `receiver`-channel-types (except `image`) have `addressFilter` and `stateTransformation` parameters.
-The `image` channel-type supports `addressFilter` only.
-
 All `client`-channel-types (except `image`) have `stateContent`, `stateTransformation`, `commandTransformation` and `mode` parameters.
 The `image` channel-type supports `stateContent` only.
+
+All `receiver`-channel-types (except `image`) have `addressFilter` and `stateTransformation` parameters.
+The `image-receiver` channel-type supports `addressFilter` only.
 
 | parameter               | optional | default     | description |
 |-------------------------|----------|-------------|-------------|
