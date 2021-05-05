@@ -26,6 +26,7 @@ import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
+import org.openhab.core.thing.binding.BaseThingHandler;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.RefreshType;
 import org.openhab.core.types.State;
@@ -47,9 +48,10 @@ import org.smarthomej.commons.transform.ValueTransformationProvider;
  * @author Jan N. Klug - Initial contribution
  */
 @NonNullByDefault
-public class ReceiverThingHandler extends BaseTcpUdpThingHandler implements ReceiverListener {
+public class ReceiverThingHandler extends BaseThingHandler implements ReceiverListener {
     private final Logger logger = LoggerFactory.getLogger(ReceiverThingHandler.class);
 
+    private final ItemValueConverterFactory itemValueConverterFactory;
     private final Set<Receiver.ContentListener> contentListeners = new HashSet<>();
     private final Map<ChannelUID, State> stateCache = new ConcurrentHashMap<>();
 
@@ -59,7 +61,10 @@ public class ReceiverThingHandler extends BaseTcpUdpThingHandler implements Rece
     protected ReceiverConfiguration config = new ReceiverConfiguration();
 
     public ReceiverThingHandler(Thing thing, ValueTransformationProvider valueTransformationProvider) {
-        super(thing, valueTransformationProvider);
+        super(thing);
+
+        itemValueConverterFactory = new ItemValueConverterFactory(valueTransformationProvider, this::updateState,
+                this::postCommand, null);
     }
 
     @Override
@@ -97,7 +102,7 @@ public class ReceiverThingHandler extends BaseTcpUdpThingHandler implements Rece
 
         thing.getChannels().forEach(channel -> {
             TcpUdpChannelConfig channelConfig = channel.getConfiguration().as(TcpUdpChannelConfig.class);
-            createItemValueConverter(channel.getUID(), channel.getAcceptedItemType(), channelConfig)
+            itemValueConverterFactory.create(channel.getUID(), channel.getAcceptedItemType(), channelConfig)
                     .ifPresent(itemValueConverter -> contentListeners
                             .add(new Receiver.ContentListener(itemValueConverter, channelConfig.addressFilter)));
         });

@@ -19,6 +19,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Arrays;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Jan N. Klug - Initial contribution
  */
+@NonNullByDefault
 public class UdpReceiver implements Receiver {
     private final Logger logger = LoggerFactory.getLogger(UdpReceiver.class);
 
@@ -64,6 +66,7 @@ public class UdpReceiver implements Receiver {
                     String sender = packet.getAddress().getHostAddress() + ":" + packet.getPort();
                     byte[] data = Arrays.copyOfRange(packet.getData(), 0, packet.getLength());
 
+                    logger.trace("Received {} bytes from {}: {}", packet.getLength(), sender, data);
                     receiverListener.onReceive(sender, data);
                 }
             } catch (IOException e) {

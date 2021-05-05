@@ -20,6 +20,7 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.util.Arrays;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +30,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Jan N. Klug - Initial contribution
  */
+@NonNullByDefault
 public class TcpReceiver implements Receiver {
     private final Logger logger = LoggerFactory.getLogger(TcpReceiver.class);
 
@@ -67,6 +69,8 @@ public class TcpReceiver implements Receiver {
                             logger.warn("Did not receive data from {}", sender);
                         } else {
                             byte[] data = Arrays.copyOfRange(buf, 0, byteCount);
+
+                            logger.trace("Received {} bytes from {}: {}", byteCount, sender, data);
                             receiverListener.onReceive(sender, data);
                         }
                     }

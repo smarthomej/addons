@@ -13,6 +13,7 @@
 package org.smarthomej.binding.tcpudp.internal;
 
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -22,8 +23,7 @@ import org.openhab.core.library.types.DateTimeType;
 import org.openhab.core.library.types.PointType;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.thing.ChannelUID;
-import org.openhab.core.thing.Thing;
-import org.openhab.core.thing.binding.BaseThingHandler;
+import org.openhab.core.types.Command;
 import org.openhab.core.types.State;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,24 +41,43 @@ import org.smarthomej.commons.itemvalueconverter.converter.RollershutterItemConv
 import org.smarthomej.commons.transform.ValueTransformationProvider;
 
 /**
- * The {@link BaseTcpUdpThingHandler} is a base class for TcpUdp thing Handlers
+ * The {@link ItemValueConverterFactory} is a helper class for creating {@link ItemValueConverter}s
  *
  * @author Jan N. Klug - Initial contribution
  */
 @NonNullByDefault
-public abstract class BaseTcpUdpThingHandler extends BaseThingHandler {
-    private final Logger logger = LoggerFactory.getLogger(BaseTcpUdpThingHandler.class);
+public class ItemValueConverterFactory {
+    private final Logger logger = LoggerFactory.getLogger(ItemValueConverterFactory.class);
 
     private final ValueTransformationProvider valueTransformationProvider;
-    protected @Nullable Consumer<String> sendValue = null;
 
-    public BaseTcpUdpThingHandler(Thing thing, ValueTransformationProvider valueTransformationProvider) {
-        super(thing);
+    private @Nullable Consumer<String> sendValue;
+    private BiConsumer<ChannelUID, State> updateState;
+    private BiConsumer<ChannelUID, Command> postCommand;
+
+    public ItemValueConverterFactory(ValueTransformationProvider valueTransformationProvider,
+            BiConsumer<ChannelUID, State> updateState, BiConsumer<ChannelUID, Command> postCommand,
+            @Nullable Consumer<String> sendValue) {
         this.valueTransformationProvider = valueTransformationProvider;
+        this.updateState = updateState;
+        this.postCommand = postCommand;
+        this.sendValue = sendValue;
     }
 
-    protected Optional<ItemValueConverter> createItemValueConverter(ChannelUID channelUID,
-            @Nullable String acceptedItemType, TcpUdpChannelConfig channelConfig) {
+    public void setSendValue(Consumer<String> sendValue) {
+        this.sendValue = sendValue;
+    }
+
+    public void setUpdateState(BiConsumer<ChannelUID, State> updateState) {
+        this.updateState = updateState;
+    }
+
+    public void setPostCommand(BiConsumer<ChannelUID, Command> postCommand) {
+        this.postCommand = postCommand;
+    }
+
+    public Optional<ItemValueConverter> create(ChannelUID channelUID, @Nullable String acceptedItemType,
+            TcpUdpChannelConfig channelConfig) {
         if (acceptedItemType == null) {
             logger.warn("Cannot determine item-type for channel '{}'", channelUID);
             return Optional.empty();
@@ -81,7 +100,7 @@ public abstract class BaseTcpUdpThingHandler extends BaseThingHandler {
                         channelConfig);
                 break;
             case "Image":
-                itemValueConverter = new ImageItemConverter(state -> updateState(channelUID, state));
+                itemValueConverter = new ImageItemConverter(state -> updateState.accept(channelUID, state));
                 break;
             case "Location":
                 itemValueConverter = createGenericItemConverter(channelUID, channelConfig, PointType::new);
@@ -107,8 +126,9 @@ public abstract class BaseTcpUdpThingHandler extends BaseThingHandler {
 
     private ItemValueConverter createItemConverter(AbstractTransformingItemConverter.Factory factory,
             ChannelUID channelUID, TcpUdpChannelConfig channelConfig) {
-        return factory.create(state -> updateState(channelUID, state), command -> postCommand(channelUID, command),
-                sendValue, valueTransformationProvider.getValueTransformation(channelConfig.stateTransformation),
+        return factory.create(state -> updateState.accept(channelUID, state),
+                command -> postCommand.accept(channelUID, command), sendValue,
+                valueTransformationProvider.getValueTransformation(channelConfig.stateTransformation),
                 valueTransformationProvider.getValueTransformation(channelConfig.commandTransformation), channelConfig);
     }
 
