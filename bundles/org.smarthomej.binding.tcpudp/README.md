@@ -41,7 +41,7 @@ Both can be extended with different channels.
 ## Channels
 
 Each item type has its own channel-type.
-Channel-types with `-receiver`-suffix are available on `receiver` things, channel-types without suffix are available on `client` things. 
+Channel-types with `receiver-`-prefix are available on `receiver` things, channel-types without prefix are available on `client` things. 
 Depending on the channel-type, channels have different configuration options.
 
 ### Common parameters for channels
@@ -50,7 +50,7 @@ All `client`-channel-types (except `image`) have `stateContent`, `stateTransform
 The `image` channel-type supports `stateContent` only.
 
 All `receiver`-channel-types (except `image`) have `addressFilter` and `stateTransformation` parameters.
-The `image-receiver` channel-type supports `addressFilter` only.
+The `receiver-image` channel-type supports `addressFilter` only.
 
 | parameter               | optional | default     | description |
 |-------------------------|----------|-------------|-------------|
