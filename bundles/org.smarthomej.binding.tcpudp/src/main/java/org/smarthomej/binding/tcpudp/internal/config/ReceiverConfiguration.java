@@ -25,8 +25,6 @@ public class ReceiverConfiguration {
     public String localAddress = "0.0.0.0";
     public int port = 0;
 
-    public int timeout = 3000;
-
     public int bufferSize = 2048;
 
     public Protocol protocol = Protocol.TCP;
