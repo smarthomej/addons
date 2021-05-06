@@ -5,6 +5,7 @@ This binding allows using TCP or UDP connection to bring external data into open
 ## Supported Things
 
 Two things are available: 
+
 - `client` for connecting to remote hosts
 - `receiver` for receiving from remote hosts
  
@@ -86,6 +87,7 @@ The format is `ip:port`, the `*`-wildcard can be used.
 The default is `*` (i.e. accept everything).
 
 Examples:
+
 - `192.168.178.2:*` accept values from the host `192.168.178.2` from every port
 - `192.168.0.*:*` accepts values from every host with an address that matches `192.168.0.*` from every port
 - `*:4444` accepts values from every host but only if the SENDING port matches `4444`
@@ -164,3 +166,19 @@ All values that are not `upValue`, `downValue`, `stopValue`, `moveValue` are int
 | `offValue`              | no       |      -      | A special value that represents `OFF` |
 
 **Note:** Special values need to be exact matches, i.e. no leading or trailing characters and comparison is case-sensitive.
+
+## Example configurations
+
+```xtend
+Thing tcpudp:receiver:string "TCPUDP String" [ localAddress="0.0.0.0", port="17236", protocol="UDP" ] {
+    Channels:
+        Type receiver-string : bewgtrp "Bewegungsmelder Treppenhaus" [ addressFilter="192.168.179.41:*" ]
+        Type receiver-string : fschlaf "Fenster Schlafzimmer R" [ addressFilter="192.168.179.31:*" ]
+}
+```
+
+This creates a thing that 
+
+- listens on all network interfaces on port 17236 for UDP connections
+- has one channel accepting only connections from a client with the IP address 192.168.179.41 and outputs the result to a channel that can be linked to a String item
+- has one channel accepting only connections from a client with the IP address 192.168.179.31 and outputs the result to a channel that can be linked to a String item
