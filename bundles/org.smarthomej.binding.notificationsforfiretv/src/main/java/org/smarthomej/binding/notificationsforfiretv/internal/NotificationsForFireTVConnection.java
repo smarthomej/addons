@@ -66,6 +66,9 @@ public class NotificationsForFireTVConnection {
      * @param value
      */
     public void addFormField(String name, String value) {
+        byte[] separator = ("--" + boundary + LINE + "Content-Disposition: form-data; name=")
+                .getBytes(StandardCharsets.UTF_8);
+        byteArrays.add(separator);
         byteArrays.add((QUOTE + name + QUOTE + LINE + LINE + value + LINE).getBytes(StandardCharsets.UTF_8));
     }
 
