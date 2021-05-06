@@ -19,6 +19,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+import java.util.regex.Pattern;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -36,10 +37,10 @@ import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.tcpudp.internal.config.ReceiverConfiguration;
 import org.smarthomej.binding.tcpudp.internal.config.TcpUdpChannelConfig;
 import org.smarthomej.binding.tcpudp.internal.receiver.Receiver;
-import org.smarthomej.binding.tcpudp.internal.receiver.ReceiverListener;
 import org.smarthomej.binding.tcpudp.internal.receiver.TcpReceiver;
 import org.smarthomej.binding.tcpudp.internal.receiver.UdpReceiver;
 import org.smarthomej.commons.itemvalueconverter.ContentWrapper;
+import org.smarthomej.commons.itemvalueconverter.ItemValueConverter;
 import org.smarthomej.commons.transform.ValueTransformationProvider;
 
 /**
@@ -48,11 +49,11 @@ import org.smarthomej.commons.transform.ValueTransformationProvider;
  * @author Jan N. Klug - Initial contribution
  */
 @NonNullByDefault
-public class ReceiverThingHandler extends BaseThingHandler implements ReceiverListener {
+public class ReceiverThingHandler extends BaseThingHandler implements Receiver.ReceiverListener {
     private final Logger logger = LoggerFactory.getLogger(ReceiverThingHandler.class);
 
     private final ItemValueConverterFactory itemValueConverterFactory;
-    private final Set<Receiver.ContentListener> contentListeners = new HashSet<>();
+    private final Set<ContentListener> contentListeners = new HashSet<>();
     private final Map<ChannelUID, State> stateCache = new ConcurrentHashMap<>();
 
     private @Nullable Future<?> refreshJob;
@@ -104,7 +105,7 @@ public class ReceiverThingHandler extends BaseThingHandler implements ReceiverLi
             TcpUdpChannelConfig channelConfig = channel.getConfiguration().as(TcpUdpChannelConfig.class);
             itemValueConverterFactory.create(channel.getUID(), channel.getAcceptedItemType(), channelConfig)
                     .ifPresent(itemValueConverter -> contentListeners
-                            .add(new Receiver.ContentListener(itemValueConverter, channelConfig.addressFilter)));
+                            .add(new ContentListener(itemValueConverter, channelConfig.addressFilter)));
         });
 
         if (contentListeners.isEmpty()) {
@@ -157,6 +158,20 @@ public class ReceiverThingHandler extends BaseThingHandler implements ReceiverLi
             updateStatus(ThingStatus.ONLINE);
         } else {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, message);
+        }
+    }
+
+    /**
+     * The {@link ContentListener} is a class that groups an {@link ItemValueConverter} and an associated address filter
+     */
+    public static class ContentListener {
+        public final ItemValueConverter itemValueConverter;
+        public final Pattern addressFilter;
+
+        public ContentListener(ItemValueConverter itemValueConverter, String addressFilter) {
+            this.itemValueConverter = itemValueConverter;
+            // convert input pattern to regex, using only * as wildcard
+            this.addressFilter = Pattern.compile(Pattern.quote(addressFilter).replace("*", "\\E.*?\\Q"));
         }
     }
 }

@@ -12,10 +12,8 @@
  */
 package org.smarthomej.binding.tcpudp.internal.receiver;
 
-import java.util.regex.Pattern;
-
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.smarthomej.commons.itemvalueconverter.ItemValueConverter;
+import org.eclipse.jdt.annotation.Nullable;
 
 /**
  * The {@link Receiver} is an interface for TCP and UDP Receivers
@@ -29,14 +27,26 @@ public interface Receiver extends Runnable {
      */
     void stop();
 
-    class ContentListener {
-        public final ItemValueConverter itemValueConverter;
-        public final Pattern addressFilter;
+    /**
+     * The {@link ReceiverListener} is an interface for TCP and UDP receiver listeners for reporting connection state
+     * and received data
+     *
+     */
+    interface ReceiverListener {
+        /**
+         * report the connection state to the thing handler
+         *
+         * @param state true if successfully installed, false if failed
+         * @param message optional message (only used for failed connections)
+         */
+        void reportConnectionState(boolean state, @Nullable String message);
 
-        public ContentListener(ItemValueConverter itemValueConverter, String addressFilter) {
-            this.itemValueConverter = itemValueConverter;
-            // convert input pattern to regex, using only * as wildcard
-            this.addressFilter = Pattern.compile(Pattern.quote(addressFilter).replace("*", "\\E.*?\\Q"));
-        }
+        /**
+         * report a received value the the listener
+         *
+         * @param sender String containing the IP address and port of the client that send the data
+         * @param content a byte array with the received data
+         */
+        void onReceive(String sender, byte[] content);
     }
 }

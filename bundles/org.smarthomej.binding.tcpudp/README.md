@@ -92,9 +92,9 @@ Examples:
 - `192.168.0.*:*` accepts values from every host with an address that matches `192.168.0.*` from every port
 - `*:4444` accepts values from every host but only if the SENDING port matches `4444`
 
-Usually it is a good idea to use `*` for the sending port because this usually can't be controlled.
+In most setups it is a good idea to use `*` for the sending port because this usually can't be controlled.
 
-### Additional parameters for channel-types `color`, `color-receiver`
+### Additional parameters for channel-types `color`, `receiver-color`
 
 | parameter               | optional | default     | description |
 |-------------------------|----------|-------------|-------------|
@@ -107,14 +107,14 @@ Usually it is a good idea to use `*` for the sending port because this usually c
 
 All values that are not `onValue`, `offValue`, `increaseValue`, `decreaseValue` are interpreted as color value (according to the color mode) in the format `r,g,b` or `h,s,v`.
 
-### Additional parameters for channel-types `contact`, `contact-receiver`
+### Additional parameters for channel-types `contact`, `receiver-contact`
 
 | parameter               | optional | default     | description |
 |-------------------------|----------|-------------|-------------|
 | `openValue`             | no       |      -      | A special value that represents `OPEN` |
 | `closedValue`           | no       |      -      | A special value that represents `CLOSED` |
 
-### Additional parameters for channel-types `dimmer`, `dimmer-receiver`
+### Additional parameters for channel-types `dimmer`, `receiver-dimmer`
 
 | parameter               | optional | default     | description |
 |-------------------------|----------|-------------|-------------|
@@ -126,7 +126,7 @@ All values that are not `onValue`, `offValue`, `increaseValue`, `decreaseValue` 
 
 All values that are not `onValue`, `offValue`, `increaseValue`, `decreaseValue` are interpreted as brightness 0-100% and need to be numeric only.
 
-### Additional parameters for channel-types `number`, `number-receiver`
+### Additional parameters for channel-types `number`, `receiver-number`
 
 | parameter               | optional | default     | description |
 |-------------------------|----------|-------------|-------------|
@@ -136,7 +136,7 @@ All values that are not `onValue`, `offValue`, `increaseValue`, `decreaseValue` 
 If a unit is given in the `unit` parameter, the binding tries to create a `QuantityType` state before updating the channel, if no unit is present, it creates a `DecimalType`.
 Please note that incompatible units (e.g. `°C` for a `Number:Density` item) will fail silently, i.e. no error message is logged even if the state update fails.
 
-### Additional parameters for channel-types `player`, `player-receiver`
+### Additional parameters for channel-types `player`, `receiver-player`
 
 | parameter               | optional | default     | description |
 |-------------------------|----------|-------------|-------------|
@@ -147,7 +147,7 @@ Please note that incompatible units (e.g. `°C` for a `Number:Density` item) wil
 | `fastforward`           | yes      |      -      | A special value that represents `FASTFORWARD` |
 | `rewind`                | yes      |      -      | A special value that represents `REWIND` |
 
-### Additional parameters for channel-types `rollershutter`, `rollershutter-receiver`
+### Additional parameters for channel-types `rollershutter`, `receiver-rollershutter`
 
 | parameter               | optional | default     | description |
 |-------------------------|----------|-------------|-------------|
@@ -158,7 +158,7 @@ Please note that incompatible units (e.g. `°C` for a `Number:Density` item) wil
 
 All values that are not `upValue`, `downValue`, `stopValue`, `moveValue` are interpreted as position 0-100% and need to be numeric only.
 
-### Additional parameters for channel-types `switch`, `switch-receiver`
+### Additional parameters for channel-types `switch`, `receiver-switch`
 
 | parameter               | optional | default     | description |
 |-------------------------|----------|-------------|-------------|
