@@ -1,0 +1,384 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config-description:config-descriptions
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:config-description="https://openhab.org/schemas/config-description/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/config-description/v1.0.0 https://openhab.org/schemas/config-description-1.0.0.xsd">
+
+	<config-description uri="thing-type:tcpudp:client-thing-config">
+		<parameter name="host" type="text" required="true">
+			<label>Host</label>
+			<description>Hostname or IP address of this target.</description>
+			<context>network-address</context>
+		</parameter>
+		<parameter name="port" type="integer" min="1" max="65535" required="true">
+			<label>Port</label>
+		</parameter>
+		<parameter name="protocol" type="text" required="true">
+			<label>Protocol</label>
+			<description>Protocol to use for this connection (TCP or UDP).</description>
+			<options>
+				<option value="TCP">TCP</option>
+				<option value="UDP">UDP</option>
+			</options>
+			<limitToOptions>true</limitToOptions>
+		</parameter>
+		<parameter name="refresh" type="integer" unit="s" min="1">
+			<label>Refresh Time</label>
+			<description>Time between two refreshes of all channels</description>
+			<default>30</default>
+		</parameter>
+		<parameter name="timeout" type="integer" unit="ms" min="0">
+			<label>Timeout</label>
+			<description>The timeout in ms for each request</description>
+			<default>3000</default>
+		</parameter>
+		<parameter name="delay" type="integer" unit="ms" min="0">
+			<label>Delay</label>
+			<description>Delay between to requests</description>
+			<default>0</default>
+			<advanced>true</advanced>
+		</parameter>
+		<parameter name="bufferSize" type="integer" min="0">
+			<label>Buffer Size</label>
+			<description>Size of the response buffer (default 2048 kB)</description>
+			<default>2048</default>
+			<advanced>true</advanced>
+		</parameter>
+		<parameter name="encoding" type="text">
+			<label>Fallback Encoding</label>
+			<description>Fallback Encoding text received by this thing's channels.</description>
+			<advanced>true</advanced>
+		</parameter>
+	</config-description>
+
+	<config-description uri="channel-type:tcpudp:client-channel-config">
+		<parameter name="stateTransformation" type="text">
+			<label>State Transformation</label>
+			<description>Transformation pattern used when receiving values. Multiple transformation can be chained using "∩".</description>
+		</parameter>
+		<parameter name="commandTransformation" type="text">
+			<label>Command Transformation</label>
+			<description>Transformation pattern used when sending values. Multiple transformation can be chained using "∩".</description>
+		</parameter>
+		<parameter name="stateContent" type="text">
+			<label>State Content</label>
+			<description>Content for state request.</description>
+		</parameter>
+		<parameter name="mode" type="text">
+			<label>Read/Write Mode</label>
+			<options>
+				<option value="READWRITE">Read/Write</option>
+				<option value="READONLY">Read Only</option>
+				<option value="WRITEONLY">Write Only</option>
+			</options>
+			<limitToOptions>true</limitToOptions>
+			<advanced>true</advanced>
+			<default>READWRITE</default>
+		</parameter>
+	</config-description>
+
+	<config-description uri="channel-type:tcpudp:client-channel-config-color">
+		<parameter name="stateTransformation" type="text">
+			<label>State Transformation</label>
+			<description>Transformation pattern used when receiving values.</description>
+		</parameter>
+		<parameter name="commandTransformation" type="text">
+			<label>Command Transformation</label>
+			<description>Transformation pattern used when sending values. Multiple transformation can be chained using "∩".</description>
+		</parameter>
+		<parameter name="stateContent" type="text">
+			<label>State Content</label>
+			<description>Content for state request.</description>
+		</parameter>
+		<parameter name="onValue" type="text">
+			<label>On Value</label>
+			<description>The value that represents ON</description>
+		</parameter>
+		<parameter name="offValue" type="text">
+			<label>Off Value</label>
+			<description>The value that represents OFF</description>
+		</parameter>
+		<parameter name="increaseValue" type="text">
+			<label>Increase Value</label>
+			<description>The value that represents INCREASE</description>
+		</parameter>
+		<parameter name="decreaseValue" type="text">
+			<label>Decrease Value</label>
+			<description>The value that represents DECREASE</description>
+		</parameter>
+		<parameter name="step" type="text">
+			<label>Increase/Decrease Step</label>
+			<description>The value by which the current brightness is increased/decreased if the corresponding command is
+				received</description>
+			<default>1</default>
+		</parameter>
+		<parameter name="colorMode" type="text">
+			<label>Color Mode</label>
+			<description>Color mode for parsing incoming and sending outgoing values</description>
+			<options>
+				<option value="HSB">HSB</option>
+				<option value="RGB">RGB</option>
+			</options>
+			<limitToOptions>true</limitToOptions>
+			<default>RGB</default>
+		</parameter>
+		<parameter name="mode" type="text">
+			<label>Read/Write Mode</label>
+			<options>
+				<option value="READWRITE">Read/Write</option>
+				<option value="READONLY">Read Only</option>
+				<option value="WRITEONLY">Write Only</option>
+			</options>
+			<limitToOptions>true</limitToOptions>
+			<advanced>true</advanced>
+			<default>READWRITE</default>
+		</parameter>
+	</config-description>
+
+	<config-description uri="channel-type:tcpudp:client-channel-config-contact">
+		<parameter name="stateTransformation" type="text">
+			<label>State Transformation</label>
+			<description>Transformation pattern used when receiving values. Multiple transformation can be chained using "∩".</description>
+		</parameter>
+		<parameter name="commandTransformation" type="text">
+			<label>Command Transformation</label>
+			<description>Transformation pattern used when sending values. Multiple transformation can be chained using "∩".</description>
+		</parameter>
+		<parameter name="stateContent" type="text">
+			<label>State Content</label>
+			<description>Content for state request.</description>
+		</parameter>
+		<parameter name="openValue" type="text" required="true">
+			<label>Open Value</label>
+			<description>The value that represents OPEN</description>
+		</parameter>
+		<parameter name="closedValue" type="text" required="true">
+			<label>Closed Value</label>
+			<description>The value that represents CLOSED</description>
+		</parameter>
+		<parameter name="mode" type="text">
+			<label>Read/Write Mode</label>
+			<options>
+				<option value="READWRITE">Read/Write</option>
+				<option value="READONLY">Read Only</option>
+				<option value="WRITEONLY">Write Only</option>
+			</options>
+			<limitToOptions>true</limitToOptions>
+			<advanced>true</advanced>
+			<default>READWRITE</default>
+		</parameter>
+	</config-description>
+
+	<config-description uri="channel-type:tcpudp:client-channel-config-dimmer">
+		<parameter name="stateTransformation" type="text">
+			<label>State Transformation</label>
+			<description>Transformation pattern used when receiving values. Multiple transformation can be chained using "∩".</description>
+		</parameter>
+		<parameter name="commandTransformation" type="text">
+			<label>Command Transformation</label>
+			<description>Transformation pattern used when sending values. Multiple transformation can be chained using "∩".</description>
+		</parameter>
+		<parameter name="stateContent" type="text">
+			<label>State Content</label>
+			<description>Content for state request.</description>
+		</parameter>
+		<parameter name="onValue" type="text">
+			<label>On Value</label>
+			<description>The value that represents ON</description>
+		</parameter>
+		<parameter name="offValue" type="text">
+			<label>Off Value</label>
+			<description>The value that represents OFF</description>
+		</parameter>
+		<parameter name="increaseValue" type="text">
+			<label>Increase Value</label>
+			<description>The value that represents INCREASE</description>
+		</parameter>
+		<parameter name="decreaseValue" type="text">
+			<label>Decrease Value</label>
+			<description>The value that represents DECREASE</description>
+		</parameter>
+		<parameter name="step" type="text">
+			<label>Increase/Decrease Step</label>
+			<description>The value by which the current brightness is increased/decreased if the corresponding command is
+				received</description>
+			<default>1</default>
+		</parameter>
+		<parameter name="mode" type="text">
+			<label>Read/Write Mode</label>
+			<options>
+				<option value="READWRITE">Read/Write</option>
+				<option value="READONLY">Read Only</option>
+				<option value="WRITEONLY">Write Only</option>
+			</options>
+			<limitToOptions>true</limitToOptions>
+			<advanced>true</advanced>
+			<default>READWRITE</default>
+		</parameter>
+	</config-description>
+
+	<config-description uri="channel-type:tcpudp:client-channel-config-image">
+		<parameter name="stateContent" type="text">
+			<label>State Content</label>
+			<description>Content for state request.</description>
+		</parameter>
+	</config-description>
+
+	<config-description uri="channel-type:tcpudp:client-channel-config-number">
+		<parameter name="stateTransformation" type="text">
+			<label>State Transformation</label>
+			<description>Transformation pattern used when receiving values. Multiple transformation can be chained using "∩".</description>
+		</parameter>
+		<parameter name="commandTransformation" type="text">
+			<label>Command Transformation</label>
+			<description>Transformation pattern used when sending values. Multiple transformation can be chained using "∩".</description>
+		</parameter>
+		<parameter name="stateContent" type="text">
+			<label>State Content</label>
+			<description>Content for state request.</description>
+		</parameter>
+		<parameter name="mode" type="text">
+			<label>Read/Write Mode</label>
+			<options>
+				<option value="READWRITE">Read/Write</option>
+				<option value="READONLY">Read Only</option>
+				<option value="WRITEONLY">Write Only</option>
+			</options>
+			<limitToOptions>true</limitToOptions>
+			<advanced>true</advanced>
+			<default>READWRITE</default>
+		</parameter>
+		<parameter name="unit" type="text">
+			<label>Unit</label>
+			<description>Unit to append to the (transformed) value.</description>
+			<advanced>true</advanced>
+		</parameter>
+	</config-description>
+
+	<config-description uri="channel-type:tcpudp:client-channel-config-player">
+		<parameter name="stateTransformation" type="text">
+			<label>State Transformation</label>
+			<description>Transformation pattern used when receiving values. Multiple transformation can be chained using "∩".</description>
+		</parameter>
+		<parameter name="commandTransformation" type="text">
+			<label>Command Transformation</label>
+			<description>Transformation pattern used when sending values. Multiple transformation can be chained using "∩".</description>
+		</parameter>
+		<parameter name="stateContent" type="text">
+			<label>State Content</label>
+			<description>Content for state request.</description>
+		</parameter>
+		<parameter name="playValue" type="text">
+			<label>Play Value</label>
+			<description>The value that represents PLAY</description>
+		</parameter>
+		<parameter name="pauseValue" type="text">
+			<label>Pause Value</label>
+			<description>The value that represents PAUSE</description>
+		</parameter>
+		<parameter name="nextValue" type="text">
+			<label>Next Value</label>
+			<description>The value that represents NEXT</description>
+		</parameter>
+		<parameter name="previousValue" type="text">
+			<label>Previous Value</label>
+			<description>The value that represents PREVIOUS</description>
+		</parameter>
+		<parameter name="rewindValue" type="text">
+			<label>Rewind Value</label>
+			<description>The value that represents REWIND</description>
+		</parameter>
+		<parameter name="fastforwardValue" type="text">
+			<label>Fast Forward Value</label>
+			<description>The value that represents FASTFORWARD</description>
+		</parameter>
+		<parameter name="mode" type="text">
+			<label>Read/Write Mode</label>
+			<options>
+				<option value="READWRITE">Read/Write</option>
+				<option value="READONLY">Read Only</option>
+				<option value="WRITEONLY">Write Only</option>
+			</options>
+			<limitToOptions>true</limitToOptions>
+			<advanced>true</advanced>
+			<default>READWRITE</default>
+		</parameter>
+	</config-description>
+
+	<config-description uri="channel-type:tcpudp:client-channel-config-rollershutter">
+		<parameter name="stateTransformation" type="text">
+			<label>State Transformation</label>
+			<description>Transformation pattern used when receiving values. Multiple transformation can be chained using "∩".</description>
+		</parameter>
+		<parameter name="commandTransformation" type="text">
+			<label>Command Transformation</label>
+			<description>Transformation pattern used when sending values. Multiple transformation can be chained using "∩".</description>
+		</parameter>
+		<parameter name="stateContent" type="text">
+			<label>State Content</label>
+			<description>Content for state request.</description>
+		</parameter>
+		<parameter name="upValue" type="text">
+			<label>Up Value</label>
+			<description>The value that represents UP</description>
+		</parameter>
+		<parameter name="downValue" type="text">
+			<label>Down Value</label>
+			<description>The value that represents DOWN</description>
+		</parameter>
+		<parameter name="stopValue" type="text">
+			<label>Stop Value</label>
+			<description>The value that represents STOP</description>
+		</parameter>
+		<parameter name="moveValue" type="text">
+			<label>Move Value</label>
+			<description>The value that represents MOVE</description>
+		</parameter>
+		<parameter name="mode" type="text">
+			<label>Read/Write Mode</label>
+			<options>
+				<option value="READWRITE">Read/Write</option>
+				<option value="READONLY">Read Only</option>
+				<option value="WRITEONLY">Write Only</option>
+			</options>
+			<limitToOptions>true</limitToOptions>
+			<advanced>true</advanced>
+			<default>READWRITE</default>
+		</parameter>
+	</config-description>
+
+	<config-description uri="channel-type:tcpudp:client-channel-config-switch">
+		<parameter name="stateTransformation" type="text">
+			<label>State Transformation</label>
+			<description>Transformation pattern used when receiving values. Multiple transformation can be chained using "∩".</description>
+		</parameter>
+		<parameter name="commandTransformation" type="text">
+			<label>Command Transformation</label>
+			<description>Transformation pattern used when sending values. Multiple transformation can be chained using "∩".</description>
+		</parameter>
+		<parameter name="stateContent" type="text">
+			<label>State Content</label>
+			<description>Content for state request</description>
+		</parameter>
+		<parameter name="onValue" type="text" required="true">
+			<label>On Value</label>
+			<description>The value that represents ON</description>
+		</parameter>
+		<parameter name="offValue" type="text" required="true">
+			<label>Off Value</label>
+			<description>The value that represents OFF</description>
+		</parameter>
+		<parameter name="mode" type="text">
+			<label>Read/Write Mode</label>
+			<options>
+				<option value="READWRITE">Read/Write</option>
+				<option value="READONLY">Read Only</option>
+				<option value="WRITEONLY">Write Only</option>
+			</options>
+			<limitToOptions>true</limitToOptions>
+			<advanced>true</advanced>
+			<default>READWRITE</default>
+		</parameter>
+	</config-description>
+
+</config-description:config-descriptions>

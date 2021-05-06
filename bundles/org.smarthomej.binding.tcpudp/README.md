@@ -4,11 +4,18 @@ This binding allows using TCP or UDP connection to bring external data into open
 
 ## Supported Things
 
-One thing is available: `client` for connecting to remote hosts via TCP or UDP.
+Two things are available: 
+
+- `client` for connecting to remote hosts
+- `receiver` for receiving from remote hosts
  
-It can be extended with different channels.
+Both can be extended with different channels.
 
 ## Thing Configuration
+
+*Note:* Optional "no" means that you have to configure a value unless a default is provided and you are ok with that setting.
+
+### `client`
 
 | parameter         | optional | default | description |
 |-------------------|----------|---------|-------------|
@@ -21,14 +28,30 @@ It can be extended with different channels.
 | `delay`           | no       |    0    | Delay between two requests in ms (advanced parameter). |
 | `encoding`        | yes      |    -    | Encoding to be used if no encoding is found in responses (advanced parameter). |  
 
-*Note:* Optional "no" means that you have to configure a value unless a default is provided and you are ok with that setting.
+### `receiver`
+
+| parameter         | optional | default | description |
+|-------------------|----------|---------|-------------|
+| `localAddress`    | yes      |    -    | The address of the receiving network interface (default is: listen on all interfaces). |
+| `port`            | no       |    -    | The port on the local machine that this thing shall listen to. |
+| `protocol`        | no       |    -    | protocol for this connection: `TCP` or `UDP`. |
+| `bufferSize`      | no       |  2048   | The buffer size for the response data (in kB). |
+| `delay`           | no       |    0    | Delay between two requests in ms (advanced parameter). |
+| `encoding`        | yes      |    -    | Encoding to be used if no encoding is found in responses (advanced parameter). |  
 
 ## Channels
 
 Each item type has its own channel-type.
+Channel-types with `receiver-`-prefix are available on `receiver` things, channel-types without prefix are available on `client` things. 
 Depending on the channel-type, channels have different configuration options.
-All channel-types (except `image`) have `stateExtension`, `commandExtension`, `stateTransformation`, `commandTransformation` and `mode` parameters.
-The `image` channel-type supports `stateExtension` only.
+
+### Common parameters for channels
+
+All `client`-channel-types (except `image`) have `stateContent`, `stateTransformation`, `commandTransformation` and `mode` parameters.
+The `image` channel-type supports `stateContent` only.
+
+All `receiver`-channel-types (except `image`) have `addressFilter` and `stateTransformation` parameters.
+The `receiver-image` channel-type supports `addressFilter` only.
 
 | parameter               | optional | default     | description |
 |-------------------------|----------|-------------|-------------|
@@ -36,6 +59,7 @@ The `image` channel-type supports `stateExtension` only.
 | `commandTransformation` | yes      |      -      | One or more transformation applied to channel value before sending to a remote. |
 | `stateContent`          | no       |      -      | Content for state requests. |
 | `mode`                  | no       | `READWRITE` | Mode this channel is allowed to operate. `READONLY` means receive state, `WRITEONLY` means send commands. |
+| `addressFilter`         | no       |     `*`     | Address filter for incoming connections. |
 
 Transformations need to be specified in the same format as
 Some channels have additional parameters.
@@ -56,7 +80,21 @@ Please note that the values will be discarded if one transformation fails (e.g. 
 
 The same mechanism works for commands (`commandTransformation`) for outgoing values.
 
-### `color`
+### Address filter (`addressFilter`)
+
+Channels on `receiver` things allow to add a filter for the incoming connection.
+The format is `ip:port`, the `*`-wildcard can be used. 
+The default is `*` (i.e. accept everything).
+
+Examples:
+
+- `192.168.178.2:*` accept values from the host `192.168.178.2` from every port
+- `192.168.0.*:*` accepts values from every host with an address that matches `192.168.0.*` from every port
+- `*:4444` accepts values from every host but only if the SENDING port matches `4444`
+
+In most setups it is a good idea to use `*` for the sending port because this usually can't be controlled.
+
+### Additional parameters for channel-types `color`, `receiver-color`
 
 | parameter               | optional | default     | description |
 |-------------------------|----------|-------------|-------------|
@@ -69,14 +107,14 @@ The same mechanism works for commands (`commandTransformation`) for outgoing val
 
 All values that are not `onValue`, `offValue`, `increaseValue`, `decreaseValue` are interpreted as color value (according to the color mode) in the format `r,g,b` or `h,s,v`.
 
-### `contact`
+### Additional parameters for channel-types `contact`, `receiver-contact`
 
 | parameter               | optional | default     | description |
 |-------------------------|----------|-------------|-------------|
 | `openValue`             | no       |      -      | A special value that represents `OPEN` |
 | `closedValue`           | no       |      -      | A special value that represents `CLOSED` |
 
-### `dimmer`
+### Additional parameters for channel-types `dimmer`, `receiver-dimmer`
 
 | parameter               | optional | default     | description |
 |-------------------------|----------|-------------|-------------|
@@ -88,7 +126,7 @@ All values that are not `onValue`, `offValue`, `increaseValue`, `decreaseValue` 
 
 All values that are not `onValue`, `offValue`, `increaseValue`, `decreaseValue` are interpreted as brightness 0-100% and need to be numeric only.
 
-### `number`
+### Additional parameters for channel-types `number`, `receiver-number`
 
 | parameter               | optional | default     | description |
 |-------------------------|----------|-------------|-------------|
@@ -98,7 +136,7 @@ All values that are not `onValue`, `offValue`, `increaseValue`, `decreaseValue` 
 If a unit is given in the `unit` parameter, the binding tries to create a `QuantityType` state before updating the channel, if no unit is present, it creates a `DecimalType`.
 Please note that incompatible units (e.g. `°C` for a `Number:Density` item) will fail silently, i.e. no error message is logged even if the state update fails.
 
-### `player`
+### Additional parameters for channel-types `player`, `receiver-player`
 
 | parameter               | optional | default     | description |
 |-------------------------|----------|-------------|-------------|
@@ -109,7 +147,7 @@ Please note that incompatible units (e.g. `°C` for a `Number:Density` item) wil
 | `fastforward`           | yes      |      -      | A special value that represents `FASTFORWARD` |
 | `rewind`                | yes      |      -      | A special value that represents `REWIND` |
 
-### `rollershutter`
+### Additional parameters for channel-types `rollershutter`, `receiver-rollershutter`
 
 | parameter               | optional | default     | description |
 |-------------------------|----------|-------------|-------------|
@@ -120,7 +158,7 @@ Please note that incompatible units (e.g. `°C` for a `Number:Density` item) wil
 
 All values that are not `upValue`, `downValue`, `stopValue`, `moveValue` are interpreted as position 0-100% and need to be numeric only.
 
-### `switch`
+### Additional parameters for channel-types `switch`, `receiver-switch`
 
 | parameter               | optional | default     | description |
 |-------------------------|----------|-------------|-------------|
@@ -128,3 +166,19 @@ All values that are not `upValue`, `downValue`, `stopValue`, `moveValue` are int
 | `offValue`              | no       |      -      | A special value that represents `OFF` |
 
 **Note:** Special values need to be exact matches, i.e. no leading or trailing characters and comparison is case-sensitive.
+
+## Example configurations
+
+```xtend
+Thing tcpudp:receiver:string "TCPUDP String" [ localAddress="0.0.0.0", port="17236", protocol="UDP" ] {
+    Channels:
+        Type receiver-string : bewgtrp "Bewegungsmelder Treppenhaus" [ addressFilter="192.168.179.41:*" ]
+        Type receiver-string : fschlaf "Fenster Schlafzimmer R" [ addressFilter="192.168.179.31:*" ]
+}
+```
+
+This creates a thing that 
+
+- listens on all network interfaces on port 17236 for UDP connections
+- has one channel accepting only connections from a client with the IP address 192.168.179.41 and outputs the result to a channel that can be linked to a String item
+- has one channel accepting only connections from a client with the IP address 192.168.179.31 and outputs the result to a channel that can be linked to a String item

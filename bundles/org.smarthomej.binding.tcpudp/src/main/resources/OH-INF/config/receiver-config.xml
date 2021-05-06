@@ -4,10 +4,11 @@
 	xmlns:config-description="https://openhab.org/schemas/config-description/v1.0.0"
 	xsi:schemaLocation="https://openhab.org/schemas/config-description/v1.0.0 https://openhab.org/schemas/config-description-1.0.0.xsd">
 
-	<config-description uri="thing-type:tcpudp:thing-config">
-		<parameter name="host" type="text" required="true">
+	<config-description uri="thing-type:tcpudp:receiver-thing-config">
+		<parameter name="localAddress" type="text">
 			<label>Host</label>
 			<description>Hostname or IP address of this target.</description>
+			<default>0.0.0.0</default>
 			<context>network-address</context>
 		</parameter>
 		<parameter name="port" type="integer" min="1" max="65535" required="true">
@@ -22,22 +23,6 @@
 			</options>
 			<limitToOptions>true</limitToOptions>
 		</parameter>
-		<parameter name="refresh" type="integer" unit="s" min="1">
-			<label>Refresh Time</label>
-			<description>Time between two refreshes of all channels</description>
-			<default>30</default>
-		</parameter>
-		<parameter name="timeout" type="integer" unit="ms" min="0">
-			<label>Timeout</label>
-			<description>The timeout in ms for each request</description>
-			<default>3000</default>
-		</parameter>
-		<parameter name="delay" type="integer" unit="ms" min="0">
-			<label>Delay</label>
-			<description>Delay between to requests</description>
-			<default>0</default>
-			<advanced>true</advanced>
-		</parameter>
 		<parameter name="bufferSize" type="integer" min="0">
 			<label>Buffer Size</label>
 			<description>Size of the response buffer (default 2048 kB)</description>
@@ -51,44 +36,27 @@
 		</parameter>
 	</config-description>
 
-	<config-description uri="channel-type:tcpudp:channel-config">
+	<config-description uri="channel-type:tcpudp:receiver-channel-config">
 		<parameter name="stateTransformation" type="text">
 			<label>State Transformation</label>
 			<description>Transformation pattern used when receiving values. Multiple transformation can be chained using "∩".</description>
 		</parameter>
-		<parameter name="commandTransformation" type="text">
-			<label>Command Transformation</label>
-			<description>Transformation pattern used when sending values. Multiple transformation can be chained using "∩".</description>
-		</parameter>
-		<parameter name="stateContent" type="text">
-			<label>State Content</label>
-			<description>Content for state request.</description>
-		</parameter>
-		<parameter name="mode" type="text">
-			<label>Read/Write Mode</label>
-			<options>
-				<option value="READWRITE">Read/Write</option>
-				<option value="READONLY">Read Only</option>
-				<option value="WRITEONLY">Write Only</option>
-			</options>
-			<limitToOptions>true</limitToOptions>
-			<advanced>true</advanced>
-			<default>READWRITE</default>
+		<parameter name="addressFilter" type="text">
+			<label>Address Filter</label>
+			<description>Filter for the sending host address (e.g. 192.168.10.1:*).</description>
+			<default>*</default>
 		</parameter>
 	</config-description>
 
-	<config-description uri="channel-type:tcpudp:channel-config-color">
+	<config-description uri="channel-type:tcpudp:receiver-channel-config-color">
 		<parameter name="stateTransformation" type="text">
 			<label>State Transformation</label>
 			<description>Transformation pattern used when receiving values.</description>
 		</parameter>
-		<parameter name="commandTransformation" type="text">
-			<label>Command Transformation</label>
-			<description>Transformation pattern used when sending values. Multiple transformation can be chained using "∩".</description>
-		</parameter>
-		<parameter name="stateContent" type="text">
-			<label>State Content</label>
-			<description>Content for state request.</description>
+		<parameter name="addressFilter" type="text">
+			<label>Address Filter</label>
+			<description>Filter for the sending host address (e.g. 192.168.10.1:*).</description>
+			<default>*</default>
 		</parameter>
 		<parameter name="onValue" type="text">
 			<label>On Value</label>
@@ -122,31 +90,17 @@
 			<limitToOptions>true</limitToOptions>
 			<default>RGB</default>
 		</parameter>
-		<parameter name="mode" type="text">
-			<label>Read/Write Mode</label>
-			<options>
-				<option value="READWRITE">Read/Write</option>
-				<option value="READONLY">Read Only</option>
-				<option value="WRITEONLY">Write Only</option>
-			</options>
-			<limitToOptions>true</limitToOptions>
-			<advanced>true</advanced>
-			<default>READWRITE</default>
-		</parameter>
 	</config-description>
 
-	<config-description uri="channel-type:tcpudp:channel-config-contact">
+	<config-description uri="channel-type:tcpudp:receiver-channel-config-contact">
 		<parameter name="stateTransformation" type="text">
 			<label>State Transformation</label>
 			<description>Transformation pattern used when receiving values. Multiple transformation can be chained using "∩".</description>
 		</parameter>
-		<parameter name="commandTransformation" type="text">
-			<label>Command Transformation</label>
-			<description>Transformation pattern used when sending values. Multiple transformation can be chained using "∩".</description>
-		</parameter>
-		<parameter name="stateContent" type="text">
-			<label>State Content</label>
-			<description>Content for state request.</description>
+		<parameter name="addressFilter" type="text">
+			<label>Address Filter</label>
+			<description>Filter for the sending host address (e.g. 192.168.10.1:*).</description>
+			<default>*</default>
 		</parameter>
 		<parameter name="openValue" type="text" required="true">
 			<label>Open Value</label>
@@ -156,31 +110,17 @@
 			<label>Closed Value</label>
 			<description>The value that represents CLOSED</description>
 		</parameter>
-		<parameter name="mode" type="text">
-			<label>Read/Write Mode</label>
-			<options>
-				<option value="READWRITE">Read/Write</option>
-				<option value="READONLY">Read Only</option>
-				<option value="WRITEONLY">Write Only</option>
-			</options>
-			<limitToOptions>true</limitToOptions>
-			<advanced>true</advanced>
-			<default>READWRITE</default>
-		</parameter>
 	</config-description>
 
-	<config-description uri="channel-type:tcpudp:channel-config-dimmer">
+	<config-description uri="channel-type:tcpudp:receiver-channel-config-dimmer">
 		<parameter name="stateTransformation" type="text">
 			<label>State Transformation</label>
 			<description>Transformation pattern used when receiving values. Multiple transformation can be chained using "∩".</description>
 		</parameter>
-		<parameter name="commandTransformation" type="text">
-			<label>Command Transformation</label>
-			<description>Transformation pattern used when sending values. Multiple transformation can be chained using "∩".</description>
-		</parameter>
-		<parameter name="stateContent" type="text">
-			<label>State Content</label>
-			<description>Content for state request.</description>
+		<parameter name="addressFilter" type="text">
+			<label>Address Filter</label>
+			<description>Filter for the sending host address (e.g. 192.168.10.1:*).</description>
+			<default>*</default>
 		</parameter>
 		<parameter name="onValue" type="text">
 			<label>On Value</label>
@@ -204,49 +144,25 @@
 				received</description>
 			<default>1</default>
 		</parameter>
-		<parameter name="mode" type="text">
-			<label>Read/Write Mode</label>
-			<options>
-				<option value="READWRITE">Read/Write</option>
-				<option value="READONLY">Read Only</option>
-				<option value="WRITEONLY">Write Only</option>
-			</options>
-			<limitToOptions>true</limitToOptions>
-			<advanced>true</advanced>
-			<default>READWRITE</default>
+	</config-description>
+
+	<config-description uri="channel-type:tcpudp:receiver-channel-config-image">
+		<parameter name="addressFilter" type="text">
+			<label>Address Filter</label>
+			<description>Filter for the sending host address (e.g. 192.168.10.1:*).</description>
+			<default>*</default>
 		</parameter>
 	</config-description>
 
-	<config-description uri="channel-type:tcpudp:channel-config-image">
-		<parameter name="stateContent" type="text">
-			<label>State Content</label>
-			<description>Content for state request.</description>
-		</parameter>
-	</config-description>
-
-	<config-description uri="channel-type:tcpudp:channel-config-number">
+	<config-description uri="channel-type:tcpudp:receiver-channel-config-number">
 		<parameter name="stateTransformation" type="text">
 			<label>State Transformation</label>
 			<description>Transformation pattern used when receiving values. Multiple transformation can be chained using "∩".</description>
 		</parameter>
-		<parameter name="commandTransformation" type="text">
-			<label>Command Transformation</label>
-			<description>Transformation pattern used when sending values. Multiple transformation can be chained using "∩".</description>
-		</parameter>
-		<parameter name="stateContent" type="text">
-			<label>State Content</label>
-			<description>Content for state request.</description>
-		</parameter>
-		<parameter name="mode" type="text">
-			<label>Read/Write Mode</label>
-			<options>
-				<option value="READWRITE">Read/Write</option>
-				<option value="READONLY">Read Only</option>
-				<option value="WRITEONLY">Write Only</option>
-			</options>
-			<limitToOptions>true</limitToOptions>
-			<advanced>true</advanced>
-			<default>READWRITE</default>
+		<parameter name="addressFilter" type="text">
+			<label>Address Filter</label>
+			<description>Filter for the sending host address (e.g. 192.168.10.1:*).</description>
+			<default>*</default>
 		</parameter>
 		<parameter name="unit" type="text">
 			<label>Unit</label>
@@ -255,18 +171,15 @@
 		</parameter>
 	</config-description>
 
-	<config-description uri="channel-type:tcpudp:channel-config-player">
+	<config-description uri="channel-type:tcpudp:receiver-channel-config-player">
 		<parameter name="stateTransformation" type="text">
 			<label>State Transformation</label>
 			<description>Transformation pattern used when receiving values. Multiple transformation can be chained using "∩".</description>
 		</parameter>
-		<parameter name="commandTransformation" type="text">
-			<label>Command Transformation</label>
-			<description>Transformation pattern used when sending values. Multiple transformation can be chained using "∩".</description>
-		</parameter>
-		<parameter name="stateContent" type="text">
-			<label>State Content</label>
-			<description>Content for state request.</description>
+		<parameter name="addressFilter" type="text">
+			<label>Address Filter</label>
+			<description>Filter for the sending host address (e.g. 192.168.10.1:*).</description>
+			<default>*</default>
 		</parameter>
 		<parameter name="playValue" type="text">
 			<label>Play Value</label>
@@ -292,31 +205,17 @@
 			<label>Fast Forward Value</label>
 			<description>The value that represents FASTFORWARD</description>
 		</parameter>
-		<parameter name="mode" type="text">
-			<label>Read/Write Mode</label>
-			<options>
-				<option value="READWRITE">Read/Write</option>
-				<option value="READONLY">Read Only</option>
-				<option value="WRITEONLY">Write Only</option>
-			</options>
-			<limitToOptions>true</limitToOptions>
-			<advanced>true</advanced>
-			<default>READWRITE</default>
-		</parameter>
 	</config-description>
 
-	<config-description uri="channel-type:tcpudp:channel-config-rollershutter">
+	<config-description uri="channel-type:tcpudp:receiver-channel-config-rollershutter">
 		<parameter name="stateTransformation" type="text">
 			<label>State Transformation</label>
 			<description>Transformation pattern used when receiving values. Multiple transformation can be chained using "∩".</description>
 		</parameter>
-		<parameter name="commandTransformation" type="text">
-			<label>Command Transformation</label>
-			<description>Transformation pattern used when sending values. Multiple transformation can be chained using "∩".</description>
-		</parameter>
-		<parameter name="stateContent" type="text">
-			<label>State Content</label>
-			<description>Content for state request.</description>
+		<parameter name="addressFilter" type="text">
+			<label>Address Filter</label>
+			<description>Filter for the sending host address (e.g. 192.168.10.1:*).</description>
+			<default>*</default>
 		</parameter>
 		<parameter name="upValue" type="text">
 			<label>Up Value</label>
@@ -334,31 +233,17 @@
 			<label>Move Value</label>
 			<description>The value that represents MOVE</description>
 		</parameter>
-		<parameter name="mode" type="text">
-			<label>Read/Write Mode</label>
-			<options>
-				<option value="READWRITE">Read/Write</option>
-				<option value="READONLY">Read Only</option>
-				<option value="WRITEONLY">Write Only</option>
-			</options>
-			<limitToOptions>true</limitToOptions>
-			<advanced>true</advanced>
-			<default>READWRITE</default>
-		</parameter>
 	</config-description>
 
-	<config-description uri="channel-type:tcpudp:channel-config-switch">
+	<config-description uri="channel-type:tcpudp:receiver-channel-config-switch">
 		<parameter name="stateTransformation" type="text">
 			<label>State Transformation</label>
 			<description>Transformation pattern used when receiving values. Multiple transformation can be chained using "∩".</description>
 		</parameter>
-		<parameter name="commandTransformation" type="text">
-			<label>Command Transformation</label>
-			<description>Transformation pattern used when sending values. Multiple transformation can be chained using "∩".</description>
-		</parameter>
-		<parameter name="stateContent" type="text">
-			<label>State Content</label>
-			<description>Content for state request</description>
+		<parameter name="addressFilter" type="text">
+			<label>Address Filter</label>
+			<description>Filter for the sending host address (e.g. 192.168.10.1:*)</description>
+			<default>*</default>
 		</parameter>
 		<parameter name="onValue" type="text" required="true">
 			<label>On Value</label>
@@ -367,17 +252,6 @@
 		<parameter name="offValue" type="text" required="true">
 			<label>Off Value</label>
 			<description>The value that represents OFF</description>
-		</parameter>
-		<parameter name="mode" type="text">
-			<label>Read/Write Mode</label>
-			<options>
-				<option value="READWRITE">Read/Write</option>
-				<option value="READONLY">Read Only</option>
-				<option value="WRITEONLY">Write Only</option>
-			</options>
-			<limitToOptions>true</limitToOptions>
-			<advanced>true</advanced>
-			<default>READWRITE</default>
 		</parameter>
 	</config-description>
 

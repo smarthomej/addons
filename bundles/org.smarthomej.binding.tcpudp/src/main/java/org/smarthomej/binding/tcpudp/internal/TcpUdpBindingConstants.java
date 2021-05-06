@@ -28,4 +28,5 @@ public class TcpUdpBindingConstants {
 
     // List of all Thing Type UIDs
     public static final ThingTypeUID THING_TYPE_UID_CLIENT = new ThingTypeUID(BINDING_ID, "client");
+    public static final ThingTypeUID THING_TYPE_UID_RECEIVER = new ThingTypeUID(BINDING_ID, "receiver");
 }

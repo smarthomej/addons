@@ -28,14 +28,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.core.library.types.DateTimeType;
-import org.openhab.core.library.types.PointType;
-import org.openhab.core.library.types.StringType;
 import org.openhab.core.thing.Channel;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
@@ -44,32 +40,17 @@ import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.binding.BaseThingHandler;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.RefreshType;
-import org.openhab.core.types.State;
-import org.openhab.core.types.StateDescription;
-import org.openhab.core.types.StateDescriptionFragmentBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.tcpudp.internal.config.ClientConfiguration;
 import org.smarthomej.binding.tcpudp.internal.config.TcpUdpChannelConfig;
 import org.smarthomej.commons.SimpleDynamicStateDescriptionProvider;
-import org.smarthomej.commons.itemvalueconverter.ChannelMode;
 import org.smarthomej.commons.itemvalueconverter.ContentWrapper;
 import org.smarthomej.commons.itemvalueconverter.ItemValueConverter;
-import org.smarthomej.commons.itemvalueconverter.converter.AbstractTransformingItemConverter;
-import org.smarthomej.commons.itemvalueconverter.converter.ColorItemConverter;
-import org.smarthomej.commons.itemvalueconverter.converter.DimmerItemConverter;
-import org.smarthomej.commons.itemvalueconverter.converter.FixedValueMappingItemConverter;
-import org.smarthomej.commons.itemvalueconverter.converter.GenericItemConverter;
-import org.smarthomej.commons.itemvalueconverter.converter.ImageItemConverter;
-import org.smarthomej.commons.itemvalueconverter.converter.NumberItemConverter;
-import org.smarthomej.commons.itemvalueconverter.converter.PlayerItemConverter;
-import org.smarthomej.commons.itemvalueconverter.converter.RollershutterItemConverter;
 import org.smarthomej.commons.transform.ValueTransformationProvider;
 
 /**
- * The {@link ClientThingHandler} is a base class for thing handlers and responsible for handling commands, which
- * are
- * sent to one of the channels.
+ * The {@link ClientThingHandler} is the thing handler for client type things
  *
  * @author Jan N. Klug - Initial contribution
  */
@@ -77,14 +58,12 @@ import org.smarthomej.commons.transform.ValueTransformationProvider;
 public class ClientThingHandler extends BaseThingHandler {
     private final Logger logger = LoggerFactory.getLogger(ClientThingHandler.class);
 
-    private final ValueTransformationProvider valueTransformationProvider;
     private final SimpleDynamicStateDescriptionProvider dynamicStateDescriptionProvider;
     private final Map<ChannelUID, ItemValueConverter> channels = new HashMap<>();
     private final Map<ChannelUID, String> readCommands = new HashMap<>();
 
     private Function<String, Optional<ContentWrapper>> doSyncRequest = this::doTcpSyncRequest;
-    private Consumer<String> doAsyncSend = this::doUdpAsyncSend;
-
+    private ItemValueConverterFactory itemValueConverterFactory;
     private @Nullable ScheduledFuture<?> refreshJob = null;
 
     protected ClientConfiguration config = new ClientConfiguration();
@@ -92,8 +71,10 @@ public class ClientThingHandler extends BaseThingHandler {
     public ClientThingHandler(Thing thing, ValueTransformationProvider valueTransformationProvider,
             SimpleDynamicStateDescriptionProvider dynamicStateDescriptionProvider) {
         super(thing);
-        this.valueTransformationProvider = valueTransformationProvider;
         this.dynamicStateDescriptionProvider = dynamicStateDescriptionProvider;
+
+        itemValueConverterFactory = new ItemValueConverterFactory(valueTransformationProvider, this::updateState,
+                this::postCommand, null);
     }
 
     @Override
@@ -136,11 +117,11 @@ public class ClientThingHandler extends BaseThingHandler {
         // set methods depending on thing-type
         if (config.protocol == ClientConfiguration.Protocol.UDP) {
             doSyncRequest = this::doUdpSyncRequest;
-            doAsyncSend = this::doUdpAsyncSend;
+            itemValueConverterFactory.setSendValue(this::doUdpAsyncSend);
             logger.debug("Configured '{}' for UDP connections.", thing.getUID());
         } else if (config.protocol == ClientConfiguration.Protocol.TCP) {
             doSyncRequest = this::doTcpSyncRequest;
-            doAsyncSend = this::doTcpAsyncSend;
+            itemValueConverterFactory.setSendValue(this::doTcpAsyncSend);
             logger.debug("Configured '{}' for TCP connections.", thing.getUID());
         } else {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
@@ -158,6 +139,8 @@ public class ClientThingHandler extends BaseThingHandler {
         stopRefresh();
         refreshJob = scheduler.scheduleWithFixedDelay(() -> readCommands.forEach(this::refreshChannel), 0,
                 config.refresh, TimeUnit.SECONDS);
+
+        updateStatus(ThingStatus.UNKNOWN);
     }
 
     private void stopRefresh() {
@@ -195,91 +178,10 @@ public class ClientThingHandler extends BaseThingHandler {
     private void createChannel(Channel channel) {
         ChannelUID channelUID = channel.getUID();
         TcpUdpChannelConfig channelConfig = channel.getConfiguration().as(TcpUdpChannelConfig.class);
-
         String acceptedItemType = channel.getAcceptedItemType();
-        if (acceptedItemType == null) {
-            logger.warn("Cannot determine item-type for channel '{}'", channelUID);
-            return;
-        }
 
-        ItemValueConverter itemValueConverter;
-        switch (acceptedItemType) {
-            case "Color":
-                itemValueConverter = createItemConverter(ColorItemConverter::new, channelUID, channelConfig);
-                break;
-            case "DateTime":
-                itemValueConverter = createGenericItemConverter(channelUID, channelConfig, DateTimeType::new);
-                break;
-            case "Dimmer":
-                itemValueConverter = createItemConverter(DimmerItemConverter::new, channelUID, channelConfig);
-                break;
-            case "Contact":
-            case "Switch":
-                itemValueConverter = createItemConverter(FixedValueMappingItemConverter::new, channelUID,
-                        channelConfig);
-                break;
-            case "Image":
-                itemValueConverter = new ImageItemConverter(state -> updateState(channelUID, state));
-                break;
-            case "Location":
-                itemValueConverter = createGenericItemConverter(channelUID, channelConfig, PointType::new);
-                break;
-            case "Number":
-                itemValueConverter = createItemConverter(NumberItemConverter::new, channelUID, channelConfig);
-                break;
-            case "Player":
-                itemValueConverter = createItemConverter(PlayerItemConverter::new, channelUID, channelConfig);
-                break;
-            case "Rollershutter":
-                itemValueConverter = createItemConverter(RollershutterItemConverter::new, channelUID, channelConfig);
-                break;
-            case "String":
-                itemValueConverter = createGenericItemConverter(channelUID, channelConfig, StringType::new);
-                break;
-            default:
-                logger.warn("Unsupported item-type '{}'", channel.getAcceptedItemType());
-                return;
-        }
-
-        if (channelConfig.mode == ChannelMode.READONLY || channelConfig.mode == ChannelMode.READWRITE) {
-            if (channelConfig.stateContent.isEmpty()) {
-                logger.warn(
-                        "Empty stateContent configured for channel '{}' with capability 'read'. State updates are disabled.",
-                        channelUID);
-            } else {
-                if (!readCommands.containsValue(channelConfig.stateContent)) {
-                    readCommands.put(channelUID, channelConfig.stateContent);
-                } else {
-                    logger.warn(
-                            "'{}' is configured as 'stateContent' for more than one channel. Ignoring for channel '{}'.",
-                            channelConfig.stateContent, channelUID);
-                    return;
-                }
-            }
-        }
-
-        channels.put(channelUID, itemValueConverter);
-
-        StateDescription stateDescription = StateDescriptionFragmentBuilder.create()
-                .withReadOnly(channelConfig.mode == ChannelMode.READONLY).build().toStateDescription();
-        if (stateDescription != null) {
-            // if the state description is not available, we don't need to add it
-            dynamicStateDescriptionProvider.setDescription(channelUID, stateDescription);
-        }
-    }
-
-    private ItemValueConverter createItemConverter(AbstractTransformingItemConverter.Factory factory,
-            ChannelUID channelUID, TcpUdpChannelConfig channelConfig) {
-        return factory.create(state -> updateState(channelUID, state), command -> postCommand(channelUID, command),
-                doAsyncSend, valueTransformationProvider.getValueTransformation(channelConfig.stateTransformation),
-                valueTransformationProvider.getValueTransformation(channelConfig.commandTransformation), channelConfig);
-    }
-
-    private ItemValueConverter createGenericItemConverter(ChannelUID channelUID, TcpUdpChannelConfig channelConfig,
-            Function<String, State> toState) {
-        AbstractTransformingItemConverter.Factory factory = (state, command, value, stateTrans, commandTrans,
-                config) -> new GenericItemConverter(toState, state, command, value, stateTrans, commandTrans, config);
-        return createItemConverter(factory, channelUID, channelConfig);
+        itemValueConverterFactory.create(channelUID, acceptedItemType, channelConfig)
+                .ifPresent(itemValueConverter -> channels.put(channelUID, itemValueConverter));
     }
 
     private String getEncoding() {
