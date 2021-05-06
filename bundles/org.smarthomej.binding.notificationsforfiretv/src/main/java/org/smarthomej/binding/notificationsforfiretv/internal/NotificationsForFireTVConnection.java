@@ -13,6 +13,7 @@
 package org.smarthomej.binding.notificationsforfiretv.internal;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -66,9 +67,8 @@ public class NotificationsForFireTVConnection {
      * @param value
      */
     public void addFormField(String name, String value) {
-        byte[] separator = ("--" + boundary + LINE + "Content-Disposition: form-data; name=")
-                .getBytes(StandardCharsets.UTF_8);
-        byteArrays.add(separator);
+        byteArrays.add(
+                ("--" + boundary + LINE + "Content-Disposition: form-data; name=").getBytes(StandardCharsets.UTF_8));
         byteArrays.add((QUOTE + name + QUOTE + LINE + LINE + value + LINE).getBytes(StandardCharsets.UTF_8));
     }
 
@@ -80,9 +80,12 @@ public class NotificationsForFireTVConnection {
      * @throws IOException
      */
     public void addFilePart(String name, File file) throws IOException {
-        byte[] separator = ("--" + boundary + LINE + "Content-Disposition: form-data; name=")
-                .getBytes(StandardCharsets.UTF_8);
-        byteArrays.add(separator);
+        if (!file.exists()) {
+            throw new FileNotFoundException("File not found: " + file.getPath());
+        }
+
+        byteArrays.add(
+                ("--" + boundary + LINE + "Content-Disposition: form-data; name=").getBytes(StandardCharsets.UTF_8));
         byteArrays.add((QUOTE + name + QUOTE + "; filename=" + QUOTE + file.toPath().getFileName() + QUOTE + LINE
                 + "Content-Type: application/octet-stream" + LINE + LINE).getBytes(StandardCharsets.UTF_8));
         byteArrays.add(Files.readAllBytes(file.toPath()));
@@ -97,7 +100,7 @@ public class NotificationsForFireTVConnection {
      * @throws IOException
      * @throws InterruptedException
      */
-    public String finish() throws IOException, InterruptedException {
+    public String send() throws IOException, InterruptedException {
         byteArrays.add(("--" + boundary + "--").getBytes(StandardCharsets.UTF_8));
 
         HttpRequest httpRequest = HttpRequest.newBuilder()
@@ -107,7 +110,7 @@ public class NotificationsForFireTVConnection {
         if (response.statusCode() == HttpURLConnection.HTTP_OK) {
             return response.body();
         } else {
-            throw new IOException("Server returned non-OK status: " + response.statusCode());
+            throw new IOException("Unable to connect to server: " + response.statusCode());
         }
     }
 }

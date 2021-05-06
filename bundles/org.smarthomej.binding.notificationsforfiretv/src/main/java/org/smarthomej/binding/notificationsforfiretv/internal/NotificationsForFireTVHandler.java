@@ -95,25 +95,13 @@ public class NotificationsForFireTVHandler extends BaseThingHandler {
             notificationsForFireTVConnection.addFormField(INTERRUPT, String.valueOf(0));
             // ADD FILE PARTS
             if (filename != null) {
-                File file = new File(filename);
-                if (!file.exists()) {
-                    logger.warn("File doesn't exist: {}", filename);
-
-                    return false;
-                }
-                notificationsForFireTVConnection.addFilePart(FILENAME, file);
+                notificationsForFireTVConnection.addFilePart(FILENAME, new File(filename));
             }
             if (filename2 != null) {
-                File file2 = new File(filename2);
-                if (!file2.exists()) {
-                    logger.warn("File doesn't exist: {}", filename2);
-
-                    return false;
-                }
-                notificationsForFireTVConnection.addFilePart(FILENAME2, file2);
+                notificationsForFireTVConnection.addFilePart(FILENAME2, new File(filename2));
             }
             // POST FORM
-            notificationsForFireTVConnection.finish();
+            notificationsForFireTVConnection.send();
 
             // UPDATE STATUS
             updateStatus(ThingStatus.ONLINE);
