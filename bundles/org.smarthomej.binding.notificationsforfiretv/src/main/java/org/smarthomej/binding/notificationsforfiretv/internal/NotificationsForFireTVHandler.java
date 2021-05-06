@@ -119,7 +119,7 @@ public class NotificationsForFireTVHandler extends BaseThingHandler {
             updateStatus(ThingStatus.ONLINE);
 
             return true;
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             // UPDATE STATUS
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
 
