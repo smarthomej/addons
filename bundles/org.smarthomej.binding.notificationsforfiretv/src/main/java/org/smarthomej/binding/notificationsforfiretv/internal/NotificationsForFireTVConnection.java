@@ -43,7 +43,7 @@ public class NotificationsForFireTVConnection {
     private URI uri;
     private String boundary;
     private HttpClient httpClient;
-    List<byte[]> byteArrays = new ArrayList<>();
+    private List<byte[]> byteArrays = new ArrayList<>();
 
     /**
      * This constructor initializes a new HTTP POST request with content
