@@ -16,9 +16,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.smarthomej.binding.tcpudp.internal.TcpUdpBindingConstants.BINDING_ID;
 import static org.smarthomej.binding.tcpudp.internal.TcpUdpBindingConstants.THING_TYPE_UID_CLIENT;
 
@@ -37,6 +37,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.openhab.core.library.types.StringType;
+import org.openhab.core.test.TestPortUtil;
 import org.openhab.core.test.java.JavaTest;
 import org.openhab.core.thing.Channel;
 import org.openhab.core.thing.ChannelUID;
@@ -51,7 +52,7 @@ import org.openhab.core.thing.binding.builder.ThingBuilder;
 import org.openhab.core.thing.type.ChannelTypeUID;
 import org.smarthomej.binding.tcpudp.internal.config.ClientConfiguration;
 import org.smarthomej.binding.tcpudp.internal.config.TcpUdpChannelConfig;
-import org.smarthomej.binding.tcpudp.internal.test.TestClientThingHandler;
+import org.smarthomej.binding.tcpudp.internal.test.EchoServer;
 import org.smarthomej.binding.tcpudp.internal.test.TestUtil;
 import org.smarthomej.commons.SimpleDynamicStateDescriptionProvider;
 import org.smarthomej.commons.itemvalueconverter.ChannelMode;
@@ -72,7 +73,7 @@ public class ClientThingHandlerTest extends JavaTest {
     private static final ChannelTypeUID CHANNEL_TYPE_UID = new ChannelTypeUID(BINDING_ID, "string");
     private static final ChannelUID TEST_CHANNEL_UID = new ChannelUID(TEST_THING_UID, "testChannel");
 
-    private final List<Map.Entry<TestClientThingHandler.CallType, String>> reports = new ArrayList<>();
+    private final List<Map.Entry<RequestCallType, String>> reports = new ArrayList<>();
 
     @Mock
     private @NonNullByDefault({}) ThingHandlerCallback thingHandlerCallback;
@@ -98,28 +99,33 @@ public class ClientThingHandlerTest extends JavaTest {
 
     @Test
     public void tcpRequestTest() {
-        requestTest(ClientConfiguration.Protocol.TCP, TestClientThingHandler.CallType.TCP_SYNC);
+        requestTest(ClientConfiguration.Protocol.TCP, RequestCallType.TCP_SYNC);
     }
 
     @Test
     public void udpRequestTest() {
-        requestTest(ClientConfiguration.Protocol.UDP, TestClientThingHandler.CallType.UDP_SYNC);
+        requestTest(ClientConfiguration.Protocol.UDP, RequestCallType.UDP_SYNC);
     }
 
     @Test
     public void udpSendTest() {
-        sendTest(ClientConfiguration.Protocol.UDP, TestClientThingHandler.CallType.UDP_ASYNC);
+        sendTest(ClientConfiguration.Protocol.UDP, RequestCallType.UDP_ASYNC);
     }
 
     @Test
     public void tcpSendTest() {
-        sendTest(ClientConfiguration.Protocol.TCP, TestClientThingHandler.CallType.TCP_ASYNC);
+        sendTest(ClientConfiguration.Protocol.TCP, RequestCallType.TCP_ASYNC);
     }
 
-    private void requestTest(ClientConfiguration.Protocol protocol, TestClientThingHandler.CallType expectedCallType) {
+    private void requestTest(ClientConfiguration.Protocol protocol, RequestCallType expectedCallType) {
+        int port = TestPortUtil.findFreePort();
+        EchoServer echoServer = new EchoServer(port, protocol);
+
+        waitForAssert(() -> assertTrue(echoServer.getServerReady()));
+
         ClientConfiguration clientConfiguration = new ClientConfiguration();
-        clientConfiguration.host = "localhost";
-        clientConfiguration.port = 1;
+        clientConfiguration.host = "127.0.0.1";
+        clientConfiguration.port = port;
         clientConfiguration.refresh = 1;
         clientConfiguration.protocol = protocol;
 
@@ -133,24 +139,26 @@ public class ClientThingHandlerTest extends JavaTest {
                 new ThingStatusInfo(ThingStatus.UNKNOWN, ThingStatusDetail.NONE, null));
 
         // wait until we have at least three calls and stop the thing handler
-        waitForAssert(() -> assertEquals(3, reports.size()));
+        waitForAssert(() -> assertEquals(3, echoServer.getReceivedValues().size()));
         clientThingHandler.dispose();
 
         // get the exact number of calls and check if the channel was updated the same number of times
-        int calls = reports.size();
+        int calls = echoServer.getReceivedValues().size();
         verify(thingHandlerCallback, times(calls)).stateUpdated(eq(TEST_CHANNEL_UID),
                 eq(new StringType(TEST_STATE_CONTENT)));
 
-        // check these were all UDP Sync Requests
-        assertTrue(reports.stream().map(Map.Entry::getKey).allMatch(expectedCallType::equals));
-
-        verifyNoMoreInteractions(thingHandlerCallback);
+        echoServer.stop();
     }
 
-    private void sendTest(ClientConfiguration.Protocol protocol, TestClientThingHandler.CallType expectedCallType) {
+    private void sendTest(ClientConfiguration.Protocol protocol, RequestCallType expectedCallType) {
+        int port = TestPortUtil.findFreePort();
+        EchoServer echoServer = new EchoServer(port, protocol);
+
+        waitForAssert(() -> assertTrue(echoServer.getServerReady()));
+
         ClientConfiguration clientConfiguration = new ClientConfiguration();
-        clientConfiguration.host = "localhost";
-        clientConfiguration.port = 1;
+        clientConfiguration.host = "127.0.0.1";
+        clientConfiguration.port = port;
         clientConfiguration.refresh = 1;
         clientConfiguration.protocol = protocol;
 
@@ -158,6 +166,7 @@ public class ClientThingHandlerTest extends JavaTest {
         tcpUdpChannelConfig.mode = ChannelMode.WRITEONLY;
 
         ClientThingHandler clientThingHandler = getClientThingHandler(clientConfiguration, tcpUdpChannelConfig);
+
         clientThingHandler.handleCommand(TEST_CHANNEL_UID, new StringType(TEST_STATE_CONTENT));
 
         // check that the thing status is set to unknown
@@ -165,16 +174,17 @@ public class ClientThingHandlerTest extends JavaTest {
                 new ThingStatusInfo(ThingStatus.UNKNOWN, ThingStatusDetail.NONE, null));
 
         // wait until we have at least one calls and stop the thing handler
-        waitForAssert(() -> assertEquals(1, reports.size()));
+        waitForAssert(() -> assertEquals(1, echoServer.getReceivedValues().size()));
         clientThingHandler.dispose();
 
-        // check these were all UDP Async Requests
-        assertTrue(reports.stream().map(Map.Entry::getKey).allMatch(expectedCallType::equals));
-
         // check the contents are all what we send
-        assertTrue(reports.stream().map(Map.Entry::getValue).allMatch(TEST_STATE_CONTENT::equals));
+        List<String> receivedValues = echoServer.getReceivedValues();
+        assertTrue(receivedValues.stream().allMatch(TEST_STATE_CONTENT::equals));
 
-        verifyNoMoreInteractions(thingHandlerCallback);
+        // no state updates
+        verify(thingHandlerCallback, never()).stateUpdated(any(), any());
+
+        echoServer.stop();
     }
 
     /**
@@ -193,12 +203,20 @@ public class ClientThingHandlerTest extends JavaTest {
                 .withConfiguration(TestUtil.getConfigurationFromInstance(clientConfiguration)).withChannel(channel)
                 .build();
 
-        TestClientThingHandler testClientThingHandler = new TestClientThingHandler(thing, valueTransformationProvider,
-                simpleDynamicStateDescriptionProvider, reports::add);
+        ClientThingHandler testClientThingHandler = new ClientThingHandler(thing, valueTransformationProvider,
+                simpleDynamicStateDescriptionProvider);
 
         testClientThingHandler.setCallback(thingHandlerCallback);
+
         testClientThingHandler.initialize();
 
         return testClientThingHandler;
+    }
+
+    private enum RequestCallType {
+        TCP_SYNC,
+        UDP_SYNC,
+        TCP_ASYNC,
+        UDP_ASYNC
     }
 }
