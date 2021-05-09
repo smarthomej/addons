@@ -50,12 +50,12 @@ public class NotificationsForFireTVConnection {
      * This constructor initializes a new HTTP POST request with content
      * type is set to multipart/form-data
      *
-     * @param ip
-     * @param port
+     * @param hostname device IP address or a FQDN
+     * @param port application port
      * @throws IOException
      */
-    public NotificationsForFireTVConnection(String ip, int port) throws IOException {
-        uri = URI.create(PROTOCOL + "://" + ip + ":" + port);
+    public NotificationsForFireTVConnection(String hostname, int port) throws IOException {
+        uri = URI.create(PROTOCOL + "://" + hostname + ":" + port);
         boundary = UUID.randomUUID().toString();
         httpClient = HttpClient.newBuilder().build();
     }
@@ -63,8 +63,8 @@ public class NotificationsForFireTVConnection {
     /**
      * Adds a form field to the request
      *
-     * @param name
-     * @param value
+     * @param name field name
+     * @param value field value
      */
     public void addFormField(String name, String value) {
         byteArrays.add(
@@ -75,8 +75,8 @@ public class NotificationsForFireTVConnection {
     /**
      * Adds a upload file section to the request
      *
-     * @param name
-     * @param file
+     * @param name field name
+     * @param file file value
      * @throws IOException
      */
     public void addFilePart(String name, File file) throws IOException {
