@@ -60,7 +60,7 @@ import org.smarthomej.commons.transform.NoOpValueTransformation;
 import org.smarthomej.commons.transform.ValueTransformationProvider;
 
 /**
- * The {@link ClientThingHandlerTest} is the thing handler for client type things
+ * The {@link ClientThingHandlerTest} is a test class for {@link ClientThingHandler}
  *
  * @author Jan N. Klug - Initial contribution
  */
