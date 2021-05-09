@@ -20,7 +20,6 @@ import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -41,20 +40,16 @@ public class EchoServer {
     private final Logger logger = LoggerFactory
             .getLogger(org.smarthomej.binding.tcpudp.internal.receiver.TcpReceiver.class);
 
+    private final List<String> receivedValues = new ArrayList<>();
+    private final Thread thread;
+
     private @Nullable ServerSocket tcpSocket;
     private @Nullable DatagramSocket udpSocket;
 
-    private final SocketAddress socketAddress;
+    private int port = 0;
     private byte[] buf = new byte[2048];
 
-    private final List<String> receivedValues = new ArrayList<>();
-    private Thread thread;
-
-    private boolean serverReady;
-
-    public EchoServer(int port, ClientConfiguration.Protocol protocol) {
-        this.socketAddress = new InetSocketAddress("0.0.0.0", port);
-        serverReady = false;
+    public EchoServer(ClientConfiguration.Protocol protocol) {
         if (protocol == ClientConfiguration.Protocol.TCP) {
             thread = new Thread(this::runTcp);
         } else {
@@ -63,20 +58,25 @@ public class EchoServer {
         thread.start();
     }
 
-    public boolean getServerReady() {
-        return serverReady;
+    /**
+     * get the port that this instance listens to
+     *
+     * @return the port (0 if not listening)
+     */
+    public int getPort() {
+        return port;
     }
 
     public List<String> getReceivedValues() {
         return receivedValues;
     }
 
-    public void runUdp() {
+    private void runUdp() {
         try (DatagramSocket socket = new DatagramSocket(null)) {
             this.udpSocket = socket;
             socket.setReuseAddress(true);
-            socket.bind(socketAddress);
-            serverReady = true;
+            socket.bind(new InetSocketAddress("0.0.0.0", 0));
+            port = socket.getLocalPort();
             while (1 == 1) {
                 DatagramPacket packet = new DatagramPacket(buf, buf.length);
                 socket.receive(packet);
@@ -88,12 +88,12 @@ public class EchoServer {
         }
     }
 
-    public void runTcp() {
+    private void runTcp() {
         try (ServerSocket serverSocket = new ServerSocket()) {
             this.tcpSocket = serverSocket;
             serverSocket.setReuseAddress(true);
-            serverSocket.bind(socketAddress);
-            serverReady = true;
+            serverSocket.bind(new InetSocketAddress("0.0.0.0", 0));
+            port = serverSocket.getLocalPort();
             while (1 == 1) {
                 try (Socket clientSocket = serverSocket.accept();
                         InputStream in = clientSocket.getInputStream();

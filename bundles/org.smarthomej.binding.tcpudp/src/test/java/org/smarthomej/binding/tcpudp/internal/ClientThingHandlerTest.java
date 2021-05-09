@@ -13,6 +13,7 @@
 package org.smarthomej.binding.tcpudp.internal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -22,12 +23,9 @@ import static org.mockito.Mockito.verify;
 import static org.smarthomej.binding.tcpudp.internal.TcpUdpBindingConstants.BINDING_ID;
 import static org.smarthomej.binding.tcpudp.internal.TcpUdpBindingConstants.THING_TYPE_UID_CLIENT;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,7 +35,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.openhab.core.library.types.StringType;
-import org.openhab.core.test.TestPortUtil;
 import org.openhab.core.test.java.JavaTest;
 import org.openhab.core.thing.Channel;
 import org.openhab.core.thing.ChannelUID;
@@ -73,8 +70,6 @@ public class ClientThingHandlerTest extends JavaTest {
     private static final ChannelTypeUID CHANNEL_TYPE_UID = new ChannelTypeUID(BINDING_ID, "string");
     private static final ChannelUID TEST_CHANNEL_UID = new ChannelUID(TEST_THING_UID, "testChannel");
 
-    private final List<Map.Entry<RequestCallType, String>> reports = new ArrayList<>();
-
     @Mock
     private @NonNullByDefault({}) ThingHandlerCallback thingHandlerCallback;
 
@@ -86,46 +81,37 @@ public class ClientThingHandlerTest extends JavaTest {
 
     @BeforeEach
     public void startUp() {
-        Mockito.doNothing().when(thingHandlerCallback).stateUpdated(any(), any());
-        Mockito.doNothing().when(thingHandlerCallback).statusUpdated(any(), any());
         Mockito.doReturn(NoOpValueTransformation.getInstance()).when(valueTransformationProvider)
                 .getValueTransformation(any());
     }
 
-    @AfterEach
-    public void cleanUp() {
-        reports.clear();
-    }
-
     @Test
     public void tcpRequestTest() {
-        requestTest(ClientConfiguration.Protocol.TCP, RequestCallType.TCP_SYNC);
+        requestTest(ClientConfiguration.Protocol.TCP);
     }
 
     @Test
     public void udpRequestTest() {
-        requestTest(ClientConfiguration.Protocol.UDP, RequestCallType.UDP_SYNC);
+        requestTest(ClientConfiguration.Protocol.UDP);
     }
 
     @Test
     public void udpSendTest() {
-        sendTest(ClientConfiguration.Protocol.UDP, RequestCallType.UDP_ASYNC);
+        sendTest(ClientConfiguration.Protocol.UDP);
     }
 
     @Test
     public void tcpSendTest() {
-        sendTest(ClientConfiguration.Protocol.TCP, RequestCallType.TCP_ASYNC);
+        sendTest(ClientConfiguration.Protocol.TCP);
     }
 
-    private void requestTest(ClientConfiguration.Protocol protocol, RequestCallType expectedCallType) {
-        int port = TestPortUtil.findFreePort();
-        EchoServer echoServer = new EchoServer(port, protocol);
-
-        waitForAssert(() -> assertTrue(echoServer.getServerReady()));
+    private void requestTest(ClientConfiguration.Protocol protocol) {
+        EchoServer echoServer = new EchoServer(protocol);
+        waitForAssert(() -> assertNotEquals(0, echoServer.getPort(), "Could not start EchoServer"));
 
         ClientConfiguration clientConfiguration = new ClientConfiguration();
         clientConfiguration.host = "127.0.0.1";
-        clientConfiguration.port = port;
+        clientConfiguration.port = echoServer.getPort();
         clientConfiguration.refresh = 1;
         clientConfiguration.protocol = protocol;
 
@@ -150,16 +136,13 @@ public class ClientThingHandlerTest extends JavaTest {
         echoServer.stop();
     }
 
-    private void sendTest(ClientConfiguration.Protocol protocol, RequestCallType expectedCallType) {
-        int port = TestPortUtil.findFreePort();
-        EchoServer echoServer = new EchoServer(port, protocol);
-
-        waitForAssert(() -> assertTrue(echoServer.getServerReady()));
+    private void sendTest(ClientConfiguration.Protocol protocol) {
+        EchoServer echoServer = new EchoServer(protocol);
+        waitForAssert(() -> assertNotEquals(0, echoServer.getPort(), "Could not start EchoServer"));
 
         ClientConfiguration clientConfiguration = new ClientConfiguration();
         clientConfiguration.host = "127.0.0.1";
-        clientConfiguration.port = port;
-        clientConfiguration.refresh = 1;
+        clientConfiguration.port = echoServer.getPort();
         clientConfiguration.protocol = protocol;
 
         TcpUdpChannelConfig tcpUdpChannelConfig = new TcpUdpChannelConfig();
@@ -211,12 +194,5 @@ public class ClientThingHandlerTest extends JavaTest {
         testClientThingHandler.initialize();
 
         return testClientThingHandler;
-    }
-
-    private enum RequestCallType {
-        TCP_SYNC,
-        UDP_SYNC,
-        TCP_ASYNC,
-        UDP_ASYNC
     }
 }
