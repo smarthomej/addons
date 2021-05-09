@@ -12,15 +12,20 @@
  */
 package org.smarthomej.binding.notificationsforfiretv.internal;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublishers;
+import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandlers;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -32,31 +37,27 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 @NonNullByDefault
 public class NotificationsForFireTVConnection {
 
-    private String boundary;
-    private static final String LINE = "\r\n";
     private static final String PROTOCOL = "http";
-    private HttpURLConnection httpConn;
-    private OutputStream outputStream;
-    private PrintWriter writer;
+    private static final String LINE = "\r\n";
+    private static final String QUOTE = "\"";
+
+    private URI uri;
+    private String boundary;
+    private HttpClient httpClient;
+    private List<byte[]> byteArrays = new ArrayList<>();
 
     /**
      * This constructor initializes a new HTTP POST request with content
      * type is set to multipart/form-data
      *
-     * @param ip
-     * @param port
+     * @param hostname device IP address or a FQDN
+     * @param port application port
      * @throws IOException
      */
-    public NotificationsForFireTVConnection(String ip, int port) throws IOException {
+    public NotificationsForFireTVConnection(String hostname, int port) throws IOException {
+        uri = URI.create(PROTOCOL + "://" + hostname + ":" + port);
         boundary = UUID.randomUUID().toString();
-        URL url = new URL(PROTOCOL + "://" + ip + ":" + port);
-        httpConn = (HttpURLConnection) url.openConnection();
-        httpConn.setUseCaches(false);
-        httpConn.setDoOutput(true); // indicates POST method
-        httpConn.setDoInput(true);
-        httpConn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
-        outputStream = httpConn.getOutputStream();
-        writer = new PrintWriter(new OutputStreamWriter(outputStream, "utf-8"), true);
+        httpClient = HttpClient.newBuilder().build();
     }
 
     /**
@@ -66,39 +67,29 @@ public class NotificationsForFireTVConnection {
      * @param value field value
      */
     public void addFormField(String name, String value) {
-        writer.append("--" + boundary).append(LINE);
-        writer.append("Content-Disposition: form-data; name=\"" + name + "\"").append(LINE);
-        writer.append(LINE);
-        writer.append(value).append(LINE);
-        writer.flush();
+        byteArrays.add(
+                ("--" + boundary + LINE + "Content-Disposition: form-data; name=").getBytes(StandardCharsets.UTF_8));
+        byteArrays.add((QUOTE + name + QUOTE + LINE + LINE + value + LINE).getBytes(StandardCharsets.UTF_8));
     }
 
     /**
      * Adds a upload file section to the request
      *
-     * @param fieldName
-     * @param uploadFile
+     * @param name field name
+     * @param file file value
      * @throws IOException
      */
-    public void addFilePart(String fieldName, File uploadFile) throws IOException {
-        String fileName = uploadFile.getName();
-        writer.append("--" + boundary).append(LINE);
-        writer.append("Content-Disposition: form-data; name=\"" + fieldName + "\"; filename=\"" + fileName + "\"")
-                .append(LINE);
-        writer.append("Content-Type: application/octet-stream").append(LINE);
-        writer.append(LINE);
-        writer.flush();
-
-        FileInputStream inputStream = new FileInputStream(uploadFile);
-        byte[] buffer = new byte[4096];
-        int bytesRead = -1;
-        while ((bytesRead = inputStream.read(buffer)) != -1) {
-            outputStream.write(buffer, 0, bytesRead);
+    public void addFilePart(String name, File file) throws IOException {
+        if (!file.exists()) {
+            throw new FileNotFoundException("File not found: " + file.getPath());
         }
-        outputStream.flush();
-        inputStream.close();
-        writer.append(LINE);
-        writer.flush();
+
+        byteArrays.add(
+                ("--" + boundary + LINE + "Content-Disposition: form-data; name=").getBytes(StandardCharsets.UTF_8));
+        byteArrays.add((QUOTE + name + QUOTE + "; filename=" + QUOTE + file.toPath().getFileName() + QUOTE + LINE
+                + "Content-Type: application/octet-stream" + LINE + LINE).getBytes(StandardCharsets.UTF_8));
+        byteArrays.add(Files.readAllBytes(file.toPath()));
+        byteArrays.add(LINE.getBytes(StandardCharsets.UTF_8));
     }
 
     /**
@@ -107,27 +98,19 @@ public class NotificationsForFireTVConnection {
      * @return String as response in case the server returned status OK,
      *         otherwise an exception is thrown.
      * @throws IOException
+     * @throws InterruptedException
      */
-    public String finish() throws IOException {
-        String response = "";
-        writer.flush();
-        writer.append("--" + boundary + "--").append(LINE);
-        writer.close();
+    public String send() throws IOException, InterruptedException {
+        byteArrays.add(("--" + boundary + "--").getBytes(StandardCharsets.UTF_8));
 
-        // checks server's status code first
-        int status = httpConn.getResponseCode();
-        if (status == HttpURLConnection.HTTP_OK) {
-            ByteArrayOutputStream result = new ByteArrayOutputStream();
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = httpConn.getInputStream().read(buffer)) != -1) {
-                result.write(buffer, 0, length);
-            }
-            response = result.toString("utf-8");
-            httpConn.disconnect();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .header("Content-Type", "multipart/form-data;boundary=" + boundary)
+                .POST(BodyPublishers.ofByteArrays(byteArrays)).uri(uri).build();
+        HttpResponse<String> response = httpClient.send(httpRequest, BodyHandlers.ofString());
+        if (response.statusCode() == HttpURLConnection.HTTP_OK) {
+            return response.body();
         } else {
-            throw new IOException("Server returned non-OK status: " + status);
+            throw new IOException("Unable to connect to server: " + response.statusCode());
         }
-        return response;
     }
 }
