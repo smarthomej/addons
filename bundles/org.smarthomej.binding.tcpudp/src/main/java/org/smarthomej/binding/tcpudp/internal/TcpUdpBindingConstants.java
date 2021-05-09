@@ -24,7 +24,7 @@ import org.openhab.core.thing.ThingTypeUID;
 @NonNullByDefault
 public class TcpUdpBindingConstants {
 
-    private static final String BINDING_ID = "tcpudp";
+    public static final String BINDING_ID = "tcpudp";
 
     // List of all Thing Type UIDs
     public static final ThingTypeUID THING_TYPE_UID_CLIENT = new ThingTypeUID(BINDING_ID, "client");

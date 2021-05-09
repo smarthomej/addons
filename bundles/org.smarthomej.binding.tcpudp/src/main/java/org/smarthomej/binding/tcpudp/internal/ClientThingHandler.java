@@ -40,11 +40,14 @@ import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.binding.BaseThingHandler;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.RefreshType;
+import org.openhab.core.types.StateDescription;
+import org.openhab.core.types.StateDescriptionFragmentBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.tcpudp.internal.config.ClientConfiguration;
 import org.smarthomej.binding.tcpudp.internal.config.TcpUdpChannelConfig;
 import org.smarthomej.commons.SimpleDynamicStateDescriptionProvider;
+import org.smarthomej.commons.itemvalueconverter.ChannelMode;
 import org.smarthomej.commons.itemvalueconverter.ContentWrapper;
 import org.smarthomej.commons.itemvalueconverter.ItemValueConverter;
 import org.smarthomej.commons.transform.ValueTransformationProvider;
@@ -180,8 +183,33 @@ public class ClientThingHandler extends BaseThingHandler {
         TcpUdpChannelConfig channelConfig = channel.getConfiguration().as(TcpUdpChannelConfig.class);
         String acceptedItemType = channel.getAcceptedItemType();
 
-        itemValueConverterFactory.create(channelUID, acceptedItemType, channelConfig)
-                .ifPresent(itemValueConverter -> channels.put(channelUID, itemValueConverter));
+        itemValueConverterFactory.create(channelUID, acceptedItemType, channelConfig).ifPresent(itemValueConverter -> {
+            if (channelConfig.mode == ChannelMode.READONLY || channelConfig.mode == ChannelMode.READWRITE) {
+                if (channelConfig.stateContent.isEmpty()) {
+                    logger.warn(
+                            "Empty stateContent configured for channel '{}' with capability 'read'. State updates are disabled.",
+                            channelUID);
+                } else {
+                    if (!readCommands.containsValue(channelConfig.stateContent)) {
+                        readCommands.put(channelUID, channelConfig.stateContent);
+                    } else {
+                        logger.warn(
+                                "'{}' is configured as 'stateContent' for more than one channel. Ignoring for channel '{}'.",
+                                channelConfig.stateContent, channelUID);
+                        return;
+                    }
+                }
+            }
+
+            channels.put(channelUID, itemValueConverter);
+
+            StateDescription stateDescription = StateDescriptionFragmentBuilder.create()
+                    .withReadOnly(channelConfig.mode == ChannelMode.READONLY).build().toStateDescription();
+            if (stateDescription != null) {
+                // if the state description is not available, we don't need to add it
+                dynamicStateDescriptionProvider.setDescription(channelUID, stateDescription);
+            }
+        });
     }
 
     private String getEncoding() {
