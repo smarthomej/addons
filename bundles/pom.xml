@@ -22,7 +22,6 @@
     <!-- bindings -->
     <module>org.smarthomej.binding.androiddebugbridge</module>
     <module>org.smarthomej.binding.amazonechocontrol</module>
-    <module>org.smarthomej.binding.basicprofiles</module>
     <module>org.smarthomej.binding.deconz</module>
     <module>org.smarthomej.binding.dmx</module>
     <module>org.smarthomej.binding.http</module>
@@ -39,6 +38,7 @@
     <!-- persistence -->
     <module>org.smarthomej.persistence.influxdb</module>
     <!-- transformations -->
+    <module>org.smarthomej.transform.basicprofiles</module>
     <module>org.smarthomej.transform.format</module>
     <!-- manager -->
     <module>org.smarthomej.io.repomanager</module>
