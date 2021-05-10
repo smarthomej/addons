@@ -22,6 +22,14 @@
       <type>pom</type>
       <scope>compile</scope>
       <optional>true</optional>
+      <exclusions>
+        <!-- This is needed because the jamod artifact defined in OH core 3.0.x is no longer available -->
+        <!-- Since OH 3.1.x depends on another version this should not be ported to 3.2.x -->
+        <exclusion>
+          <groupId>net.wimpi</groupId>
+          <artifactId>jamod</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
 
