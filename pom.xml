@@ -348,7 +348,6 @@ Import-Package: \\
           <version>2.10.3</version>
           <configuration>
             <failOnError>!${quality.skip}</failOnError>
-            <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
           </configuration>
         </plugin>
 

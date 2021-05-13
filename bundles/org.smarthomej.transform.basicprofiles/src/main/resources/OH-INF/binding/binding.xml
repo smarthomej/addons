@@ -4,7 +4,6 @@
 	xsi:schemaLocation="https://openhab.org/schemas/binding/v1.0.0 https://openhab.org/schemas/binding-1.0.0.xsd">
 
 	<name>Basic Profiles</name>
-	<description>Binding for basic profiles which doesn't fit into a specific other binding.</description>
-	<author>Christoph Weitkamp</author>
+	<description>Bundle for basic profiles which doesn't fit into a specific other bundles.</description>
 
 </binding:binding>

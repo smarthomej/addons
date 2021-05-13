@@ -1,56 +1,62 @@
-# BasicProfiles Binding
+# Basic Profiles
 
-_Give some details about what this binding is meant for - a protocol, system, specific device._
+This bundle provides a list of useful Profiles.
 
-_If possible, provide some resources like pictures, a video, etc. to give an impression of what can be done with this binding. You can place such resources into a `doc` folder next to this README.md._
+## Battery Low Profile
 
-## Supported Things
+The Battery Low Profile triggers `ON` or `OFF` behavior when being linked to a Switch item if value is below threshold (default: 10).
+Source Channels should accept Item Type `Dimmer` or `Number`.
 
-_Please describe the different supported things / devices within this section._
-_Which different types are supported, which models were tested etc.?_
-_Note that it is planned to generate some part of this based on the XML files within ```src/main/resources/OH-INF/thing``` of your binding._
+### Configuration
 
-## Discovery
+| Configuration Parameter | Description | Type |
+|-|
+| `threshold` | Triggers `ON` if value is below the given threshold, otherwise OFF (default: 10, min: 0, max: 100). | integer |
 
-_Describe the available auto-discovery features here. Mention for what it works and what needs to be kept in mind when using it._
+### Full Example
 
-## Binding Configuration
-
-_If your binding requires or supports general configuration settings, please create a folder ```cfg``` and place the configuration file ```<bindingId>.cfg``` inside it. In this section, you should link to this file and provide some information about the options. The file could e.g. look like:_
-
-```
-# Configuration for the BasicProfiles Binding
-#
-# Default secret key for the pairing of the BasicProfiles Thing.
-# It has to be between 10-40 (alphanumeric) characters.
-# This may be changed by the user for security reasons.
-secret=openHABSecret
+```java
+Switch batteryLowItem { channel="xxx" [profile="basic-profiles:battery-low", threshold=15] }
 ```
 
-_Note that it is planned to generate some part of this based on the information that is available within ```src/main/resources/OH-INF/binding``` of your binding._
+## Invert / Negate Profile
 
-_If your binding does not offer any generic configurations, you can remove this section completely._
+The Invert / Negate Profile inverts or negated a Command / State.
+It requires no specific configuration.
 
-## Thing Configuration
+The values of `QuantityType`, `PercentType` and `DecimalTypes` are negated (multiplied by `-1`).
+Otherwise the following mapping is used:
+ 
+`IncreaseDecreaseType`: `INCREASE` <-> `DECREASE`
+`NextPreviousType`: `NEXT` <-> `PREVIOUS`
+`OnOffType`: `ON` <-> `OFF`
+`OpenClosedType`: `OPEN` <-> `CLOSED`
+`PlayPauseType`: `PLAY` <-> `PAUSE`
+`RewindFastforwardType`: `REWIND` <-> `FASTFORWARD`
+`StopMoveType`: `MOVE` <-> `STOP`
+`UpDownType`: `UP` <-> `DOWN`
 
-_Describe what is needed to manually configure a thing, either through the UI or via a thing-file. This should be mainly about its mandatory and optional configuration parameters. A short example entry for a thing file can help!_
+### Full Example
 
-_Note that it is planned to generate some part of this based on the XML files within ```src/main/resources/OH-INF/thing``` of your binding._
+```java
+Switch invertedSwitch { channel="xxx" [profile="basic-profiles:invert"] }
+```
 
-## Channels
+## Round Profile
 
-_Here you should provide information about available channel types, what their meaning is and how they can be used._
+The Round Profile scales the state to a specific number of decimal places.
+Optionally the [Rounding mode](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/math/RoundingMode.html) can be set.
+Source Channels should accept Item Type `Number`.
 
-_Note that it is planned to generate some part of this based on the XML files within ```src/main/resources/OH-INF/thing``` of your binding._
+### Configuration
 
-| channel  | type   | description                  |
-|----------|--------|------------------------------|
-| control  | Switch | This is the control channel  |
+| Configuration Parameter | Description | Type |
+|-|
+| `scale` | Scale (non-negative number) to indicate the resulting number of decimal places (min: 0, max: 16) **mandatory**. | integer |
+| `mode` | Rounding mode to be used (e.g. "UP", "DOWN", "CEILING", "FLOOR", "HALF_UP" or "HALF_DOWN" (default: "HALF_UP", min: 0, max: 16). | text |
 
-## Full Example
+### Full Example
 
-_Provide a full usage example based on textual configuration files (*.things, *.items, *.sitemap)._
-
-## Any custom content here!
-
-_Feel free to add additional sections for whatever you think should also be mentioned about your binding!_
+```java
+Number roundedNumber { channel="xxx" [profile="basic-profiles:round", scale=1] }
+```

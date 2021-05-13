@@ -7,7 +7,7 @@
 	<config-description uri="profile:basic-profiles:battery-low">
 		<parameter name="threshold" type="integer" min="0" max="100" step="1">
 			<label>Threshold</label>
-			<description>Triggers ON if value is below threshold.</description>
+			<description>Triggers ON if value is below the given threshold, otherwise OFF.</description>
 			<default>10</default>
 		</parameter>
 	</config-description>
@@ -15,7 +15,7 @@
 	<config-description uri="profile:basic-profiles:round">
 		<parameter name="scale" type="integer" min="0" max="16" required="true">
 			<label>Scale</label>
-			<description>Scale (non-negative number) to be applied on the state.</description>
+			<description>Scale (non-negative number) to indicate the resulting number of decimal places.</description>
 		</parameter>
 		<parameter name="mode" type="text">
 			<label>Rounding Mode</label>

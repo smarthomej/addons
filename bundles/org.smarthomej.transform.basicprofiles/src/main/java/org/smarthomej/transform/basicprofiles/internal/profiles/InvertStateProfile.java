@@ -14,8 +14,6 @@ package org.smarthomej.transform.basicprofiles.internal.profiles;
 
 import static org.smarthomej.transform.basicprofiles.internal.factory.BasicProfilesFactory.INVERT_UID;
 
-import java.math.RoundingMode;
-
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.IncreaseDecreaseType;
@@ -39,8 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Applies rounding with the specified scale and the rounding mode to a {@link QuantityType} or {@link DecimalType}
- * state. Default rounding mode is {@link RoundingMode#HALF_UP}.
+ * Inverts a {@link Command} or {@link State}.
  *
  * @author Christoph Weitkamp - Initial contribution
  */
@@ -92,11 +89,9 @@ public class InvertStateProfile implements StateProfile {
         } else if (type instanceof PercentType) {
             PercentType ptState = (PercentType) type;
             return new PercentType(100 - ptState.intValue());
-            // return ptState.negate();
         } else if (type instanceof DecimalType) {
             DecimalType dtState = (DecimalType) type;
             return new DecimalType(-1 * dtState.doubleValue());
-            // return dtState.negate();
         } else if (type instanceof IncreaseDecreaseType) {
             return IncreaseDecreaseType.INCREASE.equals(type) ? IncreaseDecreaseType.DECREASE
                     : IncreaseDecreaseType.INCREASE;

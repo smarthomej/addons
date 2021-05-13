@@ -75,7 +75,7 @@ public class BasicProfilesFactory implements ProfileFactory, ProfileTypeProvider
             .withSupportedItemTypesOfChannel(CoreItemFactory.DIMMER, CoreItemFactory.NUMBER) //
             .withSupportedItemTypes(CoreItemFactory.SWITCH) //
             .build();
-    private static final ProfileType PROFILE_TYPE_INVERT = ProfileTypeBuilder.newState(INVERT_UID, "Invert")
+    private static final ProfileType PROFILE_TYPE_INVERT = ProfileTypeBuilder.newState(INVERT_UID, "Invert / Negate")
             .withSupportedItemTypes(CoreItemFactory.CONTACT, CoreItemFactory.DIMMER, CoreItemFactory.NUMBER,
                     CoreItemFactory.PLAYER, CoreItemFactory.ROLLERSHUTTER, CoreItemFactory.SWITCH) //
             .withSupportedItemTypesOfChannel(CoreItemFactory.CONTACT, CoreItemFactory.DIMMER, CoreItemFactory.NUMBER,

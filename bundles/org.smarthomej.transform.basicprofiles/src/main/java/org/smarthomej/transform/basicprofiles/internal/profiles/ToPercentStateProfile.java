@@ -33,7 +33,7 @@ import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import tec.uom.se.AbstractUnit;
+import tech.units.indriya.AbstractUnit;
 
 /***
  * This is the default implementation for a {@link ToPercentStateProfile}}. Maps a numeric value to 0 - 100%.

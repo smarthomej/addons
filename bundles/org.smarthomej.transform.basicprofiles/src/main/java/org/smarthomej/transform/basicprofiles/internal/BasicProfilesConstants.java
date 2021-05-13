@@ -15,12 +15,11 @@ package org.smarthomej.transform.basicprofiles.internal;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
- * The {@link BasicProfilesConstants} class defines common constants, which are used across the whole binding.
+ * The {@link BasicProfilesConstants} class defines common constants, which are used across the whole bundle.
  *
  * @author Christoph Weitkamp - Initial contribution
  */
 @NonNullByDefault
 public class BasicProfilesConstants {
-
     public static final String SCOPE = "basic-profiles";
 }
