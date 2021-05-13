@@ -63,7 +63,7 @@ public class NumberItemConverter extends AbstractTransformingItemConverter {
                         newState = new QuantityType<>(trimmedValue);
                     }
                 }
-            } catch (IllegalArgumentException e) {
+            } catch (RuntimeException e) {
                 // finally failed
             }
         }
