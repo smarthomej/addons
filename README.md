@@ -14,15 +14,15 @@ The documentation can be found [here](https://github.com/smarthomej/addons/tree/
 
 ### Compatibility
 
-Due to a breaking change in openHAB 3.1 (starting with SNAPSHOT #2305), older and newer versions of bundles are no longer compatible.
+Due to a breaking change in openHAB 3.1, older and newer versions of bundles are no longer compatible.
 We'll continue to support 3.0 compatible addons until further notice and provide the same set of addons for newer versions.
 Please check the table to see which versions of SmartHome/J are compatible with which openHAB version:
 
-| | openHAB 3.0.x (snapshots, milestones, releases) |  openHAB 3.1.0 (snapshots <= #2305, milestones <= M3) | openHAB 3.1.0 (snapshots > #2305, milestones > M3 |
-|---|:---:|:---:|:---:|
-| SmartHome/J 3.1.x (snapshots, releases) | yes | yes | no |
-| SmartHome/J 3.2.0 (snapshots, releases) | no | no | yes |
-| compatible RepoManager | [latest 3.1.x](https://download.smarthomej.org/repomanager-latest) | [latest 3.1.x](https://download.smarthomej.org/repomanager-latest) | [latest 3.2.x](https://download.smarthomej.org/repomanager-latest-3.2.x) |
+| | openHAB 3.0.x (snapshots, milestones, releases) |  openHAB 3.1.0 (snapshots <= #2305, milestones <= M3) | openHAB 3.1.0 (snapshots > #2305 and <= #2373, milestone M4) | openHAB 3.1.0 (snapshots > #2373)
+|---|:---:|:---:|:---:|:---:|
+| SmartHome/J 3.1.x (snapshots, releases) | yes | yes | no | no |
+| SmartHome/J 3.2.0 (snapshots, releases) | no | no | no | yes |
+| compatible RepoManager | [latest 3.1.x](https://download.smarthomej.org/repomanager-latest) | [latest 3.1.x](https://download.smarthomej.org/repomanager-latest) | - | [latest 3.2.x](https://download.smarthomej.org/repomanager-latest-3.2.x) |
 
 ## Development
 
