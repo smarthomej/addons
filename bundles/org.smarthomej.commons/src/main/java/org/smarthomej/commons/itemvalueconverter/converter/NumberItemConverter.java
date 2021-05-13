@@ -16,6 +16,8 @@ package org.smarthomej.commons.itemvalueconverter.converter;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import javax.measure.format.MeasurementParseException;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.DecimalType;
@@ -63,7 +65,7 @@ public class NumberItemConverter extends AbstractTransformingItemConverter {
                         newState = new QuantityType<>(trimmedValue);
                     }
                 }
-            } catch (IllegalArgumentException e) {
+            } catch (IllegalArgumentException | MeasurementParseException e) {
                 // finally failed
             }
         }
