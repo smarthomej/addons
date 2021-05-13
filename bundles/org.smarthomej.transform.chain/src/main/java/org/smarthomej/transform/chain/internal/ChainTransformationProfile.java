@@ -21,9 +21,9 @@ import org.openhab.core.thing.profiles.StateProfile;
 import org.openhab.core.transform.TransformationService;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.State;
+import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthomej.commons.transform.NoOpValueTransformation;
 import org.smarthomej.commons.transform.ValueTransformation;
 import org.smarthomej.commons.transform.ValueTransformationProvider;
 
@@ -41,31 +41,20 @@ public class ChainTransformationProfile implements StateProfile {
     private final Logger logger = LoggerFactory.getLogger(ChainTransformationProfile.class);
     private final ProfileCallback callback;
 
-    private static final String TO_ITEM_PARAM = "toItem";
-    private static final String TO_CHANNEL_PARAM = "toChannel";
-
     private final ValueTransformation toItem;
     private final ValueTransformation toChannel;
+    private final boolean undefOnError;
 
     public ChainTransformationProfile(ProfileCallback callback, ProfileContext context,
             ValueTransformationProvider valueTransformationProvider) {
         this.callback = callback;
 
-        Object toItemObject = context.getConfiguration().get(TO_ITEM_PARAM);
-        Object toChannelObject = context.getConfiguration().get(TO_CHANNEL_PARAM);
+        ChainProfileConfiguration configuration = context.getConfiguration().as(ChainProfileConfiguration.class);
+        logger.debug("Profile configured with: '{}'", configuration);
 
-        logger.debug("Profile configured with '{}'='{}', '{}'={}", TO_ITEM_PARAM, toItemObject, TO_CHANNEL_PARAM,
-                toChannelObject);
-
-        if (toItemObject instanceof String && toChannelObject instanceof String) {
-            toItem = valueTransformationProvider.getValueTransformation((String) toItemObject);
-            toChannel = valueTransformationProvider.getValueTransformation((String) toChannelObject);
-        } else {
-            logger.warn("Parameters '{}' and '{}' have to be Strings. Profile will be inactive.", TO_ITEM_PARAM,
-                    TO_CHANNEL_PARAM);
-            toItem = NoOpValueTransformation.getInstance();
-            toChannel = NoOpValueTransformation.getInstance();
-        }
+        toItem = valueTransformationProvider.getValueTransformation(configuration.toItem);
+        toChannel = valueTransformationProvider.getValueTransformation(configuration.toChannel);
+        undefOnError = configuration.undefOnError;
     }
 
     @Override
@@ -79,16 +68,24 @@ public class ChainTransformationProfile implements StateProfile {
 
     @Override
     public void onCommandFromItem(Command command) {
-        callback.handleCommand(new StringType(toChannel.apply(command.toString()).orElse(command.toString())));
+        toChannel.apply(command.toString()).map(StringType::new).ifPresentOrElse(callback::handleCommand, () -> {
+            if (undefOnError) {
+                callback.sendUpdate(UnDefType.UNDEF);
+            }
+        });
     }
 
     @Override
     public void onCommandFromHandler(Command command) {
-        callback.sendCommand(new StringType(toItem.apply(command.toString()).orElse(command.toString())));
+        toItem.apply(command.toString()).map(StringType::new).ifPresent(callback::sendCommand);
     }
 
     @Override
     public void onStateUpdateFromHandler(State state) {
-        callback.sendUpdate(new StringType(toItem.apply(state.toString()).orElse(state.toString())));
+        toItem.apply(state.toString()).map(StringType::new).ifPresentOrElse(callback::sendUpdate, () -> {
+            if (undefOnError) {
+                callback.sendUpdate(UnDefType.UNDEF);
+            }
+        });
     }
 }
