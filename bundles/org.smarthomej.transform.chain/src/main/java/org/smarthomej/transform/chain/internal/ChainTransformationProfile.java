@@ -64,20 +64,21 @@ public class ChainTransformationProfile implements StateProfile {
 
     @Override
     public void onStateUpdateFromItem(State state) {
+        // do nothing
     }
 
     @Override
     public void onCommandFromItem(Command command) {
-        toChannel.apply(command.toString()).map(StringType::new).ifPresentOrElse(callback::handleCommand, () -> {
-            if (undefOnError) {
-                callback.sendUpdate(UnDefType.UNDEF);
-            }
-        });
+        toChannel.apply(command.toString()).map(StringType::new).ifPresent(callback::handleCommand);
     }
 
     @Override
     public void onCommandFromHandler(Command command) {
-        toItem.apply(command.toString()).map(StringType::new).ifPresent(callback::sendCommand);
+        toItem.apply(command.toString()).map(StringType::new).ifPresentOrElse(callback::sendCommand, () -> {
+            if (undefOnError) {
+                callback.sendUpdate(UnDefType.UNDEF);
+            }
+        });
     }
 
     @Override
