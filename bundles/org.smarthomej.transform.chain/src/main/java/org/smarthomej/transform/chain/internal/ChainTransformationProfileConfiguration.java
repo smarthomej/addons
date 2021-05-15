@@ -15,19 +15,19 @@ package org.smarthomej.transform.chain.internal;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
- * The {@link ChainProfileConfiguration} is responsible for
+ * The {@link ChainTransformationProfileConfiguration} is responsible for
  *
  * @author Jan N. Klug - Initial contribution
  */
 @NonNullByDefault
-public class ChainProfileConfiguration {
+public class ChainTransformationProfileConfiguration {
     public String toItem = "";
     public String toChannel = "";
     public boolean undefOnError = false;
 
     @Override
     public String toString() {
-        return "ChainProfileConfiguration{" + "toItem='" + toItem + '\'' + ", toChannel='" + toChannel + '\''
-                + ", undefOnError=" + undefOnError + '}';
+        return "ChainTransformationProfileConfiguration{toItem='" + toItem + "', toChannel='" + toChannel
+                + "', undefOnError=" + undefOnError + "}";
     }
 }

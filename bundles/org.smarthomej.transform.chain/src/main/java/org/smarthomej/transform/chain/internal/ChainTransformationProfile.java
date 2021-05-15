@@ -45,7 +45,7 @@ public class ChainTransformationProfile implements StateProfile {
     private final ProfileCallback callback;
 
     private final ValueTransformationProvider valueTransformationProvider;
-    private final ChainProfileConfiguration configuration;
+    private final ChainTransformationProfileConfiguration configuration;
 
     private ValueTransformation toItem;
     private ValueTransformation toChannel;
@@ -55,7 +55,7 @@ public class ChainTransformationProfile implements StateProfile {
         this.callback = callback;
         this.valueTransformationProvider = valueTransformationProvider;
 
-        configuration = context.getConfiguration().as(ChainProfileConfiguration.class);
+        configuration = context.getConfiguration().as(ChainTransformationProfileConfiguration.class);
         logger.debug("Profile configured with: '{}'", configuration);
 
         toItem = valueTransformationProvider.getValueTransformation(configuration.toItem);
