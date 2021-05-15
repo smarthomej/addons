@@ -12,6 +12,8 @@
  */
 package org.smarthomej.transform.chain.internal;
 
+import java.util.Optional;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.thing.profiles.ProfileCallback;
@@ -24,6 +26,7 @@ import org.openhab.core.types.State;
 import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smarthomej.commons.transform.NoOpValueTransformation;
 import org.smarthomej.commons.transform.ValueTransformation;
 import org.smarthomej.commons.transform.ValueTransformationProvider;
 
@@ -41,20 +44,22 @@ public class ChainTransformationProfile implements StateProfile {
     private final Logger logger = LoggerFactory.getLogger(ChainTransformationProfile.class);
     private final ProfileCallback callback;
 
-    private final ValueTransformation toItem;
-    private final ValueTransformation toChannel;
-    private final boolean undefOnError;
+    private final ValueTransformationProvider valueTransformationProvider;
+    private final ChainProfileConfiguration configuration;
+
+    private ValueTransformation toItem;
+    private ValueTransformation toChannel;
 
     public ChainTransformationProfile(ProfileCallback callback, ProfileContext context,
             ValueTransformationProvider valueTransformationProvider) {
         this.callback = callback;
+        this.valueTransformationProvider = valueTransformationProvider;
 
-        ChainProfileConfiguration configuration = context.getConfiguration().as(ChainProfileConfiguration.class);
+        configuration = context.getConfiguration().as(ChainProfileConfiguration.class);
         logger.debug("Profile configured with: '{}'", configuration);
 
         toItem = valueTransformationProvider.getValueTransformation(configuration.toItem);
         toChannel = valueTransformationProvider.getValueTransformation(configuration.toChannel);
-        undefOnError = configuration.undefOnError;
     }
 
     @Override
@@ -69,13 +74,13 @@ public class ChainTransformationProfile implements StateProfile {
 
     @Override
     public void onCommandFromItem(Command command) {
-        toChannel.apply(command.toString()).map(StringType::new).ifPresent(callback::handleCommand);
+        transformToChannel(command.toString()).ifPresent(callback::handleCommand);
     }
 
     @Override
     public void onCommandFromHandler(Command command) {
-        toItem.apply(command.toString()).map(StringType::new).ifPresentOrElse(callback::sendCommand, () -> {
-            if (undefOnError) {
+        transformToItem(command.toString()).ifPresentOrElse(callback::sendCommand, () -> {
+            if (configuration.undefOnError) {
                 callback.sendUpdate(UnDefType.UNDEF);
             }
         });
@@ -83,10 +88,24 @@ public class ChainTransformationProfile implements StateProfile {
 
     @Override
     public void onStateUpdateFromHandler(State state) {
-        toItem.apply(state.toString()).map(StringType::new).ifPresentOrElse(callback::sendUpdate, () -> {
-            if (undefOnError) {
+        transformToItem(state.toString()).ifPresentOrElse(callback::sendUpdate, () -> {
+            if (configuration.undefOnError) {
                 callback.sendUpdate(UnDefType.UNDEF);
             }
         });
+    }
+
+    private Optional<StringType> transformToItem(String input) {
+        if (!NoOpValueTransformation.getInstance().equals(toItem) && !configuration.toItem.isEmpty()) {
+            toItem = valueTransformationProvider.getValueTransformation(configuration.toItem);
+        }
+        return toItem.apply(input).map(StringType::new);
+    }
+
+    private Optional<StringType> transformToChannel(String input) {
+        if (!NoOpValueTransformation.getInstance().equals(toChannel) && !configuration.toChannel.isEmpty()) {
+            toChannel = valueTransformationProvider.getValueTransformation(configuration.toChannel);
+        }
+        return toChannel.apply(input).map(StringType::new);
     }
 }
