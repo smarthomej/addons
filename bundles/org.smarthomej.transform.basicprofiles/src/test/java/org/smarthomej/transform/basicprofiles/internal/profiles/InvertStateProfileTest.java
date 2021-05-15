@@ -39,7 +39,7 @@ import org.openhab.core.types.Type;
 import org.openhab.core.types.UnDefType;
 
 /**
- * Basic unit tests for {@link BatteryLowStateProfile}.
+ * Basic unit tests for {@link ThresholdStateProfile}.
  *
  * @author Christoph Weitkamp - Initial contribution
  */

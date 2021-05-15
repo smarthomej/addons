@@ -34,7 +34,7 @@ public abstract class AbstractTriggerProfile implements TriggerProfile {
 
     private final Logger logger = LoggerFactory.getLogger(AbstractTriggerProfile.class);
 
-    private static final String PARAM_EVENTS = "events";
+    public static final String PARAM_EVENTS = "events";
 
     final ProfileCallback callback;
     final List<String> events;

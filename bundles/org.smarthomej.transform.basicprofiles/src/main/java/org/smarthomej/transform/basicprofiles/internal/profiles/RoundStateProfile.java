@@ -42,6 +42,9 @@ public class RoundStateProfile implements StateProfile {
 
     private final Logger logger = LoggerFactory.getLogger(RoundStateProfile.class);
 
+    public static final String PARAM_SCALE = "scale";
+    public static final String PARAM_MODE = "mode";
+
     private final ProfileCallback callback;
 
     final int scale;
@@ -53,13 +56,6 @@ public class RoundStateProfile implements StateProfile {
         logger.debug("Configuring profile with parameters: [{scale='{}', mode='{}']", config.scale, config.mode);
 
         int localScale = 0;
-        // if (config.scale instanceof String) {
-        // try {
-        // scale = Integer.valueOf((String) config.scale);
-        // } catch (NumberFormatException e) {
-        // logger.error("Cannot convert value '{}' of parameter 'scale' into a valid integer.", config.scale);
-        // }
-        // } else
         Integer configScale = config.scale;
         if (configScale instanceof Number) {
             localScale = ((Number) configScale).intValue();

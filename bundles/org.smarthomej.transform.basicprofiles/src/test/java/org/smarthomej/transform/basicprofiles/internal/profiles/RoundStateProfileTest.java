@@ -167,8 +167,8 @@ public class RoundStateProfileTest {
     private RoundStateProfile createProfile(ProfileCallback callback, Integer scale, @Nullable String mode) {
         ProfileContext context = mock(ProfileContext.class);
         Configuration config = new Configuration();
-        config.put("scale", scale);
-        config.put("mode", mode == null ? RoundingMode.HALF_UP.name() : mode);
+        config.put(RoundStateProfile.PARAM_SCALE, scale);
+        config.put(RoundStateProfile.PARAM_MODE, mode == null ? RoundingMode.HALF_UP.name() : mode);
         when(context.getConfiguration()).thenReturn(config);
 
         return new RoundStateProfile(callback, context);

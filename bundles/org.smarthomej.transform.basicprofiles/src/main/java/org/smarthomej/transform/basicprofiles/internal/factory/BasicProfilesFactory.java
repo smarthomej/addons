@@ -37,17 +37,15 @@ import org.openhab.core.thing.profiles.ProfileTypeProvider;
 import org.openhab.core.thing.profiles.ProfileTypeUID;
 import org.openhab.core.thing.profiles.i18n.ProfileTypeI18nLocalizationService;
 import org.openhab.core.thing.type.ChannelType;
-import org.openhab.core.thing.type.ChannelTypeUID;
 import org.openhab.core.util.BundleResolver;
 import org.osgi.framework.Bundle;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
-import org.smarthomej.transform.basicprofiles.internal.profiles.BatteryLowStateProfile;
+import org.smarthomej.transform.basicprofiles.internal.profiles.GenericCommandTriggerProfile;
 import org.smarthomej.transform.basicprofiles.internal.profiles.InvertStateProfile;
 import org.smarthomej.transform.basicprofiles.internal.profiles.RoundStateProfile;
-import org.smarthomej.transform.basicprofiles.internal.profiles.ToPercentStateProfile;
-import org.smarthomej.transform.basicprofiles.internal.profiles.ToggleSwitchTriggerProfile;
+import org.smarthomej.transform.basicprofiles.internal.profiles.ThresholdStateProfile;
 
 /**
  * The {@link BasicProfilesFactory} is responsible for creating profiles.
@@ -58,22 +56,15 @@ import org.smarthomej.transform.basicprofiles.internal.profiles.ToggleSwitchTrig
 @NonNullByDefault
 public class BasicProfilesFactory implements ProfileFactory, ProfileTypeProvider, ProfileAdvisor {
 
-    public static final ProfileTypeUID BATTERY_LOW_UID = new ProfileTypeUID(SCOPE, "battery-low");
+    public static final ProfileTypeUID GENERIC_COMMAND_UID = new ProfileTypeUID(SCOPE, "generic-command");
     public static final ProfileTypeUID INVERT_UID = new ProfileTypeUID(SCOPE, "invert");
     public static final ProfileTypeUID ROUND_UID = new ProfileTypeUID(SCOPE, "round");
-    public static final ProfileTypeUID MAP_TO_ON_TYPE_UID = new ProfileTypeUID(SCOPE, "map-to-on");
-    public static final ProfileTypeUID TO_PERCENT_TYPE_UID = new ProfileTypeUID(SCOPE, "to-percent");
-    public static final ProfileTypeUID GENERIC_COMMAND_PROFILE_TYPE_UID = new ProfileTypeUID(SCOPE, "generic-command");
-    public static final ProfileTypeUID TOGGLE_PLAYER_PROFILE_TYPE_UID = new ProfileTypeUID(SCOPE, "toggle-player");
-    public static final ProfileTypeUID TOGGLE_ROLLERSHUTTER_PROFILE_TYPE_UID = new ProfileTypeUID(SCOPE,
-            "toggle-rollershutter");
-    public static final ProfileTypeUID TOGGLE_SWITCH_PROFILE_TYPE_UID = new ProfileTypeUID(SCOPE, "toggle-switch");
-    public static final ProfileTypeUID TIMESTAMP_OFFSET_TYPE_UID = new ProfileTypeUID(SCOPE, "timestamp-offset");
+    public static final ProfileTypeUID THRESHOLD_LOW_UID = new ProfileTypeUID(SCOPE, "threshold");
 
-    private static final ProfileType PROFILE_TYPE_BATTERY_LOW = ProfileTypeBuilder
-            .newState(BATTERY_LOW_UID, "Battery Low") //
-            .withSupportedItemTypesOfChannel(CoreItemFactory.DIMMER, CoreItemFactory.NUMBER) //
-            .withSupportedItemTypes(CoreItemFactory.SWITCH) //
+    private static final ProfileType PROFILE_TYPE_GENERIC_COMMAND = ProfileTypeBuilder
+            .newTrigger(GENERIC_COMMAND_UID, "Generic Command Profile") //
+            .withSupportedItemTypes(CoreItemFactory.DIMMER, CoreItemFactory.NUMBER, CoreItemFactory.PLAYER,
+                    CoreItemFactory.ROLLERSHUTTER, CoreItemFactory.SWITCH) //
             .build();
     private static final ProfileType PROFILE_TYPE_INVERT = ProfileTypeBuilder.newState(INVERT_UID, "Invert / Negate")
             .withSupportedItemTypes(CoreItemFactory.CONTACT, CoreItemFactory.DIMMER, CoreItemFactory.NUMBER,
@@ -85,46 +76,16 @@ public class BasicProfilesFactory implements ProfileFactory, ProfileTypeProvider
             .withSupportedItemTypes(CoreItemFactory.NUMBER) //
             .withSupportedItemTypesOfChannel(CoreItemFactory.NUMBER) //
             .build();
-    private static final ProfileType PROFILE_TYPE_MAP_TO_ON = ProfileTypeBuilder
-            .newState(MAP_TO_ON_TYPE_UID, "Maps OPEN/CLOSED to ON on change") //
-            .withSupportedItemTypesOfChannel(CoreItemFactory.CONTACT) //
+    private static final ProfileType PROFILE_TYPE_THRESHOLD = ProfileTypeBuilder
+            .newState(THRESHOLD_LOW_UID, "Threshold") //
+            .withSupportedItemTypesOfChannel(CoreItemFactory.DIMMER, CoreItemFactory.NUMBER) //
             .withSupportedItemTypes(CoreItemFactory.SWITCH) //
             .build();
-    private static final ProfileType PROFILE_TYPE_TO_PERCENT = ProfileTypeBuilder
-            .newState(TO_PERCENT_TYPE_UID, "To Percent") //
-            .withSupportedItemTypesOfChannel(CoreItemFactory.DIMMER, CoreItemFactory.NUMBER,
-                    CoreItemFactory.ROLLERSHUTTER) //
-            .withSupportedItemTypes(CoreItemFactory.COLOR, CoreItemFactory.DIMMER, CoreItemFactory.ROLLERSHUTTER) //
-            .build();
-    private static final ProfileType GENERIC_COMMAND_PROFILE_TYPE = ProfileTypeBuilder
-            .newTrigger(GENERIC_COMMAND_PROFILE_TYPE_UID, "Generic Command Profile") //
-            .withSupportedItemTypes(CoreItemFactory.DIMMER, CoreItemFactory.NUMBER, CoreItemFactory.PLAYER,
-                    CoreItemFactory.ROLLERSHUTTER, CoreItemFactory.SWITCH) // .withSupportedChannelTypeUIDs(CHANNEL_TYPE_BUTTONEVENT)
-            .build();
-    private static final ProfileType TOGGLE_PLAYER_TYPE = ProfileTypeBuilder
-            .newTrigger(TOGGLE_PLAYER_PROFILE_TYPE_UID, "Toggle Player Profile") //
-            .withSupportedItemTypes(CoreItemFactory.PLAYER) // .withSupportedChannelTypeUIDs(CHANNEL_TYPE_BUTTONEVENT)
-            .build();
-    private static final ProfileType TOGGLE_ROLLERSHUTTER_TYPE = ProfileTypeBuilder
-            .newTrigger(TOGGLE_ROLLERSHUTTER_PROFILE_TYPE_UID, "Toggle Rollershutter Profile") //
-            .withSupportedItemTypes(CoreItemFactory.ROLLERSHUTTER) // .withSupportedChannelTypeUIDs(CHANNEL_TYPE_BUTTONEVENT)
-            .build();
-    private static final ProfileType TOGGLE_SWITCH_TYPE = ProfileTypeBuilder
-            .newTrigger(TOGGLE_SWITCH_PROFILE_TYPE_UID, "Toggle Switch Profile") //
-            .withSupportedItemTypes(CoreItemFactory.SWITCH) // .withSupportedChannelTypeUIDs(CHANNEL_TYPE_BUTTONEVENT)
-            .build();
-    public static final ProfileType TIMESTAMP_OFFSET_TYPE = ProfileTypeBuilder
-            .newState(TIMESTAMP_OFFSET_TYPE_UID, "Timestamp Offset").withSupportedItemTypes(CoreItemFactory.DATETIME)
-            .withSupportedItemTypesOfChannel(CoreItemFactory.DATETIME).build();
 
-    private static final Set<ProfileTypeUID> SUPPORTED_PROFILE_TYPE_UIDS = Set.of(BATTERY_LOW_UID, INVERT_UID,
-            ROUND_UID, MAP_TO_ON_TYPE_UID, TO_PERCENT_TYPE_UID, GENERIC_COMMAND_PROFILE_TYPE_UID,
-            TOGGLE_PLAYER_PROFILE_TYPE_UID, TOGGLE_ROLLERSHUTTER_PROFILE_TYPE_UID, TOGGLE_SWITCH_PROFILE_TYPE_UID,
-            TIMESTAMP_OFFSET_TYPE_UID);
-    private static final Set<ProfileType> SUPPORTED_PROFILE_TYPES = Set.of(PROFILE_TYPE_BATTERY_LOW,
-            PROFILE_TYPE_INVERT, PROFILE_TYPE_ROUND, PROFILE_TYPE_MAP_TO_ON, PROFILE_TYPE_TO_PERCENT,
-            GENERIC_COMMAND_PROFILE_TYPE, TOGGLE_PLAYER_TYPE, TOGGLE_ROLLERSHUTTER_TYPE, TOGGLE_SWITCH_TYPE,
-            TIMESTAMP_OFFSET_TYPE);
+    private static final Set<ProfileTypeUID> SUPPORTED_PROFILE_TYPE_UIDS = Set.of(GENERIC_COMMAND_UID, INVERT_UID,
+            ROUND_UID, THRESHOLD_LOW_UID);
+    private static final Set<ProfileType> SUPPORTED_PROFILE_TYPES = Set.of(PROFILE_TYPE_GENERIC_COMMAND,
+            PROFILE_TYPE_INVERT, PROFILE_TYPE_ROUND, PROFILE_TYPE_THRESHOLD);
 
     private final Map<LocalizedKey, ProfileType> localizedProfileTypeCache = new ConcurrentHashMap<>();
 
@@ -141,24 +102,14 @@ public class BasicProfilesFactory implements ProfileFactory, ProfileTypeProvider
     @Override
     public @Nullable Profile createProfile(ProfileTypeUID profileTypeUID, ProfileCallback callback,
             ProfileContext context) {
-        if (BATTERY_LOW_UID.equals(profileTypeUID)) {
-            return new BatteryLowStateProfile(callback, context);
+        if (GENERIC_COMMAND_UID.equals(profileTypeUID)) {
+            return new GenericCommandTriggerProfile(callback, context);
         } else if (INVERT_UID.equals(profileTypeUID)) {
             return new InvertStateProfile(callback);
         } else if (ROUND_UID.equals(profileTypeUID)) {
             return new RoundStateProfile(callback, context);
-            // else if (MAP_TO_ON_TYPE_UID.equals(profileTypeUID)) {
-            // return new BasicMapToOnStateProfile(callback);
-        } else if (TO_PERCENT_TYPE_UID.equals(profileTypeUID)) {
-            return new ToPercentStateProfile(callback, context);
-            // } else if (GENERIC_COMMAND_PROFILE_TYPE_UID.equals(profileTypeUID)) {
-            // return new GenericCommandTriggerProfile(callback, context);
-            // } else if (TOGGLE_PLAYER_PROFILE_TYPE_UID.equals(profileTypeUID)) {
-            // return new TogglePlayerTriggerProfile(callback, context);
-            // } else if (TOGGLE_ROLLERSHUTTER_PROFILE_TYPE_UID.equals(profileTypeUID)) {
-            // return new ToggleRollershutterTriggerProfile(callback, context);
-        } else if (TOGGLE_SWITCH_PROFILE_TYPE_UID.equals(profileTypeUID)) {
-            return new ToggleSwitchTriggerProfile(callback, context);
+        } else if (THRESHOLD_LOW_UID.equals(profileTypeUID)) {
+            return new ThresholdStateProfile(callback, context);
         }
         return null;
     }
@@ -176,12 +127,12 @@ public class BasicProfilesFactory implements ProfileFactory, ProfileTypeProvider
 
     @Override
     public @Nullable ProfileTypeUID getSuggestedProfileTypeUID(ChannelType channelType, @Nullable String itemType) {
-        return getSuggestedProfileTypeUID(channelType.getUID(), itemType);
+        return null;
     }
 
     @Override
     public @Nullable ProfileTypeUID getSuggestedProfileTypeUID(Channel channel, @Nullable String itemType) {
-        return getSuggestedProfileTypeUID(channel.getChannelTypeUID(), itemType);
+        return null;
     }
 
     private ProfileType createLocalizedProfileType(ProfileType profileType, @Nullable Locale locale) {
@@ -201,20 +152,5 @@ public class BasicProfilesFactory implements ProfileFactory, ProfileTypeProvider
         } else {
             return profileType;
         }
-    }
-
-    private @Nullable ProfileTypeUID getSuggestedProfileTypeUID(@Nullable ChannelTypeUID channelTypeUID,
-            @Nullable String itemType) {
-        if (itemType != null) {
-            switch (itemType) {
-                case CoreItemFactory.PLAYER:
-                    return TOGGLE_PLAYER_PROFILE_TYPE_UID;
-                case CoreItemFactory.ROLLERSHUTTER:
-                    return TOGGLE_ROLLERSHUTTER_PROFILE_TYPE_UID;
-                case CoreItemFactory.SWITCH:
-                    return TOGGLE_SWITCH_PROFILE_TYPE_UID;
-            }
-        }
-        return null;
     }
 }

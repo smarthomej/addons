@@ -12,8 +12,9 @@
  */
 package org.smarthomej.transform.basicprofiles.internal.factory;
 
-import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 import java.util.Collection;
@@ -28,11 +29,15 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.openhab.core.config.core.Configuration;
 import org.openhab.core.library.types.OnOffType;
+import org.openhab.core.thing.profiles.ProfileCallback;
 import org.openhab.core.thing.profiles.ProfileContext;
 import org.openhab.core.thing.profiles.ProfileType;
 import org.openhab.core.thing.profiles.ProfileTypeUID;
 import org.openhab.core.thing.profiles.i18n.ProfileTypeI18nLocalizationService;
 import org.openhab.core.util.BundleResolver;
+import org.smarthomej.transform.basicprofiles.internal.profiles.GenericCommandTriggerProfile;
+import org.smarthomej.transform.basicprofiles.internal.profiles.RoundStateProfile;
+import org.smarthomej.transform.basicprofiles.internal.profiles.ThresholdStateProfile;
 
 /**
  * Basic unit tests for {@link BasicProfilesFactory}.
@@ -43,16 +48,17 @@ import org.openhab.core.util.BundleResolver;
 @MockitoSettings(strictness = Strictness.WARN)
 public class BasicProfilesFactoryTest {
 
-    private static final int NUMBER_OF_PROFILES = 10;
+    private static final int NUMBER_OF_PROFILES = 4;
 
-    private static final Map<String, Object> PROPERTIES = Map.of("offset", "30", "threshold", 15, "scale", 2, "events",
-            "1002,1003", "command", OnOffType.ON.toString(), "min", 0, "max", 100);
+    private static final Map<String, Object> PROPERTIES = Map.of(ThresholdStateProfile.PARAM_THRESHOLD, 15,
+            RoundStateProfile.PARAM_SCALE, 2, GenericCommandTriggerProfile.PARAM_EVENTS, "1002,1003",
+            GenericCommandTriggerProfile.PARAM_COMMAND, OnOffType.ON.toString());
     private static final Configuration CONFIG = new Configuration(PROPERTIES);
 
     private BasicProfilesFactory profileFactory;
     private @Mock ProfileTypeI18nLocalizationService mockLocalizationService;
     private @Mock BundleResolver mockBundleResolver;
-    // private @Mock ProfileCallback mockCallback;
+    private @Mock ProfileCallback mockCallback;
     private @Mock ProfileContext mockContext;
 
     @BeforeEach
@@ -65,20 +71,20 @@ public class BasicProfilesFactoryTest {
     @Test
     public void systemProfileTypesAndUidsShouldBeAvailable() {
         Collection<ProfileTypeUID> supportedProfileTypeUIDs = profileFactory.getSupportedProfileTypeUIDs();
-        assertThat(supportedProfileTypeUIDs.size(), is(NUMBER_OF_PROFILES));
+        assertThat(supportedProfileTypeUIDs, hasSize(NUMBER_OF_PROFILES));
 
         Collection<ProfileType> supportedProfileTypes = profileFactory.getProfileTypes(null);
-        assertThat(supportedProfileTypeUIDs.size(), is(supportedProfileTypes.size()));
+        assertThat(supportedProfileTypeUIDs, hasSize(NUMBER_OF_PROFILES));
 
         for (ProfileType profileType : supportedProfileTypes) {
-            assertThat(supportedProfileTypeUIDs.contains(profileType.getUID()), is(true));
+            assertTrue(supportedProfileTypeUIDs.contains(profileType.getUID()));
         }
     }
 
-    // @Test
-    // public void testFactoryCreatesAvailableProfiles() {
-    // for (ProfileTypeUID profileTypeUID : profileFactory.getSupportedProfileTypeUIDs()) {
-    // assertThat(profileFactory.createProfile(profileTypeUID, mockCallback, mockContext), is(notNullValue()));
-    // }
-    // }
+    @Test
+    public void testFactoryCreatesAvailableProfiles() {
+        for (ProfileTypeUID profileTypeUID : profileFactory.getSupportedProfileTypeUIDs()) {
+            assertNotNull(profileFactory.createProfile(profileTypeUID, mockCallback, mockContext));
+        }
+    }
 }

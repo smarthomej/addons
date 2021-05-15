@@ -12,7 +12,7 @@
  */
 package org.smarthomej.transform.basicprofiles.internal.profiles;
 
-import static org.smarthomej.transform.basicprofiles.internal.factory.BasicProfilesFactory.BATTERY_LOW_UID;
+import static org.smarthomej.transform.basicprofiles.internal.factory.BasicProfilesFactory.THRESHOLD_LOW_UID;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.library.types.OnOffType;
@@ -25,44 +25,32 @@ import org.openhab.core.types.State;
 import org.openhab.core.types.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthomej.transform.basicprofiles.internal.config.BatteryLowStateProfileConfig;
+import org.smarthomej.transform.basicprofiles.internal.config.ThresholdStateProfileConfig;
 
 /***
- * This is the default implementation for a {@link BatteryLowStateProfile}}. Triggers ON/OFF behavior when being linked
+ * This is the default implementation for a {@link ThresholdStateProfile}}. Triggers ON/OFF behavior when being linked
  * to a Switch item if value is below threshold (default: 10).
  *
  * @author Christoph Weitkamp - Initial contribution
  */
 @NonNullByDefault
-public class BatteryLowStateProfile implements StateProfile {
+public class ThresholdStateProfile implements StateProfile {
 
-    private final Logger logger = LoggerFactory.getLogger(BatteryLowStateProfile.class);
+    private final Logger logger = LoggerFactory.getLogger(ThresholdStateProfile.class);
 
-    // private static final String PARAM_THRESHOLD = "threshold";
+    public static final String PARAM_THRESHOLD = "threshold";
 
     private final ProfileCallback callback;
-    private final BatteryLowStateProfileConfig config;
+    private final ThresholdStateProfileConfig config;
 
-    public BatteryLowStateProfile(ProfileCallback callback, ProfileContext context) {
+    public ThresholdStateProfile(ProfileCallback callback, ProfileContext context) {
         this.callback = callback;
-
-        // Object paramValue = context.getConfiguration().get(PARAM_THRESHOLD);
-        // logger.debug("Configuring profile '{}' with '{}' parameter: '{}'", getProfileTypeUID(), PARAM_THRESHOLD,
-        // paramValue);
-        // if (paramValue instanceof Number) {
-        // threshold = ((Number) paramValue).intValue();
-        // } else if (paramValue instanceof String) {
-        // threshold = Integer.valueOf((String) paramValue);
-        // } else {
-        // logger.error("Parameter '{}' is not a Number value, using default value: 10", PARAM_THRESHOLD);
-        // threshold = 10;
-        // }
-        this.config = context.getConfiguration().as(BatteryLowStateProfileConfig.class);
+        this.config = context.getConfiguration().as(ThresholdStateProfileConfig.class);
     }
 
     @Override
     public ProfileTypeUID getProfileTypeUID() {
-        return BATTERY_LOW_UID;
+        return THRESHOLD_LOW_UID;
     }
 
     @Override

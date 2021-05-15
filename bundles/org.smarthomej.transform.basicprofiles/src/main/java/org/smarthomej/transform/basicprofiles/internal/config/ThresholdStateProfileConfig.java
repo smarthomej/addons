@@ -13,14 +13,14 @@
 package org.smarthomej.transform.basicprofiles.internal.config;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.smarthomej.transform.basicprofiles.internal.profiles.BatteryLowStateProfile;
+import org.smarthomej.transform.basicprofiles.internal.profiles.ThresholdStateProfile;
 
 /**
- * Configuration for {@link BatteryLowStateProfile}.
+ * Configuration for {@link ThresholdStateProfile}.
  *
  * @author Christoph Weitkamp - Initial contribution
  */
 @NonNullByDefault
-public class BatteryLowStateProfileConfig {
+public class ThresholdStateProfileConfig {
     public int threshold = 10;
 }

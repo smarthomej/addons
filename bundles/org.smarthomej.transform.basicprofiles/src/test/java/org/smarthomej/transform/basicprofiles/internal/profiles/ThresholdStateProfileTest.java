@@ -37,11 +37,11 @@ import org.openhab.core.types.State;
 import org.openhab.core.types.Type;
 
 /**
- * Basic unit tests for {@link BatteryLowStateProfile}.
+ * Basic unit tests for {@link ThresholdStateProfile}.
  *
  * @author Christoph Weitkamp - Initial contribution
  */
-public class BatteryLowStateProfileTest {
+public class ThresholdStateProfileTest {
 
     public static class ParameterSet {
         public State state;
@@ -101,7 +101,7 @@ public class BatteryLowStateProfileTest {
 
     private StateProfile initProfile(int threshold) {
         when(mockContext.getConfiguration()).thenReturn(new Configuration(Map.of("threshold", threshold)));
-        return new BatteryLowStateProfile(mockCallback, mockContext);
+        return new ThresholdStateProfile(mockCallback, mockContext);
     }
 
     private void verifySendCommand(StateProfile profile, Command command, Command result) {
