@@ -1,0 +1,27 @@
+# This file helps GitHub doing automatic review requests for new PRs.
+# It should always list the active maintainers of certain add-ons.
+
+# As a fallback, if no specific maintainer is listed below, assign the PR to the repo maintainer:
+*       @J-N-K
+
+# Bundle-Maintainers:
+/bundles/org.smarthomej.binding.amazonechocontrol/ @Trinitus01 @J-N-K
+/bundles/org.smarthomej.binding.androiddebugbridge/ @Trinitus01
+/bundles/org.smarthomej.binding.deconz/ @J-N-K
+/bundles/org.smarthomej.binding.dmx/ @J-N-K
+/bundles/org.smarthomej.binding.http/ @J-N-K
+/bundles/org.smarthomej.binding.irobot/ @J-N-K
+/bundles/org.smarthomej.binding.knx/ @J-N-K
+/bundles/org.smarthomej.binding.mail/ @J-N-K
+/bundles/org.smarthomej.binding.mpd/ @J-N-K
+/bundles/org.smarthomej.binding.notificationsforfiretv/ @Trinitus01
+/bundles/org.smarthomej.binding.onewire/ @J-N-K
+/bundles/org.smarthomej.binding.snmp/ @J-N-K
+/bundles/org.smarthomej.binding.tcpudp/ @J-N-K
+/bundles/org.smarthomej.binding.telenot/ @rogrun
+/bundles/org.smarthomej.binding.tr064/ @J-N-K
+/bundles/org.smarthomej.commons/ @J-N-K
+/bundles/org.smarthomej.io.repomanager/ @J-N-K
+/bundles/org.smarthomej.persistence.influxdb/ @J-N-K
+/bundles/org.smarthomej.transform.format/ @J-N-K
+/bundles/org.smarthomej.transform.math/ @cweitkamp
