@@ -20,7 +20,7 @@ It shall be represented as a `Switch` item on openHAB.
 
 ### Incoming values (`toItem`)
 
-The received value for the status is `{device: {status: { lock: locked }}}` or `{device: {status: { lock: unlocked }}}`.
+The received value for the status is `{ "device" : { "status" : { "lock" : "locked" }}}` or `{ "device" : { "status" : { "lock" : "unlocked" }}}`.
 The transformation needs to first extract `locked` or `unlocked` and then map those values to `ON` or `OFF`.
 
 The first part is done by using the `JSONPATH` transformation: `$.device.status.lock`.
@@ -40,7 +40,7 @@ JSONPATH:$.device.status.temperature∩MAP:doorlock.map
 
 ### Outgoing values (`toChannel`)
 
-For setting the lock's state we need to produce another JSON: `{device: {command: lock}}` or `{device: {command: unlock}}`.
+For setting the lock's state we need to produce another JSON: `{"device" : { "command" : "lock" }}` or `{ "device" : { "command" : "unlock" }}`.
 The transformation needs to do the inverse of the above: first map `ON` or `OFF` to `lock` or `unlock` and then insert that into a JSON-template.
 
 For the first part we again use the `MAP` transformation and extend the map from above:
@@ -55,7 +55,7 @@ OFF=unlock
 For the second part we use the `FORMAT` transformation with a `doorlock.format`:
 
 ```
-{device: {command: %1$s}}
+{ "device" : { "command" : "%1$s" }}
 ```
 
 The full`toChannel` transformation is 
