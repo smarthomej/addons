@@ -2,6 +2,46 @@
 
 This bundle provides a list of useful Profiles.
 
+## Generic Command Profile
+
+This Profile can be used to send a Command towards the Item when one event of a specified event list is triggered.
+The given Command value is parsed either to `IncreaseDecreaseType`, `NextPreviousType`, `OnOffType`, `PlayPauseType`, `RewindFastforwardType`, `StopMoveType`, `UpDownType` or a `StringType` is used.
+
+### Configuration
+
+| Configuration Parameter | Type | Description                                                                      |
+|-------------------------|------|----------------------------------------------------------------------------------|
+| `events`                | text | Comma separated list of events to which the profile should listen. **mandatory** |
+| `command`               | text | Command which should be sent if the event is triggered. **mandatory**            |
+
+### Full Example
+
+```java
+Switch lightsStatus {
+    channel="hue:0200:XXX:1:color",
+    channel="deconz:switch:YYY:1:buttonevent" [profile="basic-profiles:generic-command", events="1002,1003", command="ON"]
+}
+```
+
+## Generic Toggle Switch Profile
+
+The Generic Toggle Switch Profile is a specialization of the Generic Command Profile and toggles the State of a Switch Item whenever one of the specified events is triggered.
+
+### Configuration
+
+| Configuration Parameter | Type | Description                                                                      |
+|-------------------------|------|----------------------------------------------------------------------------------|
+| `events`                | text | Comma separated list of events to which the profile should listen. **mandatory** |
+
+### Full Example
+
+```java
+Switch lightsStatus {
+    channel="hue:0200:XXX:1:color",
+    channel="deconz:switch:YYY:1:buttonevent" [profile="basic-profiles:toggle-switch", events="1002,1003"]
+}
+```
+
 ## Invert / Negate Profile
 
 The Invert / Negate Profile inverts or negates a Command / State.
@@ -41,13 +81,19 @@ Source Channels should accept Item Type `Number`.
 ### Full Example
 
 ```java
-Number roundedNumber { channel="xxx" [profile="basic-profiles:round", scale=1] }
+Number roundedNumber { channel="xxx" [profile="basic-profiles:round", scale=0] }
+Number:Temperature roundedTemperature { channel="xxx" [profile="basic-profiles:round", scale=1] }
 ```
 
 ## Threshold Profile
 
 The Threshold Profile triggers `ON` or `OFF` behavior when being linked to a Switch item if value is below a given threshold (default: 10).
+A good use case for this Profile is a battery low indication.
 Source Channels should accept Item Type `Dimmer` or `Number`.
+
+::: tip Note
+This profile is a shortcut for the System Hysteresis Profile.
+:::
 
 ### Configuration
 
@@ -58,5 +104,5 @@ Source Channels should accept Item Type `Dimmer` or `Number`.
 ### Full Example
 
 ```java
-Switch thresholdLowItem { channel="xxx" [profile="basic-profiles:threshold", threshold=15] }
+Switch thresholdItem { channel="xxx" [profile="basic-profiles:threshold", threshold=15] }
 ```
