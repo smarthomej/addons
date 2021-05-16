@@ -23,5 +23,6 @@
 /bundles/org.smarthomej.commons/ @J-N-K
 /bundles/org.smarthomej.io.repomanager/ @J-N-K
 /bundles/org.smarthomej.persistence.influxdb/ @J-N-K
+/bundles/org.smarthomej.transform.basicprofiles/ @cweitkamp
 /bundles/org.smarthomej.transform.format/ @J-N-K
 /bundles/org.smarthomej.transform.math/ @cweitkamp
