@@ -15,7 +15,7 @@ Individual transformations are chained with the mathematical intersection charac
 
 ## Example: Door lock
 
-A lock that can report its status and accepts commands as JSON and accepts commands.
+A lock that can report its status and accepts commands in JSON.
 It shall be represented as a `Switch` item on openHAB.
 
 ### Incoming values (`toItem`)

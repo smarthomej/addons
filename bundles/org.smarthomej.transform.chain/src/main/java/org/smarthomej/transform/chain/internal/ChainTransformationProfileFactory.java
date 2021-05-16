@@ -56,7 +56,7 @@ public class ChainTransformationProfileFactory implements ProfileFactory, Profil
     @Override
     public @Nullable Profile createProfile(ProfileTypeUID profileTypeUID, ProfileCallback callback,
             ProfileContext profileContext) {
-        return new ChainTransformationProfile(callback, profileContext, valueTransformationProvider);
+        return ChainTransformationProfile.PROFILE_TYPE_UID.equals(profileTypeUID) ? new ChainTransformationProfile(callback, profileContext, valueTransformationProvider) : null;
     }
 
     @Override

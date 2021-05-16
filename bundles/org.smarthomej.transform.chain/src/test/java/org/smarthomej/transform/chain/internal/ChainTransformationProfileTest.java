@@ -14,6 +14,7 @@ package org.smarthomej.transform.chain.internal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -30,13 +31,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.openhab.core.config.core.Configuration;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.thing.profiles.ProfileCallback;
+import org.openhab.core.thing.profiles.ProfileContext;
 import org.openhab.core.thing.profiles.StateProfile;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.State;
 import org.openhab.core.types.UnDefType;
-import org.smarthomej.transform.chain.internal.test.TestProfileContext;
 import org.smarthomej.transform.chain.internal.test.TestValueTransformationProvider;
 
 /**
@@ -57,6 +59,9 @@ public class ChainTransformationProfileTest {
 
     @Mock
     private @NonNullByDefault({}) ProfileCallback callback;
+
+    @Mock
+    private @NonNullByDefault({}) ProfileContext context;
 
     private @NonNullByDefault({}) ArgumentCaptor<State> stateCaptor;
     private @NonNullByDefault({}) ArgumentCaptor<Command> commandCaptor;
@@ -224,7 +229,7 @@ public class ChainTransformationProfileTest {
     private StateProfile getProfile(String toItem, String toChannel, boolean undefOnError) {
         Map<String, Object> configuration = Map.of("toItem", toItem, "toChannel", toChannel, "undefOnError",
                 undefOnError);
-        return new ChainTransformationProfile(callback, new TestProfileContext(configuration),
-                new TestValueTransformationProvider());
+        doReturn(new Configuration(configuration)).when(context).getConfiguration();
+        return new ChainTransformationProfile(callback, context, new TestValueTransformationProvider());
     }
 }
