@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config-description:config-descriptions
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:config-description="https://openhab.org/schemas/config-description/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/config-description/v1.0.0 https://openhab.org/schemas/config-description-1.0.0.xsd">
+
+	<config-description uri="profile:transform:CHAIN">
+		<parameter name="toItem" type="text">
+			<label>To Item Chain</label>
+			<description>Chain of transformations (separated by "∩") used for converting values from the channel to the linked
+				item.</description>
+		</parameter>
+		<parameter name="toChannel" type="text">
+			<label>To Channel Chain</label>
+			<description>Chain of transformations (separated by "∩") used for converting values from the channel to the linked
+				item.</description>
+		</parameter>
+		<parameter name="undefOnError" type="boolean">
+			<label>UNDEF On Error</label>
+			<description>If "true", UNDEF is used if the transformation failed, otherwise the input is ignored (default).</description>
+			<default>false</default>
+		</parameter>
+	</config-description>
+</config-description:config-descriptions>
