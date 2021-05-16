@@ -11,6 +11,7 @@ Connect this module to the GMS-Port (Serial).
 You have to enable the GMS-Protocol in the CompasX Software.
 
 ## Note
+
 The Building management protocol is a two-way street. 
 Not only can you get info from your alarm system, that same protocol can be used to send commands to the alarm system too! 
 A black hatter might use this to tell your system to disarm itself using the cimmunications infrastructure that we have conveniently built for him. 

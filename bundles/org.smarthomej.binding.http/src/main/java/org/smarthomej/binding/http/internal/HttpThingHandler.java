@@ -120,8 +120,9 @@ public class HttpThingHandler extends UpdatingBaseThingHandler implements HttpSt
                 if (refreshingUrlCache != null) {
                     try {
                         refreshingUrlCache.get().ifPresentOrElse(itemValueConverter::process, () -> {
-                            if (config.strictErrorHandling)
+                            if (config.strictErrorHandling) {
                                 itemValueConverter.process(null);
+                            }
                         });
                     } catch (IllegalArgumentException | IllegalStateException e) {
                         logger.warn("Failed processing REFRESH command for channel {}: {}", channelUID, e.getMessage());
