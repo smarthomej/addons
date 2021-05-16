@@ -15,6 +15,7 @@ package org.smarthomej.binding.math.internal;
 import java.math.BigDecimal;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.core.transform.TransformationException;
 import org.openhab.core.transform.TransformationService;
 import org.osgi.service.component.annotations.Component;
 
@@ -28,7 +29,11 @@ import org.osgi.service.component.annotations.Component;
 public class DivideTransformationService extends AbstractMathTransformationService {
 
     @Override
-    BigDecimal performCalculation(BigDecimal source, BigDecimal value) {
-        return source.divide(value);
+    BigDecimal performCalculation(BigDecimal source, BigDecimal value) throws TransformationException {
+        try {
+            return source.divide(value);
+        } catch (ArithmeticException e) {
+            throw new TransformationException("ArithmeticException: " + e.getMessage());
+        }
     }
 }

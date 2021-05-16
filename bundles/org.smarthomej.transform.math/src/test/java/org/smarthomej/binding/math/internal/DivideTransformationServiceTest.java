@@ -44,11 +44,18 @@ class DivideTransformationServiceTest {
         assertEquals("1.5 watts", result);
     }
 
+    @Test
     public void testTransformInvalidSource() {
         assertThrows(TransformationException.class, () -> subject.transform("20", "*"));
     }
 
+    @Test
     public void testTransformInvalidFunction() {
         assertThrows(TransformationException.class, () -> subject.transform("*", "90"));
+    }
+
+    @Test
+    public void testTransformDivideByZero() {
+        assertThrows(TransformationException.class, () -> subject.transform("0", "1"));
     }
 }

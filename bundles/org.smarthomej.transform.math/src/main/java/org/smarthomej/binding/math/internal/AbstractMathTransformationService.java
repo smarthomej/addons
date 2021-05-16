@@ -65,5 +65,5 @@ abstract class AbstractMathTransformationService implements TransformationServic
         }
     }
 
-    abstract BigDecimal performCalculation(BigDecimal source, BigDecimal value);
+    abstract BigDecimal performCalculation(BigDecimal source, BigDecimal value) throws TransformationException;
 }

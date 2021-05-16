@@ -42,10 +42,12 @@ class MultiplyTransformationServiceTest {
         assertEquals("10.0 watt", result);
     }
 
+    @Test
     public void testTransformInvalidSource() {
         assertThrows(TransformationException.class, () -> subject.transform("20", "*"));
     }
 
+    @Test
     public void testTransformInvalidFunction() {
         assertThrows(TransformationException.class, () -> subject.transform("*", "90"));
     }
