@@ -63,11 +63,6 @@ public class RoundStateProfile implements StateProfile {
             logger.error("Parameter 'scale' is not of type String or Number.");
         }
 
-        if (localScale < 0) {
-            logger.warn("Parameter 'scale' has to be a non-negative integer. Ignoring it.");
-            localScale = 0;
-        }
-
         RoundingMode localRoundingMode = RoundingMode.HALF_UP;
         if (config.mode instanceof String) {
             try {

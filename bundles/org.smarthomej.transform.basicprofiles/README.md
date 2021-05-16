@@ -67,7 +67,7 @@ Switch invertedSwitch { channel="xxx" [profile="basic-profiles:invert"] }
 
 ## Round Profile
 
-The Round Profile scales the state to a specific number of decimal places.
+The Round Profile scales the state to a specific number of decimal places based on the power of ten.
 Optionally the [Rounding mode](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/math/RoundingMode.html) can be set.
 Source Channels should accept Item Type `Number`.
 
@@ -75,7 +75,7 @@ Source Channels should accept Item Type `Number`.
 
 | Configuration Parameter | Type    | Description                                                                                                     |
 |-------------------------|---------|-----------------------------------------------------------------------------------------------------------------|
-| `scale`                 | integer | Scale (non-negative number) to indicate the resulting number of decimal places (min: 0, max: 16) **mandatory**. |
+| `scale`                 | integer | Scale to indicate the resulting number of decimal places (min: -16, max: 16, STEP: 1) **mandatory**.            |
 | `mode`                  | text    | Rounding mode to be used (e.g. "UP", "DOWN", "CEILING", "FLOOR", "HALF_UP" or "HALF_DOWN" (default: "HALF_UP"). |
 
 ### Full Example

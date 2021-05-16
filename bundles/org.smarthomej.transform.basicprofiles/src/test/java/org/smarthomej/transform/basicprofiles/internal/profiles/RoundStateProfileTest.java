@@ -52,7 +52,7 @@ public class RoundStateProfileTest {
     }
 
     @Test
-    public void test() {
+    public void testParsingParameters() {
         ProfileCallback callback = mock(ProfileCallback.class);
         RoundStateProfile roundProfile = createProfile(callback, 2, "NOT_SUPPORTED");
 
@@ -74,6 +74,22 @@ public class RoundStateProfileTest {
         Command result = capture.getValue();
         DecimalType dtResult = (DecimalType) result;
         assertThat(dtResult.doubleValue(), is(23.33));
+    }
+
+    @Test
+    public void testDecimalTypeOnCommandFromItemWithNegativeScale() {
+        ProfileCallback callback = mock(ProfileCallback.class);
+        RoundStateProfile roundProfile = createProfile(callback, -2);
+
+        Command cmd = new DecimalType(1234.333);
+        roundProfile.onCommandFromItem(cmd);
+
+        ArgumentCaptor<Command> capture = ArgumentCaptor.forClass(Command.class);
+        verify(callback, times(1)).handleCommand(capture.capture());
+
+        Command result = capture.getValue();
+        DecimalType dtResult = (DecimalType) result;
+        assertThat(dtResult.doubleValue(), is(1200.0));
     }
 
     @Test
