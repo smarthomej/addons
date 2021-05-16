@@ -14,17 +14,18 @@ package org.smarthomej.transform.basicprofiles.internal.profiles;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.openMocks;
 
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.openhab.core.library.types.DateTimeType;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.OnOffType;
@@ -39,15 +40,17 @@ import org.openhab.core.types.Type;
 import org.openhab.core.types.UnDefType;
 
 /**
- * Basic unit tests for {@link ThresholdStateProfile}.
+ * Basic unit tests for {@link InvertStateProfile}.
  *
  * @author Christoph Weitkamp - Initial contribution
  */
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
+@NonNullByDefault
 public class InvertStateProfileTest {
 
     private static final DateTimeType NOW = new DateTimeType();
 
-    @NonNullByDefault
     public static class ParameterSet {
         public Type type;
         public Type resultingType;
@@ -59,7 +62,7 @@ public class InvertStateProfileTest {
     }
 
     public static Collection<Object[]> parameters() {
-        return Arrays.asList(new Object[][] { //
+        return List.of(new Object[][] { //
                 { new ParameterSet(UnDefType.NULL, UnDefType.NULL) }, //
                 { new ParameterSet(UnDefType.UNDEF, UnDefType.UNDEF) }, //
                 { new ParameterSet(new QuantityType<>(25, Units.LITRE), new QuantityType<>(-25, Units.LITRE)) }, //
@@ -73,19 +76,7 @@ public class InvertStateProfileTest {
         });
     }
 
-    private AutoCloseable mocksCloseable;
-
-    private @Mock ProfileCallback mockCallback;
-
-    @BeforeEach
-    public void setup() {
-        mocksCloseable = openMocks(this);
-    }
-
-    @AfterEach
-    public void afterEach() throws Exception {
-        mocksCloseable.close();
-    }
+    private @Mock @NonNullByDefault({}) ProfileCallback mockCallback;
 
     @ParameterizedTest
     @MethodSource("parameters")

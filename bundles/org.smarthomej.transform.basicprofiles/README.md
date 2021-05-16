@@ -2,26 +2,9 @@
 
 This bundle provides a list of useful Profiles.
 
-## Battery Low Profile
-
-The Battery Low Profile triggers `ON` or `OFF` behavior when being linked to a Switch item if value is below threshold (default: 10).
-Source Channels should accept Item Type `Dimmer` or `Number`.
-
-### Configuration
-
-| Configuration Parameter | Description | Type |
-|-|
-| `threshold` | Triggers `ON` if value is below the given threshold, otherwise OFF (default: 10, min: 0, max: 100). | integer |
-
-### Full Example
-
-```java
-Switch batteryLowItem { channel="xxx" [profile="basic-profiles:battery-low", threshold=15] }
-```
-
 ## Invert / Negate Profile
 
-The Invert / Negate Profile inverts or negated a Command / State.
+The Invert / Negate Profile inverts or negates a Command / State.
 It requires no specific configuration.
 
 The values of `QuantityType`, `PercentType` and `DecimalTypes` are negated (multiplied by `-1`).
@@ -50,13 +33,30 @@ Source Channels should accept Item Type `Number`.
 
 ### Configuration
 
-| Configuration Parameter | Description | Type |
-|-|
-| `scale` | Scale (non-negative number) to indicate the resulting number of decimal places (min: 0, max: 16) **mandatory**. | integer |
-| `mode` | Rounding mode to be used (e.g. "UP", "DOWN", "CEILING", "FLOOR", "HALF_UP" or "HALF_DOWN" (default: "HALF_UP", min: 0, max: 16). | text |
+| Configuration Parameter | Type    | Description                                                                                                     |
+|-------------------------|---------|-----------------------------------------------------------------------------------------------------------------|
+| `scale`                 | integer | Scale (non-negative number) to indicate the resulting number of decimal places (min: 0, max: 16) **mandatory**. |
+| `mode`                  | text    | Rounding mode to be used (e.g. "UP", "DOWN", "CEILING", "FLOOR", "HALF_UP" or "HALF_DOWN" (default: "HALF_UP"). |
 
 ### Full Example
 
 ```java
 Number roundedNumber { channel="xxx" [profile="basic-profiles:round", scale=1] }
+```
+
+## Threshold Profile
+
+The Threshold Profile triggers `ON` or `OFF` behavior when being linked to a Switch item if value is below a given threshold (default: 10).
+Source Channels should accept Item Type `Dimmer` or `Number`.
+
+### Configuration
+
+| Configuration Parameter | Type    | Description                                                                                         |
+|-------------------------|---------|-----------------------------------------------------------------------------------------------------|
+| `threshold`             | integer | Triggers `ON` if value is below the given threshold, otherwise OFF (default: 10, min: 0, max: 100). |
+
+### Full Example
+
+```java
+Switch thresholdLowItem { channel="xxx" [profile="basic-profiles:threshold", threshold=15] }
 ```

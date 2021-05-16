@@ -4,6 +4,6 @@
 
 	<feature name="smarthomej-transformation-basicprofiles" description="Basic Profiles" version="${project.version}">
 		<feature>openhab-runtime-base</feature>
-		<bundle start-level="80">mvn:org.smarthomej.addons.bundles/org.smarthomej.transform.basicprofiles/${project.version}</bundle>
+		<bundle start-level="75">mvn:org.smarthomej.addons.bundles/org.smarthomej.transform.basicprofiles/${project.version}</bundle>
 	</feature>
 </features>

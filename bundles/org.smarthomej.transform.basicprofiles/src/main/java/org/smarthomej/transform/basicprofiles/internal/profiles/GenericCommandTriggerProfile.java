@@ -24,6 +24,7 @@ import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.PlayPauseType;
 import org.openhab.core.library.types.RewindFastforwardType;
 import org.openhab.core.library.types.StopMoveType;
+import org.openhab.core.library.types.StringType;
 import org.openhab.core.library.types.UpDownType;
 import org.openhab.core.thing.profiles.ProfileCallback;
 import org.openhab.core.thing.profiles.ProfileContext;
@@ -56,14 +57,18 @@ public class GenericCommandTriggerProfile extends AbstractTriggerProfile {
         super(callback, context);
 
         Object paramValue = context.getConfiguration().get(PARAM_COMMAND);
-        logger.debug("Configuring profile '{}' with 'command' parameter: '{}'", getProfileTypeUID(), paramValue);
+        logger.trace("Configuring profile '{}' with '{}' parameter: '{}'", getProfileTypeUID(), PARAM_COMMAND,
+                paramValue);
         if (paramValue instanceof String) {
-            command = TypeParser.parseCommand(SUPPORTED_COMMANDS, (String) paramValue);
+            String value = (String) paramValue;
+            command = TypeParser.parseCommand(SUPPORTED_COMMANDS, value);
             if (command == null) {
-                logger.error("Parameter 'command' is a not supported command: '{}'", paramValue);
+                logger.debug("Value '{}' for parameter '{}' is a not supported command. Using StringType instead.",
+                        value, PARAM_COMMAND);
+                command = StringType.valueOf(value);
             }
         } else {
-            logger.error("Parameter 'command' is not of type String");
+            logger.error("Parameter '{}' is not of type String: {}", PARAM_COMMAND, paramValue);
         }
     }
 

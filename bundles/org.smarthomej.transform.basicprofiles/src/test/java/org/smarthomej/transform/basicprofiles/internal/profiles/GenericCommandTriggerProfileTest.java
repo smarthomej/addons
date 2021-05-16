@@ -20,14 +20,20 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.openhab.core.config.core.Configuration;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.PlayPauseType;
 import org.openhab.core.library.types.StopMoveType;
+import org.openhab.core.library.types.StringType;
+import org.openhab.core.library.types.UpDownType;
+import org.openhab.core.thing.CommonTriggerEvents;
 import org.openhab.core.thing.profiles.ProfileCallback;
 import org.openhab.core.thing.profiles.ProfileContext;
 import org.openhab.core.thing.profiles.TriggerProfile;
@@ -38,9 +44,11 @@ import org.openhab.core.types.Command;
  *
  * @author Christoph Weitkamp - Initial contribution
  */
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
+@NonNullByDefault
 public class GenericCommandTriggerProfileTest {
 
-    @NonNullByDefault
     public static class ParameterSet {
         public final String events;
         public final Command command;
@@ -58,26 +66,27 @@ public class GenericCommandTriggerProfileTest {
                 { new ParameterSet("1002,1003", PlayPauseType.PLAY) }, //
                 { new ParameterSet("1002,1003", PlayPauseType.PAUSE) }, //
                 { new ParameterSet("1002,1003,3001", StopMoveType.STOP) }, //
-                { new ParameterSet("1002,1003,3001", StopMoveType.MOVE) } //
+                { new ParameterSet("1002,1003,3001", StopMoveType.MOVE) }, //
+                { new ParameterSet(CommonTriggerEvents.LONG_PRESSED + "," + CommonTriggerEvents.SHORT_PRESSED,
+                        UpDownType.UP) }, //
+                { new ParameterSet(CommonTriggerEvents.LONG_PRESSED + "," + CommonTriggerEvents.SHORT_PRESSED,
+                        UpDownType.DOWN) }, //
+                { new ParameterSet("1003", StringType.valueOf("SELECT")) } //
         });
     }
 
-    private @Mock ProfileCallback mockCallback;
-    private @Mock ProfileContext mockContext;
-
-    @BeforeEach
-    public void setup() {
-        mockCallback = mock(ProfileCallback.class);
-        mockContext = mock(ProfileContext.class);
-    }
+    private @Mock @NonNullByDefault({}) ProfileCallback mockCallback;
+    private @Mock @NonNullByDefault({}) ProfileContext mockContext;
 
     @ParameterizedTest
     @MethodSource("parameters")
     public void testOnOffSwitchItem(ParameterSet parameterSet) {
-        Map<String, Object> properties = Map.of(AbstractTriggerProfile.PARAM_EVENTS, parameterSet.events,
-                GenericCommandTriggerProfile.PARAM_COMMAND, parameterSet.command.toFullString());
-        when(mockContext.getConfiguration()).thenReturn(new Configuration(properties));
+        when(mockContext.getConfiguration()).thenReturn(new Configuration(Map.of(AbstractTriggerProfile.PARAM_EVENTS,
+                parameterSet.events, GenericCommandTriggerProfile.PARAM_COMMAND, parameterSet.command.toFullString())));
+
         TriggerProfile profile = new GenericCommandTriggerProfile(mockCallback, mockContext);
+
+        verifyNoAction(profile, CommonTriggerEvents.PRESSED, parameterSet.command);
         for (String event : parameterSet.events.split(",")) {
             verifyAction(profile, event, parameterSet.command);
         }
@@ -87,5 +96,11 @@ public class GenericCommandTriggerProfileTest {
         reset(mockCallback);
         profile.onTriggerFromHandler(trigger);
         verify(mockCallback, times(1)).sendCommand(eq(expectation));
+    }
+
+    private void verifyNoAction(TriggerProfile profile, String trigger, Command expectation) {
+        reset(mockCallback);
+        profile.onTriggerFromHandler(trigger);
+        verify(mockCallback, times(0)).sendCommand(eq(expectation));
     }
 }

@@ -20,6 +20,7 @@ import static org.mockito.Mockito.when;
 import java.util.Collection;
 import java.util.Map;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,20 +47,22 @@ import org.smarthomej.transform.basicprofiles.internal.profiles.ThresholdStatePr
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.WARN)
+@NonNullByDefault
 public class BasicProfilesFactoryTest {
 
-    private static final int NUMBER_OF_PROFILES = 4;
+    private static final int NUMBER_OF_PROFILES = 5;
 
     private static final Map<String, Object> PROPERTIES = Map.of(ThresholdStateProfile.PARAM_THRESHOLD, 15,
             RoundStateProfile.PARAM_SCALE, 2, GenericCommandTriggerProfile.PARAM_EVENTS, "1002,1003",
             GenericCommandTriggerProfile.PARAM_COMMAND, OnOffType.ON.toString());
     private static final Configuration CONFIG = new Configuration(PROPERTIES);
 
-    private BasicProfilesFactory profileFactory;
-    private @Mock ProfileTypeI18nLocalizationService mockLocalizationService;
-    private @Mock BundleResolver mockBundleResolver;
-    private @Mock ProfileCallback mockCallback;
-    private @Mock ProfileContext mockContext;
+    private @Mock @NonNullByDefault({}) ProfileTypeI18nLocalizationService mockLocalizationService;
+    private @Mock @NonNullByDefault({}) BundleResolver mockBundleResolver;
+    private @Mock @NonNullByDefault({}) ProfileCallback mockCallback;
+    private @Mock @NonNullByDefault({}) ProfileContext mockContext;
+
+    private @NonNullByDefault({}) BasicProfilesFactory profileFactory;
 
     @BeforeEach
     public void setup() {

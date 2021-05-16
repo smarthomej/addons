@@ -44,7 +44,7 @@ public abstract class AbstractTriggerProfile implements TriggerProfile {
         this.callback = callback;
 
         Object paramValue = context.getConfiguration().get(PARAM_EVENTS);
-        logger.debug("Configuring profile '{}' with '{}' parameter: '{}'", getProfileTypeUID(), PARAM_EVENTS,
+        logger.trace("Configuring profile '{}' with '{}' parameter: '{}'", getProfileTypeUID(), PARAM_EVENTS,
                 paramValue);
         if (paramValue instanceof String) {
             String event = paramValue.toString();

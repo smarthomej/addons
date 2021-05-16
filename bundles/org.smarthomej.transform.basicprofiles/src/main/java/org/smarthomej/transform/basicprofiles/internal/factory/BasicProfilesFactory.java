@@ -43,6 +43,7 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.smarthomej.transform.basicprofiles.internal.profiles.GenericCommandTriggerProfile;
+import org.smarthomej.transform.basicprofiles.internal.profiles.GenericToggleSwitchTriggerProfile;
 import org.smarthomej.transform.basicprofiles.internal.profiles.InvertStateProfile;
 import org.smarthomej.transform.basicprofiles.internal.profiles.RoundStateProfile;
 import org.smarthomej.transform.basicprofiles.internal.profiles.ThresholdStateProfile;
@@ -57,14 +58,19 @@ import org.smarthomej.transform.basicprofiles.internal.profiles.ThresholdStatePr
 public class BasicProfilesFactory implements ProfileFactory, ProfileTypeProvider, ProfileAdvisor {
 
     public static final ProfileTypeUID GENERIC_COMMAND_UID = new ProfileTypeUID(SCOPE, "generic-command");
+    public static final ProfileTypeUID GENERIC_TOGGLE_SWITCH_UID = new ProfileTypeUID(SCOPE, "toggle-switch");
     public static final ProfileTypeUID INVERT_UID = new ProfileTypeUID(SCOPE, "invert");
     public static final ProfileTypeUID ROUND_UID = new ProfileTypeUID(SCOPE, "round");
     public static final ProfileTypeUID THRESHOLD_LOW_UID = new ProfileTypeUID(SCOPE, "threshold");
 
     private static final ProfileType PROFILE_TYPE_GENERIC_COMMAND = ProfileTypeBuilder
-            .newTrigger(GENERIC_COMMAND_UID, "Generic Command Profile") //
+            .newTrigger(GENERIC_COMMAND_UID, "Generic Command") //
             .withSupportedItemTypes(CoreItemFactory.DIMMER, CoreItemFactory.NUMBER, CoreItemFactory.PLAYER,
                     CoreItemFactory.ROLLERSHUTTER, CoreItemFactory.SWITCH) //
+            .build();
+    private static final ProfileType PROFILE_TYPE_GENERIC_TOGGLE_SWITCH = ProfileTypeBuilder
+            .newTrigger(GENERIC_COMMAND_UID, "Generic Toggle Switch") //
+            .withSupportedItemTypes(CoreItemFactory.SWITCH) //
             .build();
     private static final ProfileType PROFILE_TYPE_INVERT = ProfileTypeBuilder.newState(INVERT_UID, "Invert / Negate")
             .withSupportedItemTypes(CoreItemFactory.CONTACT, CoreItemFactory.DIMMER, CoreItemFactory.NUMBER,
@@ -82,10 +88,10 @@ public class BasicProfilesFactory implements ProfileFactory, ProfileTypeProvider
             .withSupportedItemTypes(CoreItemFactory.SWITCH) //
             .build();
 
-    private static final Set<ProfileTypeUID> SUPPORTED_PROFILE_TYPE_UIDS = Set.of(GENERIC_COMMAND_UID, INVERT_UID,
-            ROUND_UID, THRESHOLD_LOW_UID);
+    private static final Set<ProfileTypeUID> SUPPORTED_PROFILE_TYPE_UIDS = Set.of(GENERIC_COMMAND_UID,
+            GENERIC_TOGGLE_SWITCH_UID, INVERT_UID, ROUND_UID, THRESHOLD_LOW_UID);
     private static final Set<ProfileType> SUPPORTED_PROFILE_TYPES = Set.of(PROFILE_TYPE_GENERIC_COMMAND,
-            PROFILE_TYPE_INVERT, PROFILE_TYPE_ROUND, PROFILE_TYPE_THRESHOLD);
+            PROFILE_TYPE_GENERIC_TOGGLE_SWITCH, PROFILE_TYPE_INVERT, PROFILE_TYPE_ROUND, PROFILE_TYPE_THRESHOLD);
 
     private final Map<LocalizedKey, ProfileType> localizedProfileTypeCache = new ConcurrentHashMap<>();
 
@@ -104,6 +110,8 @@ public class BasicProfilesFactory implements ProfileFactory, ProfileTypeProvider
             ProfileContext context) {
         if (GENERIC_COMMAND_UID.equals(profileTypeUID)) {
             return new GenericCommandTriggerProfile(callback, context);
+        } else if (GENERIC_TOGGLE_SWITCH_UID.equals(profileTypeUID)) {
+            return new GenericToggleSwitchTriggerProfile(callback, context);
         } else if (INVERT_UID.equals(profileTypeUID)) {
             return new InvertStateProfile(callback);
         } else if (ROUND_UID.equals(profileTypeUID)) {

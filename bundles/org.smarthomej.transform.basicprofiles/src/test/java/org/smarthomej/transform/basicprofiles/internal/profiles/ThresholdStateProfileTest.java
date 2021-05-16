@@ -14,18 +14,20 @@ package org.smarthomej.transform.basicprofiles.internal.profiles;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.openMocks;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.openhab.core.config.core.Configuration;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.PercentType;
@@ -41,6 +43,9 @@ import org.openhab.core.types.Type;
  *
  * @author Christoph Weitkamp - Initial contribution
  */
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
+@NonNullByDefault
 public class ThresholdStateProfileTest {
 
     public static class ParameterSet {
@@ -60,7 +65,7 @@ public class ThresholdStateProfileTest {
     }
 
     public static Collection<Object[]> parameters() {
-        return Arrays.asList(new Object[][] { //
+        return List.of(new Object[][] { //
                 { new ParameterSet(PercentType.HUNDRED, OnOffType.OFF, 10) }, //
                 { new ParameterSet(new PercentType(BigDecimal.valueOf(25)), OnOffType.OFF, 10) }, //
                 { new ParameterSet(PercentType.ZERO, OnOffType.ON, 10) }, //
@@ -70,20 +75,8 @@ public class ThresholdStateProfileTest {
         });
     }
 
-    private AutoCloseable mocksCloseable;
-
-    private @Mock ProfileCallback mockCallback;
-    private @Mock ProfileContext mockContext;
-
-    @BeforeEach
-    public void setup() {
-        mocksCloseable = openMocks(this);
-    }
-
-    @AfterEach
-    public void afterEach() throws Exception {
-        mocksCloseable.close();
-    }
+    private @Mock @NonNullByDefault({}) ProfileCallback mockCallback;
+    private @Mock @NonNullByDefault({}) ProfileContext mockContext;
 
     @ParameterizedTest
     @MethodSource("parameters")
