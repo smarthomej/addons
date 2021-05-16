@@ -12,11 +12,11 @@
  */
 package org.smarthomej.binding.math.internal;
 
+import java.math.BigDecimal;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.transform.TransformationService;
 import org.osgi.service.component.annotations.Component;
-
-import java.math.BigDecimal;
 
 /**
  * This {@link TransformationService} divides the input by a given value.
