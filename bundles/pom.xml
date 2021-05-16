@@ -38,6 +38,7 @@
     <!-- persistence -->
     <module>org.smarthomej.persistence.influxdb</module>
     <!-- transformations -->
+    <module>org.smarthomej.transform.basicprofiles</module>
     <module>org.smarthomej.transform.format</module>
     <module>org.smarthomej.transform.math</module>
     <!-- manager -->
