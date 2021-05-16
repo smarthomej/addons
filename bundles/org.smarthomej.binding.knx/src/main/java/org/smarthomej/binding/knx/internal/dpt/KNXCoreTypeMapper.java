@@ -34,6 +34,7 @@ import org.openhab.core.library.types.IncreaseDecreaseType;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.OpenClosedType;
 import org.openhab.core.library.types.PercentType;
+import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.library.types.StopMoveType;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.library.types.UpDownType;
@@ -644,29 +645,33 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
                 return type.equals(StopMoveType.STOP) ? dpt.getLowerValue() : dpt.getUpperValue();
             } else if (type instanceof PercentType) {
                 return String.valueOf(((DecimalType) type).intValue());
-            } else if (type instanceof DecimalType) {
-                switch (mainNumber) {
-                    case 2:
-                        DPT valueDPT = ((DPTXlator1BitControlled.DPT1BitControlled) dpt).getValueDPT();
-                        switch (((DecimalType) type).intValue()) {
-                            case 0:
-                                return "0 " + valueDPT.getLowerValue();
-                            case 1:
-                                return "0 " + valueDPT.getUpperValue();
-                            case 2:
-                                return "1 " + valueDPT.getLowerValue();
-                            default:
-                                return "1 " + valueDPT.getUpperValue();
-                        }
-                    case 18:
-                        int intVal = ((DecimalType) type).intValue();
-                        if (intVal > 63) {
-                            return "learn " + (intVal - 0x80);
-                        } else {
-                            return "activate " + intVal;
-                        }
-                    default:
-                        return ((DecimalType) type).toBigDecimal().stripTrailingZeros().toPlainString();
+            } else if (type instanceof DecimalType || type instanceof QuantityType<?>) {
+                if (mainNumber == 2) {
+                    int intVal = type instanceof DecimalType ? ((DecimalType) type).intValue()
+                            : ((QuantityType<?>) type).intValue();
+                    DPT valueDPT = ((DPTXlator1BitControlled.DPT1BitControlled) dpt).getValueDPT();
+                    switch (intVal) {
+                        case 0:
+                            return "0 " + valueDPT.getLowerValue();
+                        case 1:
+                            return "0 " + valueDPT.getUpperValue();
+                        case 2:
+                            return "1 " + valueDPT.getLowerValue();
+                        default:
+                            return "1 " + valueDPT.getUpperValue();
+                    }
+                } else if (mainNumber == 18) {
+                    int intVal = type instanceof DecimalType ? ((DecimalType) type).intValue()
+                            : ((QuantityType<?>) type).intValue();
+                    if (intVal > 63) {
+                        return "learn " + (intVal - 0x80);
+                    } else {
+                        return "activate " + intVal;
+                    }
+                } else {
+                    BigDecimal bigDecimal = type instanceof DecimalType ? ((DecimalType) type).toBigDecimal()
+                            : ((QuantityType<?>) type).toBigDecimal();
+                    return bigDecimal.stripTrailingZeros().toPlainString();
                 }
             } else if (type instanceof StringType) {
                 return type.toString();

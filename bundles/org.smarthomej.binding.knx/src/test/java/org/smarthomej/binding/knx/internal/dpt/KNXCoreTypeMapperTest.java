@@ -18,6 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.Test;
 import org.openhab.core.library.types.DecimalType;
+import org.openhab.core.library.types.QuantityType;
 
 /**
  *
@@ -31,5 +32,15 @@ public class KNXCoreTypeMapperTest {
     public void testToDPTValueTrailingZeroesStrippedOff() {
         assertEquals("3", new KNXCoreTypeMapper().toDPTValue(new DecimalType("3"), "17.001"));
         assertEquals("3", new KNXCoreTypeMapper().toDPTValue(new DecimalType("3.0"), "17.001"));
+    }
+
+    @Test
+    public void testToDPTValueDecimalType() {
+        assertEquals("23.1", new KNXCoreTypeMapper().toDPTValue(new DecimalType("23.1"), "9.001"));
+    }
+
+    @Test
+    public void testToDPTValueQuantityType() {
+        assertEquals("23.1", new KNXCoreTypeMapper().toDPTValue(new QuantityType<>("23.1 °C"), "9.001"));
     }
 }
