@@ -170,9 +170,9 @@ public abstract class KNXChannelType {
                 if (dpt == null) {
                     dpt = getDefaultDPT(key);
                 }
-                Class<? extends Type> expectedTypeClass = typeHelper.toTypeClass(dpt);
+                Set<Class<? extends Type>> expectedTypeClass = typeHelper.toTypeClass(dpt);
                 if (expectedTypeClass != null) {
-                    if (expectedTypeClass.isInstance(command)) {
+                    if (expectedTypeClass.contains(command.getClass())) {
                         logger.trace(
                                 "getCommandSpec key '{}' uses expectedTypeClass '{}' witch isInstance for command '{}' and dpt '{}'",
                                 key, expectedTypeClass, command, dpt);

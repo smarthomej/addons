@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -103,10 +104,10 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
      * stores the openHAB type class for (supported) KNX datapoint types in a generic way.
      * dptTypeMap stores more specific type class and exceptions.
      */
-    private final Map<Integer, Class<? extends Type>> dptMainTypeMap;
+    private final Map<Integer, Set<Class<? extends Type>>> dptMainTypeMap;
 
     /** stores the openHAB type class for all (supported) KNX datapoint types */
-    private final Map<String, Class<? extends Type>> dptTypeMap;
+    private final Map<String, Set<Class<? extends Type>>> dptTypeMap;
 
     /** stores the default KNX DPT to use for each openHAB type */
     private final Map<Class<? extends Type>, String> defaultDptMap;
@@ -151,13 +152,13 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
          * 1.023: DPT_ShutterBlinds_Mode values: 0 = only move up/down 1 = move up/down + step-stop
          * 1.100: DPT_Heat/Cool values: 0 = cooling 1 = heating
          */
-        dptMainTypeMap.put(1, OnOffType.class);
+        dptMainTypeMap.put(1, Set.of(OnOffType.class));
         /** Exceptions Datapoint Types "B1", Main number 1 */
-        dptTypeMap.put(DPTXlatorBoolean.DPT_UPDOWN.getID(), UpDownType.class);
-        dptTypeMap.put(DPTXlatorBoolean.DPT_OPENCLOSE.getID(), OpenClosedType.class);
-        dptTypeMap.put(DPTXlatorBoolean.DPT_START.getID(), StopMoveType.class);
-        dptTypeMap.put(DPTXlatorBoolean.DPT_WINDOW_DOOR.getID(), OpenClosedType.class);
-        dptTypeMap.put(DPTXlatorBoolean.DPT_SCENE_AB.getID(), DecimalType.class);
+        dptTypeMap.put(DPTXlatorBoolean.DPT_UPDOWN.getID(), Set.of(UpDownType.class));
+        dptTypeMap.put(DPTXlatorBoolean.DPT_OPENCLOSE.getID(), Set.of(OpenClosedType.class));
+        dptTypeMap.put(DPTXlatorBoolean.DPT_START.getID(), Set.of(StopMoveType.class));
+        dptTypeMap.put(DPTXlatorBoolean.DPT_WINDOW_DOOR.getID(), Set.of(OpenClosedType.class));
+        dptTypeMap.put(DPTXlatorBoolean.DPT_SCENE_AB.getID(), Set.of(DecimalType.class));
 
         /**
          * MainType: 2
@@ -174,7 +175,7 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
          * 2.011: DPT_State_Control values: 0 = inactive 1 = active
          * 2.012: DPT_Invert_Control values: 0 = not inverted 1 = inverted
          */
-        dptMainTypeMap.put(2, DecimalType.class);
+        dptMainTypeMap.put(2, Set.of(DecimalType.class));
         /** Exceptions Datapoint Types "B2", Main number 2 */
         // Example: dptTypeMap.put(DPTXlator1BitControlled.DPT_SWITCH_CONTROL.getID(), DecimalType.class);
 
@@ -183,16 +184,16 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
          * 3.007: DPT_Control_Dimming values: 0 = decrease 1 = increase
          * 3.008: DPT_Control_Blinds values: 0 = up 1 = down
          */
-        dptMainTypeMap.put(3, IncreaseDecreaseType.class);
+        dptMainTypeMap.put(3, Set.of(IncreaseDecreaseType.class));
         /** Exceptions Datapoint Types "B1U3", Main number 3 */
-        dptTypeMap.put(DPTXlator3BitControlled.DPT_CONTROL_BLINDS.getID(), UpDownType.class);
+        dptTypeMap.put(DPTXlator3BitControlled.DPT_CONTROL_BLINDS.getID(), Set.of(UpDownType.class));
 
         /**
          * MainType: 4
          * 4.001: DPT_Char_ASCII
          * 4.002: DPT_Char_8859_1
          */
-        dptMainTypeMap.put(4, StringType.class);
+        dptMainTypeMap.put(4, Set.of(StringType.class));
 
         /**
          * MainType: 5
@@ -204,10 +205,10 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
          * 5.006: DPT_Tariff values: 0...254
          * 5.010: DPT_Value_1_Ucount Unsigned count values: 0...255 counter pulses
          */
-        dptMainTypeMap.put(5, DecimalType.class);
+        dptMainTypeMap.put(5, Set.of(DecimalType.class));
         /** Exceptions Types "8-Bit Unsigned Value", Main number 5 */
-        dptTypeMap.put(DPTXlator8BitUnsigned.DPT_SCALING.getID(), PercentType.class);
-        dptTypeMap.put(DPTXlator8BitUnsigned.DPT_PERCENT_U8.getID(), PercentType.class);
+        dptTypeMap.put(DPTXlator8BitUnsigned.DPT_SCALING.getID(), Set.of(PercentType.class));
+        dptTypeMap.put(DPTXlator8BitUnsigned.DPT_PERCENT_U8.getID(), Set.of(PercentType.class));
 
         /**
          * MainType: 6
@@ -215,10 +216,10 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
          * 6.010: DPT_Value_1_Count values: signed -128...127 counter pulses
          * 6.020: DPT_Status_Mode3 with mode values: 0/0/0/0/0 0...1/1/1/1/1 2
          */
-        dptMainTypeMap.put(6, DecimalType.class);
+        dptMainTypeMap.put(6, Set.of(DecimalType.class));
         /** Exceptions Datapoint Types "8-Bit Signed Value", Main number 6 */
-        dptTypeMap.put(DPTXlator8BitSigned.DPT_PERCENT_V8.getID(), PercentType.class);
-        dptTypeMap.put(DPTXlator8BitSigned.DPT_STATUS_MODE3.getID(), StringType.class);
+        dptTypeMap.put(DPTXlator8BitSigned.DPT_PERCENT_V8.getID(), Set.of(PercentType.class));
+        dptTypeMap.put(DPTXlator8BitSigned.DPT_STATUS_MODE3.getID(), Set.of(StringType.class));
 
         /**
          * MainType: 7
@@ -237,9 +238,9 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
          * Calimero does not map: (map/use to 7.000 until then)
          * 7.600: DPT_Colour_Temperature values: 0...65535 K, 2000K 3000K 5000K 8000K
          */
-        dptMainTypeMap.put(7, DecimalType.class);
+        dptMainTypeMap.put(7, Set.of(DecimalType.class, QuantityType.class));
         /** Exceptions Datapoint Types "2-Octet Unsigned Value", Main number 7 */
-        dptTypeMap.put(DPTXlator2ByteFloat.DPT_HUMIDITY.getID(), PercentType.class);
+        dptTypeMap.put(DPTXlator2ByteFloat.DPT_HUMIDITY.getID(), Set.of(PercentType.class));
 
         /**
          * MainType: 8
@@ -254,7 +255,7 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
          * 8.010: DPT_Percent_V16
          * 8.011: DPT_Rotation_Angle
          */
-        dptMainTypeMap.put(8, DecimalType.class);
+        dptMainTypeMap.put(8, Set.of(DecimalType.class, QuantityType.class));
 
         /**
          * MainType: 9
@@ -279,15 +280,15 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
          * 9.027: DPT_Value_Temp_F values: -459.6...670760.96 °F
          * 9.028: DPT_Value_Wsp_kmh values: 0...670760.96 km/h
          */
-        dptMainTypeMap.put(9, DecimalType.class);
+        dptMainTypeMap.put(9, Set.of(DecimalType.class, QuantityType.class));
         /** Exceptions Datapoint Types "2-Octet Float Value", Main number 9 */
-        dptTypeMap.put(DPTXlator2ByteFloat.DPT_HUMIDITY.getID(), PercentType.class);
+        dptTypeMap.put(DPTXlator2ByteFloat.DPT_HUMIDITY.getID(), Set.of(PercentType.class));
 
         /**
          * MainType: 10
          * 10.001: DPT_TimeOfDay values: 1 = Monday...7 = Sunday, 0 = no-day, 00:00:00 Sun, 23:59:59 dow, hh:mm:ss
          */
-        dptMainTypeMap.put(10, DateTimeType.class);
+        dptMainTypeMap.put(10, Set.of(DateTimeType.class));
         /** Exceptions Datapoint Types "Time", Main number 10 */
         // Example: dptTypeMap.put(DPTXlatorTime.DPT_TIMEOFDAY.getID(), DateTimeType.class);
 
@@ -295,7 +296,7 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
          * MainType: 11
          * 11.001: DPT_Date values: 1990-01-01...2089-12-31, yyyy-mm-dd
          */
-        dptMainTypeMap.put(11, DateTimeType.class);
+        dptMainTypeMap.put(11, Set.of(DateTimeType.class));
         /** Exceptions Datapoint Types “Date”", Main number 11 */
         // Example: dptTypeMap.put(DPTXlatorDate.DPT_DATE.getID(), DateTimeType.class);
 
@@ -304,7 +305,7 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
          * 12.000: General unsigned long
          * 12.001: DPT_Value_4_Ucount values: 0...4294967295 counter pulses
          */
-        dptMainTypeMap.put(12, DecimalType.class);
+        dptMainTypeMap.put(12, Set.of(DecimalType.class));
         /** Exceptions Datapoint Types "4-Octet Unsigned Value", Main number 12 */
         // Example: dptTypeMap.put(DPTXlator4ByteUnsigned.DPT_VALUE_4_UCOUNT.getID(), DecimalType.class);
 
@@ -321,7 +322,7 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
          * 13.015: DPT_ReactiveEnergy_kVARh values: -2147483648...2147483647 kVAR
          * 13.100: DPT_LongDeltaTimeSec values: -2147483648...2147483647 s
          */
-        dptMainTypeMap.put(13, DecimalType.class);
+        dptMainTypeMap.put(13, Set.of(DecimalType.class, QuantityType.class));
         /** Exceptions Datapoint Types "4-Octet Signed Value", Main number 13 */
         // Example: dptTypeMap.put(DPTXlator4ByteSigned.DPT_COUNT.getID(), DecimalType.class);
 
@@ -408,7 +409,7 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
          * 14.078: Weight, values: N
          * 14.079: Work, values: J
          */
-        dptMainTypeMap.put(14, DecimalType.class);
+        dptMainTypeMap.put(14, Set.of(DecimalType.class, QuantityType.class));
         /** Exceptions Datapoint Types "4-Octet Float Value", Main number 14 */
         // Example: dptTypeMap.put(DPTXlator4ByteFloat.DPT_ACCELERATION_ANGULAR.getID(), DecimalType.class);
 
@@ -417,16 +418,16 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
          * 16.000: ASCII string
          * 16.001: ISO-8859-1 string (Latin 1)
          */
-        dptMainTypeMap.put(16, StringType.class);
+        dptMainTypeMap.put(16, Set.of(StringType.class));
         /** Exceptions Datapoint Types "String", Main number 16 */
-        dptTypeMap.put(DPTXlatorString.DPT_STRING_8859_1.getID(), StringType.class);
-        dptTypeMap.put(DPTXlatorString.DPT_STRING_ASCII.getID(), StringType.class);
+        dptTypeMap.put(DPTXlatorString.DPT_STRING_8859_1.getID(), Set.of(StringType.class));
+        dptTypeMap.put(DPTXlatorString.DPT_STRING_ASCII.getID(), Set.of(StringType.class));
 
         /**
          * MainType: 17
          * 17.001: Scene Number, values: 0...63
          */
-        dptMainTypeMap.put(17, DecimalType.class);
+        dptMainTypeMap.put(17, Set.of(DecimalType.class));
         /** Exceptions Datapoint Types "Scene Number", Main number 17 */
         // Example: dptTypeMap.put(DPTXlatorSceneNumber.DPT_SCENE_NUMBER.getID(), DecimalType.class);
 
@@ -434,7 +435,7 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
          * MainType: 18
          * 18.001: Scene Control, values: 0...63, 0 = activate, 1 = learn
          */
-        dptMainTypeMap.put(18, DecimalType.class);
+        dptMainTypeMap.put(18, Set.of(DecimalType.class));
         /** Exceptions Datapoint Types "Scene Control", Main number 18 */
         // Example: dptTypeMap.put(DPTXlatorSceneControl.DPT_SCENE_CONTROL.getID(), DecimalType.class);
 
@@ -442,7 +443,7 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
          * MainType: 19
          * 19.001: Date with time, values: 0 = 1900, 255 = 2155, 01/01 00:00:00, 12/31 24:00:00 yr/mth/day hr:min:sec
          */
-        dptMainTypeMap.put(19, DateTimeType.class);
+        dptMainTypeMap.put(19, Set.of(DateTimeType.class));
         /** Exceptions Datapoint Types "DateTime", Main number 19 */
         // Example: dptTypeMap.put(DPTXlatorDateTime.DPT_DATE_TIME.getID(), DateTimeType.class);
 
@@ -503,7 +504,7 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
          * 20.1202: Gas Measurement Condition, enumeration [0..3]
          *
          */
-        dptMainTypeMap.put(20, StringType.class);
+        dptMainTypeMap.put(20, Set.of(StringType.class));
         /** Exceptions Datapoint Types, Main number 20 */
         // Example since calimero 2.4: dptTypeMap.put(DPTXlator8BitEnum.DptSystemClockMode.getID(), StringType.class);
 
@@ -523,7 +524,7 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
          * 21.1001: R F Filter Modes, values: 0...7
          * 21.1010: Channel Activation State, values: 0...255
          */
-        dptMainTypeMap.put(21, StringType.class);
+        dptMainTypeMap.put(21, Set.of(StringType.class));
         /** Exceptions Datapoint Types, Main number 21 */
         // Example since calimero 2.4: dptTypeMap.put(DptXlator8BitSet.DptGeneralStatus.getID(), StringType.class);
 
@@ -536,13 +537,13 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
          * 22.1000: KNX medium (enumeration)
          * unsupported: 22.1010: 16 channel activation
          */
-        dptMainTypeMap.put(22, StringType.class);
+        dptMainTypeMap.put(22, Set.of(StringType.class));
 
         /**
          * MainType: 28
          * 28.001: UTF-8
          */
-        dptMainTypeMap.put(28, StringType.class);
+        dptMainTypeMap.put(28, Set.of(StringType.class));
         /** Exceptions Datapoint Types "String" UTF-8, Main number 28 */
         // Example: dptTypeMap.put(DPTXlatorUtf8.DPT_UTF8.getID(), StringType.class);
 
@@ -552,7 +553,7 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
          * 29.011: Apparent energy, values: -9223372036854775808...9223372036854775807 VAh
          * 29.012: Reactive energy, values: -9223372036854775808...9223372036854775807 VARh
          */
-        dptMainTypeMap.put(29, DecimalType.class);
+        dptMainTypeMap.put(29, Set.of(DecimalType.class, QuantityType.class));
         /** Exceptions Datapoint Types "64-Bit Signed Value", Main number 29 */
         // Example: dptTypeMap.put(DPTXlator64BitSigned.DPT_ACTIVE_ENERGY.getID(), DecimalType.class);
 
@@ -560,7 +561,7 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
          * MainType: 229
          * 229.001: Metering Value, values: -2147483648...2147483647
          */
-        dptMainTypeMap.put(229, DecimalType.class);
+        dptMainTypeMap.put(229, Set.of(DecimalType.class));
         /** Exceptions Datapoint Types "4-Octet Signed Value", Main number 229 */
         // Example: dptTypeMap.put(DptXlatorMeteringValue.DptMeteringValue.getID(), DecimalType.class);
 
@@ -568,7 +569,7 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
          * MainType: 232, 3 bytes
          * 232.600: DPT_Colour_RGB, values: 0 0 0...255 255 255, r g b
          */
-        dptMainTypeMap.put(232, HSBType.class);
+        dptMainTypeMap.put(232, Set.of(HSBType.class));
         /** Exceptions Datapoint Types "RGB Color", Main number 232 */
         // Example: dptTypeMap.put(DPTXlatorRGB.DPT_RGB.getID(), HSBType.class);
 
@@ -813,22 +814,22 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
                     break;
             }
 
-            Class<? extends Type> typeClass = toTypeClass(id);
+            Set<Class<? extends Type>> typeClass = toTypeClass(id);
             if (typeClass == null) {
                 return null;
             }
 
-            if (typeClass.equals(PercentType.class)) {
+            if (typeClass.contains(PercentType.class)) {
                 return new PercentType(BigDecimal.valueOf(Math.round(translator.getNumericValue())));
             }
-            if (typeClass.equals(DecimalType.class)) {
+            if (typeClass.contains(DecimalType.class)) {
                 return new DecimalType(translator.getNumericValue());
             }
-            if (typeClass.equals(StringType.class)) {
+            if (typeClass.contains(StringType.class)) {
                 return StringType.valueOf(value);
             }
 
-            if (typeClass.equals(DateTimeType.class)) {
+            if (typeClass.contains(DateTimeType.class)) {
                 String date = formatDateTime(value, datapoint.getDPT());
                 if (date.isEmpty()) {
                     logger.debug("toType: KNX clock msg ignored: date object empty {}.", date);
@@ -838,7 +839,7 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
                 }
             }
 
-            if (typeClass.equals(HSBType.class)) {
+            if (typeClass.contains(HSBType.class)) {
                 // value has format of "r:<red value> g:<green value> b:<blue value>"
                 int r = Integer.parseInt(value.split(" ")[0].split(":")[1]);
                 int g = Integer.parseInt(value.split(" ")[1].split(":")[1]);
@@ -867,8 +868,8 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
      * @return the openHAB type (command or state) class or {@code null} if the datapoint type id is not supported.
      */
     @Override
-    public @Nullable Class<? extends Type> toTypeClass(@Nullable String dptId) {
-        Class<? extends Type> ohClass = dptTypeMap.get(dptId);
+    public @Nullable Set<Class<? extends Type>> toTypeClass(@Nullable String dptId) {
+        Set<Class<? extends Type>> ohClass = dptTypeMap.get(dptId);
         if (ohClass == null) {
             int mainNumber = getMainNumber(dptId);
             if (mainNumber == -1) {

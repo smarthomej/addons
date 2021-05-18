@@ -13,6 +13,8 @@
  */
 package org.smarthomej.binding.knx.internal;
 
+import java.util.Set;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.types.Type;
@@ -53,5 +55,5 @@ public interface KNXTypeMapper {
     Type toType(Datapoint datapoint, byte[] data);
 
     @Nullable
-    Class<? extends Type> toTypeClass(@Nullable String dpt);
+    Set<Class<? extends Type>> toTypeClass(@Nullable String dpt);
 }
