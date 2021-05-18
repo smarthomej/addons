@@ -42,6 +42,7 @@ class AddTransformationServiceTest {
         assertEquals("120 watt", result);
     }
 
+    @Test
     public void testTransformInvalidSource() {
         assertThrows(TransformationException.class, () -> subject.transform("20", "*"));
     }
