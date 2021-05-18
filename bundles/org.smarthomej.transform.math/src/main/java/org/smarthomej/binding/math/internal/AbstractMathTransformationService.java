@@ -51,9 +51,12 @@ abstract class AbstractMathTransformationService implements TransformationServic
             logger.warn("Input value '{}' could not converted to a valid number", extractNumericString(valueString));
             throw new TransformationException("Math Transformation can only be used with numeric inputs");
         }
-
-        String result = performCalculation(source, value).toString();
-        return sourceString.replace(extractedNumericString, result);
+        try {
+            String result = performCalculation(source, value).toString();
+            return sourceString.replace(extractedNumericString, result);
+        } catch (ArithmeticException e) {
+            throw new TransformationException("ArithmeticException: " + e.getMessage());
+        }
     }
 
     private String extractNumericString(String sourceString) throws TransformationException {
