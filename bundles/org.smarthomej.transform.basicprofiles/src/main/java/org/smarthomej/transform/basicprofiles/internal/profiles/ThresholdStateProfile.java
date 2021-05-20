@@ -12,7 +12,7 @@
  */
 package org.smarthomej.transform.basicprofiles.internal.profiles;
 
-import static org.smarthomej.transform.basicprofiles.internal.factory.BasicProfilesFactory.THRESHOLD_LOW_UID;
+import static org.smarthomej.transform.basicprofiles.internal.factory.BasicProfilesFactory.THRESHOLD_UID;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.library.types.OnOffType;
@@ -50,7 +50,7 @@ public class ThresholdStateProfile implements StateProfile {
 
     @Override
     public ProfileTypeUID getProfileTypeUID() {
-        return THRESHOLD_LOW_UID;
+        return THRESHOLD_UID;
     }
 
     @Override
