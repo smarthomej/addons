@@ -61,7 +61,7 @@ public class BasicProfilesFactory implements ProfileFactory, ProfileTypeProvider
     public static final ProfileTypeUID GENERIC_TOGGLE_SWITCH_UID = new ProfileTypeUID(SCOPE, "toggle-switch");
     public static final ProfileTypeUID INVERT_UID = new ProfileTypeUID(SCOPE, "invert");
     public static final ProfileTypeUID ROUND_UID = new ProfileTypeUID(SCOPE, "round");
-    public static final ProfileTypeUID THRESHOLD_LOW_UID = new ProfileTypeUID(SCOPE, "threshold");
+    public static final ProfileTypeUID THRESHOLD_UID = new ProfileTypeUID(SCOPE, "threshold");
 
     private static final ProfileType PROFILE_TYPE_GENERIC_COMMAND = ProfileTypeBuilder
             .newTrigger(GENERIC_COMMAND_UID, "Generic Command") //
@@ -82,14 +82,13 @@ public class BasicProfilesFactory implements ProfileFactory, ProfileTypeProvider
             .withSupportedItemTypes(CoreItemFactory.NUMBER) //
             .withSupportedItemTypesOfChannel(CoreItemFactory.NUMBER) //
             .build();
-    private static final ProfileType PROFILE_TYPE_THRESHOLD = ProfileTypeBuilder
-            .newState(THRESHOLD_LOW_UID, "Threshold") //
+    private static final ProfileType PROFILE_TYPE_THRESHOLD = ProfileTypeBuilder.newState(THRESHOLD_UID, "Threshold") //
             .withSupportedItemTypesOfChannel(CoreItemFactory.DIMMER, CoreItemFactory.NUMBER) //
             .withSupportedItemTypes(CoreItemFactory.SWITCH) //
             .build();
 
     private static final Set<ProfileTypeUID> SUPPORTED_PROFILE_TYPE_UIDS = Set.of(GENERIC_COMMAND_UID,
-            GENERIC_TOGGLE_SWITCH_UID, INVERT_UID, ROUND_UID, THRESHOLD_LOW_UID);
+            GENERIC_TOGGLE_SWITCH_UID, INVERT_UID, ROUND_UID, THRESHOLD_UID);
     private static final Set<ProfileType> SUPPORTED_PROFILE_TYPES = Set.of(PROFILE_TYPE_GENERIC_COMMAND,
             PROFILE_TYPE_GENERIC_TOGGLE_SWITCH, PROFILE_TYPE_INVERT, PROFILE_TYPE_ROUND, PROFILE_TYPE_THRESHOLD);
 
@@ -116,7 +115,7 @@ public class BasicProfilesFactory implements ProfileFactory, ProfileTypeProvider
             return new InvertStateProfile(callback);
         } else if (ROUND_UID.equals(profileTypeUID)) {
             return new RoundStateProfile(callback, context);
-        } else if (THRESHOLD_LOW_UID.equals(profileTypeUID)) {
+        } else if (THRESHOLD_UID.equals(profileTypeUID)) {
             return new ThresholdStateProfile(callback, context);
         }
         return null;
