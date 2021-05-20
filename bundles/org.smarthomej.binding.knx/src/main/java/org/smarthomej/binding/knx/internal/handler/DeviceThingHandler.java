@@ -422,7 +422,7 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
     }
 
     private boolean isDPTSupported(@Nullable String dpt) {
-        return typeHelper.toTypeClass(dpt) != null;
+        return !typeHelper.toTypeClass(dpt).isEmpty();
     }
 
     private KNXChannelType getKNXChannelType(Channel channel) {

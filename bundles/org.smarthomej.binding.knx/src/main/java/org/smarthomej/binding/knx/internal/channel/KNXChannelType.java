@@ -162,22 +162,18 @@ public abstract class KNXChannelType {
 
     public final @Nullable OutboundSpec getCommandSpec(Configuration configuration, KNXTypeMapper typeHelper,
             Type command) throws KNXFormatException {
-        logger.trace("getCommandSpec testing Keys '{}' for command '{}'", getAllGAKeys(), command);
-        for (String key : getAllGAKeys()) {
+        Set<String> allGAKeys = getAllGAKeys();
+        logger.trace("getCommandSpec checking keys '{}' for command '{}' ({})", allGAKeys, command, command.getClass());
+        for (String key : allGAKeys) {
             ChannelConfiguration config = parse((String) configuration.get(key));
             if (config != null) {
-                String dpt = config.getDPT();
-                if (dpt == null) {
-                    dpt = getDefaultDPT(key);
-                }
+                String dpt = Objects.requireNonNullElse(config.getDPT(), getDefaultDPT(key));
                 Set<Class<? extends Type>> expectedTypeClass = typeHelper.toTypeClass(dpt);
-                if (expectedTypeClass != null) {
-                    if (expectedTypeClass.contains(command.getClass())) {
-                        logger.trace(
-                                "getCommandSpec key '{}' uses expectedTypeClass '{}' witch isInstance for command '{}' and dpt '{}'",
-                                key, expectedTypeClass, command, dpt);
-                        return new WriteSpecImpl(config, dpt, command);
-                    }
+                if (expectedTypeClass.contains(command.getClass())) {
+                    logger.trace(
+                            "getCommandSpec key '{}' has expectedTypeClass '{}', matching command '{}' and dpt '{}'",
+                            key, expectedTypeClass, command, dpt);
+                    return new WriteSpecImpl(config, dpt, command);
                 }
             }
         }

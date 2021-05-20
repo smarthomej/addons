@@ -815,7 +815,7 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
             }
 
             Set<Class<? extends Type>> typeClass = toTypeClass(id);
-            if (typeClass == null) {
+            if (typeClass.isEmpty()) {
                 return null;
             }
 
@@ -868,15 +868,15 @@ public class KNXCoreTypeMapper implements KNXTypeMapper {
      * @return the openHAB type (command or state) class or {@code null} if the datapoint type id is not supported.
      */
     @Override
-    public @Nullable Set<Class<? extends Type>> toTypeClass(@Nullable String dptId) {
+    public Set<Class<? extends Type>> toTypeClass(@Nullable String dptId) {
         Set<Class<? extends Type>> ohClass = dptTypeMap.get(dptId);
         if (ohClass == null) {
             int mainNumber = getMainNumber(dptId);
             if (mainNumber == -1) {
                 logger.debug("Couldn't convert KNX datapoint type id into openHAB type class for dptId: {}.", dptId);
-                return null;
+                return Set.of();
             }
-            ohClass = dptMainTypeMap.get(mainNumber);
+            ohClass = dptMainTypeMap.getOrDefault(mainNumber, Set.of());
         }
         return ohClass;
     }

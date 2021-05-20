@@ -54,6 +54,5 @@ public interface KNXTypeMapper {
     @Nullable
     Type toType(Datapoint datapoint, byte[] data);
 
-    @Nullable
     Set<Class<? extends Type>> toTypeClass(@Nullable String dpt);
 }
