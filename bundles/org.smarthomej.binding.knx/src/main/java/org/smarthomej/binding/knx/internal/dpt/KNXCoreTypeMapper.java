@@ -96,7 +96,8 @@ public class KNXCoreTypeMapper {
 
     private static final String TIME_DAY_FORMAT = "EEE, HH:mm:ss";
     private static final String DATE_FORMAT = "yyyy-MM-dd";
-    private static final Pattern DPT_REGEX_PATTERN = Pattern.compile("^(?<main>\\[1-9][0-9]{0,2})(?:\\.(?<sub>\\d{3,4}))?$");
+    private static final Pattern DPT_REGEX_PATTERN = Pattern
+            .compile("^(?<main>\\[1-9][0-9]{0,2})(?:\\.(?<sub>\\d{3,4}))?$");
 
     /** stores the openHAB type class for all (supported) KNX datapoint types */
     private static final Map<String, Set<Class<? extends Type>>> DPT_TYPE_MAP = Map.ofEntries(
