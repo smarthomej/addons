@@ -29,7 +29,6 @@ import org.openhab.core.thing.ThingUID;
 import org.openhab.core.types.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthomej.binding.knx.internal.KNXTypeMapper;
 import org.smarthomej.binding.knx.internal.dpt.KNXCoreTypeMapper;
 import org.smarthomej.binding.knx.internal.handler.GroupAddressListener;
 
@@ -69,7 +68,6 @@ public abstract class AbstractKNXClient implements NetworkLinkListener, KNXClien
     private static final int MAX_SEND_ATTEMPTS = 2;
 
     private final Logger logger = LoggerFactory.getLogger(AbstractKNXClient.class);
-    private final KNXTypeMapper typeHelper = new KNXCoreTypeMapper();
 
     private final ThingUID thingUID;
     private final int responseTimeout;
@@ -262,18 +260,6 @@ public abstract class AbstractKNXClient implements NetworkLinkListener, KNXClien
         }
     }
 
-    /**
-     * Transforms a {@link Type} into a datapoint type value for the KNX bus.
-     *
-     * @param type the {@link Type} to transform
-     * @param dpt the datapoint type to which should be converted
-     * @return the corresponding KNX datapoint type value as a string
-     */
-    @Nullable
-    private String toDPTValue(Type type, String dpt) {
-        return typeHelper.toDPTValue(type, dpt);
-    }
-
     private void readNextQueuedDatapoint() {
         if (!connectIfNotAutomatic()) {
             return;
@@ -449,7 +435,7 @@ public abstract class AbstractKNXClient implements NetworkLinkListener, KNXClien
         }
 
         Datapoint datapoint = new CommandDP(groupAddress, thingUID.toString(), 0, dpt);
-        String mappedValue = toDPTValue(type, dpt);
+        String mappedValue = KNXCoreTypeMapper.toDPTValue(type, dpt);
 
         logger.trace("sendToKNX mappedValue: '{}' groupAddress: '{}'", mappedValue, groupAddress);
 

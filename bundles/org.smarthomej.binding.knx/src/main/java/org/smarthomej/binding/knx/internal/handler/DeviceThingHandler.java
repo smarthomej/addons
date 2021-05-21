@@ -41,7 +41,6 @@ import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.knx.internal.KNXBindingConstants;
-import org.smarthomej.binding.knx.internal.KNXTypeMapper;
 import org.smarthomej.binding.knx.internal.channel.KNXChannelType;
 import org.smarthomej.binding.knx.internal.channel.KNXChannelTypes;
 import org.smarthomej.binding.knx.internal.client.AbstractKNXClient;
@@ -68,7 +67,6 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
 
     private final Logger logger = LoggerFactory.getLogger(DeviceThingHandler.class);
 
-    private final KNXTypeMapper typeHelper = new KNXCoreTypeMapper();
     private final Set<GroupAddress> groupAddresses = ConcurrentHashMap.newKeySet();
     private final Set<GroupAddress> groupAddressesWriteBlockedOnce = ConcurrentHashMap.newKeySet();
     private final Set<OutboundSpec> groupAddressesRespondingSpec = ConcurrentHashMap.newKeySet();
@@ -213,7 +211,6 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
     }
 
     /** KNXIO remember controls, removeIf may be null */
-    @SuppressWarnings("null")
     private void rememberRespondingSpec(OutboundSpec commandSpec, boolean add) {
         GroupAddress ga = commandSpec.getGroupAddress();
         if (ga != null) {
@@ -242,7 +239,7 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
                     break;
                 default:
                     withKNXType(channelUID, (selector, channelConfiguration) -> {
-                        OutboundSpec commandSpec = selector.getCommandSpec(channelConfiguration, typeHelper, command);
+                        OutboundSpec commandSpec = selector.getCommandSpec(channelConfiguration, command);
                         // only send GroupValueWrite to KNX if GA is not blocked once
                         if (commandSpec != null
                                 && !groupAddressesWriteBlockedOnce.remove(commandSpec.getGroupAddress())) {
@@ -353,11 +350,11 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
                      */
                     if (isControl(channel.getUID())) {
                         logger.trace("onGroupWrite isControl");
-                        Type type = typeHelper.toType(
+                        Type type = KNXCoreTypeMapper.toType(
                                 new CommandDP(destination, getThing().getUID().toString(), 0, listenSpec.getDPT()),
                                 asdu);
                         if (type != null) {
-                            OutboundSpec commandSpec = selector.getCommandSpec(configuration, typeHelper, type);
+                            OutboundSpec commandSpec = selector.getCommandSpec(configuration, type);
                             if (commandSpec != null) {
                                 rememberRespondingSpec(commandSpec, true);
                             }
@@ -377,7 +374,7 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
         }
 
         Datapoint datapoint = new CommandDP(destination, getThing().getUID().toString(), 0, listenSpec.getDPT());
-        Type type = typeHelper.toType(datapoint, asdu);
+        Type type = KNXCoreTypeMapper.toType(datapoint, asdu);
 
         if (type != null) {
             if (isControl(channelUID)) {
@@ -422,7 +419,7 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
     }
 
     private boolean isDPTSupported(@Nullable String dpt) {
-        return !typeHelper.toTypeClass(dpt).isEmpty();
+        return !KNXCoreTypeMapper.toTypeClass(dpt).isEmpty();
     }
 
     private KNXChannelType getKNXChannelType(Channel channel) {

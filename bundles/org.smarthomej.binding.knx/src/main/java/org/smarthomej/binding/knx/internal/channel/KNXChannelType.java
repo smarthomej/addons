@@ -32,9 +32,9 @@ import org.openhab.core.config.core.Configuration;
 import org.openhab.core.types.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthomej.binding.knx.internal.KNXTypeMapper;
 import org.smarthomej.binding.knx.internal.client.InboundSpec;
 import org.smarthomej.binding.knx.internal.client.OutboundSpec;
+import org.smarthomej.binding.knx.internal.dpt.KNXCoreTypeMapper;
 
 import tuwien.auto.calimero.GroupAddress;
 import tuwien.auto.calimero.KNXFormatException;
@@ -160,15 +160,15 @@ public abstract class KNXChannelType {
         return Collections.unmodifiableSet(new HashSet<>(Arrays.asList(values)));
     }
 
-    public final @Nullable OutboundSpec getCommandSpec(Configuration configuration, KNXTypeMapper typeHelper,
-            Type command) throws KNXFormatException {
+    public final @Nullable OutboundSpec getCommandSpec(Configuration configuration, Type command)
+            throws KNXFormatException {
         Set<String> allGAKeys = getAllGAKeys();
         logger.trace("getCommandSpec checking keys '{}' for command '{}' ({})", allGAKeys, command, command.getClass());
         for (String key : allGAKeys) {
             ChannelConfiguration config = parse((String) configuration.get(key));
             if (config != null) {
                 String dpt = Objects.requireNonNullElse(config.getDPT(), getDefaultDPT(key));
-                Set<Class<? extends Type>> expectedTypeClass = typeHelper.toTypeClass(dpt);
+                Set<Class<? extends Type>> expectedTypeClass = KNXCoreTypeMapper.toTypeClass(dpt);
                 if (expectedTypeClass.contains(command.getClass())) {
                     logger.trace(
                             "getCommandSpec key '{}' has expectedTypeClass '{}', matching command '{}' and dpt '{}'",
