@@ -97,7 +97,7 @@ public class KNXCoreTypeMapper {
     private static final String TIME_DAY_FORMAT = "EEE, HH:mm:ss";
     private static final String DATE_FORMAT = "yyyy-MM-dd";
     private static final Pattern DPT_REGEX_PATTERN = Pattern
-            .compile("^(?<main>\\[1-9][0-9]{0,2})(?:\\.(?<sub>\\d{3,4}))?$");
+            .compile("^(?<main>[1-9][0-9]{0,2})(?:\\.(?<sub>\\d{3,4}))?$");
 
     /** stores the openHAB type class for all (supported) KNX datapoint types */
     private static final Map<String, Set<Class<? extends Type>>> DPT_TYPE_MAP = Map.ofEntries(
@@ -168,6 +168,7 @@ public class KNXCoreTypeMapper {
             Map.entry("232", Set.of(HSBType.class)));
 
     private KNXCoreTypeMapper() {
+        // prevent instantiation
     }
 
     public static @Nullable String toDPTValue(Type type, String dptID) {
@@ -298,19 +299,17 @@ public class KNXCoreTypeMapper {
                         case "8":
                             return translatorBoolean.getValueBoolean() ? UpDownType.DOWN : UpDownType.UP;
                         case "9":
-                            // This is wrong. It should be true -> CLOSE, false -> OPEN, but can't be fixed without
-                            // breaking
-                            // a lot of working installations. The documentation has been updated to reflect that. /
-                            // @J-N-K
+                        case "19":
+                            // This is wrong for DPT 9. It should be true -> CLOSE, false -> OPEN, but unfortunately
+                            // can't be fixed without breaking a lot of working installations.
+                            // The documentation has been updated to reflect that. / @J-N-K
                             return translatorBoolean.getValueBoolean() ? OpenClosedType.OPEN : OpenClosedType.CLOSED;
                         case "10":
                             return translatorBoolean.getValueBoolean() ? StopMoveType.MOVE : StopMoveType.STOP;
-                        case "19":
-                            return translatorBoolean.getValueBoolean() ? OpenClosedType.OPEN : OpenClosedType.CLOSED;
                         case "22":
                             return DecimalType.valueOf(translatorBoolean.getValueBoolean() ? "1" : "0");
                         default:
-                            return translatorBoolean.getValueBoolean() ? OnOffType.ON : OnOffType.OFF;
+                            return OnOffType.from(translatorBoolean.getValueBoolean());
                     }
                 case "2":
                     DPTXlator1BitControlled translator1BitControlled = (DPTXlator1BitControlled) translator;
