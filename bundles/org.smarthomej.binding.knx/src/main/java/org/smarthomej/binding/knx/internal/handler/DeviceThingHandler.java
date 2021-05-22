@@ -26,7 +26,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.config.core.Configuration;
 import org.openhab.core.library.types.IncreaseDecreaseType;
 import org.openhab.core.thing.Channel;
@@ -350,7 +349,7 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
                      */
                     if (isControl(channel.getUID())) {
                         logger.trace("onGroupWrite isControl");
-                        Type type = KNXCoreTypeMapper.toType(
+                        Type type = KNXCoreTypeMapper.convertRawDataToType(
                                 new CommandDP(destination, getThing().getUID().toString(), 0, listenSpec.getDPT()),
                                 asdu);
                         if (type != null) {
@@ -374,7 +373,7 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
         }
 
         Datapoint datapoint = new CommandDP(destination, getThing().getUID().toString(), 0, listenSpec.getDPT());
-        Type type = KNXCoreTypeMapper.toType(datapoint, asdu);
+        Type type = KNXCoreTypeMapper.convertRawDataToType(datapoint, asdu);
 
         if (type != null) {
             if (isControl(channelUID)) {
@@ -418,8 +417,8 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
         }
     }
 
-    private boolean isDPTSupported(@Nullable String dpt) {
-        return !KNXCoreTypeMapper.toTypeClass(dpt).isEmpty();
+    private boolean isDPTSupported(String dpt) {
+        return !KNXCoreTypeMapper.getAllowedTypes(dpt).isEmpty();
     }
 
     private KNXChannelType getKNXChannelType(Channel channel) {

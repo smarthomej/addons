@@ -168,7 +168,7 @@ public abstract class KNXChannelType {
             ChannelConfiguration config = parse((String) configuration.get(key));
             if (config != null) {
                 String dpt = Objects.requireNonNullElse(config.getDPT(), getDefaultDPT(key));
-                Set<Class<? extends Type>> expectedTypeClass = KNXCoreTypeMapper.toTypeClass(dpt);
+                Set<Class<? extends Type>> expectedTypeClass = KNXCoreTypeMapper.getAllowedTypes(dpt);
                 if (expectedTypeClass.contains(command.getClass())) {
                     logger.trace(
                             "getCommandSpec key '{}' has expectedTypeClass '{}', matching command '{}' and dpt '{}'",

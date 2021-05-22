@@ -435,7 +435,7 @@ public abstract class AbstractKNXClient implements NetworkLinkListener, KNXClien
         }
 
         Datapoint datapoint = new CommandDP(groupAddress, thingUID.toString(), 0, dpt);
-        String mappedValue = KNXCoreTypeMapper.toDPTValue(type, dpt);
+        String mappedValue = KNXCoreTypeMapper.formatAsDPTString(type, dpt);
 
         logger.trace("sendToKNX mappedValue: '{}' groupAddress: '{}'", mappedValue, groupAddress);
 
