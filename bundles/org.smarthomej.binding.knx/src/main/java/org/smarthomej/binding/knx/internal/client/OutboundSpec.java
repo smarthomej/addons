@@ -48,5 +48,7 @@ public interface OutboundSpec {
      *
      * @return the command/state
      */
-    Type getType();
+    Type getValue();
+
+    boolean matchesDestination(GroupAddress groupAddress);
 }

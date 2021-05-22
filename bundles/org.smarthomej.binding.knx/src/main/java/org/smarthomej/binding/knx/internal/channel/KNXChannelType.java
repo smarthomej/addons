@@ -15,13 +15,10 @@ package org.smarthomej.binding.knx.internal.channel;
 
 import static java.util.stream.Collectors.*;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -58,7 +55,7 @@ public abstract class KNXChannelType {
     private final Set<String> channelTypeIDs;
 
     KNXChannelType(String... channelTypeIDs) {
-        this.channelTypeIDs = new HashSet<>(Arrays.asList(channelTypeIDs));
+        this.channelTypeIDs = Set.of(channelTypeIDs);
     }
 
     final Set<String> getChannelIDs() {
@@ -140,29 +137,6 @@ public abstract class KNXChannelType {
         return null;
     }
 
-    protected final Set<GroupAddress> getAddresses(@Nullable Configuration configuration, Iterable<String> addresses)
-            throws KNXFormatException {
-        Set<GroupAddress> ret = new HashSet<>();
-        for (String address : addresses) {
-            if (configuration != null && configuration.get(address) != null) {
-                ret.add(new GroupAddress((String) configuration.get(address)));
-            }
-        }
-        return ret;
-    }
-
-    protected final boolean isEquals(@Nullable Configuration configuration, String address, GroupAddress groupAddress)
-            throws KNXFormatException {
-        if (configuration != null && configuration.get(address) != null) {
-            return Objects.equals(new GroupAddress((String) configuration.get(address)), groupAddress);
-        }
-        return false;
-    }
-
-    protected final Set<String> asSet(String... values) {
-        return Collections.unmodifiableSet(new HashSet<>(Arrays.asList(values)));
-    }
-
     public final @Nullable OutboundSpec getCommandSpec(Configuration configuration, Type command)
             throws KNXFormatException {
         Set<String> allGAKeys = getAllGAKeys();
@@ -191,21 +165,19 @@ public abstract class KNXChannelType {
     }
 
     public final @Nullable InboundSpec getListenSpec(Configuration configuration, GroupAddress groupAddress) {
-        Optional<ListenSpecImpl> result = getAllGAKeys().stream()
+        return getAllGAKeys().stream()
                 .map(key -> new ListenSpecImpl(parse((String) configuration.get(key)), getDefaultDPT(key)))
                 .filter(spec -> !spec.getGroupAddresses().isEmpty())
-                .filter(spec -> spec.getGroupAddresses().contains(groupAddress)).findFirst();
-        return result.isPresent() ? result.get() : null;
+                .filter(spec -> spec.getGroupAddresses().contains(groupAddress)).findFirst().orElse(null);
     }
 
     protected abstract String getDefaultDPT(String gaConfigKey);
 
     public final @Nullable OutboundSpec getResponseSpec(Configuration configuration, GroupAddress groupAddress,
-            Type type) throws KNXFormatException {
-        Optional<ReadResponseSpecImpl> result = getAllGAKeys().stream()
-                .map(key -> new ReadResponseSpecImpl(parse((String) configuration.get(key)), getDefaultDPT(key), type))
-                .filter(spec -> groupAddress.equals(spec.getGroupAddress())).findFirst();
-        return result.isPresent() ? result.get() : null;
+            Type value) {
+        return getAllGAKeys().stream()
+                .map(key -> new ReadResponseSpecImpl(parse((String) configuration.get(key)), getDefaultDPT(key), value))
+                .filter(spec -> spec.matchesDestination(groupAddress)).findFirst().orElse(null);
     }
 
     @Override

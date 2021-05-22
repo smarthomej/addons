@@ -47,7 +47,6 @@ import org.slf4j.LoggerFactory;
 import tuwien.auto.calimero.KNXException;
 import tuwien.auto.calimero.KNXFormatException;
 import tuwien.auto.calimero.KNXIllegalArgumentException;
-import tuwien.auto.calimero.datapoint.Datapoint;
 import tuwien.auto.calimero.dptxlator.DPT;
 import tuwien.auto.calimero.dptxlator.DPTXlator;
 import tuwien.auto.calimero.dptxlator.DPTXlator1BitControlled;
@@ -97,46 +96,8 @@ public class KNXCoreTypeMapper {
     private static final String TIME_DAY_FORMAT = "EEE, HH:mm:ss";
     private static final String DATE_FORMAT = "yyyy-MM-dd";
     private static final Pattern RGB_PATTERN = Pattern.compile("r:(?<r>\\d+) g:(?<g>\\d+) b:(?<b>\\d+)");
-    private static final Pattern DPT_REGEX_PATTERN = Pattern
-            .compile("^(?<main>[1-9][0-9]{0,2})(?:\\.(?<sub>\\d{3,4}))?$");
+    private static final Pattern DPT_PATTERN = Pattern.compile("^(?<main>[1-9][0-9]{0,2})(?:\\.(?<sub>\\d{3,4}))?$");
 
-    /** stores the openHAB type class for all (supported) KNX datapoint types */
-    private static final Map<String, Set<Class<? extends Type>>> DPT_TYPE_MAP = Map.ofEntries(
-            Map.entry(DPTXlatorBoolean.DPT_UPDOWN.getID(), Set.of(UpDownType.class)), //
-            Map.entry(DPTXlatorBoolean.DPT_OPENCLOSE.getID(), Set.of(OpenClosedType.class)), //
-            Map.entry(DPTXlatorBoolean.DPT_START.getID(), Set.of(StopMoveType.class)), //
-            Map.entry(DPTXlatorBoolean.DPT_WINDOW_DOOR.getID(), Set.of(OpenClosedType.class)), //
-            Map.entry(DPTXlatorBoolean.DPT_SCENE_AB.getID(), Set.of(DecimalType.class)), //
-            Map.entry(DPTXlator3BitControlled.DPT_CONTROL_BLINDS.getID(), Set.of(UpDownType.class)), //
-            Map.entry(DPTXlator8BitUnsigned.DPT_SCALING.getID(), Set.of(PercentType.class)), //
-            Map.entry(DPTXlator8BitUnsigned.DPT_PERCENT_U8.getID(), Set.of(PercentType.class)), //
-            Map.entry(DPTXlator8BitSigned.DPT_PERCENT_V8.getID(), Set.of(PercentType.class)), //
-            Map.entry(DPTXlator8BitSigned.DPT_STATUS_MODE3.getID(), Set.of(StringType.class)), //
-            Map.entry(DPTXlator2ByteFloat.DPT_HUMIDITY.getID(), Set.of(PercentType.class)), //
-            Map.entry(DPTXlatorString.DPT_STRING_8859_1.getID(), Set.of(StringType.class)), //
-            Map.entry(DPTXlatorString.DPT_STRING_ASCII.getID(), Set.of(StringType.class)));
-
-    /** stores the default KNX DPT to use for each openHAB type */
-    private static final Map<Class<? extends Type>, String> DEFAULT_DPT_MAP = Map.ofEntries(
-            Map.entry(OnOffType.class, DPTXlatorBoolean.DPT_SWITCH.getID()), //
-            Map.entry(UpDownType.class, DPTXlatorBoolean.DPT_UPDOWN.getID()), //
-            Map.entry(StopMoveType.class, DPTXlatorBoolean.DPT_START.getID()), //
-            Map.entry(OpenClosedType.class, DPTXlatorBoolean.DPT_WINDOW_DOOR.getID()), //
-            Map.entry(IncreaseDecreaseType.class, DPTXlator3BitControlled.DPT_CONTROL_DIMMING.getID()), //
-            Map.entry(PercentType.class, DPTXlator8BitUnsigned.DPT_SCALING.getID()), //
-            Map.entry(DecimalType.class, DPTXlator2ByteFloat.DPT_TEMPERATURE.getID()), //
-            Map.entry(QuantityType.class, DPTXlator2ByteFloat.DPT_TEMPERATURE.getID()), //
-            Map.entry(DateTimeType.class, DPTXlatorTime.DPT_TIMEOFDAY.getID()), //
-            Map.entry(StringType.class, DPTXlatorString.DPT_STRING_8859_1.getID()), //
-            Map.entry(HSBType.class, DPTXlatorRGB.DPT_RGB.getID()));
-
-    @SuppressWarnings("unused")
-    private static final List<Class<? extends DPTXlator>> XLATORS = List.of(DPTXlator1BitControlled.class,
-            DPTXlator2ByteFloat.class, DPTXlator2ByteUnsigned.class, DPTXlator3BitControlled.class,
-            DPTXlator4ByteFloat.class, DPTXlator4ByteSigned.class, DPTXlator4ByteUnsigned.class,
-            DPTXlator64BitSigned.class, DPTXlator8BitSigned.class, DPTXlator8BitUnsigned.class, DPTXlatorBoolean.class,
-            DPTXlatorDate.class, DPTXlatorDateTime.class, DPTXlatorRGB.class, DPTXlatorSceneControl.class,
-            DPTXlatorSceneNumber.class, DPTXlatorString.class, DPTXlatorTime.class, DPTXlatorUtf8.class);
     /**
      * stores the openHAB type class for (supported) KNX datapoint types in a generic way.
      * dptTypeMap stores more specific type class and exceptions.
@@ -168,6 +129,45 @@ public class KNXCoreTypeMapper {
             Map.entry("229", Set.of(DecimalType.class)), //
             Map.entry("232", Set.of(HSBType.class)));
 
+    /** stores the openHAB type class for all (supported) KNX datapoint types */
+    private static final Map<String, Set<Class<? extends Type>>> DPT_TYPE_MAP = Map.ofEntries(
+            Map.entry(DPTXlatorBoolean.DPT_UPDOWN.getID(), Set.of(UpDownType.class)), //
+            Map.entry(DPTXlatorBoolean.DPT_OPENCLOSE.getID(), Set.of(OpenClosedType.class)), //
+            Map.entry(DPTXlatorBoolean.DPT_START.getID(), Set.of(StopMoveType.class)), //
+            Map.entry(DPTXlatorBoolean.DPT_WINDOW_DOOR.getID(), Set.of(OpenClosedType.class)), //
+            Map.entry(DPTXlatorBoolean.DPT_SCENE_AB.getID(), Set.of(DecimalType.class)), //
+            Map.entry(DPTXlator3BitControlled.DPT_CONTROL_BLINDS.getID(), Set.of(UpDownType.class)), //
+            Map.entry(DPTXlator8BitUnsigned.DPT_SCALING.getID(), Set.of(PercentType.class)), //
+            Map.entry(DPTXlator8BitUnsigned.DPT_PERCENT_U8.getID(), Set.of(PercentType.class)), //
+            Map.entry(DPTXlator8BitSigned.DPT_PERCENT_V8.getID(), Set.of(PercentType.class)), //
+            Map.entry(DPTXlator8BitSigned.DPT_STATUS_MODE3.getID(), Set.of(StringType.class)), //
+            Map.entry(DPTXlator2ByteFloat.DPT_HUMIDITY.getID(), Set.of(PercentType.class)), //
+            Map.entry(DPTXlatorString.DPT_STRING_8859_1.getID(), Set.of(StringType.class)), //
+            Map.entry(DPTXlatorString.DPT_STRING_ASCII.getID(), Set.of(StringType.class)));
+
+    /** stores the default KNX DPT to use for each openHAB type */
+    @SuppressWarnings("unused")
+    private static final Map<Class<? extends Type>, String> DEFAULT_DPT_MAP = Map.ofEntries(
+            Map.entry(OnOffType.class, DPTXlatorBoolean.DPT_SWITCH.getID()), //
+            Map.entry(UpDownType.class, DPTXlatorBoolean.DPT_UPDOWN.getID()), //
+            Map.entry(StopMoveType.class, DPTXlatorBoolean.DPT_START.getID()), //
+            Map.entry(OpenClosedType.class, DPTXlatorBoolean.DPT_WINDOW_DOOR.getID()), //
+            Map.entry(IncreaseDecreaseType.class, DPTXlator3BitControlled.DPT_CONTROL_DIMMING.getID()), //
+            Map.entry(PercentType.class, DPTXlator8BitUnsigned.DPT_SCALING.getID()), //
+            Map.entry(DecimalType.class, DPTXlator2ByteFloat.DPT_TEMPERATURE.getID()), //
+            Map.entry(QuantityType.class, DPTXlator2ByteFloat.DPT_TEMPERATURE.getID()), //
+            Map.entry(DateTimeType.class, DPTXlatorTime.DPT_TIMEOFDAY.getID()), //
+            Map.entry(StringType.class, DPTXlatorString.DPT_STRING_8859_1.getID()), //
+            Map.entry(HSBType.class, DPTXlatorRGB.DPT_RGB.getID()));
+
+    @SuppressWarnings("unused")
+    private static final List<Class<? extends DPTXlator>> XLATORS = List.of(DPTXlator1BitControlled.class,
+            DPTXlator2ByteFloat.class, DPTXlator2ByteUnsigned.class, DPTXlator3BitControlled.class,
+            DPTXlator4ByteFloat.class, DPTXlator4ByteSigned.class, DPTXlator4ByteUnsigned.class,
+            DPTXlator64BitSigned.class, DPTXlator8BitSigned.class, DPTXlator8BitUnsigned.class, DPTXlatorBoolean.class,
+            DPTXlatorDate.class, DPTXlatorDateTime.class, DPTXlatorRGB.class, DPTXlatorSceneControl.class,
+            DPTXlatorSceneNumber.class, DPTXlatorString.class, DPTXlatorTime.class, DPTXlatorUtf8.class);
+
     private KNXCoreTypeMapper() {
         // prevent instantiation
     }
@@ -182,14 +182,13 @@ public class KNXCoreTypeMapper {
     public static @Nullable String formatAsDPTString(Type value, String dptId) {
         DPT dpt;
 
-        Matcher m = DPT_REGEX_PATTERN.matcher(dptId);
+        Matcher m = DPT_PATTERN.matcher(dptId);
         if (!m.matches() || m.groupCount() != 2) {
             LOGGER.warn("formatAsDPTString couldn't identify main/sub number in dptId '{}'", dptId);
             return null;
         }
 
         String mainNumber = m.group("main");
-        int subNumber = Integer.parseInt(m.group("sub"));
 
         try {
             DPTXlator translator = TranslatorTypes.createTranslator(Integer.parseInt(mainNumber), dptId);
@@ -201,28 +200,19 @@ public class KNXCoreTypeMapper {
         try {
             // check for HSBType first, because it extends PercentType as well
             if (value instanceof HSBType) {
-                switch (mainNumber) {
-                    case "5":
-                        switch (subNumber) {
-                            case 3: // * 5.003: Angle, values: 0...360 °
-                                return ((HSBType) value).getHue().toString();
-                            case 1: // * 5.001: Scaling, values: 0...100 %
-                            default:
-                                return ((HSBType) value).getBrightness().toString();
-                        }
-                    case "232":
-                        switch (subNumber) {
-                            case 600: // 232.600
-                                HSBType hc = ((HSBType) value);
-                                return "r:" + convertPercentToByte(hc.getRed()) + " g:"
-                                        + convertPercentToByte(hc.getGreen()) + " b:"
-                                        + convertPercentToByte(hc.getBlue());
-                        }
-                    default:
-                        HSBType hc = ((HSBType) value);
-                        return "r:" + hc.getRed().intValue() + " g:" + hc.getGreen().intValue() + " b:"
-                                + hc.getBlue().intValue();
+                HSBType hsb = ((HSBType) value);
+                // also covers 232.600 (RGB)
+                if ("5".equals(mainNumber)) {
+                    switch (m.group("sub")) {
+                        case "003": // * 5.003: Angle, values: 0...360 °
+                            return hsb.getHue().toString();
+                        case "001": // * 5.001: Scaling, values: 0...100 %
+                        default:
+                            return hsb.getBrightness().toString();
+                    }
                 }
+                return "r:" + convertPercentToByte(hsb.getRed()) + " g:" + convertPercentToByte(hsb.getGreen()) + " b:"
+                        + convertPercentToByte(hsb.getBlue());
             } else if (value instanceof OnOffType) {
                 return value.equals(OnOffType.OFF) ? dpt.getLowerValue() : dpt.getUpperValue();
             } else if (value instanceof UpDownType) {
@@ -238,32 +228,30 @@ public class KNXCoreTypeMapper {
             } else if (value instanceof PercentType) {
                 return String.valueOf(((DecimalType) value).intValue());
             } else if (value instanceof DecimalType || value instanceof QuantityType<?>) {
-                if ("2".equals(mainNumber)) {
-                    int intVal = value instanceof DecimalType ? ((DecimalType) value).intValue()
-                            : ((QuantityType<?>) value).intValue();
-                    DPT valueDPT = ((DPTXlator1BitControlled.DPT1BitControlled) dpt).getValueDPT();
-                    switch (intVal) {
-                        case 0:
-                            return "0 " + valueDPT.getLowerValue();
-                        case 1:
-                            return "0 " + valueDPT.getUpperValue();
-                        case 2:
-                            return "1 " + valueDPT.getLowerValue();
-                        default:
-                            return "1 " + valueDPT.getUpperValue();
-                    }
-                } else if ("18".equals(mainNumber)) {
-                    int intVal = value instanceof DecimalType ? ((DecimalType) value).intValue()
-                            : ((QuantityType<?>) value).intValue();
-                    if (intVal > 63) {
-                        return "learn " + (intVal - 0x80);
-                    } else {
-                        return "activate " + intVal;
-                    }
-                } else {
-                    BigDecimal bigDecimal = value instanceof DecimalType ? ((DecimalType) value).toBigDecimal()
-                            : ((QuantityType<?>) value).toBigDecimal();
-                    return bigDecimal.stripTrailingZeros().toPlainString();
+                BigDecimal bigDecimal = value instanceof DecimalType ? ((DecimalType) value).toBigDecimal()
+                        : ((QuantityType<?>) value).toBigDecimal();
+                switch (mainNumber) {
+                    case "2":
+                        DPT valueDPT = ((DPTXlator1BitControlled.DPT1BitControlled) dpt).getValueDPT();
+                        switch (bigDecimal.intValue()) {
+                            case 0:
+                                return "0 " + valueDPT.getLowerValue();
+                            case 1:
+                                return "0 " + valueDPT.getUpperValue();
+                            case 2:
+                                return "1 " + valueDPT.getLowerValue();
+                            default:
+                                return "1 " + valueDPT.getUpperValue();
+                        }
+                    case "18":
+                        int intVal = bigDecimal.intValue();
+                        if (intVal > 63) {
+                            return "learn " + (intVal - 0x80);
+                        } else {
+                            return "activate " + intVal;
+                        }
+                    default:
+                        return bigDecimal.stripTrailingZeros().toPlainString();
                 }
             } else if (value instanceof StringType) {
                 return value.toString();
@@ -277,27 +265,26 @@ public class KNXCoreTypeMapper {
         }
 
         LOGGER.debug("formatAsDPTString: Couldn't convert value {} to dpt id {} (no mapping).", value, dptId);
-
         return null;
     }
 
     /**
      * convert the raw value received to the corresponding openHAB value
      *
-     * @param datapoint the DPT of the given data
+     * @param dptId the DPT of the given data
      * @param data a byte array containing the value
      * @return the data converted to an openHAB Type (or null if conversion failed)
      */
-    public static @Nullable Type convertRawDataToType(Datapoint datapoint, byte[] data) {
+    public static @Nullable Type convertRawDataToType(String dptId, byte[] data) {
         try {
-            DPTXlator translator = TranslatorTypes.createTranslator(datapoint.getMainNumber(), datapoint.getDPT());
+            DPTXlator translator = TranslatorTypes.createTranslator(0, dptId);
             translator.setData(data);
             String value = translator.getValue();
 
             String id = translator.getType().getID();
-            LOGGER.trace("convertRawDataToType datapoint DPT = {}", datapoint.getDPT());
+            LOGGER.trace("convertRawDataToType datapoint DPT = {}", dptId);
 
-            Matcher m = DPT_REGEX_PATTERN.matcher(id);
+            Matcher m = DPT_PATTERN.matcher(id);
             if (!m.matches() || m.groupCount() != 2) {
                 LOGGER.warn("convertRawDataToType couldn't identify main/sub number in dptID '{}'", id);
                 return null;
@@ -408,10 +395,6 @@ public class KNXCoreTypeMapper {
             }
 
             Set<Class<? extends Type>> typeClass = getAllowedTypes(id);
-            if (typeClass.isEmpty()) {
-                return null;
-            }
-
             if (typeClass.contains(PercentType.class)) {
                 return new PercentType(BigDecimal.valueOf(Math.round(translator.getNumericValue())));
             }
@@ -422,7 +405,7 @@ public class KNXCoreTypeMapper {
                 return StringType.valueOf(value);
             }
             if (typeClass.contains(DateTimeType.class)) {
-                String date = formatDateTime(value, datapoint.getDPT());
+                String date = formatDateTime(value, dptId);
                 if (date.isEmpty()) {
                     LOGGER.debug("convertRawDataToType: KNX clock msg ignored: date object empty {}.", date);
                     return null;
@@ -441,11 +424,10 @@ public class KNXCoreTypeMapper {
                     return HSBType.fromRGB(r, g, b);
                 }
             }
-        } catch (KNXFormatException | KNXIllegalArgumentException kfe) {
-            LOGGER.info("Translator couldn't parse data for datapoint type '{}' ({}).", datapoint.getDPT(),
-                    kfe.getClass());
+        } catch (NumberFormatException | KNXFormatException | KNXIllegalArgumentException e) {
+            LOGGER.info("Translator couldn't parse data '{}'for datapoint type '{}' ({}).", data, dptId, e.getClass());
         } catch (KNXException e) {
-            LOGGER.warn("Failed creating a translator for datapoint type '{}'.", datapoint.getDPT(), e);
+            LOGGER.warn("Failed creating a translator for datapoint type '{}'.", dptId, e);
         }
 
         return null;
@@ -460,7 +442,7 @@ public class KNXCoreTypeMapper {
     public static Set<Class<? extends Type>> getAllowedTypes(String dptId) {
         Set<Class<? extends Type>> ohClass = DPT_TYPE_MAP.get(dptId);
         if (ohClass == null) {
-            Matcher m = DPT_REGEX_PATTERN.matcher(dptId);
+            Matcher m = DPT_PATTERN.matcher(dptId);
             if (!m.matches()) {
                 LOGGER.warn("getAllowedTypes couldn't identify main number in dptID '{}'", dptId);
                 return Set.of();
@@ -476,18 +458,18 @@ public class KNXCoreTypeMapper {
      * <code>dpt</code> to a String which can be processed by {@link DateTimeType}.
      *
      * @param value
-     * @param dpt
+     * @param dptId
      *
      * @return a formatted String like </code>yyyy-MM-dd'T'HH:mm:ss</code> which
      *         is target format of the {@link DateTimeType}
      */
-    private static String formatDateTime(String value, String dpt) {
+    private static String formatDateTime(String value, String dptId) {
         Date date = null;
 
         try {
-            if (DPTXlatorDate.DPT_DATE.getID().equals(dpt)) {
+            if (DPTXlatorDate.DPT_DATE.getID().equals(dptId)) {
                 date = new SimpleDateFormat(DATE_FORMAT).parse(value);
-            } else if (DPTXlatorTime.DPT_TIMEOFDAY.getID().equals(dpt)) {
+            } else if (DPTXlatorTime.DPT_TIMEOFDAY.getID().equals(dptId)) {
                 if (value.contains("no-day")) {
                     /*
                      * KNX "no-day" needs special treatment since openHAB's DateTimeType doesn't support "no-day".

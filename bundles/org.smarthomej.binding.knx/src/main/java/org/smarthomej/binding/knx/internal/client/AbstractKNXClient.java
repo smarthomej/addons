@@ -405,7 +405,7 @@ public abstract class AbstractKNXClient implements NetworkLinkListener, KNXClien
         logger.trace("writeToKNX groupAddress '{}', commandSpec '{}'", groupAddress, commandSpec);
 
         if (groupAddress != null) {
-            sendToKNX(processCommunicator, link, groupAddress, commandSpec.getDPT(), commandSpec.getType());
+            sendToKNX(processCommunicator, link, groupAddress, commandSpec.getDPT(), commandSpec.getValue());
         }
     }
 
@@ -424,7 +424,7 @@ public abstract class AbstractKNXClient implements NetworkLinkListener, KNXClien
         logger.trace("respondToKNX groupAddress '{}', responseSpec '{}'", groupAddress, responseSpec);
 
         if (groupAddress != null) {
-            sendToKNX(responseCommunicator, link, groupAddress, responseSpec.getDPT(), responseSpec.getType());
+            sendToKNX(responseCommunicator, link, groupAddress, responseSpec.getDPT(), responseSpec.getValue());
         }
     }
 

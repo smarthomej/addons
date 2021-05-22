@@ -21,10 +21,6 @@ import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.HSBType;
 import org.openhab.core.library.types.QuantityType;
 
-import tuwien.auto.calimero.GroupAddress;
-import tuwien.auto.calimero.datapoint.Datapoint;
-import tuwien.auto.calimero.datapoint.StateDP;
-
 /**
  *
  * @author Simon Kaufmann - initial contribution and API
@@ -52,7 +48,6 @@ public class KNXCoreTypeMapperTest {
     @Test
     public void rgbValue() {
         // input data
-        Datapoint dp = new StateDP(new GroupAddress(1, 1, 1), "RGB", 232, "232.600");
         byte[] data = new byte[] { 123, 45, 67 };
 
         // this is the old implementation
@@ -62,6 +57,6 @@ public class KNXCoreTypeMapperTest {
         int b = Integer.parseInt(value.split(" ")[2].split(":")[1]);
         HSBType expected = HSBType.fromRGB(r, g, b);
 
-        assertEquals(expected, KNXCoreTypeMapper.convertRawDataToType(dp, data));
+        assertEquals(expected, KNXCoreTypeMapper.convertRawDataToType("232.600", data));
     }
 }
