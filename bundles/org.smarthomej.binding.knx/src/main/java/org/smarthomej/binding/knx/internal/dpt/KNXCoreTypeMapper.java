@@ -421,7 +421,6 @@ public class KNXCoreTypeMapper {
             if (typeClass.contains(StringType.class)) {
                 return StringType.valueOf(value);
             }
-
             if (typeClass.contains(DateTimeType.class)) {
                 String date = formatDateTime(value, datapoint.getDPT());
                 if (date.isEmpty()) {
@@ -431,7 +430,6 @@ public class KNXCoreTypeMapper {
                     return DateTimeType.valueOf(date);
                 }
             }
-
             if (typeClass.contains(HSBType.class)) {
                 // value has format of "r:<red value> g:<green value> b:<blue value>"
                 Matcher rgb = RGB_PATTERN.matcher(value);
@@ -463,7 +461,7 @@ public class KNXCoreTypeMapper {
         Set<Class<? extends Type>> ohClass = DPT_TYPE_MAP.get(dptId);
         if (ohClass == null) {
             Matcher m = DPT_REGEX_PATTERN.matcher(dptId);
-            if (!m.matches() || m.groupCount() < 1) {
+            if (!m.matches()) {
                 LOGGER.warn("getAllowedTypes couldn't identify main number in dptID '{}'", dptId);
                 return Set.of();
             }

@@ -49,7 +49,7 @@ import tuwien.auto.calimero.KNXFormatException;
 public abstract class KNXChannelType {
 
     private static final Pattern PATTERN = Pattern.compile(
-            "^((?<dpt>[0-9]{1,3}\\.[0-9]{3,4}):)?(?<read>\\<)?(?<mainGA>[0-9]{1,5}(/[0-9]{1,4}){0,2})(?<listenGAs>(\\+(\\<?[0-9]{1,5}(/[0-9]{1,4}){0,2}))*)$");
+            "^((?<dpt>[1-9][0-9]{0,2}\\.[0-9]{3,4}):)?(?<read>\\<)?(?<mainGA>[0-9]{1,5}(/[0-9]{1,4}){0,2})(?<listenGAs>(\\+(\\<?[0-9]{1,5}(/[0-9]{1,4}){0,2}))*)$");
 
     private static final Pattern PATTERN_LISTEN = Pattern
             .compile("\\+((?<read>\\<)?(?<GA>[0-9]{1,5}(/[0-9]{1,4}){0,2}))");
@@ -86,7 +86,10 @@ public abstract class KNXChannelType {
                     matcher.group("read") != null);
 
             return new ChannelConfiguration(matcher.group("dpt"), mainGA, listenGAs);
+        } else {
+            logger.warn("Failed parsing channel configuration '{}'.", fancy);
         }
+
         return null;
     }
 
