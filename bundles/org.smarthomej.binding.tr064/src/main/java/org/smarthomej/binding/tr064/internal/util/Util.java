@@ -295,7 +295,7 @@ public class Util {
             String parameterPattern = parameter.getPattern();
             if (parameterPattern != null) {
                 parameters.removeIf(param -> {
-                    if (param.trim().isEmpty()) {
+                    if (param.isBlank()) {
                         LOGGER.debug("Removing empty parameter while processing '{}'.", channelId);
                         return true;
                     } else if (!param.matches(parameterPattern)) {
