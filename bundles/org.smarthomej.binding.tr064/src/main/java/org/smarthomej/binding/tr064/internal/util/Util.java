@@ -295,9 +295,12 @@ public class Util {
             String parameterPattern = parameter.getPattern();
             if (parameterPattern != null) {
                 parameters.removeIf(param -> {
-                    if (!param.matches(parameterPattern)) {
-                        LOGGER.warn("Removing {} while processing {}, does not match pattern {}, check config.", param,
-                                channelId, parameterPattern);
+                    if (param.isBlank()) {
+                        LOGGER.debug("Removing empty parameter while processing '{}'.", channelId);
+                        return true;
+                    } else if (!param.matches(parameterPattern)) {
+                        LOGGER.warn("Removing '{}' while processing '{}', does not match pattern '{}', check config.",
+                                param, channelId, parameterPattern);
                         return true;
                     } else {
                         return false;
