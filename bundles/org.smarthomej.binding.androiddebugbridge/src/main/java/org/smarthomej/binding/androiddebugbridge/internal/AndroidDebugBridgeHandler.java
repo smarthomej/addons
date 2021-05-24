@@ -16,7 +16,10 @@ package org.smarthomej.binding.androiddebugbridge.internal;
 import static org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBridgeBindingConstants.*;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -69,6 +72,7 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
     private AndroidDebugBridgeConfiguration config = new AndroidDebugBridgeConfiguration();
     private @Nullable ScheduledFuture<?> connectionCheckerSchedule;
     private AndroidDebugBridgeMediaStatePackageConfig @Nullable [] packageConfigs = null;
+    private Map<String, Object> channelLastStateMap = new HashMap<>();
 
     public AndroidDebugBridgeHandler(Thing thing) {
         super(thing);
@@ -163,22 +167,44 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
                 }
             case WAKE_LOCK_CHANNEL:
                 if (command instanceof RefreshType) {
-                    updateState(channelUID, new DecimalType(adbConnection.getPowerWakeLock()));
+                    int wakeLockState = adbConnection.getPowerWakeLock();
+                    int lastWakeLockState = (int) channelLastStateMap.getOrDefault(WAKE_LOCK_CHANNEL, 0);
+                    if (wakeLockState == lastWakeLockState) {
+                        updateState(channelUID, new DecimalType(wakeLockState));
+                    }
+                    channelLastStateMap.put(WAKE_LOCK_CHANNEL, wakeLockState);
                 }
                 break;
             case AWAKE_STATE_CHANNEL:
                 if (command instanceof RefreshType) {
-                    updateState(channelUID, OnOffType.from(adbConnection.isAwake()));
+                    boolean awakeState = adbConnection.isAwake();
+                    boolean lastAwakeState = (boolean) channelLastStateMap.getOrDefault(AWAKE_STATE_CHANNEL, false);
+                    if (awakeState == lastAwakeState) {
+                        updateState(channelUID, OnOffType.from(awakeState));
+                    }
+                    channelLastStateMap.put(AWAKE_STATE_CHANNEL, awakeState);
                 }
                 break;
             case SCREEN_STATE_CHANNEL:
                 if (command instanceof RefreshType) {
-                    updateState(channelUID, OnOffType.from(adbConnection.isScreenOn()));
+                    boolean screenState = adbConnection.isScreenOn();
+                    boolean lastScreenState = (boolean) channelLastStateMap.getOrDefault(SCREEN_STATE_CHANNEL, false);
+                    if (screenState == lastScreenState) {
+                        updateState(channelUID, OnOffType.from(screenState));
+                    }
+                    channelLastStateMap.put(SCREEN_STATE_CHANNEL, screenState);
                 }
                 break;
             case HDMI_STATE_CHANNEL:
                 if (command instanceof RefreshType) {
-                    adbConnection.isHDMIOn().ifPresent(state -> updateState(channelUID, OnOffType.from(state)));
+                    Optional<Boolean> hdmiState = adbConnection.isHDMIOn();
+                    boolean lastHDMIState = (boolean) channelLastStateMap.getOrDefault(HDMI_STATE_CHANNEL, false);
+                    if (hdmiState.isPresent()) {
+                        if (hdmiState.get().equals(lastHDMIState)) {
+                            updateState(channelUID, OnOffType.from(hdmiState.get()));
+                        }
+                        channelLastStateMap.put(HDMI_STATE_CHANNEL, hdmiState.get());
+                    }
                 }
                 break;
         }
