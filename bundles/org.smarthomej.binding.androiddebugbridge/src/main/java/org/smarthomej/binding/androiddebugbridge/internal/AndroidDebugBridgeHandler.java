@@ -19,7 +19,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -197,14 +196,13 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
                 break;
             case HDMI_STATE_CHANNEL:
                 if (command instanceof RefreshType) {
-                    Optional<Boolean> hdmiState = adbConnection.isHDMIOn();
-                    boolean lastHDMIState = (boolean) channelLastStateMap.getOrDefault(HDMI_STATE_CHANNEL, false);
-                    if (hdmiState.isPresent()) {
-                        if (hdmiState.get().equals(lastHDMIState)) {
-                            updateState(channelUID, OnOffType.from(hdmiState.get()));
+                    adbConnection.isHDMIOn().ifPresent(hdmiState -> {
+                        boolean lastHDMIState = (boolean) channelLastStateMap.getOrDefault(HDMI_STATE_CHANNEL, false);
+                        if (hdmiState.equals(lastHDMIState)) {
+                            updateState(channelUID, OnOffType.from(hdmiState));
                         }
-                        channelLastStateMap.put(HDMI_STATE_CHANNEL, hdmiState.get());
-                    }
+                        channelLastStateMap.put(HDMI_STATE_CHANNEL, hdmiState);
+                    });
                 }
                 break;
         }
