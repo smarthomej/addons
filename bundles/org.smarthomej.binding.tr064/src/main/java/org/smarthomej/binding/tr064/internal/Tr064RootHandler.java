@@ -204,6 +204,7 @@ public class Tr064RootHandler extends BaseBridgeHandler implements PhonebookProv
         removeConnectScheduler();
         uninstallPolling();
         stateCache.clear();
+        scpdUtil = null;
 
         super.dispose();
     }
@@ -257,9 +258,10 @@ public class Tr064RootHandler extends BaseBridgeHandler implements PhonebookProv
                 }
 
                 // clear auth cache and force re-auth
-                httpClient.getAuthenticationStore().clearAuthenticationResults();
-                AuthenticationStore auth = httpClient.getAuthenticationStore();
-                auth.addAuthentication(new DigestAuthentication(new URI(endpointBaseURL), Authentication.ANY_REALM,
+                AuthenticationStore authStore = httpClient.getAuthenticationStore();
+                authStore.clearAuthentications();
+                authStore.clearAuthenticationResults();
+                authStore.addAuthentication(new DigestAuthentication(new URI(endpointBaseURL), Authentication.ANY_REALM,
                         config.user, config.password));
 
                 // check & update properties
