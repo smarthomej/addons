@@ -42,6 +42,24 @@ Switch lightsStatus {
 }
 ```
 
+## Debounce (Counting) Profile
+
+This Profile counts and skips the number for State changes before it sends an update to the Item.
+It can be used to debounce Item States.
+The number of skipped changes can be defined by the user.
+
+### Configuration
+
+| Configuration Parameter | Type    | Description                                   |
+|-------------------------|---------|-----------------------------------------------|
+| `numberOfChanges`       | integer | Number of changes before updating Item state. |
+
+### Full Example
+
+```java
+Switch debouncedSwitch { channel="xxx" [profile="basic-profiles:debounce-counting"] }
+```
+
 ## Invert / Negate Profile
 
 The Invert / Negate Profile inverts or negates a Command / State.
