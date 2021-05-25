@@ -88,7 +88,7 @@ public class AndroidDebugBridgeDevice {
     private String ip = "127.0.0.1";
     private int port = 5555;
     private int timeoutSec = 5;
-    private Map<String, FallbackModes> channelFallbackMap = new HashMap<>();
+    private final Map<String, FallbackModes> channelFallbackMap = new HashMap<>();
     private @Nullable Socket socket;
     private @Nullable AdbConnection connection;
     private @Nullable Future<String> commandFuture;
@@ -284,7 +284,7 @@ public class AndroidDebugBridgeDevice {
             try {
                 return Integer.parseInt(splitResult[1]);
             } catch (NumberFormatException e) {
-                LOGGER.debug("Unable to parse device wake lock: {}", e.getMessage());
+                LOGGER.debug("Unable to parse device wake-lock: {}", e.getMessage());
             }
         }
         throw new AndroidDebugBridgeDeviceReadException(WAKE_LOCK_CHANNEL, result);

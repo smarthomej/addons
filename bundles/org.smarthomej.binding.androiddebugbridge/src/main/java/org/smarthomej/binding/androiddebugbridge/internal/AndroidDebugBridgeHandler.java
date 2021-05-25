@@ -70,8 +70,8 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
     private int maxMediaVolume = 0;
     private AndroidDebugBridgeConfiguration config = new AndroidDebugBridgeConfiguration();
     private @Nullable ScheduledFuture<?> connectionCheckerSchedule;
-    private AndroidDebugBridgeMediaStatePackageConfig @Nullable [] packageConfigs = null;
-    private Map<String, Object> channelLastStateMap = new HashMap<>();
+    private AndroidDebugBridgeMediaStatePackageConfig @Nullable [] packageConfigs;
+    private final Map<String, Object> channelLastStateMap = new HashMap<>();
 
     public AndroidDebugBridgeHandler(Thing thing) {
         super(thing);
@@ -167,10 +167,7 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
             case WAKE_LOCK_CHANNEL:
                 if (command instanceof RefreshType) {
                     int wakeLockState = adbConnection.getPowerWakeLock();
-                    int lastWakeLockState = (int) channelLastStateMap.getOrDefault(WAKE_LOCK_CHANNEL, 0);
-                    if (wakeLockState == lastWakeLockState) {
-                        updateState(channelUID, new DecimalType(wakeLockState));
-                    }
+                    updateState(channelUID, new DecimalType(wakeLockState));
                     channelLastStateMap.put(WAKE_LOCK_CHANNEL, wakeLockState);
                 }
                 break;
@@ -249,8 +246,8 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
                         playing = false;
                         break;
                     case "wake_lock":
-                        int wakeLockState = adbConnection.getPowerWakeLock();
-                        playing = currentPackageConfig.wakeLockPlayStates.contains(wakeLockState);
+                        int lastWakeLockState = (int) channelLastStateMap.getOrDefault(WAKE_LOCK_CHANNEL, 0);
+                        playing = currentPackageConfig.wakeLockPlayStates.contains(lastWakeLockState);
                         break;
                     case "media_state":
                         playing = adbConnection.isPlayingMedia(currentPackage);
@@ -377,6 +374,15 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
             return;
         }
         try {
+            handleCommandInternal(new ChannelUID(this.thing.getUID(), WAKE_LOCK_CHANNEL), RefreshType.REFRESH);
+        } catch (AndroidDebugBridgeDeviceReadException e) {
+            logger.warn("Unable to refresh wake-lock: {}", e.getMessage());
+        } catch (TimeoutException e) {
+            logger.debug("Unable to refresh wake-lock: Timeout");
+            adbConnection.disconnect();
+            return;
+        }
+        try {
             handleCommandInternal(new ChannelUID(this.thing.getUID(), MEDIA_CONTROL_CHANNEL), RefreshType.REFRESH);
         } catch (AndroidDebugBridgeDeviceReadException e) {
             logger.warn("Unable to refresh play status: {}", e.getMessage());
@@ -391,15 +397,6 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
             logger.warn("Unable to refresh current package: {}", e.getMessage());
         } catch (TimeoutException e) {
             logger.debug("Unable to refresh current package: Timeout");
-            adbConnection.disconnect();
-            return;
-        }
-        try {
-            handleCommandInternal(new ChannelUID(this.thing.getUID(), WAKE_LOCK_CHANNEL), RefreshType.REFRESH);
-        } catch (AndroidDebugBridgeDeviceReadException e) {
-            logger.warn("Unable to refresh wake lock: {}", e.getMessage());
-        } catch (TimeoutException e) {
-            logger.debug("Unable to refresh wake lock: Timeout");
             adbConnection.disconnect();
             return;
         }
