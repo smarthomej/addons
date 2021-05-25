@@ -82,10 +82,8 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
         super.initialize();
         DeviceConfig config = getConfigAs(DeviceConfig.class);
         readInterval = config.getReadInterval();
-        initializeGroupAddresses();
-    }
 
-    private void initializeGroupAddresses() {
+        // gather all GAs from channel configurations
         getThing().getChannels()
                 .forEach(channel -> applyChannelFunction(channel, (knxChannelType, channelConfiguration) -> {
                     groupAddresses.addAll(knxChannelType.getReadAddresses(channelConfiguration));
@@ -96,24 +94,17 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
 
     @Override
     public void dispose() {
-        cancelChannelFutures();
-        freeGroupAddresses();
-        super.dispose();
-    }
-
-    private void cancelChannelFutures() {
         for (ChannelUID channelUID : channelFutures.keySet()) {
             channelFutures.computeIfPresent(channelUID, (k, v) -> {
                 v.cancel(true);
                 return null;
             });
         }
-    }
 
-    private void freeGroupAddresses() {
         groupAddresses.clear();
         groupAddressesWriteBlockedOnce.clear();
         groupAddressesRespondingSpec.clear();
+        super.dispose();
     }
 
     @Override

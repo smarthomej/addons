@@ -32,7 +32,7 @@ import org.openhab.core.thing.type.ChannelTypeUID;
 @NonNullByDefault
 public final class KNXChannelTypes {
 
-    private static final Set<KNXChannelType> TYPES = Collections.unmodifiableSet(Stream.of(//
+    private static final Set<KNXChannelType> TYPES = Set.of(//
             new TypeColor(), //
             new TypeContact(), //
             new TypeDateTime(), //
@@ -41,7 +41,7 @@ public final class KNXChannelTypes {
             new TypeRollershutter(), //
             new TypeString(), //
             new TypeSwitch() //
-    ).collect(toSet()));
+    );
 
     private KNXChannelTypes() {
         // prevent instantiation

@@ -15,12 +15,16 @@ package org.smarthomej.binding.knx.internal.channel;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.openhab.core.config.core.Configuration;
+
+import tuwien.auto.calimero.GroupAddress;
+import tuwien.auto.calimero.KNXFormatException;
 
 /**
  *
@@ -129,6 +133,25 @@ public class KNXChannelTypeTest {
         assertEquals(2, res.getReadGAs().size());
     }
 
+    @Test
+    public void testChannelGaParsing() throws KNXFormatException {
+        Configuration configuration = new Configuration(
+                Map.of("key1", "5.001:<1/2/3+4/5/6+1/5/6", "key2", "1.001:7/1/9+1/1/2"));
+
+        Set<GroupAddress> listenAddresses = ct.getListenAddresses(configuration);
+        assertEquals(5, listenAddresses.size());
+        // we don't check the content since parsing has been checked before and the quantity is correct
+
+        Set<GroupAddress> readAddresses = ct.getReadAddresses(configuration);
+        assertEquals(1, readAddresses.size());
+        assertTrue(readAddresses.contains(new GroupAddress("1/2/3")));
+
+        Set<GroupAddress> writeAddresses = ct.getWriteAddresses(configuration);
+        assertEquals(2, writeAddresses.size());
+        assertTrue(writeAddresses.contains(new GroupAddress("1/2/3")));
+        assertTrue(writeAddresses.contains(new GroupAddress("7/1/9")));
+    }
+
     private static class MyKNXChannelType extends KNXChannelType {
         public MyKNXChannelType(String channelTypeID) {
             super(channelTypeID);
@@ -136,7 +159,7 @@ public class KNXChannelTypeTest {
 
         @Override
         protected Set<String> getAllGAKeys() {
-            return Collections.emptySet();
+            return Set.of("key1", "key2");
         }
 
         @Override

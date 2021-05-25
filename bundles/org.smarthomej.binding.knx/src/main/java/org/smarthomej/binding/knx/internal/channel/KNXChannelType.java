@@ -15,13 +15,14 @@ package org.smarthomej.binding.knx.internal.channel;
 
 import static java.util.stream.Collectors.*;
 
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -63,11 +64,11 @@ public abstract class KNXChannelType {
     }
 
     @Nullable
-    protected final ChannelConfiguration parse(@Nullable String fancy) {
-        if (fancy == null) {
+    protected final ChannelConfiguration parse(@Nullable Object fancy) {
+        if (!(fancy instanceof String)) {
             return null;
         }
-        Matcher matcher = PATTERN.matcher(fancy.replace(" ", ""));
+        Matcher matcher = PATTERN.matcher(((String) fancy).replace(" ", ""));
 
         if (matcher.matches()) {
             // Listen GAs
@@ -92,40 +93,23 @@ public abstract class KNXChannelType {
 
     protected abstract Set<String> getAllGAKeys();
 
+    private Set<GroupAddress> filterGroupAddresses(Configuration channelConfiguration,
+            Function<ChannelConfiguration, List<GroupAddressConfiguration>> filter) {
+        return getAllGAKeys().stream().map(channelConfiguration::get).map(this::parse).filter(Objects::nonNull)
+                .map(Objects::requireNonNull).map(filter).flatMap(List::stream).map(this::toGroupAddress)
+                .filter(Objects::nonNull).map(Objects::requireNonNull).collect(Collectors.toSet());
+    }
+
     public final Set<GroupAddress> getListenAddresses(Configuration channelConfiguration) {
-        Set<GroupAddress> ret = new HashSet<>();
-        for (String key : getAllGAKeys()) {
-            ChannelConfiguration conf = parse((String) channelConfiguration.get(key));
-            if (conf != null) {
-                ret.addAll(conf.getListenGAs().stream().map(this::toGroupAddress).collect(toSet()));
-            }
-        }
-        return ret;
+        return filterGroupAddresses(channelConfiguration, ChannelConfiguration::getListenGAs);
     }
 
     public final Set<GroupAddress> getReadAddresses(Configuration channelConfiguration) {
-        Set<GroupAddress> ret = new HashSet<>();
-        for (String key : getAllGAKeys()) {
-            ChannelConfiguration conf = parse((String) channelConfiguration.get(key));
-            if (conf != null) {
-                ret.addAll(conf.getReadGAs().stream().map(this::toGroupAddress).collect(toSet()));
-            }
-        }
-        return ret;
+        return filterGroupAddresses(channelConfiguration, ChannelConfiguration::getReadGAs);
     }
 
     public final Set<GroupAddress> getWriteAddresses(Configuration channelConfiguration) {
-        Set<GroupAddress> ret = new HashSet<>();
-        for (String key : getAllGAKeys()) {
-            ChannelConfiguration conf = parse((String) channelConfiguration.get(key));
-            if (conf != null) {
-                GroupAddress ga = toGroupAddress(conf.getMainGA());
-                if (ga != null) {
-                    ret.add(ga);
-                }
-            }
-        }
-        return ret;
+        return filterGroupAddresses(channelConfiguration, configuration -> List.of(configuration.getMainGA()));
     }
 
     private @Nullable GroupAddress toGroupAddress(GroupAddressConfiguration ga) {
