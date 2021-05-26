@@ -84,12 +84,9 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
         readInterval = config.getReadInterval();
 
         // gather all GAs from channel configurations
-        getThing().getChannels()
-                .forEach(channel -> applyChannelFunction(channel, (knxChannelType, channelConfiguration) -> {
-                    groupAddresses.addAll(knxChannelType.getReadAddresses(channelConfiguration));
-                    groupAddresses.addAll(knxChannelType.getWriteAddresses(channelConfiguration));
-                    groupAddresses.addAll(knxChannelType.getListenAddresses(channelConfiguration));
-                }));
+        getThing().getChannels().forEach(
+                channel -> applyChannelFunction(channel, (knxChannelType, channelConfiguration) -> groupAddresses
+                        .addAll(knxChannelType.getAllGroupAddresses(channelConfiguration))));
     }
 
     @Override
@@ -160,9 +157,7 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
     private void scheduleRead(KNXChannelType knxChannelType, Configuration configuration) throws KNXFormatException {
         List<InboundSpec> readSpecs = knxChannelType.getReadSpec(configuration);
         for (InboundSpec readSpec : readSpecs) {
-            for (GroupAddress groupAddress : readSpec.getGroupAddresses()) {
-                scheduleReadJob(groupAddress, readSpec.getDPT());
-            }
+            readSpec.getGroupAddresses().forEach(ga -> scheduleReadJob(ga, readSpec.getDPT()));
         }
     }
 

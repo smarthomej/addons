@@ -13,11 +13,7 @@
  */
 package org.smarthomej.binding.knx.internal.channel;
 
-import static java.util.stream.Collectors.toSet;
-
-import java.util.Collections;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.thing.Channel;

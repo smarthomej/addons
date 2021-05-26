@@ -138,14 +138,9 @@ public class KNXChannelTypeTest {
         Configuration configuration = new Configuration(
                 Map.of("key1", "5.001:<1/2/3+4/5/6+1/5/6", "key2", "1.001:7/1/9+1/1/2"));
 
-        Set<GroupAddress> listenAddresses = ct.getListenAddresses(configuration);
+        Set<GroupAddress> listenAddresses = ct.getAllGroupAddresses(configuration);
         assertEquals(5, listenAddresses.size());
         // we don't check the content since parsing has been checked before and the quantity is correct
-
-        Set<GroupAddress> readAddresses = ct.getReadAddresses(configuration);
-        assertEquals(1, readAddresses.size());
-        assertTrue(readAddresses.contains(new GroupAddress("1/2/3")));
-
         Set<GroupAddress> writeAddresses = ct.getWriteAddresses(configuration);
         assertEquals(2, writeAddresses.size());
         assertTrue(writeAddresses.contains(new GroupAddress("1/2/3")));
@@ -154,12 +149,7 @@ public class KNXChannelTypeTest {
 
     private static class MyKNXChannelType extends KNXChannelType {
         public MyKNXChannelType(String channelTypeID) {
-            super(channelTypeID);
-        }
-
-        @Override
-        protected Set<String> getAllGAKeys() {
-            return Set.of("key1", "key2");
+            super(Set.of("key1", "key2"), channelTypeID);
         }
 
         @Override

@@ -15,9 +15,6 @@ package org.smarthomej.binding.knx.internal.channel;
 
 import static org.smarthomej.binding.knx.internal.KNXBindingConstants.*;
 
-import java.util.Collections;
-import java.util.Set;
-
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 import tuwien.auto.calimero.dptxlator.DPTXlatorDateTime;
@@ -33,11 +30,6 @@ class TypeDateTime extends KNXChannelType {
 
     TypeDateTime() {
         super(CHANNEL_DATETIME, CHANNEL_DATETIME_CONTROL);
-    }
-
-    @Override
-    protected Set<String> getAllGAKeys() {
-        return Collections.singleton(GA);
     }
 
     @Override
