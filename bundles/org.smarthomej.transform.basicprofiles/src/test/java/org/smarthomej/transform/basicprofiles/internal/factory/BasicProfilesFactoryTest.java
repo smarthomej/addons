@@ -50,7 +50,7 @@ import org.smarthomej.transform.basicprofiles.internal.profiles.ThresholdStatePr
 @NonNullByDefault
 public class BasicProfilesFactoryTest {
 
-    private static final int NUMBER_OF_PROFILES = 5;
+    private static final int NUMBER_OF_PROFILES = 6;
 
     private static final Map<String, Object> PROPERTIES = Map.of(ThresholdStateProfile.PARAM_THRESHOLD, 15,
             RoundStateProfile.PARAM_SCALE, 2, GenericCommandTriggerProfile.PARAM_EVENTS, "1002,1003",
