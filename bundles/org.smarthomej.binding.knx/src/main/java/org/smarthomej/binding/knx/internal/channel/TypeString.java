@@ -15,7 +15,10 @@ package org.smarthomej.binding.knx.internal.channel;
 
 import static org.smarthomej.binding.knx.internal.KNXBindingConstants.*;
 
+import java.util.Set;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.core.thing.Channel;
 
 import tuwien.auto.calimero.dptxlator.DPTXlatorString;
 
@@ -26,10 +29,11 @@ import tuwien.auto.calimero.dptxlator.DPTXlatorString;
  *
  */
 @NonNullByDefault
-class TypeString extends KNXChannelType {
+class TypeString extends KNXChannel {
+    public static final Set<String> SUPPORTED_CHANNEL_TYPES = Set.of(CHANNEL_STRING, CHANNEL_STRING_CONTROL);
 
-    TypeString() {
-        super(CHANNEL_STRING, CHANNEL_STRING_CONTROL);
+    TypeString(Channel channel) {
+        super(channel);
     }
 
     @Override
