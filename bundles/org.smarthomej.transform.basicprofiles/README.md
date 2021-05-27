@@ -42,6 +42,23 @@ Switch lightsStatus {
 }
 ```
 
+## Debounce (Counting) Profile
+
+This Profile counts and skips a user-defined number of State changes before it sends an update to the Item.
+It can be used to debounce Item States.
+
+### Configuration
+
+| Configuration Parameter | Type    | Description                                   |
+|-------------------------|---------|-----------------------------------------------|
+| `numberOfChanges`       | integer | Number of changes before updating Item State. |
+
+### Full Example
+
+```java
+Switch debouncedSwitch { channel="xxx" [profile="basic-profiles:debounce-counting"] }
+```
+
 ## Invert / Negate Profile
 
 The Invert / Negate Profile inverts or negates a Command / State.
@@ -67,7 +84,7 @@ Switch invertedSwitch { channel="xxx" [profile="basic-profiles:invert"] }
 
 ## Round Profile
 
-The Round Profile scales the state to a specific number of decimal places based on the power of ten.
+The Round Profile scales the State to a specific number of decimal places based on the power of ten.
 Optionally the [Rounding mode](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/math/RoundingMode.html) can be set.
 Source Channels should accept Item Type `Number`.
 
