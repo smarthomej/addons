@@ -33,14 +33,10 @@ public class WriteSpecImpl extends AbstractSpec implements OutboundSpec {
     private final Type value;
     private final @Nullable GroupAddress groupAddress;
 
-    public WriteSpecImpl(@Nullable ChannelConfiguration channelConfiguration, String defaultDPT, Type value)
+    public WriteSpecImpl(ChannelConfiguration channelConfiguration, String defaultDPT, Type value)
             throws KNXFormatException {
         super(channelConfiguration, defaultDPT);
-        if (channelConfiguration != null) {
-            this.groupAddress = new GroupAddress(channelConfiguration.getMainGA().getGA());
-        } else {
-            this.groupAddress = null;
-        }
+        this.groupAddress = new GroupAddress(channelConfiguration.getMainGA().getGA());
         this.value = value;
     }
 

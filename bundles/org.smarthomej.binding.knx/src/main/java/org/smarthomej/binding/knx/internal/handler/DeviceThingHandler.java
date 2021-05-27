@@ -51,7 +51,6 @@ import org.smarthomej.binding.knx.internal.dpt.KNXCoreTypeMapper;
 import tuwien.auto.calimero.GroupAddress;
 import tuwien.auto.calimero.IndividualAddress;
 import tuwien.auto.calimero.KNXException;
-import tuwien.auto.calimero.KNXFormatException;
 import tuwien.auto.calimero.datapoint.CommandDP;
 import tuwien.auto.calimero.datapoint.Datapoint;
 
@@ -71,6 +70,7 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
     private final Set<OutboundSpec> groupAddressesRespondingSpec = ConcurrentHashMap.newKeySet();
     private final Map<GroupAddress, ScheduledFuture<?>> readFutures = new ConcurrentHashMap<>();
     private final Map<ChannelUID, ScheduledFuture<?>> channelFutures = new ConcurrentHashMap<>();
+    private final Map<ChannelUID, KNXChannel> knxchannels = new ConcurrentHashMap<>();
     private int readInterval;
 
     public DeviceThingHandler(Thing thing) {
@@ -84,9 +84,11 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
         readInterval = config.getReadInterval();
 
         // gather all GAs from channel configurations
-        getThing().getChannels().forEach(
-                channel -> applyChannelFunction(channel, (knxChannelType, channelConfiguration) -> groupAddresses
-                        .addAll(knxChannelType.getAllGroupAddresses(channelConfiguration))));
+        getThing().getChannels().forEach(channel -> {
+            knxchannels.put(channel.getUID(), new KNXChannel(channel));
+            applyChannelFunction(channel.getUID(), (knxChannel) -> groupAddresses
+                    .addAll(knxChannel.channelType.getAllGroupAddresses(knxChannel.configuration)));
+        });
     }
 
     @Override
@@ -101,6 +103,8 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
         groupAddresses.clear();
         groupAddressesWriteBlockedOnce.clear();
         groupAddressesRespondingSpec.clear();
+        knxchannels.clear();
+
         super.dispose();
     }
 
@@ -116,24 +120,19 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
 
     @FunctionalInterface
     private interface ChannelFunction {
-        void apply(KNXChannelType knxChannelType, Configuration configuration) throws KNXException;
+        void apply(KNXChannel knxChannel) throws KNXException;
     }
 
     private void applyChannelFunction(ChannelUID channelUID, ChannelFunction function) {
-        Channel channel = getThing().getChannel(channelUID.getId());
+        KNXChannel channel = knxchannels.get(channelUID);
         if (channel == null) {
             logger.warn("Channel '{}' does not exist", channelUID);
             return;
         }
-        applyChannelFunction(channel, function);
-    }
-
-    private void applyChannelFunction(Channel channel, ChannelFunction function) {
         try {
-            KNXChannelType knxChannelType = KNXChannelTypes.getKnxChannelType(channel);
-            function.apply(knxChannelType, channel.getConfiguration());
+            function.apply(channel);
         } catch (KNXException e) {
-            logger.warn("An error occurred on channel {}: {}", channel.getUID(), e.getMessage(), e);
+            logger.warn("An error occurred on channel {}: {}", channelUID, e.getMessage(), e);
         }
     }
 
@@ -148,14 +147,15 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
     protected void scheduleReadJobs() {
         cancelReadFutures();
         for (Channel channel : getThing().getChannels()) {
-            if (isLinked(channel.getUID().getId()) && !isControl(channel.getUID())) {
-                applyChannelFunction(channel, this::scheduleRead);
+            ChannelUID channelUID = channel.getUID();
+            if (isLinked(channelUID) && !isControl(channelUID)) {
+                applyChannelFunction(channelUID, this::scheduleRead);
             }
         }
     }
 
-    private void scheduleRead(KNXChannelType knxChannelType, Configuration configuration) throws KNXFormatException {
-        List<InboundSpec> readSpecs = knxChannelType.getReadSpec(configuration);
+    private void scheduleRead(KNXChannel knxChannel) {
+        List<InboundSpec> readSpecs = knxChannel.channelType.getReadSpec(knxChannel.configuration);
         for (InboundSpec readSpec : readSpecs) {
             readSpec.getGroupAddresses().forEach(ga -> scheduleReadJob(ga, readSpec.getDPT()));
         }
@@ -214,8 +214,8 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
                     restart();
                 }
             } else {
-                applyChannelFunction(channelUID, (knxChannelType, channelConfiguration) -> {
-                    OutboundSpec commandSpec = knxChannelType.getCommandSpec(channelConfiguration, command);
+                applyChannelFunction(channelUID, (knxChannel) -> {
+                    OutboundSpec commandSpec = knxChannel.channelType.getCommandSpec(knxChannel.configuration, command);
                     // only send GroupValueWrite to KNX if GA is not blocked once
                     if (commandSpec != null && !groupAddressesWriteBlockedOnce.remove(commandSpec.getGroupAddress())) {
                         getClient().writeToKNX(commandSpec);
@@ -247,19 +247,25 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
 
     /** KNXIO */
     private void sendGroupValueResponse(Channel channel, GroupAddress destination) {
-        Set<GroupAddress> rsa = KNXChannelTypes.getKnxChannelType(channel)
-                .getWriteAddresses(channel.getConfiguration());
+        ChannelUID channelUID = channel.getUID();
+        KNXChannel knxChannel = knxchannels.get(channelUID);
+        if (knxChannel == null) {
+            return;
+        }
+        Set<GroupAddress> rsa = knxChannel.channelType.getWriteAddresses(knxChannel.configuration);
         if (!rsa.isEmpty()) {
             logger.trace("onGroupRead size '{}'", rsa.size());
-            applyChannelFunction(channel, (knxChannelType, configuration) -> {
-                Optional<OutboundSpec> os = groupAddressesRespondingSpec.stream()
-                        .filter(spec -> spec.matchesDestination(destination)).findFirst();
-                if (os.isPresent()) {
-                    logger.trace("onGroupRead respondToKNX '{}'", os.get().getGroupAddress());
-                    /* KNXIO: sending real "GroupValueResponse" to the KNX bus. */
+            Optional<OutboundSpec> os = groupAddressesRespondingSpec.stream()
+                    .filter(spec -> spec.matchesDestination(destination)).findFirst();
+            if (os.isPresent()) {
+                logger.trace("onGroupRead respondToKNX '{}'", os.get().getGroupAddress());
+                /* KNXIO: sending real "GroupValueResponse" to the KNX bus. */
+                try {
                     getClient().respondToKNX(os.get());
+                } catch (KNXException e) {
+                    logger.warn("An error occurred on channel {}: {}", channelUID, e.getMessage(), e);
                 }
-            });
+            }
         }
     }
 
@@ -271,10 +277,11 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
         logger.trace("onGroupRead Thing '{}' received a GroupValueRead telegram from '{}' for destination '{}'",
                 getThing().getUID(), source, destination);
         for (Channel channel : getThing().getChannels()) {
-            if (isControl(channel.getUID())) {
-                applyChannelFunction(channel, (knxChannelType, configuration) -> {
-                    OutboundSpec responseSpec = knxChannelType.getResponseSpec(configuration, destination,
-                            RefreshType.REFRESH);
+            ChannelUID channelUID = channel.getUID();
+            if (isControl(channelUID)) {
+                applyChannelFunction(channelUID, (knxChannel) -> {
+                    OutboundSpec responseSpec = knxChannel.channelType.getResponseSpec(knxChannel.configuration,
+                            destination, RefreshType.REFRESH);
                     if (responseSpec != null) {
                         logger.trace("onGroupRead isControl -> postCommand");
                         // This event should be sent to KNX as GroupValueResponse immediately.
@@ -283,7 +290,7 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
                         // and remember to ignore/block this REFRESH to be sent back to KNX as GroupValueWrite after
                         // postCommand is done!
                         groupAddressesWriteBlockedOnce.add(destination);
-                        postCommand(channel.getUID().getId(), RefreshType.REFRESH);
+                        postCommand(channelUID, RefreshType.REFRESH);
                     }
                 });
             }
@@ -309,33 +316,35 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
                 getThing().getUID(), source, destination);
 
         for (Channel channel : getThing().getChannels()) {
-            applyChannelFunction(channel, (selector, configuration) -> {
-                InboundSpec listenSpec = selector.getListenSpec(configuration, destination);
+            ChannelUID channelUID = channel.getUID();
+            applyChannelFunction(channelUID, (knxChannel) -> {
+                InboundSpec listenSpec = knxChannel.channelType.getListenSpec(knxChannel.configuration, destination);
                 if (listenSpec != null) {
                     logger.trace(
                             "onGroupWrite Thing '{}' processes a GroupValueWrite telegram for destination '{}' for channel '{}'",
-                            getThing().getUID(), destination, channel.getUID());
+                            getThing().getUID(), destination, channelUID);
                     /**
                      * Remember current KNXIO outboundSpec only if it is a control channel.
                      */
-                    if (isControl(channel.getUID())) {
+                    if (isControl(channelUID)) {
                         logger.trace("onGroupWrite isControl");
                         Type value = KNXCoreTypeMapper.convertRawDataToType(listenSpec.getDPT(), asdu);
                         if (value != null) {
-                            OutboundSpec commandSpec = selector.getCommandSpec(configuration, value);
+                            OutboundSpec commandSpec = knxChannel.channelType.getCommandSpec(knxChannel.configuration,
+                                    value);
                             if (commandSpec != null) {
                                 rememberRespondingSpec(commandSpec);
                             }
                         }
                     }
-                    processDataReceived(destination, asdu, listenSpec, channel.getUID());
+                    processDataReceived(destination, asdu, listenSpec, knxChannel);
                 }
             });
         }
     }
 
     private void processDataReceived(GroupAddress destination, byte[] asdu, InboundSpec listenSpec,
-            ChannelUID channelUID) {
+            KNXChannel channel) {
         if (!isDPTSupported(listenSpec.getDPT())) {
             logger.warn("DPT '{}' is not supported by the KNX binding.", listenSpec.getDPT());
             return;
@@ -343,37 +352,36 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
 
         Type value = KNXCoreTypeMapper.convertRawDataToType(listenSpec.getDPT(), asdu);
         if (value != null) {
-            if (isControl(channelUID)) {
-                Channel channel = getThing().getChannel(channelUID.getId());
-                Object repeat = channel != null ? channel.getConfiguration().get(KNXBindingConstants.REPEAT_FREQUENCY)
-                        : null;
+            if (isControl(channel.channelUID)) {
+                Object repeat = channel.configuration.get(KNXBindingConstants.REPEAT_FREQUENCY);
                 int frequency = repeat != null ? ((BigDecimal) repeat).intValue() : 0;
-                if (KNXBindingConstants.CHANNEL_DIMMER_CONTROL.equals(getChannelTypeUID(channelUID).getId())
+                if (KNXBindingConstants.CHANNEL_DIMMER_CONTROL.equals(getChannelTypeUID(channel.channelUID).getId())
                         && (value instanceof UnDefType || value instanceof IncreaseDecreaseType) && frequency > 0) {
                     // continuous dimming by the binding
                     if (UnDefType.UNDEF.equals(value)) {
-                        channelFutures.computeIfPresent(channelUID, (k, v) -> {
+                        channelFutures.computeIfPresent(channel.channelUID, (k, v) -> {
                             v.cancel(false);
                             return null;
                         });
                     } else if (value instanceof IncreaseDecreaseType) {
-                        channelFutures.compute(channelUID, (k, v) -> {
+                        channelFutures.compute(channel.channelUID, (k, v) -> {
                             if (v != null) {
                                 v.cancel(true);
                             }
-                            return scheduler.scheduleWithFixedDelay(() -> postCommand(channelUID, (Command) value), 0,
-                                    frequency, TimeUnit.MILLISECONDS);
+                            return scheduler.scheduleWithFixedDelay(
+                                    () -> postCommand(channel.channelUID, (Command) value), 0, frequency,
+                                    TimeUnit.MILLISECONDS);
                         });
                     }
                 } else {
                     if (value instanceof Command) {
                         logger.trace("processDataReceived postCommand new value '{}' for GA '{}'", asdu, address);
-                        postCommand(channelUID, (Command) value);
+                        postCommand(channel.channelUID, (Command) value);
                     }
                 }
             } else {
                 if (value instanceof State) {
-                    updateState(channelUID, (State) value);
+                    updateState(channel.channelUID, (State) value);
                 }
             }
         } else {
@@ -385,5 +393,17 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
 
     private boolean isDPTSupported(String dpt) {
         return !KNXCoreTypeMapper.getAllowedTypes(dpt).isEmpty();
+    }
+
+    private static class KNXChannel {
+        private final ChannelUID channelUID;
+        private final KNXChannelType channelType;
+        private final Configuration configuration;
+
+        public KNXChannel(Channel channel) {
+            this.channelUID = channel.getUID();
+            this.channelType = KNXChannelTypes.getKnxChannelType(channel);
+            this.configuration = channel.getConfiguration();
+        }
     }
 }

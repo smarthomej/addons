@@ -143,7 +143,7 @@ public abstract class KNXChannelType {
         return null;
     }
 
-    public final List<InboundSpec> getReadSpec(Configuration configuration) throws KNXFormatException {
+    public final List<InboundSpec> getReadSpec(Configuration configuration) {
         return gaKeys.stream().map(key -> new ReadRequestSpecImpl(parse(configuration.get(key)), getDefaultDPT(key)))
                 .filter(spec -> !spec.getGroupAddresses().isEmpty()).collect(toList());
     }
