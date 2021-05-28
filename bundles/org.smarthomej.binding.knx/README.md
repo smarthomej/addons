@@ -115,6 +115,10 @@ A change would break all existing installations and is therefore not implemented
 |-----------|---------------|-------------|
 | ga        | Group address | 9.001       |
 
+*Attention:* When linking the channel to an item that has a dimension (e.g. `Number:Temperature`) the unit is stripped (i.e. no conversion takes place).
+So if you send `23.1 °C` to the item a value of `23.1` will be send to the KNX bus, no matter if you choose DPT 9.001 (which is temperature in degree Celsius and 23.1 is indeed the correct value) or DPT 9.002 (which is temperature in Kelvin where 296.25 would be the correct value).
+If you need other units, you need to use a rule or a profile to convert the value.
+
 ##### Channel Type "string"
 
 | Parameter | Description   | Default DPT |

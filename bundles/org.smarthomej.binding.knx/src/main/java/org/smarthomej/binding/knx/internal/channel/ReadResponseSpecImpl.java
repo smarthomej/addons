@@ -30,7 +30,7 @@ import tuwien.auto.calimero.GroupAddress;
 public class ReadResponseSpecImpl extends AbstractSpec implements OutboundSpec {
 
     private final @Nullable GroupAddress groupAddress;
-    private final Type type;
+    private final Type value;
 
     public ReadResponseSpecImpl(@Nullable ChannelConfiguration channelConfiguration, String defaultDPT, Type state) {
         super(channelConfiguration, defaultDPT);
@@ -39,7 +39,7 @@ public class ReadResponseSpecImpl extends AbstractSpec implements OutboundSpec {
         } else {
             this.groupAddress = null;
         }
-        this.type = state;
+        this.value = state;
     }
 
     @Override
@@ -48,7 +48,12 @@ public class ReadResponseSpecImpl extends AbstractSpec implements OutboundSpec {
     }
 
     @Override
-    public Type getType() {
-        return type;
+    public Type getValue() {
+        return value;
+    }
+
+    @Override
+    public boolean matchesDestination(GroupAddress groupAddress) {
+        return groupAddress.equals(this.groupAddress);
     }
 }
