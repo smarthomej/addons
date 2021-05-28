@@ -15,9 +15,6 @@ package org.smarthomej.binding.knx.internal.channel;
 
 import static org.smarthomej.binding.knx.internal.KNXBindingConstants.*;
 
-import java.util.Collections;
-import java.util.Set;
-
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 import tuwien.auto.calimero.dptxlator.DPTXlatorBoolean;
@@ -33,11 +30,6 @@ class TypeSwitch extends KNXChannelType {
 
     TypeSwitch() {
         super(CHANNEL_SWITCH, CHANNEL_SWITCH_CONTROL);
-    }
-
-    @Override
-    protected Set<String> getAllGAKeys() {
-        return Collections.singleton(GA);
     }
 
     @Override
