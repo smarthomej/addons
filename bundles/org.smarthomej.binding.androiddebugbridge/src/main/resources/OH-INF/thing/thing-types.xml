@@ -410,8 +410,8 @@
 
 	<channel-type id="wake-lock-channel" advanced="true">
 		<item-type>Number</item-type>
-		<label>Wake Lock</label>
-		<description>Power Wake Lock State</description>
+		<label>Wake-Lock</label>
+		<description>Power Wake-Lock State</description>
 		<state readOnly="true"/>
 	</channel-type>
 
