@@ -44,7 +44,7 @@ The available modes are:
 * idle: assert not playing, avoid command execution.
 * media_state: detect play status by dumping the media_session service. This is the default for not configured apps 
 * audio: detect play status by dumping the audio service.
-* wake_lock: detect play status by comparing the power wake lock state with the values provided in 'wakeLockPlayStates'
+* wake_lock: detect play status by comparing the power wake-lock state with the values provided in 'wakeLockPlayStates'
 
 The configuration depends on the application, device and version used.
 
@@ -66,7 +66,7 @@ This is a sample of the mediaStateJSONConfig thing configuration:
 | stop-open-url  | String | Open a URL with the default application (http, rtsp, aso) |
 | current-package  | String | Package name of the top application in screen |
 | shutdown  | String | Power off/reboot device (allowed values POWER_OFF, REBOOT) |
-| wake-lock  | Number | Power wake lock value |
+| wake-lock  | Number | Power wake-lock value |
 | screen-state  | Switch | Screen power state |
 | hdmi-state  | Switch | HDMI power state |
 
