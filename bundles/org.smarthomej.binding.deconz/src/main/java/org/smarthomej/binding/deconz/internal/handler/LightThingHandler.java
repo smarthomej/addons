@@ -267,7 +267,7 @@ public class LightThingHandler extends DeconzBaseThingHandler {
                 } else if (command == StopMoveType.STOP) {
                     newLightState.stop = true;
                 } else if (command instanceof PercentType) {
-                    newLightState.bri = fromPercentType((PercentType) command);
+                    newLightState.lift = ((PercentType) command).intValue();
                 } else {
                     return;
                 }
