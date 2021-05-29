@@ -138,9 +138,12 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
                 break;
             case STOP_CURRENT_PACKAGE_CHANNEL:
                 if (OnOffType.from(command.toFullString()).equals(OnOffType.OFF)) {
-                    adbConnection.stopPackage(adbConnection.getCurrentPackage());
-                    handleCommandInternal(new ChannelUID(this.thing.getUID(), CURRENT_PACKAGE_CHANNEL),
-                            RefreshType.REFRESH);
+                    String lastCurrentPackage = (String) channelLastStateMap.remove(CURRENT_PACKAGE_CHANNEL);
+                    if (lastCurrentPackage != null) {
+                        adbConnection.stopPackage(lastCurrentPackage);
+                        handleCommandInternal(new ChannelUID(this.thing.getUID(), CURRENT_PACKAGE_CHANNEL),
+                                RefreshType.REFRESH);
+                    }
                 }
                 break;
             case OPEN_URL_CHANNEL:
@@ -150,7 +153,9 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
                 break;
             case CURRENT_PACKAGE_CHANNEL:
                 if (command instanceof RefreshType) {
-                    updateState(channelUID, new StringType(adbConnection.getCurrentPackage()));
+                    String currentPackage = adbConnection.getCurrentPackage();
+                    updateState(channelUID, new StringType(currentPackage));
+                    channelLastStateMap.put(CURRENT_PACKAGE_CHANNEL, currentPackage);
                 }
                 break;
             case SHUTDOWN_CHANNEL:
@@ -235,7 +240,9 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
             TimeoutException, ExecutionException {
         if (command instanceof RefreshType) {
             boolean playing;
-            String currentPackage = adbConnection.getCurrentPackage();
+            String lastCurrentPackage = (String) channelLastStateMap.getOrDefault(CURRENT_PACKAGE_CHANNEL, "");
+            String currentPackage = lastCurrentPackage.isEmpty() ? adbConnection.getCurrentPackage()
+                    : lastCurrentPackage;
             AndroidDebugBridgeMediaStatePackageConfig currentPackageConfig = packageConfigs != null ? Arrays
                     .stream(packageConfigs).filter(pc -> pc.name.equals(currentPackage)).findFirst().orElse(null)
                     : null;
@@ -264,6 +271,7 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
                 playing = adbConnection.isPlayingMedia(currentPackage);
             }
             updateState(channelUID, playing ? PlayPauseType.PLAY : PlayPauseType.PAUSE);
+            updateState(STOP_CURRENT_PACKAGE_CHANNEL, OnOffType.from(playing));
         } else if (command instanceof PlayPauseType) {
             if (command == PlayPauseType.PLAY) {
                 adbConnection.sendKeyEvent(KEY_EVENT_PLAY);
@@ -320,6 +328,7 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
             connectionCheckerSchedule = null;
         }
         packageConfigs = null;
+        channelLastStateMap.clear();
         adbConnection.disconnect();
         super.dispose();
     }
@@ -383,20 +392,20 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
             return;
         }
         try {
-            handleCommandInternal(new ChannelUID(this.thing.getUID(), MEDIA_CONTROL_CHANNEL), RefreshType.REFRESH);
-        } catch (AndroidDebugBridgeDeviceReadException e) {
-            logger.warn("Unable to refresh play status: {}", e.getMessage());
-        } catch (TimeoutException e) {
-            logger.debug("Unable to refresh play status: Timeout");
-            adbConnection.disconnect();
-            return;
-        }
-        try {
             handleCommandInternal(new ChannelUID(this.thing.getUID(), CURRENT_PACKAGE_CHANNEL), RefreshType.REFRESH);
         } catch (AndroidDebugBridgeDeviceReadException e) {
             logger.warn("Unable to refresh current package: {}", e.getMessage());
         } catch (TimeoutException e) {
             logger.debug("Unable to refresh current package: Timeout");
+            adbConnection.disconnect();
+            return;
+        }
+        try {
+            handleCommandInternal(new ChannelUID(this.thing.getUID(), MEDIA_CONTROL_CHANNEL), RefreshType.REFRESH);
+        } catch (AndroidDebugBridgeDeviceReadException e) {
+            logger.warn("Unable to refresh play status: {}", e.getMessage());
+        } catch (TimeoutException e) {
+            logger.debug("Unable to refresh play status: Timeout");
             adbConnection.disconnect();
             return;
         }
