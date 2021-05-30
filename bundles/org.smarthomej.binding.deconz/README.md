@@ -28,7 +28,6 @@ These sensors are supported:
 | Carbon-Monoxide Sensor            | ZHACarbonmonoxide                 | `carbonmonoxide`     |
 | Color Controller                  | ZBT-Remote-ALL-RGBW               | `colorcontrol`       |
 
-
 Additionally lights, window coverings (blinds), door locks and thermostats are supported:
 
 | Device type                          | Resource Type                                 | Thing type              |
@@ -42,6 +41,8 @@ Additionally lights, window coverings (blinds), door locks and thermostats are s
 | Thermostat                           | ZHAThermostat                                 | `thermostat`            |
 | Warning Device (Siren)               | Warning device                                | `warningdevice`         |
 | Door Lock                            | A remotely operatable door lock               | `doorlock`              |
+
+**Note**: `windowcovering` might require updating your deconz software since the support changed.
 
 Currently only light-groups are supported via the thing-type `lightgroup`.
 
