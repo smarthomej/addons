@@ -160,58 +160,65 @@ public class SnmpTargetHandler extends BaseThingHandler implements ResponseListe
             config.protocol = SnmpProtocolVersion.v3;
         }
 
-        if (config.protocol.toInteger() == SnmpConstants.version1
-                || config.protocol.toInteger() == SnmpConstants.version2c) {
-            CommunityTarget target = new CommunityTarget();
-            target.setCommunity(new OctetString(config.community));
-            this.target = target;
-        } else if (config.protocol.toInteger() == SnmpConstants.version3) {
-            String userName = config.user;
-            if (userName == null) {
-                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "user not set");
+        try {
+            if (config.protocol.toInteger() == SnmpConstants.version1
+                    || config.protocol.toInteger() == SnmpConstants.version2c) {
+                CommunityTarget target = new CommunityTarget();
+                target.setCommunity(new OctetString(config.community));
+                this.target = target;
+            } else if (config.protocol.toInteger() == SnmpConstants.version3) {
+                String userName = config.user;
+                if (userName == null) {
+                    updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "user not set");
+                    return;
+                }
+                String engineIdHexString = config.engineId;
+                if (engineIdHexString == null) {
+                    updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "engineId not set");
+                    return;
+                }
+                String authPassphrase = config.authPassphrase;
+                if ((config.securityModel == SnmpSecurityModel.AUTH_PRIV
+                        || config.securityModel == SnmpSecurityModel.AUTH_NO_PRIV)
+                        && (authPassphrase == null || authPassphrase.isEmpty())) {
+                    updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
+                            "Authentication passphrase not configured");
+                    return;
+                }
+                String privPassphrase = config.privPassphrase;
+                if (config.securityModel == SnmpSecurityModel.AUTH_PRIV
+                        && (privPassphrase == null || privPassphrase.isEmpty())) {
+                    updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
+                            "Privacy passphrase not configured");
+                    return;
+                }
+                byte[] engineId = HexUtils.hexToBytes(engineIdHexString);
+                snmpService.addUser(userName, config.authProtocol, authPassphrase, config.privProtocol, privPassphrase,
+                        engineId);
+                UserTarget target = new UserTarget();
+                target.setAuthoritativeEngineID(engineId);
+                target.setSecurityName(new OctetString(config.user));
+                target.setSecurityLevel(config.securityModel.getSecurityLevel());
+                this.target = target;
+            } else {
+                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "SNMP version not supported");
                 return;
             }
-            String engineIdHexString = config.engineId;
-            if (engineIdHexString == null) {
-                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "engineId not set");
-                return;
-            }
-            String authPassphrase = config.authPassphrase;
-            if ((config.securityModel == SnmpSecurityModel.AUTH_PRIV
-                    || config.securityModel == SnmpSecurityModel.AUTH_NO_PRIV)
-                    && (authPassphrase == null || authPassphrase.isEmpty())) {
-                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
-                        "Authentication passphrase not configured");
-                return;
-            }
-            String privPassphrase = config.privPassphrase;
-            if (config.securityModel == SnmpSecurityModel.AUTH_PRIV
-                    && (privPassphrase == null || privPassphrase.isEmpty())) {
-                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
-                        "Privacy passphrase not configured");
-                return;
-            }
-            byte[] engineId = HexUtils.hexToBytes(engineIdHexString);
-            snmpService.addUser(userName, config.authProtocol, authPassphrase, config.privProtocol, privPassphrase,
-                    engineId);
-            UserTarget target = new UserTarget();
-            target.setAuthoritativeEngineID(engineId);
-            target.setSecurityName(new OctetString(config.user));
-            target.setSecurityLevel(config.securityModel.getSecurityLevel());
-            this.target = target;
-        } else {
-            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "SNMP version not supported");
+
+            snmpService.addCommandResponder(this);
+
+            target.setRetries(config.retries);
+            target.setTimeout(config.timeout);
+            target.setVersion(config.protocol.toInteger());
+            target.setAddress(null);
+
+            timeoutCounter = 0;
+        } catch (IllegalArgumentException e) {
+            // some methods of SNMP4J throw an unchecked IllegalArgumentException if they receive invalid values
+            String message = "Exception during initialization: " + e.getMessage();
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, message);
             return;
         }
-
-        snmpService.addCommandResponder(this);
-
-        target.setRetries(config.retries);
-        target.setTimeout(config.timeout);
-        target.setVersion(config.protocol.toInteger());
-        target.setAddress(null);
-
-        timeoutCounter = 0;
 
         updateStatus(ThingStatus.UNKNOWN);
         refresh = scheduler.scheduleWithFixedDelay(this::refresh, 0, config.refresh, TimeUnit.SECONDS);
