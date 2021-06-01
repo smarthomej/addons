@@ -129,6 +129,8 @@ public class SOAPValueConverter {
             @Nullable Tr064ChannelConfig channelConfig) {
         String dataType = channelConfig != null ? channelConfig.getDataType() : "string";
         String unit = channelConfig != null ? channelConfig.getChannelTypeDescription().getItem().getUnit() : "";
+        BigDecimal factor = channelConfig != null ? channelConfig.getChannelTypeDescription().getItem().getFactor()
+                : null;
 
         return getSOAPElement(soapMessage, element).map(rawValue -> {
             // map rawValue to State
@@ -140,10 +142,14 @@ public class SOAPValueConverter {
                 case "ui2":
                 case "i4":
                 case "ui4":
+                    BigDecimal decimalValue = new BigDecimal(rawValue);
+                    if (factor != null) {
+                        decimalValue = decimalValue.multiply(factor);
+                    }
                     if (!unit.isEmpty()) {
-                        return new QuantityType<>(rawValue + " " + unit);
+                        return new QuantityType<>(decimalValue + " " + unit);
                     } else {
-                        return new DecimalType(rawValue);
+                        return new DecimalType(decimalValue);
                     }
                 default:
                     return null;
@@ -291,8 +297,7 @@ public class SOAPValueConverter {
      */
     private State processCallList(State state, @Nullable String days, CallListType type)
             throws PostProcessingException {
-        Root callListRoot = Util.getAndUnmarshalXML(httpClient, state.toString() + "&days=" + days, Root.class,
-                timeout);
+        Root callListRoot = Util.getAndUnmarshalXML(httpClient, state + "&days=" + days, Root.class, timeout);
         if (callListRoot == null) {
             throw new PostProcessingException("Failed to get call list from URL " + state.toString());
         }
