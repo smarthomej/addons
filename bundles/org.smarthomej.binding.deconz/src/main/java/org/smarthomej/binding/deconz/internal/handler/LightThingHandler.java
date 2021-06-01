@@ -263,17 +263,11 @@ public class LightThingHandler extends DeconzBaseThingHandler {
                 break;
             case CHANNEL_POSITION:
                 if (command instanceof UpDownType) {
-                    newLightState.on = (command == UpDownType.DOWN);
+                    newLightState.open = (command == UpDownType.UP);
                 } else if (command == StopMoveType.STOP) {
-                    if (currentOn != null && currentOn && currentBri != null && currentBri <= BRIGHTNESS_MAX) {
-                        // going down or currently stop (254 because of rounding error)
-                        newLightState.on = true;
-                    } else if (currentOn != null && !currentOn && currentBri != null && currentBri > BRIGHTNESS_MIN) {
-                        // going up or currently stopped
-                        newLightState.on = false;
-                    }
+                    newLightState.stop = true;
                 } else if (command instanceof PercentType) {
-                    newLightState.bri = fromPercentType((PercentType) command);
+                    newLightState.lift = ((PercentType) command).intValue();
                 } else {
                     return;
                 }

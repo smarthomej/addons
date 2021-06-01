@@ -82,6 +82,7 @@ The `target3` thing has additional mandatory parameters: `engineId` and `user`.
 
 The `engineId` must be given in hexadecimal notation (case insensitive) without separators (e.g. `80000009035c710dbcd9e6`).
 The allowed length is 11 to 32 bytes (22 to 64 hex characters).
+If you encounter problems, please check if your agent prefixes the set engine id (e.g. Mikrotik uses `80003a8c04` and appends the set value to that).
 
 The `user` parameter is named "securityName" or "userName" in most agents.
 
