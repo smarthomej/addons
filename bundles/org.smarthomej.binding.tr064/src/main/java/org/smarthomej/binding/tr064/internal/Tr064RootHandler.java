@@ -213,19 +213,25 @@ public class Tr064RootHandler extends BaseBridgeHandler implements PhonebookProv
      * poll remote device for channel values
      */
     private void poll() {
-        channels.forEach((channelUID, channelConfig) -> {
-            if (isLinked(channelUID)) {
-                State state = stateCache.putIfAbsentAndGet(channelUID,
-                        () -> soapConnector.getChannelStateFromDevice(channelConfig, channels, stateCache));
-                if (state != null) {
-                    updateState(channelUID, state);
+        try {
+            channels.forEach((channelUID, channelConfig) -> {
+                if (isLinked(channelUID)) {
+                    State state = stateCache.putIfAbsentAndGet(channelUID,
+                            () -> soapConnector.getChannelStateFromDevice(channelConfig, channels, stateCache));
+                    if (state != null) {
+                        updateState(channelUID, state);
+                    }
                 }
-            }
-        });
+            });
+        } catch (RuntimeException e) {
+            logger.warn("Exception while refreshing remote data for thing '{}':", thing.getUID(), e);
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
+                    "Refresh exception: " + e.getMessage());
+        }
     }
 
     /**
-     * establish the connection - get secure port (if avallable), install authentication, get device properties
+     * establish the connection - get secure port (if available), install authentication, get device properties
      *
      * @return true if successful
      */
