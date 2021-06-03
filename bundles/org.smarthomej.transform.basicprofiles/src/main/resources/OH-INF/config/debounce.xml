@@ -11,4 +11,17 @@
 			<default>1</default>
 		</parameter>
 	</config-description>
+
+	<config-description uri="profile:basic-profiles:debounce-time">
+		<parameter name="toItemDelay" type="integer" min="0" step="1">
+			<label>To Item Delay</label>
+			<description>Number of changes before updating Item State.</description>
+			<default>0</default>
+		</parameter>
+		<parameter name="toHandlerDelay" type="integer" min="0" step="1">
+			<label>To Handler Delay</label>
+			<description>Number of changes before updating Item State.</description>
+			<default>0</default>
+		</parameter>
+	</config-description>
 </config-description:config-descriptions>

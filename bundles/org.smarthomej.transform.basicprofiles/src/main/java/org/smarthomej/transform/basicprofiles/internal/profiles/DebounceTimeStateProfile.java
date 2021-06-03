@@ -51,18 +51,17 @@ public class DebounceTimeStateProfile implements StateProfile {
         this.callback = callback;
         this.scheduler = scheduler;
         this.config = context.getConfiguration().as(DebounceTimeStateProfileConfig.class);
-        logger.debug("Configuring profile with parameters: [toHandler='{}', toItem='{}']", config.debounceTimeToHandler,
-                config.debounceTimeToItem);
+        logger.debug("Configuring profile with parameters: [toHandler='{}', toItem='{}']", config.toHandlerDelay,
+                config.toItemDelay);
 
-        if (config.debounceTimeToHandler < 0) {
-            throw new IllegalArgumentException(
-                    String.format("debounceTimeToHandler has to be a non-negative integer but was '%d'.",
-                            config.debounceTimeToHandler));
+        if (config.toHandlerDelay < 0) {
+            throw new IllegalArgumentException(String.format(
+                    "debounceTimeToHandler has to be a non-negative integer but was '%d'.", config.toHandlerDelay));
         }
 
-        if (config.debounceTimeToItem < 0) {
-            throw new IllegalArgumentException(String.format(
-                    "debounceTimeToItem has to be a non-negative integer but was '%d'.", config.debounceTimeToItem));
+        if (config.toItemDelay < 0) {
+            throw new IllegalArgumentException(String
+                    .format("debounceTimeToItem has to be a non-negative integer but was '%d'.", config.toItemDelay));
         }
     }
 
@@ -79,7 +78,7 @@ public class DebounceTimeStateProfile implements StateProfile {
     @Override
     public void onCommandFromItem(Command command) {
         logger.debug("Received command '{}' from item", command);
-        if (config.debounceTimeToHandler == 0) {
+        if (config.toHandlerDelay == 0) {
             callback.handleCommand(command);
             return;
         }
@@ -92,13 +91,13 @@ public class DebounceTimeStateProfile implements StateProfile {
             logger.debug("Sending command '{}' to handler", command);
             callback.handleCommand(command);
             toHandlerJob = null;
-        }, config.debounceTimeToHandler, TimeUnit.MILLISECONDS);
+        }, config.toHandlerDelay, TimeUnit.MILLISECONDS);
     }
 
     @Override
     public void onCommandFromHandler(Command command) {
         logger.debug("Received command '{}' from handler", command);
-        if (config.debounceTimeToItem == 0) {
+        if (config.toItemDelay == 0) {
             callback.sendCommand(command);
             return;
         }
@@ -111,13 +110,13 @@ public class DebounceTimeStateProfile implements StateProfile {
             logger.debug("Sending command '{}' to item", command);
             callback.sendCommand(command);
             toItemJob = null;
-        }, config.debounceTimeToItem, TimeUnit.MILLISECONDS);
+        }, config.toItemDelay, TimeUnit.MILLISECONDS);
     }
 
     @Override
     public void onStateUpdateFromHandler(State state) {
         logger.debug("Received state update from Handler");
-        if (config.debounceTimeToItem == 0) {
+        if (config.toItemDelay == 0) {
             callback.sendUpdate(state);
             return;
         }
@@ -130,6 +129,6 @@ public class DebounceTimeStateProfile implements StateProfile {
             logger.debug("Posting state update '{}' to Item", state);
             callback.sendUpdate(state);
             toItemJob = null;
-        }, config.debounceTimeToItem, TimeUnit.MILLISECONDS);
+        }, config.toItemDelay, TimeUnit.MILLISECONDS);
     }
 }

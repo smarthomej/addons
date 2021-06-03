@@ -42,7 +42,7 @@ import org.openhab.core.types.State;
  */
 @ExtendWith(MockitoExtension.class)
 @NonNullByDefault
-class DebouncCountingStateProfileTest {
+class DebounceCountingStateProfileTest {
 
     public static class ParameterSet {
         public final List<State> sourceStates;

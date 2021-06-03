@@ -22,6 +22,6 @@ import org.smarthomej.transform.basicprofiles.internal.profiles.DebounceCounting
  */
 @NonNullByDefault
 public class DebounceTimeStateProfileConfig {
-    public int debounceTimeToHandler = 0;
-    public int debounceTimeToItem = 0;
+    public int toHandlerDelay = 0;
+    public int toItemDelay = 0;
 }

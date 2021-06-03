@@ -80,7 +80,7 @@ public class BasicProfilesFactory implements ProfileFactory, ProfileTypeProvider
             .build();
     private static final ProfileType PROFILE_TYPE_DEBOUNCE_COUNTING = ProfileTypeBuilder
             .newState(DEBOUNCE_COUNTING_UID, "Debounce (Counting)").build();
-    private static final ProfileType PROFILE_TYPE_DEBOUNCE_Time = ProfileTypeBuilder
+    private static final ProfileType PROFILE_TYPE_DEBOUNCE_TIME = ProfileTypeBuilder
             .newState(DEBOUNCE_TIME_UID, "Debounce (Time)").build();
     private static final ProfileType PROFILE_TYPE_INVERT = ProfileTypeBuilder.newState(INVERT_UID, "Invert / Negate")
             .withSupportedItemTypes(CoreItemFactory.CONTACT, CoreItemFactory.DIMMER, CoreItemFactory.NUMBER,
@@ -100,8 +100,8 @@ public class BasicProfilesFactory implements ProfileFactory, ProfileTypeProvider
     private static final Set<ProfileTypeUID> SUPPORTED_PROFILE_TYPE_UIDS = Set.of(GENERIC_COMMAND_UID,
             GENERIC_TOGGLE_SWITCH_UID, DEBOUNCE_COUNTING_UID, DEBOUNCE_TIME_UID, INVERT_UID, ROUND_UID, THRESHOLD_UID);
     private static final Set<ProfileType> SUPPORTED_PROFILE_TYPES = Set.of(PROFILE_TYPE_GENERIC_COMMAND,
-            PROFILE_TYPE_GENERIC_TOGGLE_SWITCH, PROFILE_TYPE_DEBOUNCE_COUNTING, PROFILE_TYPE_INVERT, PROFILE_TYPE_ROUND,
-            PROFILE_TYPE_THRESHOLD);
+            PROFILE_TYPE_GENERIC_TOGGLE_SWITCH, PROFILE_TYPE_DEBOUNCE_COUNTING, PROFILE_TYPE_DEBOUNCE_TIME,
+            PROFILE_TYPE_INVERT, PROFILE_TYPE_ROUND, PROFILE_TYPE_THRESHOLD);
 
     private final Map<LocalizedKey, ProfileType> localizedProfileTypeCache = new ConcurrentHashMap<>();
 
