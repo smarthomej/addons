@@ -399,9 +399,10 @@ public class AndroidDebugBridgeDevice {
                     do {
                         byteArrayOutputStream.writeBytes(stream.read());
                     } while (!stream.isClosed());
-                } catch (IOException e) {
+                } catch (IOException | IllegalStateException e) {
                     String message = e.getMessage();
-                    if (message != null && !"Stream closed".equals(message)) {
+                    if (message != null && !"Stream closed".equals(message)
+                            && !"connect() must be called first".equals(message)) {
                         throw e;
                     }
                 }
