@@ -23,5 +23,14 @@
 			<description>Number of changes before updating Item State.</description>
 			<default>0</default>
 		</parameter>
+		<parameter name="mode" type="text">
+			<label>Mode</label>
+			<options>
+				<option value="FIRST">Send first value</option>
+				<option value="LAST">Send last value</option>
+			</options>
+			<default>LAST</default>
+			<limitToOptions>true</limitToOptions>
+		</parameter>
 	</config-description>
 </config-description:config-descriptions>

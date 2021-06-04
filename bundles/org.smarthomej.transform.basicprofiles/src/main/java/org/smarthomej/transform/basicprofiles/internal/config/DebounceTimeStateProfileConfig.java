@@ -23,4 +23,16 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 public class DebounceTimeStateProfileConfig {
     public int toHandlerDelay = 0;
     public int toItemDelay = 0;
+    public DebounceMode mode = DebounceMode.LAST;
+
+    @Override
+    public String toString() {
+        return "DebounceTimeStateProfileConfig{toHandlerDelay=" + toHandlerDelay + ", toItemDelay=" + toItemDelay
+                + ", mode=" + mode + "}";
+    }
+
+    public enum DebounceMode {
+        FIRST,
+        LAST
+    }
 }

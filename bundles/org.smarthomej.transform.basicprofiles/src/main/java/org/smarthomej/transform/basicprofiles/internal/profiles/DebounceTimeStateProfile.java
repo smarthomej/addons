@@ -46,12 +46,14 @@ public class DebounceTimeStateProfile implements StateProfile {
     private @Nullable ScheduledFuture<?> toHandlerJob;
     private @Nullable ScheduledFuture<?> toItemJob;
 
+    private boolean discardToHandler = false;
+    private boolean discardToItem = false;
+
     public DebounceTimeStateProfile(ProfileCallback callback, ProfileContext context) {
         this.callback = callback;
         this.scheduler = context.getExecutorService();
         this.config = context.getConfiguration().as(DebounceTimeStateProfileConfig.class);
-        logger.debug("Configuring profile with parameters: [toHandler='{}', toItem='{}']", config.toHandlerDelay,
-                config.toItemDelay);
+        logger.debug("Configuring profile with parameters: {}", config);
 
         if (config.toHandlerDelay < 0) {
             throw new IllegalArgumentException(String.format(
@@ -82,13 +84,32 @@ public class DebounceTimeStateProfile implements StateProfile {
             return;
         }
         ScheduledFuture<?> localToHandlerJob = toHandlerJob;
-        if (localToHandlerJob != null) {
-            // if we have an old job, cancel it
-            localToHandlerJob.cancel(true);
+        if (config.mode == DebounceTimeStateProfileConfig.DebounceMode.LAST) {
+            if (localToHandlerJob != null) {
+                // if we have an old job, cancel it
+                localToHandlerJob.cancel(true);
+            }
+            logger.trace("Scheduling command '{}'", command);
+            scheduleToHandler(() -> {
+                logger.debug("Sending command '{}' to handler", command);
+                callback.handleCommand(command);
+            });
+        } else {
+            if (localToHandlerJob == null) {
+                // send the value only if we don't have a job
+                callback.handleCommand(command);
+                scheduleToHandler(null);
+            } else {
+                logger.trace("Discarding command to handler '{}'", command);
+            }
         }
+    }
+
+    private void scheduleToHandler(@Nullable Runnable function) {
         toHandlerJob = scheduler.schedule(() -> {
-            logger.debug("Sending command '{}' to handler", command);
-            callback.handleCommand(command);
+            if (function != null) {
+                function.run();
+            }
             toHandlerJob = null;
         }, config.toHandlerDelay, TimeUnit.MILLISECONDS);
     }
@@ -100,16 +121,27 @@ public class DebounceTimeStateProfile implements StateProfile {
             callback.sendCommand(command);
             return;
         }
+
         ScheduledFuture<?> localToItemJob = toItemJob;
-        if (localToItemJob != null) {
-            // if we have an old job, cancel it
-            localToItemJob.cancel(true);
+        if (config.mode == DebounceTimeStateProfileConfig.DebounceMode.LAST) {
+            if (localToItemJob != null) {
+                // if we have an old job, cancel it
+                localToItemJob.cancel(true);
+            }
+            logger.trace("Scheduling command '{}' to item", command);
+            scheduleToItem(() -> {
+                logger.debug("Sending command '{}' to item", command);
+                callback.sendCommand(command);
+            });
+        } else {
+            if (localToItemJob == null) {
+                // only schedule a new job if we have none
+                callback.sendCommand(command);
+                scheduleToItem(null);
+            } else {
+                logger.trace("Discarding command to item '{}'", command);
+            }
         }
-        toItemJob = scheduler.schedule(() -> {
-            logger.debug("Sending command '{}' to item", command);
-            callback.sendCommand(command);
-            toItemJob = null;
-        }, config.toItemDelay, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -120,13 +152,32 @@ public class DebounceTimeStateProfile implements StateProfile {
             return;
         }
         ScheduledFuture<?> localToItemJob = toItemJob;
-        if (localToItemJob != null) {
-            // if we have an old job, cancel it
-            localToItemJob.cancel(true);
+        if (config.mode == DebounceTimeStateProfileConfig.DebounceMode.LAST) {
+            if (localToItemJob != null) {
+                // if we have an old job, cancel it
+                localToItemJob.cancel(true);
+            }
+            logger.trace("Scheduling state update '{}' to item", state);
+            scheduleToItem(() -> {
+                logger.debug("Sending state update '{}' to item", state);
+                callback.sendUpdate(state);
+            });
+        } else {
+            if (toItemJob == null) {
+                // only schedule a new job if we have none
+                callback.sendUpdate(state);
+                scheduleToItem(null);
+            } else {
+                logger.trace("Discarding state update to item '{}'", state);
+            }
         }
+    }
+
+    private void scheduleToItem(@Nullable Runnable function) {
         toItemJob = scheduler.schedule(() -> {
-            logger.debug("Posting state update '{}' to Item", state);
-            callback.sendUpdate(state);
+            if (function != null) {
+                function.run();
+            }
             toItemJob = null;
         }, config.toItemDelay, TimeUnit.MILLISECONDS);
     }
