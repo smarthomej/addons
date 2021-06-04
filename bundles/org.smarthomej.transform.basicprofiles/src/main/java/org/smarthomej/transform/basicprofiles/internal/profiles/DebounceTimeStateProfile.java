@@ -46,10 +46,9 @@ public class DebounceTimeStateProfile implements StateProfile {
     private @Nullable ScheduledFuture<?> toHandlerJob;
     private @Nullable ScheduledFuture<?> toItemJob;
 
-    public DebounceTimeStateProfile(ProfileCallback callback, ProfileContext context,
-            ScheduledExecutorService scheduler) {
+    public DebounceTimeStateProfile(ProfileCallback callback, ProfileContext context) {
         this.callback = callback;
-        this.scheduler = scheduler;
+        this.scheduler = context.getExecutorService();
         this.config = context.getConfiguration().as(DebounceTimeStateProfileConfig.class);
         logger.debug("Configuring profile with parameters: [toHandler='{}', toItem='{}']", config.toHandlerDelay,
                 config.toItemDelay);

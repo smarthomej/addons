@@ -19,12 +19,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.core.common.ThreadPoolManager;
 import org.openhab.core.i18n.LocalizedKey;
 import org.openhab.core.library.CoreItemFactory;
 import org.openhab.core.thing.Channel;
@@ -108,8 +106,6 @@ public class BasicProfilesFactory implements ProfileFactory, ProfileTypeProvider
     private final ProfileTypeI18nLocalizationService profileTypeI18nLocalizationService;
     private final Bundle bundle;
 
-    private final ScheduledExecutorService scheduler = ThreadPoolManager.getScheduledPool("basicprofile");
-
     @Activate
     public BasicProfilesFactory(final @Reference ProfileTypeI18nLocalizationService profileTypeI18nLocalizationService,
             final @Reference BundleResolver bundleResolver) {
@@ -127,7 +123,7 @@ public class BasicProfilesFactory implements ProfileFactory, ProfileTypeProvider
         } else if (DEBOUNCE_COUNTING_UID.equals(profileTypeUID)) {
             return new DebounceCountingStateProfile(callback, context);
         } else if (DEBOUNCE_TIME_UID.equals(profileTypeUID)) {
-            return new DebounceTimeStateProfile(callback, context, scheduler);
+            return new DebounceTimeStateProfile(callback, context);
         } else if (INVERT_UID.equals(profileTypeUID)) {
             return new InvertStateProfile(callback);
         } else if (ROUND_UID.equals(profileTypeUID)) {

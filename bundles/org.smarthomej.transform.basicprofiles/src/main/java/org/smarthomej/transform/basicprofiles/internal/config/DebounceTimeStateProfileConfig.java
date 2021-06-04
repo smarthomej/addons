@@ -13,10 +13,9 @@
 package org.smarthomej.transform.basicprofiles.internal.config;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.smarthomej.transform.basicprofiles.internal.profiles.DebounceCountingStateProfile;
 
 /**
- * Configuration for {@link DebounceCountingStateProfile}.
+ * Configuration for {@link org.smarthomej.transform.basicprofiles.internal.profiles.DebounceTimeStateProfile}.
  *
  * @author Jan N. Klug - Initial contribution
  */
