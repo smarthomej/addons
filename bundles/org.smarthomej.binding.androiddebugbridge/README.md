@@ -367,7 +367,7 @@ This is a sample of the mediaStateJSONConfig thing configuration:
 ### Sample Thing
 
 ```
-Thing androiddebugbridge:android:xxxxxxxxxxxx [ ip="192.168.1.10" port=5555 refreshTime=30 ]
+Thing androiddebugbridge:android:xxxxxxxxxxxx [ ip="192.168.1.10", port=5555, refreshTime=30 ]
 ```
 
 ### Sample Items
