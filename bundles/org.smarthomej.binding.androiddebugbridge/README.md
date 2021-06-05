@@ -48,9 +48,9 @@ The available modes are:
 
 The configuration depends on the application, device and version used.
 
-This is a sample of the mediaStateJSONConfig thing configuration:
+This is a sample of the mediaStateJSONConfig thing configuration - the `label` is optional:
 
-`[{"name": "com.amazon.tv.launcher", "mode": "idle"},{"name": "org.jellyfin.androidtv", "mode": "wake_lock", "wakeLockPlayStates": [2,3]},{"name": "com.amazon.firetv.youtube", "mode": "wake_lock", "wakeLockPlayStates": [2]}]`
+`[{"name": "com.amazon.tv.launcher", "mode": "idle"},{"name": "org.jellyfin.androidtv", "mode": "wake_lock", "wakeLockPlayStates": [2,3]}, {"name": "com.amazon.firetv.youtube", "label":"YouTube", "mode": "wake_lock", "wakeLockPlayStates": [2]}]`
 
 ## Channels
 
@@ -61,7 +61,7 @@ This is a sample of the mediaStateJSONConfig thing configuration:
 | tap  | String | Send tap event to android device (format x,y) |
 | media-volume  | Dimmer | Set or get media volume level on android device |
 | media-control  | Player | Control media on android device |
-| start-package  | String | Run application by package name |
+| start-package  | String | Run application by package name. The commands for this Channel are populated dynamically based on the `mediaStateJSONConfig`. |
 | stop-package  | String | Stop application by package name |
 | stop-open-url  | String | Open a URL with the default application (http, rtsp, aso) |
 | current-package  | String | Package name of the top application in screen |
