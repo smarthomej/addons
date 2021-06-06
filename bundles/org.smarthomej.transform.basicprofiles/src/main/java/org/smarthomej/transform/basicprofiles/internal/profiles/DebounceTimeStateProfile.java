@@ -46,9 +46,6 @@ public class DebounceTimeStateProfile implements StateProfile {
     private @Nullable ScheduledFuture<?> toHandlerJob;
     private @Nullable ScheduledFuture<?> toItemJob;
 
-    private boolean discardToHandler = false;
-    private boolean discardToItem = false;
-
     public DebounceTimeStateProfile(ProfileCallback callback, ProfileContext context) {
         this.callback = callback;
         this.scheduler = context.getExecutorService();
@@ -57,12 +54,12 @@ public class DebounceTimeStateProfile implements StateProfile {
 
         if (config.toHandlerDelay < 0) {
             throw new IllegalArgumentException(String.format(
-                    "debounceTimeToHandler has to be a non-negative integer but was '%d'.", config.toHandlerDelay));
+                    "toHandlerDelay has to be a non-negative integer but was '%d'.", config.toHandlerDelay));
         }
 
         if (config.toItemDelay < 0) {
             throw new IllegalArgumentException(String
-                    .format("debounceTimeToItem has to be a non-negative integer but was '%d'.", config.toItemDelay));
+                    .format("toItemDelay has to be a non-negative integer but was '%d'.", config.toItemDelay));
         }
     }
 
