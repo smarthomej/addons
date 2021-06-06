@@ -136,7 +136,7 @@ public class AndroidDebugBridgeDevice {
             return;
         }
         String output = runAdbShell("am", "start", "-n", packageName);
-        if (output.contains("usage: am")) {
+        if (output.contains("usage: am") || output.contains("Exception")) {
             channelFallbackMap.put(START_PACKAGE_CHANNEL, FallbackModes.MONKEY);
             startPackageWithMonkey(packageName);
         }
