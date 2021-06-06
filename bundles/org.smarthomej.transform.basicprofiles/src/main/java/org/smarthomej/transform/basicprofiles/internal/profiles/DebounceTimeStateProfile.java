@@ -53,13 +53,13 @@ public class DebounceTimeStateProfile implements StateProfile {
         logger.debug("Configuring profile with parameters: {}", config);
 
         if (config.toHandlerDelay < 0) {
-            throw new IllegalArgumentException(String.format(
-                    "toHandlerDelay has to be a non-negative integer but was '%d'.", config.toHandlerDelay));
+            throw new IllegalArgumentException(String
+                    .format("toHandlerDelay has to be a non-negative integer but was '%d'.", config.toHandlerDelay));
         }
 
         if (config.toItemDelay < 0) {
-            throw new IllegalArgumentException(String
-                    .format("toItemDelay has to be a non-negative integer but was '%d'.", config.toItemDelay));
+            throw new IllegalArgumentException(
+                    String.format("toItemDelay has to be a non-negative integer but was '%d'.", config.toItemDelay));
         }
     }
 
