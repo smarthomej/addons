@@ -43,6 +43,7 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.smarthomej.transform.basicprofiles.internal.profiles.DebounceCountingStateProfile;
+import org.smarthomej.transform.basicprofiles.internal.profiles.DebounceTimeStateProfile;
 import org.smarthomej.transform.basicprofiles.internal.profiles.GenericCommandTriggerProfile;
 import org.smarthomej.transform.basicprofiles.internal.profiles.GenericToggleSwitchTriggerProfile;
 import org.smarthomej.transform.basicprofiles.internal.profiles.InvertStateProfile;
@@ -61,6 +62,7 @@ public class BasicProfilesFactory implements ProfileFactory, ProfileTypeProvider
     public static final ProfileTypeUID GENERIC_COMMAND_UID = new ProfileTypeUID(SCOPE, "generic-command");
     public static final ProfileTypeUID GENERIC_TOGGLE_SWITCH_UID = new ProfileTypeUID(SCOPE, "toggle-switch");
     public static final ProfileTypeUID DEBOUNCE_COUNTING_UID = new ProfileTypeUID(SCOPE, "debounce-counting");
+    public static final ProfileTypeUID DEBOUNCE_TIME_UID = new ProfileTypeUID(SCOPE, "debounce-time");
     public static final ProfileTypeUID INVERT_UID = new ProfileTypeUID(SCOPE, "invert");
     public static final ProfileTypeUID ROUND_UID = new ProfileTypeUID(SCOPE, "round");
     public static final ProfileTypeUID THRESHOLD_UID = new ProfileTypeUID(SCOPE, "threshold");
@@ -76,6 +78,8 @@ public class BasicProfilesFactory implements ProfileFactory, ProfileTypeProvider
             .build();
     private static final ProfileType PROFILE_TYPE_DEBOUNCE_COUNTING = ProfileTypeBuilder
             .newState(DEBOUNCE_COUNTING_UID, "Debounce (Counting)").build();
+    private static final ProfileType PROFILE_TYPE_DEBOUNCE_TIME = ProfileTypeBuilder
+            .newState(DEBOUNCE_TIME_UID, "Debounce (Time)").build();
     private static final ProfileType PROFILE_TYPE_INVERT = ProfileTypeBuilder.newState(INVERT_UID, "Invert / Negate")
             .withSupportedItemTypes(CoreItemFactory.CONTACT, CoreItemFactory.DIMMER, CoreItemFactory.NUMBER,
                     CoreItemFactory.PLAYER, CoreItemFactory.ROLLERSHUTTER, CoreItemFactory.SWITCH) //
@@ -92,10 +96,10 @@ public class BasicProfilesFactory implements ProfileFactory, ProfileTypeProvider
             .build();
 
     private static final Set<ProfileTypeUID> SUPPORTED_PROFILE_TYPE_UIDS = Set.of(GENERIC_COMMAND_UID,
-            GENERIC_TOGGLE_SWITCH_UID, DEBOUNCE_COUNTING_UID, INVERT_UID, ROUND_UID, THRESHOLD_UID);
+            GENERIC_TOGGLE_SWITCH_UID, DEBOUNCE_COUNTING_UID, DEBOUNCE_TIME_UID, INVERT_UID, ROUND_UID, THRESHOLD_UID);
     private static final Set<ProfileType> SUPPORTED_PROFILE_TYPES = Set.of(PROFILE_TYPE_GENERIC_COMMAND,
-            PROFILE_TYPE_GENERIC_TOGGLE_SWITCH, PROFILE_TYPE_DEBOUNCE_COUNTING, PROFILE_TYPE_INVERT, PROFILE_TYPE_ROUND,
-            PROFILE_TYPE_THRESHOLD);
+            PROFILE_TYPE_GENERIC_TOGGLE_SWITCH, PROFILE_TYPE_DEBOUNCE_COUNTING, PROFILE_TYPE_DEBOUNCE_TIME,
+            PROFILE_TYPE_INVERT, PROFILE_TYPE_ROUND, PROFILE_TYPE_THRESHOLD);
 
     private final Map<LocalizedKey, ProfileType> localizedProfileTypeCache = new ConcurrentHashMap<>();
 
@@ -118,6 +122,8 @@ public class BasicProfilesFactory implements ProfileFactory, ProfileTypeProvider
             return new GenericToggleSwitchTriggerProfile(callback, context);
         } else if (DEBOUNCE_COUNTING_UID.equals(profileTypeUID)) {
             return new DebounceCountingStateProfile(callback, context);
+        } else if (DEBOUNCE_TIME_UID.equals(profileTypeUID)) {
+            return new DebounceTimeStateProfile(callback, context);
         } else if (INVERT_UID.equals(profileTypeUID)) {
             return new InvertStateProfile(callback);
         } else if (ROUND_UID.equals(profileTypeUID)) {
