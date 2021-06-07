@@ -298,17 +298,17 @@ public class KNXCoreTypeMapper {
                 case "1":
                     DPTXlatorBoolean translatorBoolean = (DPTXlatorBoolean) translator;
                     switch (m.group("sub")) {
-                        case "8":
+                        case "008":
                             return translatorBoolean.getValueBoolean() ? UpDownType.DOWN : UpDownType.UP;
-                        case "9":
-                        case "19":
+                        case "009":
+                        case "019":
                             // This is wrong for DPT 9. It should be true -> CLOSE, false -> OPEN, but unfortunately
                             // can't be fixed without breaking a lot of working installations.
                             // The documentation has been updated to reflect that. / @J-N-K
                             return translatorBoolean.getValueBoolean() ? OpenClosedType.OPEN : OpenClosedType.CLOSED;
-                        case "10":
+                        case "010":
                             return translatorBoolean.getValueBoolean() ? StopMoveType.MOVE : StopMoveType.STOP;
-                        case "22":
+                        case "022":
                             return DecimalType.valueOf(translatorBoolean.getValueBoolean() ? "1" : "0");
                         default:
                             return OnOffType.from(translatorBoolean.getValueBoolean());
