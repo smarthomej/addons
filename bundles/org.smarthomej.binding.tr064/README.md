@@ -178,6 +178,7 @@ If only a specific phonebook from the device should be used, this can be specifi
 The default is to use all available phonebooks from the specified thing.
 In case the format of the number in the phonebook and the format of the number from the channel are different (e.g. regarding country prefixes), the `matchCount` parameter can be used.
 The configured `matchCount` is counted from the right end and denotes the number of matching characters needed to consider this number as matching.
+Negative `matchCount` values skip digits from the left (e.g. if the input number is `033998005671` a `matchCount` of `-1` would remove the leading `0` ).
 A `matchCount` of `0` is considered as "match everything".
 Matching is done on normalized versions of the numbers that have all characters except digits, '+' and '*' removed.
 There is an optional configuration parameter called `phoneNumberIndex` that should be used when linking to a channel with item type `StringListType` (like `Call` in the example below), which determines which number to be picked, i.e. to or from.
@@ -191,7 +192,8 @@ The phonebooks of a `fritzbox` thing can be used to lookup a number from rules v
 `phonebook` and `matchCount` are optional parameters.
 You can omit one or both of these parameters.
 The configured `matchCount` is counted from the right end and denotes the number of matching characters needed to consider this number as matching.
-A `matchCount` of `0` is considered as "match everything" and is used as default if no other value is given. 
+Negative `matchCount` values skip digits from the left (e.g. if the input number is `033998005671` a `matchCount` of `-1` would remove the leading `0` ).
+A `matchCount` of `0` is considered as "match everything" and is used as default if no other value is given.
 As in the phonebook profile, matching is done on normalized versions of the numbers that have all characters except digits, '+' and '*' removed.
 The return value is either the phonebook entry (if found) or the input number.
 
