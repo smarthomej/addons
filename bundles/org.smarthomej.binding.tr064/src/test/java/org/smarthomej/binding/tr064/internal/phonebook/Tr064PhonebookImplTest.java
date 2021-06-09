@@ -12,16 +12,18 @@
  */
 package org.smarthomej.binding.tr064.internal.phonebook;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jetty.client.HttpClient;
-import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -57,6 +59,32 @@ public class Tr064PhonebookImplTest {
     public void testNormalization(Map.Entry<String, String> input) {
         when(httpClient.newRequest((String) any())).thenThrow(new IllegalArgumentException("testing"));
         Tr064PhonebookImpl testPhonebook = new Tr064PhonebookImpl(httpClient, "", 0);
-        Assertions.assertEquals(input.getValue(), testPhonebook.normalizeNumber(input.getKey()));
+        assertEquals(input.getValue(), testPhonebook.normalizeNumber(input.getKey()));
+    }
+
+    @Test
+    public void testLookup() {
+        when(httpClient.newRequest((String) any())).thenThrow(new IllegalArgumentException("testing"));
+        TestPhonebook testPhonebook = new TestPhonebook(httpClient, "", 0);
+        testPhonebook.setPhonebook(Map.of("+491238007001", "foo", "+4933998005671", "bar"));
+
+        Optional<String> result = testPhonebook.lookupNumber("01238007001", 0);
+        assertEquals(Optional.empty(), result);
+
+        result = testPhonebook.lookupNumber("01238007001", 10);
+        assertEquals("foo", result.get());
+
+        result = testPhonebook.lookupNumber("033998005671", -1);
+        assertEquals("bar", result.get());
+    }
+
+    private static class TestPhonebook extends Tr064PhonebookImpl {
+        public TestPhonebook(HttpClient httpClient, String phonebookUrl, int httpTimeout) {
+            super(httpClient, phonebookUrl, httpTimeout);
+        }
+
+        public void setPhonebook(Map<String, String> phonebook) {
+            this.phonebook = phonebook;
+        }
     }
 }
