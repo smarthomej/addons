@@ -34,7 +34,7 @@ import org.smarthomej.binding.tr064.internal.util.Util;
 public class Tr064PhonebookImpl implements Phonebook {
     private final Logger logger = LoggerFactory.getLogger(Tr064PhonebookImpl.class);
 
-    private Map<String, String> phonebook = new HashMap<>();
+    protected Map<String, String> phonebook = new HashMap<>();
 
     private final HttpClient httpClient;
     private final String phonebookUrl;
@@ -84,9 +84,14 @@ public class Tr064PhonebookImpl implements Phonebook {
     @Override
     public Optional<String> lookupNumber(String number, int matchCount) {
         String normalized = normalizeNumber(number);
-        String matchString = matchCount > 0 && matchCount < normalized.length()
-                ? normalized.substring(normalized.length() - matchCount)
-                : normalized;
+        String matchString;
+        if (matchCount > 0 && matchCount < normalized.length()) {
+            matchString = normalized.substring(normalized.length() - matchCount);
+        } else if (matchCount < 0 && (-matchCount) < normalized.length()) {
+            matchString = normalized.substring(-matchCount);
+        } else {
+            matchString = normalized;
+        }
         logger.trace("Normalized '{}' to '{}', matchString is '{}'", number, normalized, matchString);
         return matchString.isBlank() ? Optional.empty()
                 : phonebook.keySet().stream().filter(n -> n.endsWith(matchString)).findFirst().map(phonebook::get);
