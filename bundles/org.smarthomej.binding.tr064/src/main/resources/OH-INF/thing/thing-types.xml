@@ -29,7 +29,7 @@
 			</parameter>
 			<parameter name="timeout" type="integer" unit="s">
 				<label>Timeout</label>
-				<description>Timout for all requests (SOAP requests, phonebook retrieval, call lists, ...).</description>
+				<description>Timeout for all requests (SOAP requests, phone book retrieval, call lists, ...).</description>
 				<default>5</default>
 				<advanced>true</advanced>
 			</parameter>
@@ -37,8 +37,8 @@
 	</bridge-type>
 
 	<bridge-type id="fritzbox">
-		<label>FritzBox</label>
-		<description>A physical FritzBox Device.</description>
+		<label>FRITZ!Box</label>
+		<description>A physical FRITZ!Box device.</description>
 
 		<representation-property>host</representation-property>
 
@@ -59,7 +59,12 @@
 			<parameter name="refresh" type="integer" unit="s">
 				<label>Refresh Interval</label>
 				<default>60</default>
-				<unitLabel>s</unitLabel>
+			</parameter>
+			<parameter name="timeout" type="integer" unit="s">
+				<label>Timeout</label>
+				<description>Timeout for all requests (SOAP requests, phone book retrieval, call lists, ...).</description>
+				<default>5</default>
+				<advanced>true</advanced>
 			</parameter>
 			<parameter name="tamIndices" type="text" multiple="true">
 				<label>TAM</label>
@@ -102,8 +107,8 @@
 				<advanced>true</advanced>
 			</parameter>
 			<parameter name="phonebookInterval" type="integer" min="0" unit="s">
-				<label>Phonebook Interval</label>
-				<description>The interval for refreshing the phonebook (disabled = 0)</description>
+				<label>Phone Book Interval</label>
+				<description>The interval for refreshing the phone book (disabled = 0).</description>
 				<default>600</default>
 				<advanced>true</advanced>
 			</parameter>
@@ -128,7 +133,6 @@
 			<parameter name="refresh" type="integer" unit="s">
 				<label>Refresh Interval</label>
 				<default>60</default>
-				<unitLabel>s</unitLabel>
 			</parameter>
 		</config-description>
 	</thing-type>
@@ -151,7 +155,6 @@
 			<parameter name="refresh" type="integer" unit="s">
 				<label>Refresh Interval</label>
 				<default>60</default>
-				<unitLabel>s</unitLabel>
 			</parameter>
 			<parameter name="macOnline" type="text" multiple="true">
 				<label>MAC Online</label>
