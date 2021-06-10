@@ -7,6 +7,8 @@
 	<bridge-type id="generic">
 		<label>Generic CPE</label>
 
+		<representation-property>host</representation-property>
+
 		<config-description>
 			<parameter name="host" type="text" required="true">
 				<label>Host</label>
@@ -24,13 +26,11 @@
 			<parameter name="refresh" type="integer" unit="s">
 				<label>Refresh Interval</label>
 				<default>60</default>
-				<unitLabel>s</unitLabel>
 			</parameter>
 			<parameter name="timeout" type="integer" unit="s">
 				<label>Timeout</label>
 				<description>Timout for all requests (SOAP requests, phonebook retrieval, call lists, ...).</description>
 				<default>5</default>
-				<unitLabel>s</unitLabel>
 				<advanced>true</advanced>
 			</parameter>
 		</config-description>
@@ -39,6 +39,8 @@
 	<bridge-type id="fritzbox">
 		<label>FritzBox</label>
 		<description>A physical FritzBox Device.</description>
+
+		<representation-property>host</representation-property>
 
 		<config-description>
 			<parameter name="host" type="text" required="true">
@@ -116,6 +118,8 @@
 		<label>Sub-Device</label>
 		<description>A virtual sub-device.</description>
 
+		<representation-property>uuid</representation-property>
+
 		<config-description>
 			<parameter name="uuid" type="text" required="true">
 				<label>UUID</label>
@@ -136,6 +140,8 @@
 		</supported-bridge-type-refs>
 		<label>Sub-Device (LAN)</label>
 		<description>A virtual Sub-Device (LAN).</description>
+
+		<representation-property>uuid</representation-property>
 
 		<config-description>
 			<parameter name="uuid" type="text" required="true">
