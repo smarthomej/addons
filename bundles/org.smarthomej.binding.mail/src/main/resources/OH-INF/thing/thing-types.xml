@@ -144,11 +144,17 @@
 			</parameter>
 			<parameter name="subject" type="text">
 				<label>Subject Filter</label>
-				<description>A filter for the mail subject.</description>
+				<description>A (regular expression) filter for the mail subject.</description>
 				<default>.*</default>
 			</parameter>
 			<parameter name="transformation" type="text">
 				<label>Transformation</label>
+				<description>Transformation pattern used when processing messages. Multiple transformation can be chained using "∩".</description>
+			</parameter>
+			<parameter name="markAsRead" type="boolean">
+				<label>Mark As Read</label>
+				<description>Mark a processed mail as read and prevent further processing.</description>
+				<default>false</default>
 			</parameter>
 		</config-description>
 	</channel-type>

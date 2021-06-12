@@ -121,6 +121,9 @@ public class POP3IMAPHandler extends BaseThingHandler {
     }
 
     private void refresh() {
+        if (Thread.currentThread().isInterrupted()) {
+            return;
+        }
         Properties props = new Properties();
         props.setProperty("mail." + baseProtocol + ".starttls.enable", "true");
         props.setProperty("mail.store.protocol", protocol);
@@ -159,7 +162,7 @@ public class POP3IMAPHandler extends BaseThingHandler {
                         logger.info("missing or empty folder name in channel '{}'", channel.getUID());
                     } else {
                         try (Folder mailbox = store.getFolder(folderName)) {
-                            mailbox.open(Folder.READ_ONLY);
+                            mailbox.open(channelConfig.markAsRead ? Folder.READ_WRITE : Folder.READ_ONLY);
                             Message[] messages = mailbox.search(new FlagTerm(new Flags(Flags.Flag.SEEN), false));
                             for (Message message : messages) {
                                 String subject = message.getSubject();
@@ -186,7 +189,6 @@ public class POP3IMAPHandler extends BaseThingHandler {
                                 } else {
                                     logger.debug("Subject '{}' did not match subject filter.", subject);
                                 }
-                                // message.setFlag(Flags.Flag.SEEN, true);
                             }
                         } catch (MessagingException | IOException e) {
                             throw e;
