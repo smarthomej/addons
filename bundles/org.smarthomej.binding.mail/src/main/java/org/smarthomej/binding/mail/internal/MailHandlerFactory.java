@@ -22,7 +22,10 @@ import org.openhab.core.thing.ThingTypeUID;
 import org.openhab.core.thing.binding.BaseThingHandlerFactory;
 import org.openhab.core.thing.binding.ThingHandler;
 import org.openhab.core.thing.binding.ThingHandlerFactory;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+import org.smarthomej.commons.transform.ValueTransformationProvider;
 
 /**
  * The {@link MailHandlerFactory} is responsible for creating things and thing
@@ -33,6 +36,13 @@ import org.osgi.service.component.annotations.Component;
 @NonNullByDefault
 @Component(configurationPid = "binding.mail", service = ThingHandlerFactory.class)
 public class MailHandlerFactory extends BaseThingHandlerFactory {
+
+    private final ValueTransformationProvider valueTransformationProvider;
+
+    @Activate
+    public MailHandlerFactory(@Reference ValueTransformationProvider valueTransformationProvider) {
+        this.valueTransformationProvider = valueTransformationProvider;
+    }
 
     @Override
     public boolean supportsThingType(ThingTypeUID thingTypeUID) {
@@ -46,7 +56,7 @@ public class MailHandlerFactory extends BaseThingHandlerFactory {
         if (THING_TYPE_SMTPSERVER.equals(thingTypeUID)) {
             return new SMTPHandler(thing);
         } else if (THING_TYPE_IMAPSERVER.equals(thingTypeUID) || THING_TYPE_POP3SERVER.equals(thingTypeUID)) {
-            return new POP3IMAPHandler(thing);
+            return new POP3IMAPHandler(thing, valueTransformationProvider);
         }
 
         return null;

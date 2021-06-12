@@ -39,7 +39,7 @@
 			</parameter>
 		</config-description>
 	</thing-type>
-	<thing-type id="imap" extensible="mailcount">
+	<thing-type id="imap" extensible="mailcount,content">
 		<label>IMAP Server</label>
 		<description>Used for receiving emails</description>
 		<config-description>
@@ -75,7 +75,7 @@
 			</parameter>
 		</config-description>
 	</thing-type>
-	<thing-type id="pop3" extensible="mailcount">
+	<thing-type id="pop3" extensible="mailcount,content">
 		<label>POP3 Server</label>
 		<description>Used for receiving emails</description>
 		<config-description>
@@ -129,6 +129,26 @@
 				</options>
 				<limitToOptions>true</limitToOptions>
 				<default>TOTAL</default>
+			</parameter>
+		</config-description>
+	</channel-type>
+
+	<channel-type id="content">
+		<item-type>String</item-type>
+		<label>Mail Content</label>
+		<state readOnly="true"/>
+		<config-description>
+			<parameter name="folder" type="text" required="true">
+				<label>Folder Name</label>
+				<required>true</required>
+			</parameter>
+			<parameter name="subject" type="text">
+				<label>Subject Filter</label>
+				<description>A filter for the mail subject.</description>
+				<default>.*</default>
+			</parameter>
+			<parameter name="transformation" type="text">
+				<label>Transformation</label>
 			</parameter>
 		</config-description>
 	</channel-type>

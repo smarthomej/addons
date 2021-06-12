@@ -6,6 +6,7 @@
 		<feature>openhab-runtime-base</feature>
 		<bundle dependency="true">mvn:com.sun.mail/javax.mail/1.6.2</bundle>
 		<bundle dependency="true">mvn:org.apache.servicemix.specs/org.apache.servicemix.specs.activation-api-1.1/2.9.0</bundle>
+		<bundle dependency="true">mvn:org.smarthomej.addons.bundles/org.smarthomej.commons/${project.version}</bundle>
 		<bundle start-level="80">mvn:org.smarthomej.addons.bundles/org.smarthomej.binding.mail/${project.version}</bundle>
 	</feature>
 </features>

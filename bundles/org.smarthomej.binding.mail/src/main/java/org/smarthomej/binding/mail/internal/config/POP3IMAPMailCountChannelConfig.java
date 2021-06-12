@@ -18,13 +18,13 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.smarthomej.binding.mail.internal.MailCountChannelType;
 
 /**
- * The {@link POP3IMAPChannelConfig} class contains fields mapping thing configuration parameters.
+ * The {@link POP3IMAPMailCountChannelConfig} class contains fields mapping thing configuration parameters.
  *
  * @author Jan N. Klug - Initial contribution
  */
 
 @NonNullByDefault
-public class POP3IMAPChannelConfig {
+public class POP3IMAPMailCountChannelConfig {
     public @Nullable String folder;
     public MailCountChannelType type = MailCountChannelType.TOTAL;
 }
