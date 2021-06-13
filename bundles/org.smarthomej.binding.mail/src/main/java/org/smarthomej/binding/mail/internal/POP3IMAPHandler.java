@@ -31,6 +31,7 @@ import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Store;
+import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.search.FlagTerm;
 
@@ -184,9 +185,9 @@ public class POP3IMAPHandler extends BaseThingHandler {
                                 if (rawContent instanceof String) {
                                     logger.trace("Detected plain text message");
                                     contentAsString = (String) rawContent;
-                                } else if (rawContent instanceof MimeMultipart) {
+                                } else if (rawContent instanceof MimeMessage) {
                                     logger.trace("Detected MIME multipart message");
-                                    MimeMultipart mimeMessage = (MimeMultipart) rawContent;
+                                    MimeMessage mimeMessage = (MimeMessage) rawContent;
                                     ByteArrayOutputStream os = new ByteArrayOutputStream();
                                     mimeMessage.writeTo(os);
                                     contentAsString = os.toString();
