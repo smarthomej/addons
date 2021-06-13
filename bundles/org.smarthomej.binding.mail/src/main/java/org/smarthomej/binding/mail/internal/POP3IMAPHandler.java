@@ -32,7 +32,6 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Store;
 import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
 import javax.mail.search.FlagTerm;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
