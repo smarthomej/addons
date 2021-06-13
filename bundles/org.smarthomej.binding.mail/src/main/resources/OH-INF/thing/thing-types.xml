@@ -135,7 +135,8 @@
 
 	<channel-type id="content">
 		<item-type>String</item-type>
-		<label>Mail Content</label>
+		<label>Content</label>
+		<description>Mail content as String (with subject filter and content transformation).</description>
 		<state readOnly="true"/>
 		<config-description>
 			<parameter name="folder" type="text" required="true">
@@ -145,7 +146,10 @@
 			<parameter name="subject" type="text">
 				<label>Subject Filter</label>
 				<description>A (regular expression) filter for the mail subject.</description>
-				<default>.*</default>
+			</parameter>
+			<parameter name="sender" type="text">
+				<label>Sender Filter</label>
+				<description>A (regular expression) filter for the mail sender address.</description>
 			</parameter>
 			<parameter name="transformation" type="text">
 				<label>Transformation</label>

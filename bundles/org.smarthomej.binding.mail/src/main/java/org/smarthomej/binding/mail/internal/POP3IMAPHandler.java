@@ -21,7 +21,10 @@ import java.io.IOException;
 import java.util.Properties;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import javax.mail.Address;
 import javax.mail.Flags;
 import javax.mail.Folder;
 import javax.mail.Message;
@@ -148,8 +151,6 @@ public class POP3IMAPHandler extends BaseThingHandler {
                                 updateState(channel.getUID(), new DecimalType(
                                         mailbox.search(new FlagTerm(new Flags(Flags.Flag.SEEN), false)).length));
                             }
-                        } catch (MessagingException e) {
-                            throw e;
                         }
                     }
                 } else if (CHANNEL_TYPE_UID_MAIL_CONTENT.equals(channel.getChannelTypeUID())) {
@@ -166,38 +167,45 @@ public class POP3IMAPHandler extends BaseThingHandler {
                             Message[] messages = mailbox.search(new FlagTerm(new Flags(Flags.Flag.SEEN), false));
                             for (Message message : messages) {
                                 String subject = message.getSubject();
-                                if (subject.matches(channelConfig.subject)) {
-                                    Object rawContent = message.getContent();
-                                    String contentAsString;
-                                    if (rawContent instanceof String) {
-                                        logger.trace("Detected plain text message");
-                                        contentAsString = (String) rawContent;
-                                    } else if (rawContent instanceof MimeMultipart) {
-                                        logger.trace("Detected MIME multipart message");
-                                        MimeMultipart mimeMessage = (MimeMultipart) rawContent;
-                                        ByteArrayOutputStream os = new ByteArrayOutputStream();
-                                        mimeMessage.writeTo(os);
-                                        contentAsString = os.toString();
-                                    } else {
-                                        logger.warn("Failed to convert mail content with subject '{}', to String: {}",
-                                                subject, rawContent.getClass());
-                                        continue;
-                                    }
-                                    logger.debug("Found content '{}'", contentAsString);
-                                    valueTransformation.apply(contentAsString)
-                                            .ifPresent(result -> updateState(channel.getUID(), new StringType(result)));
-                                } else {
-                                    logger.debug("Subject '{}' did not match subject filter.", subject);
+                                Address[] senders = message.getFrom();
+                                String sender = senders == null ? ""
+                                        : Stream.of(senders).map(Address::toString).collect(Collectors.joining(","));
+                                logger.debug("Processing `{}` from `{}`", subject, sender);
+                                if (!channelConfig.subject.isBlank() && !subject.matches(channelConfig.subject)) {
+                                    logger.trace("Subject '{}' did not pass subject filter", subject);
+                                    continue;
                                 }
+                                if (!channelConfig.sender.isBlank() && !sender.matches(channelConfig.sender)) {
+                                    logger.trace("Sender '{}' did not pass filter '{}'", subject, channelConfig.sender);
+                                    continue;
+                                }
+                                Object rawContent = message.getContent();
+                                String contentAsString;
+                                if (rawContent instanceof String) {
+                                    logger.trace("Detected plain text message");
+                                    contentAsString = (String) rawContent;
+                                } else if (rawContent instanceof MimeMultipart) {
+                                    logger.trace("Detected MIME multipart message");
+                                    MimeMultipart mimeMessage = (MimeMultipart) rawContent;
+                                    ByteArrayOutputStream os = new ByteArrayOutputStream();
+                                    mimeMessage.writeTo(os);
+                                    contentAsString = os.toString();
+                                } else {
+                                    logger.warn(
+                                            "Failed to convert mail content from '{}' with subject '{}', to String: {}",
+                                            sender, subject, rawContent.getClass());
+                                    continue;
+                                }
+                                logger.trace("Found content '{}'", contentAsString);
+                                valueTransformation.apply(contentAsString)
+                                        .ifPresent(result -> updateState(channel.getUID(), new StringType(result)));
                             }
-                        } catch (MessagingException | IOException e) {
-                            throw e;
                         }
                     }
                 }
             }
         } catch (MessagingException | IOException e) {
-            logger.info("error when trying to refresh IMAP: {}", e.getMessage());
+            logger.info("Failed refreshing IMAP for thing '{}': {}", thing.getUID(), e.getMessage());
         }
     }
 }

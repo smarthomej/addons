@@ -25,7 +25,8 @@ import org.eclipse.jdt.annotation.Nullable;
 @NonNullByDefault
 public class POP3IMAPContentChannelConfig {
     public @Nullable String folder;
-    public String subject = ".*";
+    public String subject = "";
+    public String sender = "";
     public @Nullable String transformation;
 
     public boolean markAsRead = false;
