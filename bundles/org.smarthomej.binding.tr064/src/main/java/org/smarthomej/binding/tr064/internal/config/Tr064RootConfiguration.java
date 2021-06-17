@@ -16,6 +16,7 @@ package org.smarthomej.binding.tr064.internal.config;
 import java.util.List;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.core.OpenHAB;
 
 /**
  * The {@link Tr064RootConfiguration} class contains fields mapping thing configuration parameters.
@@ -41,6 +42,10 @@ public class Tr064RootConfiguration extends Tr064BaseThingConfiguration {
     public List<String> callListDays = List.of();
     public List<String> wanBlockIPs = List.of();
     public int phonebookInterval = 600;
+
+    // Backup data
+    public String backupDirectory = OpenHAB.getUserDataFolder();
+    public String backupPassword = "";
 
     public boolean isValid() {
         return !host.isEmpty() && !user.isEmpty() && !password.isEmpty();
