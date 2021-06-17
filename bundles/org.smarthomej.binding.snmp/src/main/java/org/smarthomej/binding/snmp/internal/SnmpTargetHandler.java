@@ -117,7 +117,7 @@ public class SnmpTargetHandler extends BaseThingHandler implements ResponseListe
             if (command instanceof RefreshType) {
                 SnmpInternalChannelConfiguration channel = readChannelSet.stream()
                         .filter(c -> channelUID.equals(c.channelUID)).findFirst()
-                        .orElseThrow(() -> new IllegalArgumentException("no writable channel found"));
+                        .orElseThrow(() -> new IllegalArgumentException("no readable channel found"));
                 PDU pdu = getPDU();
                 pdu.setType(PDU.GET);
                 pdu.add(new VariableBinding(channel.oid));
