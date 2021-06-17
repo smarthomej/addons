@@ -15,12 +15,12 @@
 			<parameter name="hostname" type="text" required="true">
 				<label>Server Hostname</label>
 			</parameter>
-			<parameter name="port" type="text" required="false">
+			<parameter name="port" type="text">
 				<label>Server Port</label>
 				<description>Default values are 25 for plain/STARTTLS and 465 for SSL/TLS</description>
 				<advanced>true</advanced>
 			</parameter>
-			<parameter name="security" type="text" required="false">
+			<parameter name="security" type="text">
 				<label>SMTP Security Protocol</label>
 				<options>
 					<option value="PLAIN">plain</option>
@@ -30,10 +30,10 @@
 				<limitToOptions>true</limitToOptions>
 				<default>PLAIN</default>
 			</parameter>
-			<parameter name="username" type="text" required="false">
+			<parameter name="username" type="text">
 				<label>SMTP Server Username</label>
 			</parameter>
-			<parameter name="password" type="text" required="false">
+			<parameter name="password" type="text">
 				<label>SMTP Server Password</label>
 				<context>password</context>
 			</parameter>
@@ -46,12 +46,12 @@
 			<parameter name="hostname" type="text" required="true">
 				<label>Server Hostname</label>
 			</parameter>
-			<parameter name="port" type="text" required="false">
+			<parameter name="port" type="text">
 				<label>Server Port</label>
 				<description>Default values are 143 for plain/STARTTLS and 993 for SSL/TLS</description>
 				<advanced>true</advanced>
 			</parameter>
-			<parameter name="security" type="text" required="false">
+			<parameter name="security" type="text">
 				<label>SMTP Security Protocol</label>
 				<options>
 					<option value="PLAIN">plain</option>
@@ -68,7 +68,7 @@
 				<label>SMTP Server Password</label>
 				<context>password</context>
 			</parameter>
-			<parameter name="refresh" type="integer" required="false" unit="s">
+			<parameter name="refresh" type="integer" unit="s">
 				<label>Refresh Time</label>
 				<description>Refresh time for this account</description>
 				<default>60</default>
@@ -82,12 +82,12 @@
 			<parameter name="hostname" type="text" required="true">
 				<label>Server Hostname</label>
 			</parameter>
-			<parameter name="port" type="text" required="false">
+			<parameter name="port" type="text">
 				<label>Server Port</label>
 				<description>Default values are 110 for plain/STARTTLS and 995 for SSL/TLS</description>
 				<advanced>true</advanced>
 			</parameter>
-			<parameter name="security" type="text" required="false">
+			<parameter name="security" type="text">
 				<label>SMTP Security Protocol</label>
 				<options>
 					<option value="PLAIN">plain</option>
@@ -104,7 +104,7 @@
 				<label>SMTP Server Password</label>
 				<context>password</context>
 			</parameter>
-			<parameter name="refresh" type="integer" required="false" unit="s">
+			<parameter name="refresh" type="integer" unit="s">
 				<label>Refresh Time</label>
 				<description>Refresh time for this account</description>
 				<default>60</default>
@@ -120,9 +120,8 @@
 		<config-description>
 			<parameter name="folder" type="text" required="true">
 				<label>Folder Name</label>
-				<required>true</required>
 			</parameter>
-			<parameter name="type" type="text" required="false">
+			<parameter name="type" type="text">
 				<options>
 					<option value="UNREAD">Unread</option>
 					<option value="TOTAL">Total</option>
@@ -141,7 +140,6 @@
 		<config-description>
 			<parameter name="folder" type="text" required="true">
 				<label>Folder Name</label>
-				<required>true</required>
 			</parameter>
 			<parameter name="subject" type="text">
 				<label>Subject Filter</label>
