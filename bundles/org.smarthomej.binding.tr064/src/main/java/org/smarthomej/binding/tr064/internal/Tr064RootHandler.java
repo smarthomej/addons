@@ -451,7 +451,6 @@ public class Tr064RootHandler extends BaseBridgeHandler implements PhonebookProv
      * @return the configuration
      */
     public FritzboxActions.BackupConfiguration getBackupConfiguration() {
-        return new FritzboxActions.BackupConfiguration(config.backupDirectory
-                , config.backupPassword);
+        return new FritzboxActions.BackupConfiguration(config.backupDirectory, config.backupPassword);
     }
 }
