@@ -73,13 +73,13 @@ public class HandlerAcousticEventSensor extends HandlerBase {
     }
 
     @Override
-    protected ChannelInfo @Nullable [] findChannelInfos(SmartHomeCapability capability, String property) {
+    protected ChannelInfo[] findChannelInfos(SmartHomeCapability capability, String property) {
         for (ChannelInfo channelInfo : getAlarmChannels()) {
             if (channelInfo.propertyName.equals(property)) {
                 return new ChannelInfo[] { channelInfo };
             }
         }
-        return null;
+        return new ChannelInfo[0];
     }
 
     @Override

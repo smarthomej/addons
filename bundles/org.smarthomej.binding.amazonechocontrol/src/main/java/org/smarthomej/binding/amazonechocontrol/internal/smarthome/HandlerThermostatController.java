@@ -18,6 +18,8 @@ import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Consta
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.Set;
 
 import javax.measure.quantity.Temperature;
 
@@ -49,6 +51,13 @@ public class HandlerThermostatController extends HandlerBase {
     private static final ChannelInfo TARGET_SETPOINT = new ChannelInfo("targetSetpoint" /* propertyName */ ,
             "targetSetpoint" /* ChannelId */, CHANNEL_TYPE_TARGETSETPOINT /* Channel Type */ ,
             ITEM_TYPE_NUMBER_TEMPERATURE /* Item Type */);
+    private static final ChannelInfo LOWER_SETPOINT = new ChannelInfo("lowerSetpoint" /* propertyName */ ,
+            "lowerSetpoint" /* ChannelId */, CHANNEL_TYPE_TARGETSETPOINT /* Channel Type */ ,
+            ITEM_TYPE_NUMBER_TEMPERATURE /* Item Type */);
+    private static final ChannelInfo UPPER_SETPOINT = new ChannelInfo("upperSetpoint" /* propertyName */ ,
+            "upperSetpoint" /* ChannelId */, CHANNEL_TYPE_TARGETSETPOINT /* Channel Type */ ,
+            ITEM_TYPE_NUMBER_TEMPERATURE /* Item Type */);
+    private static final Set<ChannelInfo> ALL_CHANNELS = Set.of(TARGET_SETPOINT, LOWER_SETPOINT, UPPER_SETPOINT);
 
     public HandlerThermostatController(SmartHomeDeviceHandler smartHomeDeviceHandler) {
         super(smartHomeDeviceHandler);
@@ -60,46 +69,49 @@ public class HandlerThermostatController extends HandlerBase {
     }
 
     @Override
-    protected ChannelInfo @Nullable [] findChannelInfos(SmartHomeCapability capability, String property) {
-        if (TARGET_SETPOINT.propertyName.equals(property)) {
-            return new ChannelInfo[] { TARGET_SETPOINT };
-        }
-        return null;
+    protected ChannelInfo[] findChannelInfos(SmartHomeCapability capability, String property) {
+        return Objects.requireNonNull(ALL_CHANNELS.stream().filter(c -> c.propertyName.equals(property))
+                .map(c -> new ChannelInfo[] { c }).findFirst().orElse(new ChannelInfo[0]));
     }
 
     @Override
     public void updateChannels(String interfaceName, List<JsonObject> stateList, UpdateChannelResult result) {
-        QuantityType<Temperature> temperatureValue = null;
-        for (JsonObject state : stateList) {
-            if (TARGET_SETPOINT.propertyName.equals(state.get("name").getAsString())) {
-                JsonObject value = state.get("value").getAsJsonObject();
-                // For groups take the first
-                if (temperatureValue == null) {
-                    float temperature = value.get("value").getAsFloat();
-                    String scale = value.get("scale").getAsString().toUpperCase();
-                    if ("CELSIUS".equals(scale)) {
-                        temperatureValue = new QuantityType<Temperature>(temperature, SIUnits.CELSIUS);
-                    } else {
-                        temperatureValue = new QuantityType<Temperature>(temperature, ImperialUnits.FAHRENHEIT);
+        ALL_CHANNELS.forEach(channel -> {
+            QuantityType<Temperature> temperatureValue = null;
+            for (JsonObject state : stateList) {
+                if (channel.propertyName.equals(state.get("name").getAsString())) {
+                    JsonObject value = state.get("value").getAsJsonObject();
+                    // For groups take the first
+                    if (temperatureValue == null) {
+                        float temperature = value.get("value").getAsFloat();
+                        String scale = value.get("scale").getAsString().toUpperCase();
+                        if ("CELSIUS".equals(scale)) {
+                            temperatureValue = new QuantityType<Temperature>(temperature, SIUnits.CELSIUS);
+                        } else {
+                            temperatureValue = new QuantityType<Temperature>(temperature, ImperialUnits.FAHRENHEIT);
+                        }
                     }
                 }
             }
-        }
-        updateState(TARGET_SETPOINT.channelId, temperatureValue == null ? UnDefType.UNDEF : temperatureValue);
+            updateState(channel.channelId, temperatureValue == null ? UnDefType.UNDEF : temperatureValue);
+        });
     }
 
     @Override
     public boolean handleCommand(Connection connection, SmartHomeDevice shd, String entityId,
             List<SmartHomeCapability> capabilities, String channelId, Command command)
             throws IOException, InterruptedException {
-        if (channelId.equals(TARGET_SETPOINT.channelId)) {
-            if (containsCapabilityProperty(capabilities, TARGET_SETPOINT.propertyName)) {
+        ChannelInfo channelInfo = ALL_CHANNELS.stream().filter(c -> c.channelId.equals(channelId)).findFirst()
+                .orElse(null);
+        if (channelInfo != null) {
+            if (containsCapabilityProperty(capabilities, channelInfo.propertyName)) {
                 if (command instanceof QuantityType) {
-                    connection.smartHomeCommand(entityId, "setTargetTemperature", "targetTemperature", command);
+                    connection.smartHomeCommand(entityId, "setTargetTemperature", channelInfo.propertyName, command);
                     return true;
                 }
             }
         }
+
         return false;
     }
 

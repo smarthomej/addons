@@ -49,7 +49,7 @@ public abstract class HandlerBase {
         this.smartHomeDeviceHandler = smartHomeDeviceHandler;
     }
 
-    protected abstract ChannelInfo @Nullable [] findChannelInfos(SmartHomeCapability capability, String property);
+    protected abstract ChannelInfo[] findChannelInfos(SmartHomeCapability capability, String property);
 
     public abstract void updateChannels(String interfaceName, List<JsonObject> stateList, UpdateChannelResult result);
 
@@ -81,15 +81,10 @@ public abstract class HandlerBase {
                     String name = property.name;
                     if (name != null) {
                         ChannelInfo[] channelInfos = findChannelInfos(capability, name);
-                        if (channelInfos != null) {
-                            for (ChannelInfo channelInfo : channelInfos) {
-                                if (channelInfo != null) {
-                                    channels.put(channelInfo.channelId, channelInfo);
-                                }
-                            }
+                        for (ChannelInfo channelInfo : channelInfos) {
+                            channels.put(channelInfo.channelId, channelInfo);
                         }
                     }
-
                 }
             }
         }

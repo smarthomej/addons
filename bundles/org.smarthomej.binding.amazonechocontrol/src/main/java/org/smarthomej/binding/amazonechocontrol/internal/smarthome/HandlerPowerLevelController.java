@@ -68,11 +68,11 @@ public class HandlerPowerLevelController extends HandlerBase {
     }
 
     @Override
-    protected ChannelInfo @Nullable [] findChannelInfos(SmartHomeCapability capability, String property) {
+    protected ChannelInfo[] findChannelInfos(SmartHomeCapability capability, String property) {
         if (POWER_LEVEL.propertyName.equals(property)) {
             return new ChannelInfo[] { POWER_LEVEL };
         }
-        return null;
+        return new ChannelInfo[0];
     }
 
     @Override

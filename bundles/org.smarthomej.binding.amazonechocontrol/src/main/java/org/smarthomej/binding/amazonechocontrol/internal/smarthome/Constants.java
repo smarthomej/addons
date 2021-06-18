@@ -27,15 +27,17 @@ import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDevice
  */
 @NonNullByDefault
 public class Constants {
-    public static final Map<String, Function<SmartHomeDeviceHandler, HandlerBase>> HANDLER_FACTORY = Map.of(
-            HandlerPowerController.INTERFACE, HandlerPowerController::new, HandlerBrightnessController.INTERFACE,
-            HandlerBrightnessController::new, HandlerColorController.INTERFACE, HandlerColorController::new,
-            HandlerColorTemperatureController.INTERFACE, HandlerColorTemperatureController::new,
-            HandlerSecurityPanelController.INTERFACE, HandlerSecurityPanelController::new,
-            HandlerAcousticEventSensor.INTERFACE, HandlerAcousticEventSensor::new, HandlerTemperatureSensor.INTERFACE,
-            HandlerTemperatureSensor::new, HandlerThermostatController.INTERFACE, HandlerThermostatController::new,
-            HandlerPercentageController.INTERFACE, HandlerPercentageController::new,
-            HandlerPowerLevelController.INTERFACE, HandlerPowerLevelController::new);
+    public static final Map<String, Function<SmartHomeDeviceHandler, HandlerBase>> HANDLER_FACTORY = Map.ofEntries(
+            Map.entry(HandlerPowerController.INTERFACE, HandlerPowerController::new),
+            Map.entry(HandlerBrightnessController.INTERFACE, HandlerBrightnessController::new),
+            Map.entry(HandlerColorController.INTERFACE, HandlerColorController::new),
+            Map.entry(HandlerColorTemperatureController.INTERFACE, HandlerColorTemperatureController::new),
+            Map.entry(HandlerSecurityPanelController.INTERFACE, HandlerSecurityPanelController::new),
+            Map.entry(HandlerAcousticEventSensor.INTERFACE, HandlerAcousticEventSensor::new),
+            Map.entry(HandlerTemperatureSensor.INTERFACE, HandlerTemperatureSensor::new),
+            Map.entry(HandlerThermostatController.INTERFACE, HandlerThermostatController::new),
+            Map.entry(HandlerPercentageController.INTERFACE, HandlerPercentageController::new),
+            Map.entry(HandlerPowerLevelController.INTERFACE, HandlerPowerLevelController::new));
 
     public static final Set<String> SUPPORTED_INTERFACES = HANDLER_FACTORY.keySet();
 

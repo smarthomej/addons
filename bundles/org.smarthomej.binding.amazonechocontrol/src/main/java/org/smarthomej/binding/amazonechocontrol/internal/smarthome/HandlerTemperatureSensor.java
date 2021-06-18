@@ -61,11 +61,11 @@ public class HandlerTemperatureSensor extends HandlerBase {
     }
 
     @Override
-    protected ChannelInfo @Nullable [] findChannelInfos(SmartHomeCapability capability, String property) {
+    protected ChannelInfo[] findChannelInfos(SmartHomeCapability capability, String property) {
         if (TEMPERATURE.propertyName.equals(property)) {
             return new ChannelInfo[] { TEMPERATURE };
         }
-        return null;
+        return new ChannelInfo[0];
     }
 
     @Override

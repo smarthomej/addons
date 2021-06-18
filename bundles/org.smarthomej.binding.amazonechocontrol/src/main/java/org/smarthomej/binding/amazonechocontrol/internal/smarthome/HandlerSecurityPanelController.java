@@ -97,7 +97,7 @@ public class HandlerSecurityPanelController extends HandlerBase {
     }
 
     @Override
-    protected ChannelInfo @Nullable [] findChannelInfos(SmartHomeCapability capability, String property) {
+    protected ChannelInfo[] findChannelInfos(SmartHomeCapability capability, String property) {
         if (ARM_STATE.propertyName.equals(property)) {
             return new ChannelInfo[] { ARM_STATE };
         }
@@ -106,7 +106,7 @@ public class HandlerSecurityPanelController extends HandlerBase {
                 return new ChannelInfo[] { channelInfo };
             }
         }
-        return null;
+        return new ChannelInfo[0];
     }
 
     @Override

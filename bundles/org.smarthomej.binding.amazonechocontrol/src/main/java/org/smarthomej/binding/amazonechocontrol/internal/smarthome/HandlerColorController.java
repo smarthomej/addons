@@ -77,11 +77,11 @@ public class HandlerColorController extends HandlerBase {
     }
 
     @Override
-    protected ChannelInfo @Nullable [] findChannelInfos(SmartHomeCapability capability, String property) {
+    protected ChannelInfo[] findChannelInfos(SmartHomeCapability capability, String property) {
         if (COLOR.propertyName.contentEquals(property)) {
             return new ChannelInfo[] { COLOR, COLOR_PROPERTIES };
         }
-        return null;
+        return new ChannelInfo[0];
     }
 
     @Override

@@ -68,11 +68,11 @@ public class HandlerPercentageController extends HandlerBase {
     }
 
     @Override
-    protected ChannelInfo @Nullable [] findChannelInfos(SmartHomeCapability capability, String property) {
+    protected ChannelInfo[] findChannelInfos(SmartHomeCapability capability, String property) {
         if (PERCENTAGE.propertyName.equals(property)) {
             return new ChannelInfo[] { PERCENTAGE };
         }
-        return null;
+        return new ChannelInfo[0];
     }
 
     @Override

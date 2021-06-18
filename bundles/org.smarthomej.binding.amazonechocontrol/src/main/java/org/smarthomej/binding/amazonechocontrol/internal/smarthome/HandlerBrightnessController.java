@@ -68,11 +68,11 @@ public class HandlerBrightnessController extends HandlerBase {
     }
 
     @Override
-    protected ChannelInfo @Nullable [] findChannelInfos(SmartHomeCapability capability, String property) {
+    protected ChannelInfo[] findChannelInfos(SmartHomeCapability capability, String property) {
         if (BRIGHTNESS.propertyName.equals(property)) {
             return new ChannelInfo[] { BRIGHTNESS };
         }
-        return null;
+        return new ChannelInfo[0];
     }
 
     @Override

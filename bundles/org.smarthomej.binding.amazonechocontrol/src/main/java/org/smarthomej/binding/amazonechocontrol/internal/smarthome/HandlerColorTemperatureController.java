@@ -77,11 +77,11 @@ public class HandlerColorTemperatureController extends HandlerBase {
     }
 
     @Override
-    protected ChannelInfo @Nullable [] findChannelInfos(SmartHomeCapability capability, String property) {
+    protected ChannelInfo[] findChannelInfos(SmartHomeCapability capability, String property) {
         if (COLOR_TEMPERATURE_IN_KELVIN.propertyName.contentEquals(property)) {
             return new ChannelInfo[] { COLOR_TEMPERATURE_IN_KELVIN, COLOR_TEMPERATURE_NAME };
         }
-        return null;
+        return new ChannelInfo[0];
     }
 
     @Override
