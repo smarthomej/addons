@@ -18,6 +18,7 @@ import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Consta
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import javax.measure.quantity.Temperature;
 
@@ -61,11 +62,11 @@ public class HandlerTemperatureSensor extends HandlerBase {
     }
 
     @Override
-    protected ChannelInfo[] findChannelInfos(SmartHomeCapability capability, String property) {
+    protected Set<ChannelInfo> findChannelInfos(SmartHomeCapability capability, String property) {
         if (TEMPERATURE.propertyName.equals(property)) {
-            return new ChannelInfo[] { TEMPERATURE };
+            return Set.of(TEMPERATURE);
         }
-        return new ChannelInfo[0];
+        return Set.of();
     }
 
     @Override

@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.measure.quantity.Temperature;
 
@@ -69,9 +70,8 @@ public class HandlerThermostatController extends HandlerBase {
     }
 
     @Override
-    protected ChannelInfo[] findChannelInfos(SmartHomeCapability capability, String property) {
-        return Objects.requireNonNull(ALL_CHANNELS.stream().filter(c -> c.propertyName.equals(property))
-                .map(c -> new ChannelInfo[] { c }).findFirst().orElse(new ChannelInfo[0]));
+    protected Set<ChannelInfo> findChannelInfos(SmartHomeCapability capability, String property) {
+        return ALL_CHANNELS.stream().filter(c -> c.propertyName.equals(property)).collect(Collectors.toSet());
     }
 
     @Override
@@ -86,14 +86,14 @@ public class HandlerThermostatController extends HandlerBase {
                         float temperature = value.get("value").getAsFloat();
                         String scale = value.get("scale").getAsString().toUpperCase();
                         if ("CELSIUS".equals(scale)) {
-                            temperatureValue = new QuantityType<Temperature>(temperature, SIUnits.CELSIUS);
+                            temperatureValue = new QuantityType<>(temperature, SIUnits.CELSIUS);
                         } else {
-                            temperatureValue = new QuantityType<Temperature>(temperature, ImperialUnits.FAHRENHEIT);
+                            temperatureValue = new QuantityType<>(temperature, ImperialUnits.FAHRENHEIT);
                         }
                     }
                 }
             }
-            updateState(channel.channelId, temperatureValue == null ? UnDefType.UNDEF : temperatureValue);
+            updateState(channel.channelId, Objects.requireNonNullElse(temperatureValue, UnDefType.UNDEF));
         });
     }
 

@@ -100,7 +100,8 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
 
         ThingBuilder thingBuilder = editThing();
 
-        for (String interfaceName : capabilities.keySet()) {
+        for (Map.Entry<String, List<SmartHomeCapability>> capability : capabilities.entrySet()) {
+            String interfaceName = capability.getKey();
             HandlerBase handler = handlers.get(interfaceName);
             if (handler != null) {
                 unusedHandlers.remove(interfaceName);
@@ -112,8 +113,7 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
                 }
             }
             if (handler != null) {
-                Collection<ChannelInfo> required = handler
-                        .initialize(capabilities.getOrDefault(interfaceName, List.of()));
+                Collection<ChannelInfo> required = handler.initialize(capability.getValue());
                 for (ChannelInfo channelInfo : required) {
                     unusedChannels.remove(channelInfo.channelId);
                     if (addChannelToDevice(thingBuilder, channelInfo.channelId, channelInfo.itemType,

@@ -18,6 +18,7 @@ import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Consta
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -73,13 +74,13 @@ public class HandlerAcousticEventSensor extends HandlerBase {
     }
 
     @Override
-    protected ChannelInfo[] findChannelInfos(SmartHomeCapability capability, String property) {
+    protected Set<ChannelInfo> findChannelInfos(SmartHomeCapability capability, String property) {
         for (ChannelInfo channelInfo : getAlarmChannels()) {
             if (channelInfo.propertyName.equals(property)) {
-                return new ChannelInfo[] { channelInfo };
+                return Set.of(channelInfo);
             }
         }
-        return new ChannelInfo[0];
+        return Set.of();
     }
 
     @Override

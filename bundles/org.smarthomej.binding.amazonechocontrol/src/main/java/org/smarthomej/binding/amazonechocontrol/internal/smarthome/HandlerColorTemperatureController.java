@@ -19,6 +19,7 @@ import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Consta
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -77,11 +78,11 @@ public class HandlerColorTemperatureController extends HandlerBase {
     }
 
     @Override
-    protected ChannelInfo[] findChannelInfos(SmartHomeCapability capability, String property) {
+    protected Set<ChannelInfo> findChannelInfos(SmartHomeCapability capability, String property) {
         if (COLOR_TEMPERATURE_IN_KELVIN.propertyName.contentEquals(property)) {
-            return new ChannelInfo[] { COLOR_TEMPERATURE_IN_KELVIN, COLOR_TEMPERATURE_NAME };
+            return Set.of(COLOR_TEMPERATURE_IN_KELVIN, COLOR_TEMPERATURE_NAME);
         }
-        return new ChannelInfo[0];
+        return Set.of();
     }
 
     @Override
