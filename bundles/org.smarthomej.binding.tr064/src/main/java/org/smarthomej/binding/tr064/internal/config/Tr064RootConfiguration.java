@@ -16,6 +16,7 @@ package org.smarthomej.binding.tr064.internal.config;
 import java.util.List;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.OpenHAB;
 
 /**
@@ -45,7 +46,7 @@ public class Tr064RootConfiguration extends Tr064BaseThingConfiguration {
 
     // Backup data
     public String backupDirectory = OpenHAB.getUserDataFolder();
-    public String backupPassword = "";
+    public @Nullable String backupPassword;
 
     public boolean isValid() {
         return !host.isEmpty() && !user.isEmpty() && !password.isEmpty();

@@ -120,6 +120,7 @@
 			<parameter name="backupPassword" type="text">
 				<label>Backup Password</label>
 				<description>The password used to encrypt the backup data.</description>
+				<context>password</context>
 				<advanced>true</advanced>
 			</parameter>
 		</config-description>

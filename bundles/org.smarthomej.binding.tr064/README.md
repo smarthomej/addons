@@ -83,6 +83,7 @@ The `backupDirectory` is the directory where the backup files are stored.
 The default value is the userdata directory.
 The `backupPassword` is used to encrypt the backup file.
 This is equivalent to setting a password in the UI.
+If no password is given, the user password (parameter `password`) is used.
 
 ### `subdevice`, `subdeviceLan`
 
@@ -217,6 +218,7 @@ val result = tr064Actions.phonebookLookup("49157712341234", 5)
 The `fritzbox` things can create configuration backups of the Fritz!Box.
 The default configuration of the Fritz!Boxes require 2-factor-authentication for creating backups.
 To use the rule-action you have to disable this (but beware: depending on your configuration this might be a security issue).
+The setting can be found under "System -> FRITZ!Box Users -> Login to the Home Network -> Confirm".
 
 When executed, the action requests a backup file with the given password in the configured path.
 The backup file is names as `ThingFriendlyName dd.mm.yyyy HHMM.export` (e.g. `My FritzBox 18.06.2021 1720.export`).
