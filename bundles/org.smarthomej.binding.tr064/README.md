@@ -224,6 +224,11 @@ When executed, the action requests a backup file with the given password in the 
 The backup file is names as `ThingFriendlyName dd.mm.yyyy HHMM.export` (e.g. `My FritzBox 18.06.2021 1720.export`).
 Files with the same name will be overwritten, so make sure that you trigger the rules at different times if your devices have the same friendly name.
 
+```
+val tr064Actions = getActions("tr064","tr064:fritzbox:2a28aee1ee")
+tr064Actions.createConfigurationBackup()
+```
+
 ## A note on textual configuration
 
 Textual configuration through a `.things` file is possible but, at present, strongly discouraged because it is significantly more error-prone

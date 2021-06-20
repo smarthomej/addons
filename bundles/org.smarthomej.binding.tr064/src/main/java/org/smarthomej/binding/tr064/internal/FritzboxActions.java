@@ -107,7 +107,7 @@ public class FritzboxActions implements ThingActions {
     }
 
     @RuleAction(label = "create configuration backup", description = "Creates a configuration backup")
-    public void getConfigurationBackup() {
+    public void createConfigurationBackup() {
         Tr064RootHandler handler = this.handler;
 
         if (handler == null) {
@@ -175,8 +175,8 @@ public class FritzboxActions implements ThingActions {
         return ((FritzboxActions) actions).phonebookLookup(phonenumber, phonebook, matchCount);
     }
 
-    public static void getConfigurationBackup(ThingActions actions) {
-        ((FritzboxActions) actions).getConfigurationBackup();
+    public static void createConfigurationBackup(ThingActions actions) {
+        ((FritzboxActions) actions).createConfigurationBackup();
     }
 
     @Override
