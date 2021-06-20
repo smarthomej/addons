@@ -66,7 +66,6 @@ import org.smarthomej.binding.tr064.internal.dto.scpd.root.SCPDDeviceType;
 import org.smarthomej.binding.tr064.internal.dto.scpd.root.SCPDServiceType;
 import org.smarthomej.binding.tr064.internal.dto.scpd.service.SCPDActionType;
 import org.smarthomej.binding.tr064.internal.phonebook.Phonebook;
-import org.smarthomej.binding.tr064.internal.phonebook.PhonebookActions;
 import org.smarthomej.binding.tr064.internal.phonebook.PhonebookProvider;
 import org.smarthomej.binding.tr064.internal.phonebook.Tr064PhonebookImpl;
 import org.smarthomej.binding.tr064.internal.soap.SOAPConnector;
@@ -442,7 +441,11 @@ public class Tr064RootHandler extends BaseBridgeHandler implements PhonebookProv
 
     @Override
     public Collection<Class<? extends ThingHandlerService>> getServices() {
-        return Set.of(Tr064DiscoveryService.class, PhonebookActions.class, FritzboxActions.class);
+        if (THING_TYPE_FRITZBOX.equals(thing.getThingTypeUID())) {
+            return Set.of(Tr064DiscoveryService.class, FritzboxActions.class);
+        } else {
+            return Set.of(Tr064DiscoveryService.class);
+        }
     }
 
     /**

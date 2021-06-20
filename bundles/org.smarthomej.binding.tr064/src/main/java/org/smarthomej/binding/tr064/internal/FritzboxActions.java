@@ -19,7 +19,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -29,6 +31,8 @@ import javax.xml.soap.SOAPMessage;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.client.api.ContentResponse;
+import org.openhab.core.automation.annotation.ActionInput;
+import org.openhab.core.automation.annotation.ActionOutput;
 import org.openhab.core.automation.annotation.RuleAction;
 import org.openhab.core.thing.binding.ThingActions;
 import org.openhab.core.thing.binding.ThingActionsScope;
@@ -36,23 +40,71 @@ import org.openhab.core.thing.binding.ThingHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.tr064.internal.dto.scpd.root.SCPDServiceType;
+import org.smarthomej.binding.tr064.internal.phonebook.Phonebook;
 import org.smarthomej.binding.tr064.internal.soap.SOAPRequest;
 import org.smarthomej.binding.tr064.internal.util.SCPDUtil;
 import org.smarthomej.binding.tr064.internal.util.Util;
 
 /**
- * The {@link FritzboxActions} provides actions for managing scenes in groups
+ * The {@link FritzboxActions} is responsible for handling phone book actions
  *
  * @author Jan N. Klug - Initial contribution
  */
-@ThingActionsScope(name = "tr065")
+@ThingActionsScope(name = "tr064")
 @NonNullByDefault
 public class FritzboxActions implements ThingActions {
-    private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy_HHmm");
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy_HHmm");
 
     private final Logger logger = LoggerFactory.getLogger(FritzboxActions.class);
 
     private @Nullable Tr064RootHandler handler;
+
+    @RuleAction(label = "@text/phonebookLookupActionLabel", description = "@text/phonebookLookupActionDescription")
+    public @ActionOutput(name = "name", label = "@text/phonebookLookupActionOutputLabel", description = "@text/phonebookLookupActionOutputDescription", type = "java.lang.String") String phonebookLookup(
+            @ActionInput(name = "phonenumber", label = "@text/phonebookLookupActionInputPhoneNumberLabel", description = "@text/phonebookLookupActionInputPhoneNumberDescription", type = "java.lang.String", required = true) @Nullable String phonenumber,
+            @ActionInput(name = "matches", label = "@text/phonebookLookupActionInputMatchesLabel", description = "@text/phonebookLookupActionInputMatchesDescription", type = "java.lang.Integer") @Nullable Integer matchCount) {
+        return phonebookLookup(phonenumber, null, matchCount);
+    }
+
+    @RuleAction(label = "@text/phonebookLookupActionLabel", description = "@text/phonebookLookupActionDescription")
+    public @ActionOutput(name = "name", label = "@text/phonebookLookupActionOutputLabel", description = "@text/phonebookLookupActionOutputDescription", type = "java.lang.String") String phonebookLookup(
+            @ActionInput(name = "phonenumber", label = "@text/phonebookLookupActionInputPhoneNumberLabel", description = "@text/phonebookLookupActionInputPhoneNumberDescription", type = "java.lang.String", required = true) @Nullable String phonenumber) {
+        return phonebookLookup(phonenumber, null, null);
+    }
+
+    @RuleAction(label = "@text/phonebookLookupActionLabel", description = "@text/phonebookLookupActionDescription")
+    public @ActionOutput(name = "name", label = "@text/phonebookLookupActionOutputLabel", description = "@text/phonebookLookupActionOutputDescription", type = "java.lang.String") String phonebookLookup(
+            @ActionInput(name = "phonenumber", label = "@text/phonebookLookupActionInputPhoneNumberLabel", description = "@text/phonebookLookupActionInputPhoneNumberDescription", type = "java.lang.String", required = true) @Nullable String phonenumber,
+            @ActionInput(name = "phonebook", label = "@text/phonebookLookupActionInputPhoneBookLabel", description = "@text/phonebookLookupActionInputPhoneBookDescription", type = "java.lang.String") @Nullable String phonebook) {
+        return phonebookLookup(phonenumber, phonebook, null);
+    }
+
+    @RuleAction(label = "@text/phonebookLookupActionLabel", description = "@text/phonebookLookupActionDescription")
+    public @ActionOutput(name = "name", label = "@text/phonebookLookupActionOutputLabel", description = "@text/phonebookLookupActionOutputDescription", type = "java.lang.String") String phonebookLookup(
+            @ActionInput(name = "phonenumber", label = "@text/phonebookLookupActionInputPhoneNumberLabel", description = "@text/phonebookLookupActionInputPhoneNumberDescription", type = "java.lang.String", required = true) @Nullable String phonenumber,
+            @ActionInput(name = "phonebook", label = "@text/phonebookLookupActionInputPhoneBookLabel", description = "@text/phonebookLookupActionInputPhoneBookDescription", type = "java.lang.String") @Nullable String phonebook,
+            @ActionInput(name = "matches", label = "@text/phonebookLookupActionInputMatchesLabel", description = "@text/phonebookLookupActionInputMatchesDescription", type = "java.lang.Integer") @Nullable Integer matchCount) {
+        if (phonenumber == null) {
+            logger.warn("Cannot lookup a missing number.");
+            return "";
+        }
+
+        final Tr064RootHandler handler = this.handler;
+        if (handler == null) {
+            logger.info("Handler is null, cannot lookup number.");
+            return phonenumber;
+        } else {
+            int matchCountInt = matchCount == null ? 0 : matchCount;
+            if (phonebook != null && !phonebook.isEmpty()) {
+                return Objects.requireNonNull(handler.getPhonebookByName(phonebook)
+                        .flatMap(p -> p.lookupNumber(phonenumber, matchCountInt)).orElse(phonenumber));
+            } else {
+                Collection<Phonebook> phonebooks = handler.getPhonebooks();
+                return Objects.requireNonNull(phonebooks.stream().map(p -> p.lookupNumber(phonenumber, matchCountInt))
+                        .filter(Optional::isPresent).map(Optional::get).findAny().orElse(phonenumber));
+            }
+        }
+    }
 
     @RuleAction(label = "create configuration backup", description = "Creates a configuration backup")
     public void getConfigurationBackup() {
@@ -88,7 +140,7 @@ public class FritzboxActions implements ThingActions {
             ContentResponse content = handler.getUrl(configBackupURL);
 
             String fileName = String.format("%s %s.export", handler.getFriendlyName(),
-                    dateTimeFormatter.format(LocalDateTime.now()));
+                    DATE_TIME_FORMATTER.format(LocalDateTime.now()));
             Path filePath = FileSystems.getDefault().getPath(configuration.directory, fileName);
             Path folder = filePath.getParent();
             if (folder != null) {
@@ -104,17 +156,32 @@ public class FritzboxActions implements ThingActions {
         }
     }
 
+    public static String phonebookLookup(ThingActions actions, @Nullable String phonenumber,
+            @Nullable Integer matchCount) {
+        return phonebookLookup(actions, phonenumber, null, matchCount);
+    }
+
+    public static String phonebookLookup(ThingActions actions, @Nullable String phonenumber) {
+        return phonebookLookup(actions, phonenumber, null, null);
+    }
+
+    public static String phonebookLookup(ThingActions actions, @Nullable String phonenumber,
+            @Nullable String phonebook) {
+        return phonebookLookup(actions, phonenumber, phonebook, null);
+    }
+
+    public static String phonebookLookup(ThingActions actions, @Nullable String phonenumber, @Nullable String phonebook,
+            @Nullable Integer matchCount) {
+        return ((FritzboxActions) actions).phonebookLookup(phonenumber, phonebook, matchCount);
+    }
+
     public static void getConfigurationBackup(ThingActions actions) {
-        if (actions instanceof FritzboxActions) {
-            ((FritzboxActions) actions).getConfigurationBackup();
-        }
+        ((FritzboxActions) actions).getConfigurationBackup();
     }
 
     @Override
     public void setThingHandler(@Nullable ThingHandler handler) {
-        if (handler instanceof Tr064RootHandler) {
-            this.handler = (Tr064RootHandler) handler;
-        }
+        this.handler = (Tr064RootHandler) handler;
     }
 
     @Override
