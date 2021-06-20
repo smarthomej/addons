@@ -53,7 +53,7 @@
                   <header file="src/main/resources/header.xml" filtering="no"/>
                   <fileset dir="${basedirRoot}/bundles">
                     <include name="*/src/main/feature/feature.xml"/>
-                    <exclude name="**/org.smarthomej.io.repomanager/**/feature.xml"/>
+                    <!-- exclude name="**/org.smarthomej.io.repomanager/**/feature.xml"/ -->
                   </fileset>
                   <filterchain>
                     <linecontainsRegExp>
@@ -66,6 +66,21 @@
               </target>
             </configuration>
           </execution>
+          <execution>
+            <id>edit-karaf-features</id>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <phase>generate-sources</phase>
+            <configuration>
+              <target>
+                <replaceregexp byline="true" file="src/main/feature/feature.xml">
+                  <regexp pattern="(feature((?!repomanager).)*) version="/>
+                  <substitution expression="\1 install=&quot;manual&quot; version="/>
+                </replaceregexp>
+              </target>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
       <plugin>
@@ -75,6 +90,32 @@
           <execution>
             <goals>
               <goal>resources</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.karaf.tooling</groupId>
+        <artifactId>karaf-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>karaf-feature-verification</id>
+            <configuration>
+              <features>
+              </features>
+            </configuration>
+          </execution>
+          <execution>
+            <id>compile</id>
+            <goals>
+              <goal>features-generate-descriptor</goal>
+            </goals>
+            <phase>none</phase>
+          </execution>
+          <execution>
+            <id>create-kar</id>
+            <goals>
+              <goal>kar</goal>
             </goals>
           </execution>
         </executions>
@@ -98,26 +139,6 @@
                 </artifact>
               </artifacts>
             </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.karaf.tooling</groupId>
-        <artifactId>karaf-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>karaf-feature-verification</id>
-            <configuration>
-              <features>
-              </features>
-            </configuration>
-          </execution>
-          <execution>
-            <id>compile</id>
-            <goals>
-              <goal>features-generate-descriptor</goal>
-            </goals>
-            <phase>none</phase>
           </execution>
         </executions>
       </plugin>
