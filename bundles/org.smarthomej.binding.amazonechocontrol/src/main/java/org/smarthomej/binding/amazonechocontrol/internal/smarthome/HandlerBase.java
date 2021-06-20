@@ -77,7 +77,6 @@ public abstract class HandlerBase {
 
     public Collection<ChannelInfo> initialize(List<SmartHomeCapability> capabilities) {
         // TODO: reduce or remove
-        logger.error("handler = {} capabilities = {}", smartHomeDeviceHandler.getId(), capabilities);
         Map<String, ChannelInfo> channels = new HashMap<>();
         for (SmartHomeCapability capability : capabilities) {
             Properties properties = capability.properties;
@@ -92,8 +91,8 @@ public abstract class HandlerBase {
                 }
             }
         }
-        // TODO: reduce or remove
-        logger.error("handler = {} capabilities = {}", smartHomeDeviceHandler.getId(), channels);
+        logger.trace("Handler '{}' has capabilities '{}' and uses channels '{}'", capabilities,
+                smartHomeDeviceHandler.getId(), channels);
         this.channels = channels;
         return channels.values();
     }

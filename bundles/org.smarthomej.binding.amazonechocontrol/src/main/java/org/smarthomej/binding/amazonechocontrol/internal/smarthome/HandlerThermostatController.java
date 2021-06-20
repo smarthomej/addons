@@ -53,10 +53,10 @@ public class HandlerThermostatController extends HandlerBase {
             "targetSetpoint" /* ChannelId */, CHANNEL_TYPE_TARGETSETPOINT /* Channel Type */ ,
             ITEM_TYPE_NUMBER_TEMPERATURE /* Item Type */);
     private static final ChannelInfo LOWER_SETPOINT = new ChannelInfo("lowerSetpoint" /* propertyName */ ,
-            "lowerSetpoint" /* ChannelId */, CHANNEL_TYPE_TARGETSETPOINT /* Channel Type */ ,
+            "lowerSetpoint" /* ChannelId */, CHANNEL_TYPE_LOWERSETPOINT /* Channel Type */ ,
             ITEM_TYPE_NUMBER_TEMPERATURE /* Item Type */);
     private static final ChannelInfo UPPER_SETPOINT = new ChannelInfo("upperSetpoint" /* propertyName */ ,
-            "upperSetpoint" /* ChannelId */, CHANNEL_TYPE_TARGETSETPOINT /* Channel Type */ ,
+            "upperSetpoint" /* ChannelId */, CHANNEL_TYPE_UPPERSETPOINT /* Channel Type */ ,
             ITEM_TYPE_NUMBER_TEMPERATURE /* Item Type */);
     private static final Set<ChannelInfo> ALL_CHANNELS = Set.of(TARGET_SETPOINT, LOWER_SETPOINT, UPPER_SETPOINT);
 
