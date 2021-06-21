@@ -39,8 +39,8 @@ import org.openhab.core.thing.ThingUID;
 import org.openhab.core.thing.binding.ThingHandlerCallback;
 import org.openhab.core.thing.binding.builder.ChannelBuilder;
 import org.openhab.core.thing.binding.builder.ThingBuilder;
-import org.smarthomej.binding.deconz.internal.CommandDescriptionProvider;
-import org.smarthomej.binding.deconz.internal.StateDescriptionProvider;
+import org.smarthomej.binding.deconz.internal.DeconzDynamicCommandDescriptionProvider;
+import org.smarthomej.binding.deconz.internal.DeconzDynamicStateDescriptionProvider;
 import org.smarthomej.binding.deconz.internal.dto.LightMessage;
 import org.smarthomej.binding.deconz.internal.handler.LightThingHandler;
 import org.smarthomej.binding.deconz.internal.types.LightType;
@@ -62,8 +62,8 @@ public class LightsTest {
     private @NonNullByDefault({}) Gson gson;
 
     private @Mock @NonNullByDefault({}) ThingHandlerCallback thingHandlerCallback;
-    private @Mock @NonNullByDefault({}) StateDescriptionProvider stateDescriptionProvider;
-    private @Mock @NonNullByDefault({}) CommandDescriptionProvider commandDescriptionProvider;
+    private @Mock @NonNullByDefault({}) DeconzDynamicStateDescriptionProvider stateDescriptionProvider;
+    private @Mock @NonNullByDefault({}) DeconzDynamicCommandDescriptionProvider commandDescriptionProvider;
 
     @BeforeEach
     public void initialize() {

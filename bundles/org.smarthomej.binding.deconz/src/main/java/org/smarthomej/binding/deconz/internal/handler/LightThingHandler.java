@@ -43,16 +43,15 @@ import org.openhab.core.thing.ThingTypeUID;
 import org.openhab.core.thing.binding.builder.ChannelBuilder;
 import org.openhab.core.thing.binding.builder.ThingBuilder;
 import org.openhab.core.types.Command;
-import org.openhab.core.types.CommandDescriptionBuilder;
 import org.openhab.core.types.CommandOption;
 import org.openhab.core.types.RefreshType;
-import org.openhab.core.types.StateDescription;
+import org.openhab.core.types.StateDescriptionFragment;
 import org.openhab.core.types.StateDescriptionFragmentBuilder;
 import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthomej.binding.deconz.internal.CommandDescriptionProvider;
-import org.smarthomej.binding.deconz.internal.StateDescriptionProvider;
+import org.smarthomej.binding.deconz.internal.DeconzDynamicCommandDescriptionProvider;
+import org.smarthomej.binding.deconz.internal.DeconzDynamicStateDescriptionProvider;
 import org.smarthomej.binding.deconz.internal.Util;
 import org.smarthomej.binding.deconz.internal.dto.DeconzBaseMessage;
 import org.smarthomej.binding.deconz.internal.dto.LightMessage;
@@ -86,8 +85,8 @@ public class LightThingHandler extends DeconzBaseThingHandler {
 
     private final Logger logger = LoggerFactory.getLogger(LightThingHandler.class);
 
-    private final StateDescriptionProvider stateDescriptionProvider;
-    private final CommandDescriptionProvider commandDescriptionProvider;
+    private final DeconzDynamicStateDescriptionProvider stateDescriptionProvider;
+    private final DeconzDynamicCommandDescriptionProvider commandDescriptionProvider;
 
     private long lastCommandExpireTimestamp = 0;
     private boolean needsPropertyUpdate = false;
@@ -104,8 +103,8 @@ public class LightThingHandler extends DeconzBaseThingHandler {
     private int ctMax = ZCL_CT_MAX;
     private int ctMin = ZCL_CT_MIN;
 
-    public LightThingHandler(Thing thing, Gson gson, StateDescriptionProvider stateDescriptionProvider,
-            CommandDescriptionProvider commandDescriptionProvider) {
+    public LightThingHandler(Thing thing, Gson gson, DeconzDynamicStateDescriptionProvider stateDescriptionProvider,
+            DeconzDynamicCommandDescriptionProvider commandDescriptionProvider) {
         super(thing, gson, ResourceType.LIGHTS);
         this.stateDescriptionProvider = stateDescriptionProvider;
         this.commandDescriptionProvider = commandDescriptionProvider;
@@ -123,15 +122,11 @@ public class LightThingHandler extends DeconzBaseThingHandler {
                 ctMin = ctMinString == null ? ZCL_CT_MIN : Integer.parseInt(ctMinString);
 
                 // minimum and maximum are inverted due to mired/kelvin conversion!
-                StateDescription stateDescription = StateDescriptionFragmentBuilder.create()
+                StateDescriptionFragment stateDescriptionFragment = StateDescriptionFragmentBuilder.create()
                         .withMinimum(new BigDecimal(miredToKelvin(ctMax)))
-                        .withMaximum(new BigDecimal(miredToKelvin(ctMin))).build().toStateDescription();
-                if (stateDescription != null) {
-                    stateDescriptionProvider.setDescription(new ChannelUID(thing.getUID(), CHANNEL_COLOR_TEMPERATURE),
-                            stateDescription);
-                } else {
-                    logger.warn("Failed to create state description in thing {}", thing.getUID());
-                }
+                        .withMaximum(new BigDecimal(miredToKelvin(ctMin))).build();
+                stateDescriptionProvider.setDescriptionFragment(
+                        new ChannelUID(thing.getUID(), CHANNEL_COLOR_TEMPERATURE), stateDescriptionFragment);
             } catch (NumberFormatException e) {
                 needsPropertyUpdate = true;
             }
@@ -374,20 +369,16 @@ public class LightThingHandler extends DeconzBaseThingHandler {
                 List<String> options = List.of("none", "steady", "snow", "rainbow", "snake", "tinkle", "fireworks",
                         "flag", "waves", "updown", "vintage", "fading", "collide", "strobe", "sparkles", "carnival",
                         "glow");
-                commandDescriptionProvider.setDescription(effectChannelUID,
-                        CommandDescriptionBuilder.create().withCommandOptions(toCommandOptionList(options)).build());
+                commandDescriptionProvider.setCommandOptions(effectChannelUID, toCommandOptionList(options));
                 break;
             case TINT_MUELLER:
                 options = List.of("none", "colorloop", "sunset", "party", "worklight", "campfire", "romance",
                         "nightlight");
-                commandDescriptionProvider.setDescription(effectChannelUID,
-                        CommandDescriptionBuilder.create().withCommandOptions(toCommandOptionList(options)).build());
+                commandDescriptionProvider.setCommandOptions(effectChannelUID, toCommandOptionList(options));
                 break;
             default:
                 options = List.of("none", "colorloop");
-                commandDescriptionProvider.setDescription(effectChannelUID,
-                        CommandDescriptionBuilder.create().withCommandOptions(toCommandOptionList(options)).build());
-
+                commandDescriptionProvider.setCommandOptions(effectChannelUID, toCommandOptionList(options));
         }
 
         return thingEdited;
