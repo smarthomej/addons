@@ -161,6 +161,10 @@
 				<default>READ</default>
 				<limitToOptions>true</limitToOptions>
 			</parameter>
+			<parameter name="unit" type="text">
+				<label>Unit</label>
+				<description>The unit of this value.</description>
+			</parameter>
 			<parameter name="datatype" type="text">
 				<label>Datatype</label>
 				<description>Content data type</description>
