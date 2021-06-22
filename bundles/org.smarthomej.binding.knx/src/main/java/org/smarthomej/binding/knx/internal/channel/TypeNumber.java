@@ -15,7 +15,10 @@ package org.smarthomej.binding.knx.internal.channel;
 
 import static org.smarthomej.binding.knx.internal.KNXBindingConstants.*;
 
+import java.util.Set;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.core.thing.Channel;
 
 /**
  * number channel type description
@@ -24,10 +27,11 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
  *
  */
 @NonNullByDefault
-class TypeNumber extends KNXChannelType {
+class TypeNumber extends KNXChannel {
+    public static final Set<String> SUPPORTED_CHANNEL_TYPES = Set.of(CHANNEL_NUMBER, CHANNEL_NUMBER_CONTROL);
 
-    TypeNumber() {
-        super(CHANNEL_NUMBER, CHANNEL_NUMBER_CONTROL);
+    TypeNumber(Channel channel) {
+        super(channel);
     }
 
     @Override
