@@ -28,6 +28,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.openhab.core.library.types.DecimalType;
+import org.openhab.core.library.types.HSBType;
 import org.openhab.core.library.types.PlayPauseType;
 import org.openhab.core.library.types.PointType;
 import org.openhab.core.library.types.QuantityType;
@@ -132,8 +133,32 @@ public class ConverterTest {
         converter.process(content);
         converter.process(content);
 
-        Mockito.verify(postCommand, Mockito.atMostOnce()).accept(PlayPauseType.PLAY);
+        Mockito.verify(postCommand).accept(PlayPauseType.PLAY);
         Mockito.verify(updateState, Mockito.never()).accept(ArgumentMatchers.any());
+    }
+
+    @Test
+    public void colorItemTypeRGBConverter() {
+        ItemValueConverterChannelConfig cfg = new ItemValueConverterChannelConfig();
+        cfg.colorMode = ColorItemConverter.ColorMode.RGB;
+        ContentWrapper content = new ContentWrapper("123,34,47".getBytes(StandardCharsets.UTF_8), "UTF-8", null);
+        ColorItemConverter converter = new ColorItemConverter(updateState, postCommand, sendHttpValue,
+                NoOpValueTransformation.getInstance(), NoOpValueTransformation.getInstance(), cfg);
+
+        converter.process(content);
+        Mockito.verify(updateState).accept(HSBType.fromRGB(123, 34, 47));
+    }
+
+    @Test
+    public void colorItemTypeHSBConverter() {
+        ItemValueConverterChannelConfig cfg = new ItemValueConverterChannelConfig();
+        cfg.colorMode = ColorItemConverter.ColorMode.HSB;
+        ContentWrapper content = new ContentWrapper("123,34,47".getBytes(StandardCharsets.UTF_8), "UTF-8", null);
+        ColorItemConverter converter = new ColorItemConverter(updateState, postCommand, sendHttpValue,
+                NoOpValueTransformation.getInstance(), NoOpValueTransformation.getInstance(), cfg);
+
+        converter.process(content);
+        Mockito.verify(updateState).accept(new HSBType("123,34,47"));
     }
 
     public GenericItemConverter createConverter(Function<String, State> fcn) {
