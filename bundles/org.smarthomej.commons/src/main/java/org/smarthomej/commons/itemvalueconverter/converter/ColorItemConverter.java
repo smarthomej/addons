@@ -39,7 +39,7 @@ import org.smarthomej.commons.transform.ValueTransformation;
 public class ColorItemConverter extends AbstractTransformingItemConverter {
     private static final BigDecimal BYTE_FACTOR = BigDecimal.valueOf(2.55);
     private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
-    private static final Pattern TRIPLE_MATCHER = Pattern.compile("(\\d+),(\\d+),(\\d+)");
+    private static final Pattern TRIPLE_MATCHER = Pattern.compile("(?<r>\\d+),(?<g>\\d+),(?<b>\\d+)");
 
     private State state = UnDefType.UNDEF;
 
@@ -110,9 +110,9 @@ public class ColorItemConverter extends AbstractTransformingItemConverter {
             if (matcher.matches()) {
                 switch (channelConfig.colorMode) {
                     case RGB:
-                        int r = Integer.parseInt(matcher.group(0));
-                        int g = Integer.parseInt(matcher.group(1));
-                        int b = Integer.parseInt(matcher.group(2));
+                        int r = Integer.parseInt(matcher.group("r"));
+                        int g = Integer.parseInt(matcher.group("g"));
+                        int b = Integer.parseInt(matcher.group("b"));
                         newState = HSBType.fromRGB(r, g, b);
                         break;
                     case HSB:
