@@ -136,6 +136,7 @@ public abstract class SensorBaseThingHandler extends DeconzBaseThingHandler {
 
         // if the thing was edited, we update it now
         if (thingEdited) {
+            logger.debug("Thing configuration changed, updating thing.");
             updateThing(thingBuilder.build());
         }
         ignoreConfigurationUpdate = false;
