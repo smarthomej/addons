@@ -215,9 +215,7 @@ public class BAE091xSensorThingHandler extends OwBaseThingHandler {
                 .forEach(channelId -> removeChannelIfExisting(thingBuilder, channelId));
 
         // add or update wanted channels
-        wantedChannel.stream().forEach(channelConfig -> {
-            addChannelIfMissingAndEnable(thingBuilder, channelConfig);
-        });
+        wantedChannel.forEach(channelConfig -> addChannelIfMissingAndEnable(thingBuilder, channelConfig));
 
         updateThing(thingBuilder.build());
 

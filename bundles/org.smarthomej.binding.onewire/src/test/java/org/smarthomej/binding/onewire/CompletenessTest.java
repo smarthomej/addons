@@ -15,11 +15,8 @@ package org.smarthomej.binding.onewire;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.lang.reflect.Modifier;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -27,7 +24,6 @@ import java.util.stream.Stream;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.Test;
 import org.smarthomej.binding.onewire.internal.OwBindingConstants;
-import org.smarthomej.binding.onewire.internal.OwException;
 import org.smarthomej.binding.onewire.internal.device.OwSensorType;
 import org.smarthomej.binding.onewire.internal.handler.AdvancedMultisensorThingHandler;
 import org.smarthomej.binding.onewire.internal.handler.BAE091xSensorThingHandler;
@@ -88,26 +84,6 @@ public class CompletenessTest {
             if (!OwBindingConstants.THING_LABEL_MAP.containsKey(sensorType)
                     && !IGNORED_SENSOR_TYPES.contains(sensorType)) {
                 fail("missing label for sensor type " + sensorType.name());
-            }
-        }
-    }
-
-    @Test
-    public void acceptedItemTypeMapCompleteness() throws OwException {
-        List<String> channels = Arrays.stream(OwBindingConstants.class.getDeclaredFields())
-                .filter(f -> Modifier.isStatic(f.getModifiers()))
-                .filter(f -> f.getName().startsWith("CHANNEL") && !f.getName().startsWith("CHANNEL_TYPE")).map(f -> {
-                    try {
-                        return (String) f.get(null);
-                    } catch (IllegalAccessException e) {
-                        fail("unexpected");
-                        return null;
-                    }
-                }).collect(Collectors.toList());
-
-        for (String channel : channels) {
-            if (!OwBindingConstants.ACCEPTED_ITEM_TYPES_MAP.containsKey(channel)) {
-                fail("missing accepted item type for channel " + channel);
             }
         }
     }
