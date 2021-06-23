@@ -212,6 +212,8 @@ public abstract class DeconzBaseThingHandler extends UpdatingBaseThingHandler im
         Channel channel = ChannelBuilder.create(channelUID).withType(channelTypeUID).withKind(kind).build();
         thingBuilder.withChannel(channel);
 
+        logger.trace("Added '{}' to thing '{}'", channelId, thing.getUID());
+
         return true;
     }
 

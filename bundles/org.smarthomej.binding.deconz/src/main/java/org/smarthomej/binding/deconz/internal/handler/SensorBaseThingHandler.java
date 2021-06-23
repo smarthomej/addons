@@ -125,17 +125,25 @@ public abstract class SensorBaseThingHandler extends DeconzBaseThingHandler {
         boolean thingEdited = false;
 
         if (sensorConfig.battery != null) {
-            thingEdited = thingEdited || createChannel(thingBuilder, CHANNEL_BATTERY_LEVEL, ChannelKind.STATE);
-            thingEdited = thingEdited || createChannel(thingBuilder, CHANNEL_BATTERY_LOW, ChannelKind.STATE);
+            if (createChannel(thingBuilder, CHANNEL_BATTERY_LEVEL, ChannelKind.STATE)) {
+                thingEdited = true;
+            }
+            if (createChannel(thingBuilder, CHANNEL_BATTERY_LOW, ChannelKind.STATE)) {
+                thingEdited = true;
+            }
         }
 
-        thingEdited = thingEdited || createTypeSpecificChannels(thingBuilder, sensorConfig, sensorState);
+        if (createTypeSpecificChannels(thingBuilder, sensorConfig, sensorState)) {
+            thingEdited = true;
+        }
 
-        String lastSeen = sensorMessage.lastseen;
-        thingEdited = thingEdited || checkLastSeen(thingBuilder, lastSeen);
+        if (checkLastSeen(thingBuilder, sensorMessage.lastseen)) {
+            thingEdited = true;
+        }
 
         // if the thing was edited, we update it now
         if (thingEdited) {
+            logger.debug("Thing configuration changed, updating thing.");
             updateThing(thingBuilder.build());
         }
         ignoreConfigurationUpdate = false;
