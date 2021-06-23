@@ -78,6 +78,13 @@ Parameters that accept lists (e.g. `macOnline`, `wanBlockIPs`) can contain comme
 Comments are separated from the value with a '#' (e.g. `192.168.0.77 # Daughter's iPhone`).
 The full string is used for the channel label.
 
+Two more advanced parameters are used for the backup thing action.
+The `backupDirectory` is the directory where the backup files are stored.
+The default value is the userdata directory.
+The `backupPassword` is used to encrypt the backup file.
+This is equivalent to setting a password in the UI.
+If no password is given, the user password (parameter `password`) is used.
+
 ### `subdevice`, `subdeviceLan`
 
 Additional informations (i.e. channels) are available in subdevices of the bridge.
@@ -185,6 +192,8 @@ There is an optional configuration parameter called `phoneNumberIndex` that shou
 
 ## Rule Action
 
+### Phonebook lookup
+
 The phonebooks of a `fritzbox` thing can be used to lookup a number from rules via a thing action:
 
 `String name = phonebookLookup(String number, String phonebook, int matchCount)`
@@ -202,6 +211,24 @@ Example (use all phonebooks, match 5 digits from right):
 ```
 val tr064Actions = getActions("tr064","tr064:fritzbox:2a28aee1ee")
 val result = tr064Actions.phonebookLookup("49157712341234", 5)
+```
+
+### Fritz!Box Backup
+
+The `fritzbox` things can create configuration backups of the Fritz!Box.
+
+The default configuration of the Fritz!Boxes requires 2-factor-authentication for creating backups.
+If you see a `Failed to get configuration backup URL: HTTP-Response-Code 500 (Internal Server Error), SOAP-Fault: 866 (second factor authentication required)` warning, you need to disable 2-actor authentication.
+But beware: depending on your configuration this might be a security issue.
+The setting can be found under "System -> FRITZ!Box Users -> Login to the Home Network -> Confirm".
+
+When executed, the action requests a backup file with the given password in the configured path.
+The backup file is names as `ThingFriendlyName dd.mm.yyyy HHMM.export` (e.g. `My FritzBox 18.06.2021 1720.export`).
+Files with the same name will be overwritten, so make sure that you trigger the rules at different times if your devices have the same friendly name.
+
+```
+val tr064Actions = getActions("tr064","tr064:fritzbox:2a28aee1ee")
+tr064Actions.createConfigurationBackup()
 ```
 
 ## A note on textual configuration

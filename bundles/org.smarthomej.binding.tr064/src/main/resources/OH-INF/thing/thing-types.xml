@@ -112,6 +112,17 @@
 				<default>600</default>
 				<advanced>true</advanced>
 			</parameter>
+			<parameter name="backupDirectory" type="text">
+				<label>Backup Directory</label>
+				<description>The directory where configuration backups are stored (default to userdata directory).</description>
+				<advanced>true</advanced>
+			</parameter>
+			<parameter name="backupPassword" type="text">
+				<label>Backup Password</label>
+				<description>The password used to encrypt the backup data.</description>
+				<context>password</context>
+				<advanced>true</advanced>
+			</parameter>
 		</config-description>
 	</bridge-type>
 
