@@ -225,37 +225,37 @@ public class SensorThingHandler extends SensorBaseThingHandler {
         boolean thingEdited = false;
 
         // some Xiaomi sensors
-        if (sensorConfig.temperature != null) {
-            thingEdited = thingEdited || createChannel(thingBuilder, CHANNEL_TEMPERATURE, ChannelKind.STATE);
+        if (sensorConfig.temperature != null && createChannel(thingBuilder, CHANNEL_TEMPERATURE, ChannelKind.STATE)) {
+            thingEdited = true;
         }
 
         // ZHAPresence - e.g. IKEA TRÅDFRI motion sensor
-        if (sensorState.dark != null) {
-            thingEdited = thingEdited || createChannel(thingBuilder, CHANNEL_DARK, ChannelKind.STATE);
+        if (sensorState.dark != null && createChannel(thingBuilder, CHANNEL_DARK, ChannelKind.STATE)) {
+            thingEdited = true;
         }
 
         // ZHAConsumption - e.g Bitron 902010/25 or Heiman SmartPlug
-        if (sensorState.power != null) {
-            thingEdited = thingEdited || createChannel(thingBuilder, CHANNEL_POWER, ChannelKind.STATE);
+        if (sensorState.power != null && createChannel(thingBuilder, CHANNEL_POWER, ChannelKind.STATE)) {
+            thingEdited = true;
         }
 
         // ZHAPower - e.g. Heiman SmartPlug
-        if (sensorState.voltage != null) {
-            thingEdited = thingEdited || createChannel(thingBuilder, CHANNEL_VOLTAGE, ChannelKind.STATE);
+        if (sensorState.voltage != null && createChannel(thingBuilder, CHANNEL_VOLTAGE, ChannelKind.STATE)) {
+            thingEdited = true;
         }
-        if (sensorState.current != null) {
-            thingEdited = thingEdited || createChannel(thingBuilder, CHANNEL_CURRENT, ChannelKind.STATE);
+        if (sensorState.current != null && createChannel(thingBuilder, CHANNEL_CURRENT, ChannelKind.STATE)) {
+            thingEdited = true;
         }
 
         // IAS Zone sensor - e.g. Heiman HS1MS motion sensor
-        if (sensorState.tampered != null) {
-            thingEdited = thingEdited || createChannel(thingBuilder, CHANNEL_TAMPERED, ChannelKind.STATE);
+        if (sensorState.tampered != null && createChannel(thingBuilder, CHANNEL_TAMPERED, ChannelKind.STATE)) {
+            thingEdited = true;
         }
 
         // e.g. Aqara Cube
-        if (sensorState.gesture != null) {
-            thingEdited = thingEdited || createChannel(thingBuilder, CHANNEL_GESTURE, ChannelKind.STATE);
-            thingEdited = thingEdited || createChannel(thingBuilder, CHANNEL_GESTUREEVENT, ChannelKind.TRIGGER);
+        if (sensorState.gesture != null && (createChannel(thingBuilder, CHANNEL_GESTURE, ChannelKind.STATE)
+                || createChannel(thingBuilder, CHANNEL_GESTUREEVENT, ChannelKind.TRIGGER))) {
+            thingEdited = true;
         }
 
         return thingEdited;

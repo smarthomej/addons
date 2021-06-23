@@ -320,13 +320,14 @@ public class LightThingHandler extends DeconzBaseThingHandler {
         boolean thingEdited = false;
 
         LightState lightState = lightMessage.state;
-        if (lightState != null && lightState.effect != null) {
-            thingEdited = thingEdited || checkAndUpdateEffectChannels(thingBuilder, lightMessage);
+        if (lightState != null && lightState.effect != null
+                && checkAndUpdateEffectChannels(thingBuilder, lightMessage)) {
+            thingEdited = true;
         }
 
-        String lastSeen = stateResponse.lastseen;
-        thingEdited = thingEdited || checkLastSeen(thingBuilder, lastSeen);
-
+        if (checkLastSeen(thingBuilder, stateResponse.lastseen)) {
+            thingEdited = true;
+        }
         if (thingEdited) {
             updateThing(thingBuilder.build());
         }
