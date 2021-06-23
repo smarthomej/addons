@@ -216,8 +216,10 @@ val result = tr064Actions.phonebookLookup("49157712341234", 5)
 ### Fritz!Box Backup
 
 The `fritzbox` things can create configuration backups of the Fritz!Box.
-The default configuration of the Fritz!Boxes require 2-factor-authentication for creating backups.
-To use the rule-action you have to disable this (but beware: depending on your configuration this might be a security issue).
+
+The default configuration of the Fritz!Boxes requires 2-factor-authentication for creating backups.
+If you see a `Failed to get configuration backup URL: HTTP-Response-Code 500 (Internal Server Error), SOAP-Fault: 866 (second factor authentication required)` warning, you need to disable 2-actor authentication.
+But beware: depending on your configuration this might be a security issue.
 The setting can be found under "System -> FRITZ!Box Users -> Login to the Home Network -> Confirm".
 
 When executed, the action requests a backup file with the given password in the configured path.
