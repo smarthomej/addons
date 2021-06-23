@@ -48,9 +48,10 @@ import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.http.HttpMethod;
 import org.openhab.core.cache.ExpiringCacheMap;
+import org.openhab.core.thing.Channel;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
-import org.openhab.core.thing.binding.builder.ChannelBuilder;
+import org.openhab.core.thing.binding.ThingHandlerCallback;
 import org.openhab.core.thing.binding.builder.ThingBuilder;
 import org.openhab.core.thing.type.ChannelTypeUID;
 import org.openhab.core.util.UIDUtils;
@@ -168,8 +169,8 @@ public class Util {
      * @param deviceType the (SCPD) device-type for this thing
      * @param channels a (mutable) channel list for storing all channels
      */
-    public static void checkAvailableChannels(Thing thing, ThingBuilder thingBuilder, SCPDUtil scpdUtil,
-            String deviceId, String deviceType, Map<ChannelUID, Tr064ChannelConfig> channels) {
+    public static void checkAvailableChannels(Thing thing, ThingHandlerCallback callback, ThingBuilder thingBuilder,
+            SCPDUtil scpdUtil, String deviceId, String deviceType, Map<ChannelUID, Tr064ChannelConfig> channels) {
         Tr064BaseThingConfiguration thingConfig = Tr064RootHandler.SUPPORTED_THING_TYPES
                 .contains(thing.getThingTypeUID()) ? thing.getConfiguration().as(Tr064RootConfiguration.class)
                         : thing.getConfiguration().as(Tr064SubConfiguration.class);
@@ -233,10 +234,8 @@ public class Util {
                         if (parameters.isEmpty() || fixedValue) {
                             // we have no parameters, so create a single channel
                             ChannelUID channelUID = new ChannelUID(thing.getUID(), channelId);
-                            ChannelBuilder channelBuilder = ChannelBuilder
-                                    .create(channelUID, channelTypeDescription.getItem().getType())
-                                    .withType(channelTypeUID);
-                            thingBuilder.withChannel(channelBuilder.build());
+                            Channel channel = callback.createChannelBuilder(channelUID, channelTypeUID).build();
+                            thingBuilder.withChannel(channel);
                             Tr064ChannelConfig channelConfig1 = new Tr064ChannelConfig(channelConfig);
                             if (fixedValue) {
                                 channelConfig1.setParameter(parameters.iterator().next());
@@ -251,11 +250,9 @@ public class Util {
                                 String normalizedParameter = UIDUtils.encode(rawParameter);
                                 ChannelUID channelUID = new ChannelUID(thing.getUID(),
                                         channelId + "_" + normalizedParameter);
-                                ChannelBuilder channelBuilder = ChannelBuilder
-                                        .create(channelUID, channelTypeDescription.getItem().getType())
-                                        .withType(channelTypeUID)
-                                        .withLabel(channelTypeDescription.getLabel() + " " + parameter);
-                                thingBuilder.withChannel(channelBuilder.build());
+                                Channel channel = callback.createChannelBuilder(channelUID, channelTypeUID)
+                                        .withLabel(channelTypeDescription.getLabel() + " " + parameter).build();
+                                thingBuilder.withChannel(channel);
                                 Tr064ChannelConfig channelConfig1 = new Tr064ChannelConfig(channelConfig);
                                 channelConfig1.setParameter(rawParameter);
                                 channels.put(channelUID, channelConfig1);
