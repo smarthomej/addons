@@ -28,8 +28,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -41,6 +43,7 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.Authentication;
 import org.eclipse.jetty.client.api.AuthenticationStore;
+import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.util.DigestAuthentication;
 import org.openhab.core.cache.ExpiringCacheMap;
 import org.openhab.core.thing.Bridge;
@@ -63,7 +66,6 @@ import org.smarthomej.binding.tr064.internal.dto.scpd.root.SCPDDeviceType;
 import org.smarthomej.binding.tr064.internal.dto.scpd.root.SCPDServiceType;
 import org.smarthomej.binding.tr064.internal.dto.scpd.service.SCPDActionType;
 import org.smarthomej.binding.tr064.internal.phonebook.Phonebook;
-import org.smarthomej.binding.tr064.internal.phonebook.PhonebookActions;
 import org.smarthomej.binding.tr064.internal.phonebook.PhonebookProvider;
 import org.smarthomej.binding.tr064.internal.phonebook.Tr064PhonebookImpl;
 import org.smarthomej.binding.tr064.internal.soap.SOAPConnector;
@@ -317,6 +319,22 @@ public class Tr064RootHandler extends BaseBridgeHandler implements PhonebookProv
     }
 
     /**
+     * return the result of an (authenticated) GET request
+     *
+     * @param url the requested URL
+     *
+     * @return a {@link ContentResponse} with the result of the request
+     * @throws ExecutionException
+     * @throws InterruptedException
+     * @throws TimeoutException
+     */
+    public ContentResponse getUrl(String url) throws ExecutionException, InterruptedException, TimeoutException {
+        httpClient.getAuthenticationStore().addAuthentication(
+                new DigestAuthentication(URI.create(url), Authentication.ANY_REALM, config.user, config.password));
+        return httpClient.GET(URI.create(url));
+    }
+
+    /**
      * get the SCPD processing utility
      *
      * @return the SCPD utility (or null if not available)
@@ -423,6 +441,20 @@ public class Tr064RootHandler extends BaseBridgeHandler implements PhonebookProv
 
     @Override
     public Collection<Class<? extends ThingHandlerService>> getServices() {
-        return Set.of(Tr064DiscoveryService.class, PhonebookActions.class);
+        if (THING_TYPE_FRITZBOX.equals(thing.getThingTypeUID())) {
+            return Set.of(Tr064DiscoveryService.class, FritzboxActions.class);
+        } else {
+            return Set.of(Tr064DiscoveryService.class);
+        }
+    }
+
+    /**
+     * get the backup configuration for this thing (only applies to FritzBox devices
+     *
+     * @return the configuration
+     */
+    public FritzboxActions.BackupConfiguration getBackupConfiguration() {
+        return new FritzboxActions.BackupConfiguration(config.backupDirectory,
+                Objects.requireNonNullElse(config.backupPassword, config.password));
     }
 }
