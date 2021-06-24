@@ -132,6 +132,10 @@ In `READ`, `READ_WRITE` or `TRAP` mode they change to either `ON` or `OFF` on th
 The parameters used for defining the values are `onvalue` and `offvalue`.
 The `datatype` parameter is used to convert the configuration strings to the needed values.
 
+`number`-type channels have a `unit` parameter.
+The unit is added to the received value before it is passed to the channel.
+For commands (i.e. sending), the value is first converted to the configured unit. 
+
 | type     | item   | description                     |
 |----------|--------|---------------------------------|
 | number   | Number | a channel with a numeric value  |

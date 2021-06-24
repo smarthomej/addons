@@ -97,7 +97,12 @@ public abstract class AbstractSnmpTargetHandlerTest extends JavaTest {
 
     protected @Nullable VariableBinding handleCommandNumberStringChannel(ChannelTypeUID channelTypeUID,
             SnmpDatatype datatype, Command command, boolean refresh) throws IOException {
-        setup(channelTypeUID, SnmpChannelMode.WRITE, datatype);
+        return handleCommandNumberStringChannel(channelTypeUID, datatype, null, command, refresh);
+    }
+
+    protected @Nullable VariableBinding handleCommandNumberStringChannel(ChannelTypeUID channelTypeUID,
+            SnmpDatatype datatype, @Nullable String unit, Command command, boolean refresh) throws IOException {
+        setup(channelTypeUID, SnmpChannelMode.WRITE, datatype, null, null, null, unit);
         thingHandler.handleCommand(CHANNEL_UID, command);
 
         if (refresh) {
@@ -178,6 +183,12 @@ public abstract class AbstractSnmpTargetHandlerTest extends JavaTest {
 
     protected void setup(ChannelTypeUID channelTypeUID, SnmpChannelMode channelMode, @Nullable SnmpDatatype datatype,
             @Nullable String onValue, @Nullable String offValue, @Nullable String exceptionValue) {
+        setup(channelTypeUID, channelMode, datatype, onValue, offValue, exceptionValue, null);
+    }
+
+    protected void setup(ChannelTypeUID channelTypeUID, SnmpChannelMode channelMode, @Nullable SnmpDatatype datatype,
+            @Nullable String onValue, @Nullable String offValue, @Nullable String exceptionValue,
+            @Nullable String unit) {
         Map<String, Object> channelConfig = new HashMap<>();
         Map<String, Object> thingConfig = new HashMap<>();
         mocks = MockitoAnnotations.openMocks(this);
@@ -201,6 +212,9 @@ public abstract class AbstractSnmpTargetHandlerTest extends JavaTest {
         }
         if (exceptionValue != null) {
             channelConfig.put("exceptionValue", exceptionValue);
+        }
+        if (unit != null) {
+            channelConfig.put("unit", unit);
         }
         Channel channel = ChannelBuilder.create(CHANNEL_UID, itemType).withType(channelTypeUID)
                 .withConfiguration(new Configuration(channelConfig)).build();

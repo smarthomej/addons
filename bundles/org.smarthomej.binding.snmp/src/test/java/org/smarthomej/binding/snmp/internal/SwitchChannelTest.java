@@ -47,7 +47,6 @@ import org.snmp4j.smi.VariableBinding;
 public class SwitchChannelTest extends AbstractSnmpTargetHandlerTest {
 
     @Test
-    @SuppressWarnings("null")
     public void testCommandsAreProperlyHandledBySwitchChannel() throws IOException {
         VariableBinding variable;
 

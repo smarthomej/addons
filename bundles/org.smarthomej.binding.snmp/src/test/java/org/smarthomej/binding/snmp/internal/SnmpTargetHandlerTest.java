@@ -26,6 +26,7 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.junit.jupiter.api.Test;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.OnOffType;
+import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.thing.ThingStatus;
 import org.smarthomej.binding.snmp.internal.types.SnmpChannelMode;
@@ -124,8 +125,20 @@ public class SnmpTargetHandlerTest extends AbstractSnmpTargetHandlerTest {
         assertTrue(variable.getVariable() instanceof OctetString);
         assertEquals("12.4", variable.getVariable().toString());
 
+        variable = handleCommandNumberStringChannel(SnmpBindingConstants.CHANNEL_TYPE_UID_NUMBER, SnmpDatatype.FLOAT,
+                "°C", new QuantityType<>("50 °F"), true);
+
+        if (variable == null) {
+            fail("'variable' is null");
+            return;
+        }
+
+        assertEquals(new OID(TEST_OID), variable.getOid());
+        assertTrue(variable.getVariable() instanceof OctetString);
+        assertEquals("10.00", variable.getVariable().toString());
+
         variable = handleCommandNumberStringChannel(SnmpBindingConstants.CHANNEL_TYPE_UID_NUMBER, SnmpDatatype.INT32,
-                new StringType(TEST_STRING), false);
+                null, new StringType(TEST_STRING), false);
         assertNull(variable);
     }
 

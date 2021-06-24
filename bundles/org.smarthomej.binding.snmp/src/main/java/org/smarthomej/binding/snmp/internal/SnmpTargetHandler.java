@@ -27,10 +27,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import javax.measure.Unit;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.OnOffType;
+import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.thing.Channel;
 import org.openhab.core.thing.ChannelUID;
@@ -43,6 +46,7 @@ import org.openhab.core.types.Command;
 import org.openhab.core.types.RefreshType;
 import org.openhab.core.types.State;
 import org.openhab.core.types.UnDefType;
+import org.openhab.core.types.util.UnitUtils;
 import org.openhab.core.util.HexUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -122,8 +126,8 @@ public class SnmpTargetHandler extends BaseThingHandler implements ResponseListe
                 pdu.setType(PDU.GET);
                 pdu.add(new VariableBinding(channel.oid));
                 snmpService.send(pdu, target, null, this);
-            } else if (command instanceof DecimalType || command instanceof StringType
-                    || command instanceof OnOffType) {
+            } else if (command instanceof DecimalType || command instanceof QuantityType
+                    || command instanceof StringType || command instanceof OnOffType) {
                 SnmpInternalChannelConfiguration channel = writeChannelSet.stream()
                         .filter(config -> channelUID.equals(config.channelUID)).findFirst()
                         .orElseThrow(() -> new IllegalArgumentException("no writable channel found"));
@@ -135,7 +139,21 @@ public class SnmpTargetHandler extends BaseThingHandler implements ResponseListe
                         return;
                     }
                 } else {
-                    variable = convertDatatype(command, channel.datatype);
+                    Command rawValue = command;
+                    if (command instanceof QuantityType) {
+                        Unit<?> channelUnit = channel.unit;
+                        if (channelUnit == null) {
+                            rawValue = new DecimalType(((QuantityType<?>) command).toBigDecimal());
+                        } else {
+                            QuantityType<?> convertedValue = ((QuantityType<?>) command).toUnit(channelUnit);
+                            if (convertedValue == null) {
+                                logger.warn("Cannot convert '{}' to configured unit '{}'", command, channelUnit);
+                                return;
+                            }
+                            rawValue = new DecimalType(convertedValue.toBigDecimal());
+                        }
+                    }
+                    variable = convertDatatype(rawValue, channel.datatype);
                 }
                 PDU pdu = getPDU();
                 pdu.setType(PDU.SET);
@@ -317,6 +335,7 @@ public class SnmpTargetHandler extends BaseThingHandler implements ResponseListe
         SnmpDatatype datatype = config.datatype; // maybe null, override later
         Variable onValue = null;
         Variable offValue = null;
+        Unit<?> unit = null;
         State exceptionValue = UnDefType.UNDEF;
 
         if (CHANNEL_TYPE_UID_NUMBER.equals(channel.getChannelTypeUID())) {
@@ -328,6 +347,13 @@ public class SnmpTargetHandler extends BaseThingHandler implements ResponseListe
             String configExceptionValue = config.exceptionValue;
             if (configExceptionValue != null) {
                 exceptionValue = DecimalType.valueOf(configExceptionValue);
+            }
+            String configUnit = config.unit;
+            if (configUnit != null) {
+                unit = UnitUtils.parseUnit(configUnit);
+                if (unit == null) {
+                    logger.warn("Failed to parse unit from '{}'for channel '{}'", unit, channel.getUID());
+                }
             }
         } else if (CHANNEL_TYPE_UID_STRING.equals(channel.getChannelTypeUID())) {
             if (datatype == null) {
@@ -366,7 +392,7 @@ public class SnmpTargetHandler extends BaseThingHandler implements ResponseListe
             return null;
         }
         return new SnmpInternalChannelConfiguration(channel.getUID(), new OID(oid), config.mode, datatype, onValue,
-                offValue, exceptionValue, config.doNotLogException);
+                offValue, exceptionValue, unit, config.doNotLogException);
     }
 
     private void generateChannelConfigs() {
@@ -416,17 +442,24 @@ public class SnmpTargetHandler extends BaseThingHandler implements ResponseListe
                                 }
                                 if (octets[0] == (byte) 0x9f && octets[1] == 0x78 && octets[2] == 0x04) {
                                     // floating point value
-                                    state = new DecimalType(Float.intBitsToFloat(
-                                            octets[3] << 24 | octets[4] << 16 | octets[5] << 8 | octets[6]));
+                                    Unit<?> channelUnit = channelConfig.unit;
+                                    float floatValue = Float.intBitsToFloat(
+                                            octets[3] << 24 | octets[4] << 16 | octets[5] << 8 | octets[6]);
+                                    state = channelUnit == null ? new DecimalType(floatValue)
+                                            : new QuantityType<>(floatValue, channelUnit);
+
                                 } else {
-                                    throw new UnsupportedOperationException(
-                                            "Unknown opaque datatype" + value.toString());
+                                    throw new UnsupportedOperationException("Unknown opaque datatype" + value);
                                 }
                             } else {
-                                state = new DecimalType(value.toString());
+                                Unit<?> channelUnit = channelConfig.unit;
+                                state = channelUnit == null ? new DecimalType(value.toString())
+                                        : new QuantityType<>(value + channelUnit.getSymbol());
                             }
                         } else {
-                            state = new DecimalType(value.toLong());
+                            Unit<?> channelUnit = channelConfig.unit;
+                            state = channelUnit == null ? new DecimalType(value.toLong())
+                                    : new QuantityType<>(value.toLong(), channelUnit);
                         }
                     } catch (UnsupportedOperationException e) {
                         logger.warn("could not convert {} to number for channel {}", value, channelUID);
