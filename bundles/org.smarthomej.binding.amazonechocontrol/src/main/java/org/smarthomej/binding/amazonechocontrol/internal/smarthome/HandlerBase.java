@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -27,6 +28,8 @@ import org.openhab.core.thing.type.ChannelTypeUID;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.State;
 import org.openhab.core.types.StateDescription;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.amazonechocontrol.internal.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDeviceHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapabilities;
@@ -42,6 +45,8 @@ import com.google.gson.JsonObject;
  */
 @NonNullByDefault
 public abstract class HandlerBase {
+    private final Logger logger = LoggerFactory.getLogger(HandlerBase.class);
+
     protected SmartHomeDeviceHandler smartHomeDeviceHandler;
     protected Map<String, ChannelInfo> channels = new HashMap<>();
 
@@ -49,7 +54,7 @@ public abstract class HandlerBase {
         this.smartHomeDeviceHandler = smartHomeDeviceHandler;
     }
 
-    protected abstract ChannelInfo @Nullable [] findChannelInfos(SmartHomeCapability capability, String property);
+    protected abstract Set<ChannelInfo> findChannelInfos(SmartHomeCapability capability, String property);
 
     public abstract void updateChannels(String interfaceName, List<JsonObject> stateList, UpdateChannelResult result);
 
@@ -71,6 +76,7 @@ public abstract class HandlerBase {
     }
 
     public Collection<ChannelInfo> initialize(List<SmartHomeCapability> capabilities) {
+        // TODO: reduce or remove
         Map<String, ChannelInfo> channels = new HashMap<>();
         for (SmartHomeCapability capability : capabilities) {
             Properties properties = capability.properties;
@@ -80,19 +86,13 @@ public abstract class HandlerBase {
                 for (Property property : supported) {
                     String name = property.name;
                     if (name != null) {
-                        ChannelInfo[] channelInfos = findChannelInfos(capability, name);
-                        if (channelInfos != null) {
-                            for (ChannelInfo channelInfo : channelInfos) {
-                                if (channelInfo != null) {
-                                    channels.put(channelInfo.channelId, channelInfo);
-                                }
-                            }
-                        }
+                        findChannelInfos(capability, name).forEach(c -> channels.put(c.channelId, c));
                     }
-
                 }
             }
         }
+        logger.trace("Handler '{}' has capabilities '{}' and uses channels '{}'", capabilities,
+                smartHomeDeviceHandler.getId(), channels);
         this.channels = channels;
         return channels.values();
     }
@@ -126,6 +126,12 @@ public abstract class HandlerBase {
             this.channelId = channelId;
             this.itemType = itemType;
             this.channelTypeUID = channelTypeUID;
+        }
+
+        @Override
+        public String toString() {
+            return "ChannelInfo{propertyName='" + propertyName + "', channelId='" + channelId + "', itemType='"
+                    + itemType + "', channelTypeUID=" + channelTypeUID + "}";
         }
     }
 
