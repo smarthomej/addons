@@ -419,13 +419,14 @@ public abstract class OwBaseThingHandler extends BaseThingHandler {
         // create channel if missing
         if (channel == null) {
             ChannelUID channelUID = new ChannelUID(thing.getUID(), channelConfig.channelId);
-            ChannelBuilder channelBuilder;
+
             ThingHandlerCallback callback = getCallback();
             if (callback == null) {
                 logger.warn("Could not get callback, adding '{}' failed.", channelUID);
                 return;
             }
-            channelBuilder = callback.createChannelBuilder(channelUID, channelConfig.channelTypeUID);
+
+            ChannelBuilder channelBuilder = callback.createChannelBuilder(channelUID, channelConfig.channelTypeUID);
 
             if (label != null) {
                 channelBuilder.withLabel(label);
