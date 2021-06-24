@@ -18,6 +18,7 @@ import static org.smarthomej.binding.onewire.internal.OwBindingConstants.*;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -40,6 +41,7 @@ import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.ThingTypeUID;
 import org.openhab.core.thing.binding.BaseBridgeHandler;
+import org.openhab.core.thing.binding.ThingHandlerService;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.State;
 import org.slf4j.Logger;
@@ -48,6 +50,7 @@ import org.smarthomej.binding.onewire.internal.OwException;
 import org.smarthomej.binding.onewire.internal.OwPageBuffer;
 import org.smarthomej.binding.onewire.internal.SensorId;
 import org.smarthomej.binding.onewire.internal.device.OwSensorType;
+import org.smarthomej.binding.onewire.internal.discovery.OwDiscoveryService;
 import org.smarthomej.binding.onewire.internal.owserver.OwfsDirectChannelConfig;
 import org.smarthomej.binding.onewire.internal.owserver.OwserverConnection;
 import org.smarthomej.binding.onewire.internal.owserver.OwserverConnectionState;
@@ -427,5 +430,10 @@ public class OwserverBridgeHandler extends BaseBridgeHandler {
                 }
             }
         }
+    }
+
+    @Override
+    public Collection<Class<? extends ThingHandlerService>> getServices() {
+        return Set.of(OwDiscoveryService.class);
     }
 }
