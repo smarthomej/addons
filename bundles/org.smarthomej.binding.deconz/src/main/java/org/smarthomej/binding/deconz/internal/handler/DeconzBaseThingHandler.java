@@ -31,7 +31,7 @@ import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.ThingStatusInfo;
-import org.openhab.core.thing.binding.builder.ChannelBuilder;
+import org.openhab.core.thing.binding.ThingHandlerCallback;
 import org.openhab.core.thing.binding.builder.ThingBuilder;
 import org.openhab.core.thing.type.ChannelKind;
 import org.openhab.core.thing.type.ChannelTypeUID;
@@ -209,12 +209,17 @@ public abstract class DeconzBaseThingHandler extends UpdatingBaseThingHandler im
                 break;
         }
 
-        Channel channel = ChannelBuilder.create(channelUID).withType(channelTypeUID).withKind(kind).build();
-        thingBuilder.withChannel(channel);
+        ThingHandlerCallback callback = getCallback();
+        if (callback != null) {
+            Channel channel = callback.createChannelBuilder(channelUID, channelTypeUID).withKind(kind).build();
+            thingBuilder.withChannel(channel);
+            logger.trace("Added '{}' to thing '{}'", channelId, thing.getUID());
 
-        logger.trace("Added '{}' to thing '{}'", channelId, thing.getUID());
+            return true;
+        }
 
-        return true;
+        logger.warn("Could not create channel '{}' for thing '{}'", channelUID, thing.getUID());
+        return false;
     }
 
     /**
