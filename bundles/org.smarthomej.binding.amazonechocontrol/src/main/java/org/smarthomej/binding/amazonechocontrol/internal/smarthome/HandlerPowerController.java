@@ -18,6 +18,7 @@ import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Consta
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -68,11 +69,11 @@ public class HandlerPowerController extends HandlerBase {
     }
 
     @Override
-    protected ChannelInfo @Nullable [] findChannelInfos(SmartHomeCapability capability, String property) {
+    protected Set<ChannelInfo> findChannelInfos(SmartHomeCapability capability, String property) {
         if (POWER_STATE.propertyName.equals(property)) {
-            return new ChannelInfo[] { POWER_STATE };
+            return Set.of(POWER_STATE);
         }
-        return null;
+        return Set.of();
     }
 
     @Override

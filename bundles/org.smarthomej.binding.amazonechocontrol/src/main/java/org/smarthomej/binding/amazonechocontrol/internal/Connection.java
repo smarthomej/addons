@@ -930,7 +930,7 @@ public class Connection {
         }
     }
 
-    @SuppressWarnings("null") // current value in compute can be null
+    // current value in compute can be null
     private void replaceTimer(TimerType type, @Nullable ScheduledFuture<?> newTimer) {
         timers.compute(type, (timerType, oldTimer) -> {
             if (oldTimer != null) {

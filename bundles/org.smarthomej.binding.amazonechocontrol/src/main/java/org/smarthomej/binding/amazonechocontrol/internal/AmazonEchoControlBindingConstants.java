@@ -13,8 +13,6 @@
  */
 package org.smarthomej.binding.amazonechocontrol.internal;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -46,12 +44,11 @@ public class AmazonEchoControlBindingConstants {
     public static final ThingTypeUID THING_TYPE_SMART_HOME_DEVICE_GROUP = new ThingTypeUID(BINDING_ID,
             "smartHomeDeviceGroup");
 
-    public static final Set<ThingTypeUID> SUPPORTED_ECHO_THING_TYPES_UIDS = new HashSet<>(
-            Arrays.asList(THING_TYPE_ACCOUNT, THING_TYPE_ECHO, THING_TYPE_ECHO_SPOT, THING_TYPE_ECHO_SHOW,
-                    THING_TYPE_ECHO_WHA, THING_TYPE_FLASH_BRIEFING_PROFILE));
+    public static final Set<ThingTypeUID> SUPPORTED_ECHO_THING_TYPES_UIDS = Set.of(THING_TYPE_ACCOUNT, THING_TYPE_ECHO,
+            THING_TYPE_ECHO_SPOT, THING_TYPE_ECHO_SHOW, THING_TYPE_ECHO_WHA, THING_TYPE_FLASH_BRIEFING_PROFILE);
 
-    public static final Set<ThingTypeUID> SUPPORTED_SMART_HOME_THING_TYPES_UIDS = new HashSet<>(
-            Arrays.asList(THING_TYPE_SMART_HOME_DEVICE, THING_TYPE_SMART_HOME_DEVICE_GROUP));
+    public static final Set<ThingTypeUID> SUPPORTED_SMART_HOME_THING_TYPES_UIDS = Set.of(THING_TYPE_SMART_HOME_DEVICE,
+            THING_TYPE_SMART_HOME_DEVICE_GROUP);
 
     // List of all Channel ids
     public static final String CHANNEL_PLAYER = "player";

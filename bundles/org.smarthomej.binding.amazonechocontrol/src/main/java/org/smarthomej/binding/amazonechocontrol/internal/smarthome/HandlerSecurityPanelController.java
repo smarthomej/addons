@@ -19,6 +19,7 @@ import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Consta
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -83,12 +84,11 @@ public class HandlerSecurityPanelController extends HandlerBase {
             "waterAlarm" /* ChannelId */, CHANNEL_TYPE_WATER_ALARM /* Channel Type */ ,
             ITEM_TYPE_CONTACT /* Item Type */);
 
+    private static final Set<ChannelInfo> ALARM_CHANNELS = Set.of(BURGLARY_ALARM, CARBON_MONOXIDE_ALARM, FIRE_ALARM,
+            WATER_ALARM);
+
     public HandlerSecurityPanelController(SmartHomeDeviceHandler smartHomeDeviceHandler) {
         super(smartHomeDeviceHandler);
-    }
-
-    private ChannelInfo[] getAlarmChannels() {
-        return new ChannelInfo[] { BURGLARY_ALARM, CARBON_MONOXIDE_ALARM, FIRE_ALARM, WATER_ALARM };
     }
 
     @Override
@@ -97,16 +97,16 @@ public class HandlerSecurityPanelController extends HandlerBase {
     }
 
     @Override
-    protected ChannelInfo @Nullable [] findChannelInfos(SmartHomeCapability capability, String property) {
+    protected Set<ChannelInfo> findChannelInfos(SmartHomeCapability capability, String property) {
         if (ARM_STATE.propertyName.equals(property)) {
-            return new ChannelInfo[] { ARM_STATE };
+            return Set.of(ARM_STATE);
         }
-        for (ChannelInfo channelInfo : getAlarmChannels()) {
+        for (ChannelInfo channelInfo : ALARM_CHANNELS) {
             if (channelInfo.propertyName.equals(property)) {
-                return new ChannelInfo[] { channelInfo };
+                return Set.of(channelInfo);
             }
         }
-        return null;
+        return Set.of();
     }
 
     @Override
