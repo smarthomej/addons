@@ -21,7 +21,7 @@ If no thing-type version is present, the thing is considered to have version `0`
 
 Three actions are available (see examples below):
 
-- `ADD_CHANNEL`: Add a new channel. Parameters are `<id>,<acceptedItemType>,<channelTypeUid>[,<label>,[<description>]]`.  
+- `ADD_CHANNEL`: Add a new channel. Parameters are `<id>,<acceptedItemType>,<channelTypeUid>[,<label>,[<description>]]`. The `acceptedItemtype` is no longer needed (or processed) but kept for backward compatibility. The item type is now retrieved from the channel type.  
 - `DELETE_CHANNEL`: Delete a channel. The only parameter is `<id>`.
 - `UPDATE_CHANNNEL`: Update an existing channel. Parameters are the same as for `ADD_CHANNEL`.
 
