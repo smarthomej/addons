@@ -28,6 +28,7 @@ public class SnmpChannelConfiguration {
     public @Nullable String oid;
     public SnmpChannelMode mode = SnmpChannelMode.READ;
     public @Nullable SnmpDatatype datatype;
+    public @Nullable String unit;
 
     public @Nullable String onvalue;
     public @Nullable String offvalue;

@@ -24,6 +24,8 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.openhab.core.library.types.DecimalType;
+import org.openhab.core.library.types.QuantityType;
+import org.openhab.core.library.unit.SIUnits;
 import org.openhab.core.thing.ThingStatus;
 import org.smarthomej.binding.snmp.internal.types.SnmpChannelMode;
 import org.smarthomej.binding.snmp.internal.types.SnmpDatatype;
@@ -63,6 +65,21 @@ public class NumberChannelTest extends AbstractSnmpTargetHandlerTest {
         ResponseEvent event = new ResponseEvent("test", null, null, responsePDU, null);
         thingHandler.onResponse(event);
         verify(thingHandlerCallback, atLeast(1)).stateUpdated(eq(CHANNEL_UID), eq(new DecimalType(1234567891333l)));
+        verifyStatus(ThingStatus.ONLINE);
+    }
+
+    @Test
+    public void testNumberChannelsProperlyUpdatingOnQuantityType() {
+        setup(SnmpBindingConstants.CHANNEL_TYPE_UID_NUMBER, SnmpChannelMode.READ, SnmpDatatype.FLOAT, null, null, null,
+                "°C");
+        PDU responsePDU = new PDU(PDU.RESPONSE, List.of(new VariableBinding(new OID(TEST_OID),
+                new Opaque(new byte[] { (byte) 0x9f, 0x78, 0x04, 0x41, 0x5b, 0x33, 0x33 }))));
+        ResponseEvent event = new ResponseEvent("test", null, null, responsePDU, null);
+        thingHandler.onResponse(event);
+        final ArgumentCaptor<QuantityType<?>> captor = ArgumentCaptor.forClass(QuantityType.class);
+        verify(thingHandlerCallback, atLeast(1)).stateUpdated(eq(CHANNEL_UID), captor.capture());
+        assertEquals(13.7, captor.getValue().doubleValue(), 0.001);
+        assertEquals(SIUnits.CELSIUS, captor.getValue().getUnit());
         verifyStatus(ThingStatus.ONLINE);
     }
 }
