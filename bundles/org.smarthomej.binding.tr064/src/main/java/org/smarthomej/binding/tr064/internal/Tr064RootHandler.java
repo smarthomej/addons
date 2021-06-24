@@ -53,6 +53,7 @@ import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.ThingTypeUID;
 import org.openhab.core.thing.ThingUID;
 import org.openhab.core.thing.binding.BaseBridgeHandler;
+import org.openhab.core.thing.binding.ThingHandlerCallback;
 import org.openhab.core.thing.binding.ThingHandlerService;
 import org.openhab.core.thing.binding.builder.ThingBuilder;
 import org.openhab.core.types.Command;
@@ -181,8 +182,9 @@ public class Tr064RootHandler extends BaseBridgeHandler implements PhonebookProv
             ThingBuilder thingBuilder = editThing();
             thingBuilder.withoutChannels(thing.getChannels());
             final SCPDUtil scpdUtil = this.scpdUtil;
-            if (scpdUtil != null) {
-                Util.checkAvailableChannels(thing, thingBuilder, scpdUtil, "", deviceType, channels);
+            final ThingHandlerCallback callback = getCallback();
+            if (scpdUtil != null && callback != null) {
+                Util.checkAvailableChannels(thing, callback, thingBuilder, scpdUtil, "", deviceType, channels);
                 updateThing(thingBuilder.build());
             }
 

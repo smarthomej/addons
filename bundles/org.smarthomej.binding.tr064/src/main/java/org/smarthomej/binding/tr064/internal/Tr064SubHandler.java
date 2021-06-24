@@ -33,6 +33,7 @@ import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.ThingStatusInfo;
 import org.openhab.core.thing.ThingTypeUID;
 import org.openhab.core.thing.binding.BaseThingHandler;
+import org.openhab.core.thing.binding.ThingHandlerCallback;
 import org.openhab.core.thing.binding.builder.ThingBuilder;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.RefreshType;
@@ -144,12 +145,16 @@ public class Tr064SubHandler extends BaseThingHandler {
                     "Could not get device definitions");
             return;
         }
-
+        final ThingHandlerCallback callback = getCallback();
+        if (callback == null) {
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.NONE, "Could not get callback");
+            return;
+        }
         if (checkProperties(scpdUtil)) {
             // properties set, check channels
             ThingBuilder thingBuilder = editThing();
             thingBuilder.withoutChannels(thing.getChannels());
-            Util.checkAvailableChannels(thing, thingBuilder, scpdUtil, config.uuid, deviceType, channels);
+            Util.checkAvailableChannels(thing, callback, thingBuilder, scpdUtil, config.uuid, deviceType, channels);
             updateThing(thingBuilder.build());
 
             // remove connect scheduler
