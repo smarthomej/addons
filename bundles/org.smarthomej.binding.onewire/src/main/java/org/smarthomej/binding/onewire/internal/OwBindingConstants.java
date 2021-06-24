@@ -144,9 +144,6 @@ public class OwBindingConstants {
     public static final Map<OwSensorType, String> THING_LABEL_MAP;
     public static final Map<OwSensorType, Set<OwChannelConfig>> SENSOR_TYPE_CHANNEL_MAP;
 
-    public static final Map<String, String> ACCEPTED_ITEM_TYPES_MAP = Util
-            .readPropertiesFile("accepted_itemtypes.properties");
-
     static {
         Map<String, String> properties = Util.readPropertiesFile("sensor.properties");
         THING_TYPE_MAP = properties.entrySet().stream().filter(e -> e.getKey().endsWith(".thingtype"))
