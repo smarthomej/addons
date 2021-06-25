@@ -16,6 +16,7 @@ package org.smarthomej.binding.deconz;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.smarthomej.binding.deconz.internal.BindingConstants.*;
+import static org.smarthomej.commons.UpdatingBaseBridgeHandler.PROPERTY_THING_TYPE_VERSION;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -82,6 +83,7 @@ public class LightsTest {
         ChannelUID channelUIDCt = new ChannelUID(thingUID, CHANNEL_COLOR_TEMPERATURE);
 
         Thing light = ThingBuilder.create(THING_TYPE_COLOR_TEMPERATURE_LIGHT, thingUID)
+                .withProperties(Map.of(PROPERTY_THING_TYPE_VERSION, "1"))
                 .withChannel(ChannelBuilder.create(channelUIDBri, "Dimmer").build())
                 .withChannel(ChannelBuilder.create(channelUIDCt, "Number").build()).build();
         LightThingHandler lightThingHandler = new LightThingHandler(light, gson, stateDescriptionProvider,
@@ -102,6 +104,7 @@ public class LightsTest {
         Map<String, String> properties = new HashMap<>();
         properties.put(PROPERTY_CT_MAX, "500");
         properties.put(PROPERTY_CT_MIN, "200");
+        properties.put(PROPERTY_THING_TYPE_VERSION, "1");
 
         Thing light = ThingBuilder.create(THING_TYPE_COLOR_TEMPERATURE_LIGHT, thingUID).withProperties(properties)
                 .withChannel(ChannelBuilder.create(channelUIDBri, "Dimmer").build())
@@ -129,6 +132,7 @@ public class LightsTest {
         ChannelUID channelUIDBri = new ChannelUID(thingUID, CHANNEL_BRIGHTNESS);
 
         Thing light = ThingBuilder.create(THING_TYPE_DIMMABLE_LIGHT, thingUID)
+                .withProperties(Map.of(PROPERTY_THING_TYPE_VERSION, "1"))
                 .withChannel(ChannelBuilder.create(channelUIDBri, "Dimmer").build()).build();
         LightThingHandler lightThingHandler = new LightThingHandler(light, gson, stateDescriptionProvider,
                 commandDescriptionProvider);
@@ -147,6 +151,7 @@ public class LightsTest {
         ChannelUID channelUIDBri = new ChannelUID(thingUID, CHANNEL_BRIGHTNESS);
 
         Thing light = ThingBuilder.create(THING_TYPE_DIMMABLE_LIGHT, thingUID)
+                .withProperties(Map.of(PROPERTY_THING_TYPE_VERSION, "1"))
                 .withChannel(ChannelBuilder.create(channelUIDBri, "Dimmer").build()).build();
         LightThingHandler lightThingHandler = new LightThingHandler(light, gson, stateDescriptionProvider,
                 commandDescriptionProvider);
@@ -165,6 +170,7 @@ public class LightsTest {
         ChannelUID channelUIDBri = new ChannelUID(thingUID, CHANNEL_BRIGHTNESS);
 
         Thing light = ThingBuilder.create(THING_TYPE_DIMMABLE_LIGHT, thingUID)
+                .withProperties(Map.of(PROPERTY_THING_TYPE_VERSION, "1"))
                 .withChannel(ChannelBuilder.create(channelUIDBri, "Dimmer").build()).build();
         LightThingHandler lightThingHandler = new LightThingHandler(light, gson, stateDescriptionProvider,
                 commandDescriptionProvider);
@@ -183,6 +189,7 @@ public class LightsTest {
         ChannelUID channelUIDPos = new ChannelUID(thingUID, CHANNEL_POSITION);
 
         Thing light = ThingBuilder.create(THING_TYPE_WINDOW_COVERING, thingUID)
+                .withProperties(Map.of(PROPERTY_THING_TYPE_VERSION, "1"))
                 .withChannel(ChannelBuilder.create(channelUIDPos, "Rollershutter").build()).build();
         LightThingHandler lightThingHandler = new LightThingHandler(light, gson, stateDescriptionProvider,
                 commandDescriptionProvider);

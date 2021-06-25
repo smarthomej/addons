@@ -68,6 +68,12 @@ public class UpdatingBaseThingHandlerTest {
     @BeforeEach
     public void init() {
         closeable = MockitoAnnotations.openMocks(this);
+        Mockito.when(callback.createChannelBuilder(any(), any())).thenAnswer(invocation -> {
+            ChannelUID channelUID = (ChannelUID) invocation.getArguments()[0];
+            ChannelTypeUID channelTypeUID = (ChannelTypeUID) invocation.getArguments()[1];
+
+            return ChannelBuilder.create(channelUID).withType(channelTypeUID);
+        });
     }
 
     @AfterEach
@@ -88,7 +94,6 @@ public class UpdatingBaseThingHandlerTest {
         Channel newChannel = newThing.getChannel("testChannel1");
         Assertions.assertNotNull(newChannel);
         Objects.requireNonNull(newChannel);
-        Assertions.assertEquals("String", newChannel.getAcceptedItemType());
         Assertions.assertNull(newChannel.getLabel());
         Assertions.assertNull(newChannel.getDescription());
         Assertions.assertEquals(CHANNEL_TYPE_UID, newChannel.getChannelTypeUID());
@@ -96,7 +101,6 @@ public class UpdatingBaseThingHandlerTest {
         newChannel = newThing.getChannel("testChannel2");
         Assertions.assertNotNull(newChannel);
         Objects.requireNonNull(newChannel);
-        Assertions.assertEquals("String", newChannel.getAcceptedItemType());
         Assertions.assertEquals("Test Label", newChannel.getLabel());
         Assertions.assertNull(newChannel.getDescription());
         Assertions.assertEquals(CHANNEL_TYPE_UID, newChannel.getChannelTypeUID());
@@ -104,7 +108,6 @@ public class UpdatingBaseThingHandlerTest {
         newChannel = newThing.getChannel("testChannel3");
         Assertions.assertNotNull(newChannel);
         Objects.requireNonNull(newChannel);
-        Assertions.assertEquals("String", newChannel.getAcceptedItemType());
         Assertions.assertEquals("Test Label", newChannel.getLabel());
         Assertions.assertEquals("Test Description", newChannel.getDescription());
         Assertions.assertEquals(CHANNEL_TYPE_UID, newChannel.getChannelTypeUID());
@@ -145,7 +148,6 @@ public class UpdatingBaseThingHandlerTest {
         Assertions.assertNotNull(newChannel);
         Objects.requireNonNull(newChannel);
 
-        Assertions.assertEquals("String", newChannel.getAcceptedItemType());
         Assertions.assertEquals("Test Label", newChannel.getLabel());
         Assertions.assertEquals(UPDATED_CHANNEL_TYPE_UID, newChannel.getChannelTypeUID());
 
@@ -169,7 +171,6 @@ public class UpdatingBaseThingHandlerTest {
         Channel newChannel = newThing.getChannel("testChannel2");
         Assertions.assertNotNull(newChannel);
         Objects.requireNonNull(newChannel);
-        Assertions.assertEquals("Switch", newChannel.getAcceptedItemType());
         Assertions.assertEquals("TestLabel", newChannel.getLabel());
         Assertions.assertEquals(CHANNEL_TYPE_UID, newChannel.getChannelTypeUID());
 
@@ -177,7 +178,6 @@ public class UpdatingBaseThingHandlerTest {
         Channel updatedChannel = newThing.getChannel("testChannel1");
         Assertions.assertNotNull(updatedChannel);
         Objects.requireNonNull(updatedChannel);
-        Assertions.assertEquals("String", updatedChannel.getAcceptedItemType());
         Assertions.assertEquals("Test Label", updatedChannel.getLabel());
         Assertions.assertEquals(UPDATED_CHANNEL_TYPE_UID, updatedChannel.getChannelTypeUID());
 
