@@ -29,6 +29,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingUID;
+import org.openhab.core.thing.binding.ThingHandlerCallback;
 import org.openhab.core.thing.binding.builder.ChannelBuilder;
 import org.openhab.core.thing.binding.builder.ThingBuilder;
 import org.openhab.core.thing.type.ChannelTypeUID;
@@ -50,7 +51,7 @@ public class ThingUpdater {
     private final ThingUID thingUid;
     private int currentThingTypeVersion;
 
-    public ThingUpdater(Thing thing, Class clazz) {
+    public ThingUpdater(Thing thing, Class<?> clazz) {
         currentThingTypeVersion = Integer
                 .parseInt(thing.getProperties().getOrDefault(PROPERTY_THING_TYPE_VERSION, "0"));
         thingUid = thing.getUID();
@@ -104,25 +105,26 @@ public class ThingUpdater {
         return !updateInstructions.isEmpty();
     }
 
-    public ThingBuilder update(ThingBuilder thingBuilder) {
+    public ThingBuilder update(ThingBuilder thingBuilder, ThingHandlerCallback callback) {
         updateInstructions.forEach((targetThingTypeVersion, updateInstruction) -> {
             logger.info("Updating {} from version {} to {}", thingUid, currentThingTypeVersion, targetThingTypeVersion);
-            updateInstruction.forEach(instruction -> processUpdateInstruction(instruction, thingBuilder));
+            updateInstruction.forEach(instruction -> processUpdateInstruction(instruction, thingBuilder, callback));
             currentThingTypeVersion = targetThingTypeVersion;
         });
         thingBuilder.withProperties(Map.of(PROPERTY_THING_TYPE_VERSION, String.valueOf(updateInstructions.lastKey())));
         return thingBuilder;
     }
 
-    private void processUpdateInstruction(UpdateInstruction instruction, ThingBuilder thingBuilder) {
+    private void processUpdateInstruction(UpdateInstruction instruction, ThingBuilder thingBuilder,
+            ThingHandlerCallback callback) {
         ChannelUID affectedChannelUid = new ChannelUID(thingUid, instruction.channelId);
         switch (instruction.updateCommand) {
             case UPDATE_CHANNEL:
                 thingBuilder.withoutChannel(affectedChannelUid);
                 // fall-through to add channel
             case ADD_CHANNEL:
-                ChannelBuilder channelBuilder = ChannelBuilder.create(affectedChannelUid, instruction.parameters.get(0))
-                        .withType(new ChannelTypeUID(instruction.parameters.get(1)));
+                ChannelBuilder channelBuilder = callback.createChannelBuilder(affectedChannelUid,
+                        new ChannelTypeUID(instruction.parameters.get(1)));
                 if (instruction.parameters.size() >= 3) {
                     // label is optional (could be inherited from thing-type)
                     channelBuilder.withLabel(instruction.parameters.get(2));
