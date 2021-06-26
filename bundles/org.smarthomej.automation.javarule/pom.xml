@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.smarthomej.addons.bundles</groupId>
+    <artifactId>org.smarthomej.addons.reactor.bundles</artifactId>
+    <version>3.1.5-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>org.smarthomej.automation.javarule</artifactId>
+
+  <name>SmartHome/J Add-ons :: Bundles :: Java Rule Support</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>ch.obermuhlner</groupId>
+      <artifactId>java-scriptengine</artifactId>
+      <version>1.1.0</version>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <phase>generate-sources</phase>
+            <configuration>
+              <sources>
+                <source>src/3rdparty/java</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

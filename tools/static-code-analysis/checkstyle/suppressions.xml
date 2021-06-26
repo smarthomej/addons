@@ -14,6 +14,8 @@
     <suppress files=".+[\\/]DmxBridgeHandler\.java" checks="AvoidScheduleAtFixedRateCheck"/>
     <!-- KNX: calimero uses gnu.io -->
     <suppress files=".+[\\/]knx[\\/].+[\\/]SerialClient\.java" checks="ForbiddenPackageUsageCheck"/>
+    <!-- JavaRule uses ClassUtils from commons-lang3 -->
+    <suppress files=".+[\\/]javarule[\\/].+[\\/]ThingActionsWrapper\.java" checks="ForbiddenPackageUsageCheck"/>
     <!-- external configuration profiles do not pass usage check -->
     <suppress files=".+\.tr064[\\/].+[\\/]phonebookProfile\.xml" checks="OhInfXmlUsageCheck"/>
     <suppress files=".+\.influxdb[\\/].+[\\/]config\.xml" checks="OhInfXmlUsageCheck"/>
