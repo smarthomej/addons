@@ -73,7 +73,7 @@ public class BasicProfilesFactory implements ProfileFactory, ProfileTypeProvider
                     CoreItemFactory.ROLLERSHUTTER, CoreItemFactory.SWITCH) //
             .build();
     private static final ProfileType PROFILE_TYPE_GENERIC_TOGGLE_SWITCH = ProfileTypeBuilder
-            .newTrigger(GENERIC_COMMAND_UID, "Generic Toggle Switch") //
+            .newTrigger(GENERIC_TOGGLE_SWITCH_UID, "Generic Toggle Switch") //
             .withSupportedItemTypes(CoreItemFactory.COLOR, CoreItemFactory.DIMMER, CoreItemFactory.SWITCH) //
             .build();
     private static final ProfileType PROFILE_TYPE_DEBOUNCE_COUNTING = ProfileTypeBuilder
