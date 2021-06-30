@@ -73,8 +73,10 @@ public class DeconzDynamicStateDescriptionProvider extends BaseDynamicStateDescr
         if (!stateDescriptionFragment.equals(oldStateDescriptionFragment)) {
             logger.trace("adding state description for channel {}", channelUID);
             stateDescriptionFragments.put(channelUID, stateDescriptionFragment);
+            ItemChannelLinkRegistry localItemChannelLinkRegistry = itemChannelLinkRegistry;
             postEvent(ThingEventFactory.createChannelDescriptionChangedEvent(channelUID,
-                    itemChannelLinkRegistry != null ? itemChannelLinkRegistry.getLinkedItemNames(channelUID) : Set.of(),
+                    localItemChannelLinkRegistry != null ? localItemChannelLinkRegistry.getLinkedItemNames(channelUID)
+                            : Set.of(),
                     stateDescriptionFragment, oldStateDescriptionFragment));
         }
     }

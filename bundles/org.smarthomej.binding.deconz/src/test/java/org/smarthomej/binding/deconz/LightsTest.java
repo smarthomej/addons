@@ -120,7 +120,7 @@ public class LightsTest {
 
         lightThingHandler.initialize();
 
-        Mockito.verify(stateDescriptionProvider).setDescription(eq(channelUIDCt), any());
+        Mockito.verify(stateDescriptionProvider).setDescriptionFragment(eq(channelUIDCt), any());
     }
 
     @Test
