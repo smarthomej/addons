@@ -11,7 +11,7 @@
   </parent>
 
   <artifactId>org.smarthomej.io.repomanager</artifactId>
-  
+
   <name>SmartHome/J Add-ons :: Bundles :: SmartHome/J Repository Manager</name>
 
   <dependencies>
