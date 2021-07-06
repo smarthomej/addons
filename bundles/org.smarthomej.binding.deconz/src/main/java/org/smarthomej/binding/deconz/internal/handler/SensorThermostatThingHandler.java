@@ -34,9 +34,8 @@ import org.openhab.core.library.types.StringType;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingTypeUID;
-import org.openhab.core.thing.binding.builder.ChannelBuilder;
 import org.openhab.core.thing.binding.builder.ThingBuilder;
-import org.openhab.core.thing.type.ChannelTypeUID;
+import org.openhab.core.thing.type.ChannelKind;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.RefreshType;
 import org.slf4j.Logger;
@@ -204,10 +203,9 @@ public class SensorThermostatThingHandler extends SensorBaseThingHandler {
 
         SensorMessage sensorMessage = (SensorMessage) stateResponse;
         SensorState sensorState = sensorMessage.state;
-        if (sensorState != null && sensorState.windowopen != null && thing.getChannel(CHANNEL_WINDOWOPEN) == null) {
+        if (sensorState != null && sensorState.windowopen != null) {
             ThingBuilder thingBuilder = editThing();
-            thingBuilder.withChannel(ChannelBuilder.create(new ChannelUID(thing.getUID(), CHANNEL_WINDOWOPEN), "String")
-                    .withType(new ChannelTypeUID(BINDING_ID, "open")).build());
+            createChannel(thingBuilder, CHANNEL_WINDOWOPEN, ChannelKind.STATE);
             updateThing(thingBuilder.build());
         }
 
