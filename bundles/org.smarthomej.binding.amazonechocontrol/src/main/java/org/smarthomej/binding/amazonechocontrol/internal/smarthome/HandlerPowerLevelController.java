@@ -18,6 +18,7 @@ import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Consta
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -111,7 +112,8 @@ public class HandlerPowerLevelController extends HandlerBase {
                             newValue = 100;
                         }
                         this.lastPowerLevel = newValue;
-                        connection.smartHomeCommand(entityId, "setPowerLevel", POWER_LEVEL.propertyName, newValue);
+                        connection.smartHomeCommand(entityId, "setPowerLevel",
+                                Map.of(POWER_LEVEL.propertyName, newValue));
                         return true;
                     }
                 } else if (command.equals(IncreaseDecreaseType.DECREASE)) {
@@ -122,21 +124,22 @@ public class HandlerPowerLevelController extends HandlerBase {
                             newValue = 0;
                         }
                         this.lastPowerLevel = newValue;
-                        connection.smartHomeCommand(entityId, "setPowerLevel", POWER_LEVEL.propertyName, newValue);
+                        connection.smartHomeCommand(entityId, "setPowerLevel",
+                                Map.of(POWER_LEVEL.propertyName, newValue));
                         return true;
                     }
                 } else if (command.equals(OnOffType.OFF)) {
                     lastPowerLevel = 0;
-                    connection.smartHomeCommand(entityId, "setPowerLevel", POWER_LEVEL.propertyName, 0);
+                    connection.smartHomeCommand(entityId, "setPowerLevel", Map.of(POWER_LEVEL.propertyName, 0));
                     return true;
                 } else if (command.equals(OnOffType.ON)) {
                     lastPowerLevel = 100;
-                    connection.smartHomeCommand(entityId, "setPowerLevel", POWER_LEVEL.propertyName, 100);
+                    connection.smartHomeCommand(entityId, "setPowerLevel", Map.of(POWER_LEVEL.propertyName, 100));
                     return true;
                 } else if (command instanceof PercentType) {
                     lastPowerLevel = ((PercentType) command).intValue();
-                    connection.smartHomeCommand(entityId, "setPowerLevel", POWER_LEVEL.propertyName,
-                            ((PercentType) command).floatValue() / 100);
+                    connection.smartHomeCommand(entityId, "setPowerLevel",
+                            Map.of(POWER_LEVEL.propertyName, ((PercentType) command).floatValue() / 100));
                     return true;
                 }
             }

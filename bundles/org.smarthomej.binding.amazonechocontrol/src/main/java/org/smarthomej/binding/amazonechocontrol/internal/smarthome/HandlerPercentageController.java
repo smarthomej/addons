@@ -18,6 +18,7 @@ import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Consta
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -110,7 +111,8 @@ public class HandlerPercentageController extends HandlerBase {
                             newValue = 100;
                         }
                         this.lastPercentage = newValue;
-                        connection.smartHomeCommand(entityId, "setPercentage", PERCENTAGE.propertyName, newValue);
+                        connection.smartHomeCommand(entityId, "setPercentage",
+                                Map.of(PERCENTAGE.propertyName, newValue));
                         return true;
                     }
                 } else if (command.equals(IncreaseDecreaseType.DECREASE)) {
@@ -121,20 +123,23 @@ public class HandlerPercentageController extends HandlerBase {
                             newValue = 0;
                         }
                         this.lastPercentage = newValue;
-                        connection.smartHomeCommand(entityId, "setPercentage", PERCENTAGE.propertyName, newValue);
+                        connection.smartHomeCommand(entityId, "setPercentage",
+                                Map.of(PERCENTAGE.propertyName, newValue));
                         return true;
                     }
                 } else if (command.equals(OnOffType.OFF)) {
                     lastPercentage = 0;
-                    connection.smartHomeCommand(entityId, "setPercentage", PERCENTAGE.propertyName, 0);
+                    connection.smartHomeCommand(entityId, "setPercentage", Map.of(PERCENTAGE.propertyName, 0));
                     return true;
                 } else if (command.equals(OnOffType.ON)) {
                     lastPercentage = 100;
-                    connection.smartHomeCommand(entityId, "setPercentage", PERCENTAGE.propertyName, 100);
+                    connection.smartHomeCommand(entityId, "setPercentage", Map.of(PERCENTAGE.propertyName, 100));
                     return true;
                 } else if (command instanceof PercentType) {
-                    lastPercentage = ((PercentType) command).intValue();
-                    connection.smartHomeCommand(entityId, "setPercentage", PERCENTAGE.propertyName, lastPercentage);
+                    Integer lastPercentage = ((PercentType) command).intValue();
+                    connection.smartHomeCommand(entityId, "setPercentage",
+                            Map.of(PERCENTAGE.propertyName, lastPercentage));
+                    this.lastPercentage = lastPercentage;
                     return true;
                 }
             }

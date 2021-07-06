@@ -19,6 +19,7 @@ import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Consta
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -159,8 +160,8 @@ public class HandlerSecurityPanelController extends HandlerBase {
                 if (command instanceof StringType) {
                     String armStateValue = command.toFullString();
                     if (!armStateValue.isEmpty()) {
-                        connection.smartHomeCommand(entityId, "controlSecurityPanel", ARM_STATE.propertyName,
-                                armStateValue);
+                        connection.smartHomeCommand(entityId, "controlSecurityPanel",
+                                Map.of(ARM_STATE.propertyName, armStateValue));
                         return true;
                     }
                 }

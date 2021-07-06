@@ -16,8 +16,10 @@ package org.smarthomej.binding.amazonechocontrol.internal.smarthome;
 import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Constants.*;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -49,16 +51,18 @@ public class HandlerThermostatController extends HandlerBase {
     // Interface
     public static final String INTERFACE = "Alexa.ThermostatController";
     // Channel definitions
-    private static final ChannelInfo TARGET_SETPOINT = new ChannelInfo("targetSetpoint" /* propertyName */ ,
-            "targetSetpoint" /* ChannelId */, CHANNEL_TYPE_TARGETSETPOINT /* Channel Type */ ,
-            ITEM_TYPE_NUMBER_TEMPERATURE /* Item Type */);
+    private static final ChannelInfo TARGET_SETPOINT = new ChannelInfo("targetSetpoint" /* propertyNameReceive */,
+            "targetTemperature" /* propertyNameSend */, "targetSetpoint" /* ChannelId */,
+            CHANNEL_TYPE_TARGETSETPOINT /* Channel Type */ , ITEM_TYPE_NUMBER_TEMPERATURE /* Item Type */);
     private static final ChannelInfo LOWER_SETPOINT = new ChannelInfo("lowerSetpoint" /* propertyName */ ,
-            "lowerSetpoint" /* ChannelId */, CHANNEL_TYPE_LOWERSETPOINT /* Channel Type */ ,
-            ITEM_TYPE_NUMBER_TEMPERATURE /* Item Type */);
+            "lowerSetTemperature" /* propertyNameSend */, "lowerSetpoint" /* ChannelId */,
+            CHANNEL_TYPE_LOWERSETPOINT /* Channel Type */ , ITEM_TYPE_NUMBER_TEMPERATURE /* Item Type */);
     private static final ChannelInfo UPPER_SETPOINT = new ChannelInfo("upperSetpoint" /* propertyName */ ,
-            "upperSetpoint" /* ChannelId */, CHANNEL_TYPE_UPPERSETPOINT /* Channel Type */ ,
-            ITEM_TYPE_NUMBER_TEMPERATURE /* Item Type */);
+            "upperSetTemperature" /* propertyNameSend */, "upperSetpoint" /* ChannelId */,
+            CHANNEL_TYPE_UPPERSETPOINT /* Channel Type */ , ITEM_TYPE_NUMBER_TEMPERATURE /* Item Type */);
     private static final Set<ChannelInfo> ALL_CHANNELS = Set.of(TARGET_SETPOINT, LOWER_SETPOINT, UPPER_SETPOINT);
+
+    private final Map<String, Command> setpointCache = new HashMap<>();
 
     public HandlerThermostatController(SmartHomeDeviceHandler smartHomeDeviceHandler) {
         super(smartHomeDeviceHandler);
@@ -91,6 +95,7 @@ public class HandlerThermostatController extends HandlerBase {
                             temperatureValue = new QuantityType<>(temperature, ImperialUnits.FAHRENHEIT);
                         }
                     }
+                    setpointCache.put(channel.propertyNameSend, temperatureValue);
                 }
             }
             updateState(channel.channelId, Objects.requireNonNullElse(temperatureValue, UnDefType.UNDEF));
@@ -106,7 +111,17 @@ public class HandlerThermostatController extends HandlerBase {
         if (channelInfo != null) {
             if (containsCapabilityProperty(capabilities, channelInfo.propertyName)) {
                 if (command instanceof QuantityType) {
-                    connection.smartHomeCommand(entityId, "setTargetTemperature", channelInfo.propertyName, command);
+                    Map<String, Object> values = new HashMap<>();
+                    if ("lowerSetTemperature".equals(channelInfo.propertyNameSend)) {
+                        values.put("lowerSetTemperature", command);
+                        values.put("upperSetTemperature", setpointCache.getOrDefault("upperSetTemperature", command));
+                    } else if ("upperSetTemperature".equals(channelInfo.propertyNameSend)) {
+                        values.put("upperSetTemperature", command);
+                        values.put("lowerSetTemperature", setpointCache.getOrDefault("lowerSetTemperature", command));
+                    } else {
+                        values.put("targetTemperature", command);
+                    }
+                    connection.smartHomeCommand(entityId, "setTargetTemperature", values);
                     return true;
                 }
             }

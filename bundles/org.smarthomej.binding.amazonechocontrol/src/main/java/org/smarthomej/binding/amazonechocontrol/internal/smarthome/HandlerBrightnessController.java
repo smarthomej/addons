@@ -18,6 +18,7 @@ import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Consta
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -110,7 +111,8 @@ public class HandlerBrightnessController extends HandlerBase {
                             newValue = 100;
                         }
                         this.lastBrightness = newValue;
-                        connection.smartHomeCommand(entityId, "setBrightness", BRIGHTNESS.propertyName, newValue);
+                        connection.smartHomeCommand(entityId, "setBrightness",
+                                Map.of(BRIGHTNESS.propertyName, newValue));
                         return true;
                     }
                 } else if (command.equals(IncreaseDecreaseType.DECREASE)) {
@@ -121,21 +123,22 @@ public class HandlerBrightnessController extends HandlerBase {
                             newValue = 0;
                         }
                         this.lastBrightness = newValue;
-                        connection.smartHomeCommand(entityId, "setBrightness", BRIGHTNESS.propertyName, newValue);
+                        connection.smartHomeCommand(entityId, "setBrightness",
+                                Map.of(BRIGHTNESS.propertyName, newValue));
                         return true;
                     }
                 } else if (command.equals(OnOffType.OFF)) {
                     lastBrightness = 0;
-                    connection.smartHomeCommand(entityId, "setBrightness", BRIGHTNESS.propertyName, 0);
+                    connection.smartHomeCommand(entityId, "setBrightness", Map.of(BRIGHTNESS.propertyName, 0));
                     return true;
                 } else if (command.equals(OnOffType.ON)) {
                     lastBrightness = 100;
-                    connection.smartHomeCommand(entityId, "setBrightness", BRIGHTNESS.propertyName, 100);
+                    connection.smartHomeCommand(entityId, "setBrightness", Map.of(BRIGHTNESS.propertyName, 100));
                     return true;
                 } else if (command instanceof PercentType) {
                     lastBrightness = ((PercentType) command).intValue();
-                    connection.smartHomeCommand(entityId, "setBrightness", BRIGHTNESS.propertyName,
-                            ((PercentType) command).floatValue() / 100);
+                    connection.smartHomeCommand(entityId, "setBrightness",
+                            Map.of(BRIGHTNESS.propertyName, ((PercentType) command).floatValue() / 100));
                     return true;
                 }
             }
