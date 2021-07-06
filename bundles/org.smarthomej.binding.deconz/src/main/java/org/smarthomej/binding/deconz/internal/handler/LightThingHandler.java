@@ -40,8 +40,8 @@ import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.ThingTypeUID;
-import org.openhab.core.thing.binding.builder.ChannelBuilder;
 import org.openhab.core.thing.binding.builder.ThingBuilder;
+import org.openhab.core.thing.type.ChannelKind;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.CommandOption;
 import org.openhab.core.types.RefreshType;
@@ -352,20 +352,20 @@ public class LightThingHandler extends DeconzBaseThingHandler {
         }
 
         ChannelUID effectChannelUID = new ChannelUID(thing.getUID(), CHANNEL_EFFECT);
-        ChannelUID effectSpeedChannelUID = new ChannelUID(thing.getUID(), CHANNEL_EFFECT_SPEED);
 
         if (thing.getChannel(CHANNEL_EFFECT) == null) {
-            thingBuilder.withChannel(ChannelBuilder.create(effectChannelUID).withType(CHANNEL_EFFECT_TYPE_UID).build());
-            if (model == EffectLightModel.LIDL_MELINARA) {
-                // additional channels
-                thingBuilder.withChannel(ChannelBuilder.create(effectSpeedChannelUID, "Number")
-                        .withType(CHANNEL_EFFECT_SPEED_TYPE_UID).build());
-            }
+            createChannel(thingBuilder, CHANNEL_EFFECT, ChannelKind.STATE);
             thingEdited = true;
         }
 
         switch (model) {
             case LIDL_MELINARA:
+                if (thing.getChannel(CHANNEL_EFFECT_SPEED) == null) {
+                    // additional channels
+                    createChannel(thingBuilder, CHANNEL_EFFECT_SPEED, ChannelKind.STATE);
+                    thingEdited = true;
+                }
+
                 List<String> options = List.of("none", "steady", "snow", "rainbow", "snake", "tinkle", "fireworks",
                         "flag", "waves", "updown", "vintage", "fading", "collide", "strobe", "sparkles", "carnival",
                         "glow");
