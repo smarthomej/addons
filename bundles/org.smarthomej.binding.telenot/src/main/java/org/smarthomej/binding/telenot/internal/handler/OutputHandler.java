@@ -24,7 +24,7 @@ import org.openhab.core.library.types.OpenClosedType;
 import org.openhab.core.thing.Channel;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
-import org.openhab.core.thing.binding.builder.ChannelBuilder;
+import org.openhab.core.thing.binding.ThingHandlerCallback;
 import org.openhab.core.types.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -131,13 +131,19 @@ public class OutputHandler extends TelenotThingHandler {
         if (label == null) {
             label = "Contact " + channelId;
         }
+        ThingHandlerCallback callback = getCallback();
+        if (callback == null) {
+            logger.warn("Thing '{}'not initialized, could not get callback.", thing.getUID());
+            return;
+        }
+
         ChannelUID contactChannelUID = new ChannelUID(thing.getUID(), channelId);
-        Channel contactChannel = ChannelBuilder.create(contactChannelUID, "Contact").withType(CHANNEL_TYPE_CONTACT)
-                .withLabel(label).build();
+        Channel contactChannel = callback.createChannelBuilder(contactChannelUID, CHANNEL_TYPE_CONTACT).withLabel(label)
+                .build();
 
         String hex = String.format("0x%04x", Integer.parseInt(channelId.substring(2), 16) + 128);
         ChannelUID switchChannelUID = new ChannelUID(thing.getUID(), hex);
-        Channel switchChannel = ChannelBuilder.create(switchChannelUID, "Switch").withType(CHANNEL_TYPE_SWITCH)
+        Channel switchChannel = callback.createChannelBuilder(switchChannelUID, CHANNEL_TYPE_SWITCH)
                 .withLabel("Disable " + label).build();
         updateThing(editThing().withoutChannel(contactChannelUID).withChannel(contactChannel)
                 .withoutChannel(switchChannelUID).withChannel(switchChannel).build());
