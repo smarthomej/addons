@@ -146,6 +146,16 @@
 				pattern="([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}(\s*#.*)*"/>
 		</getAction>
 	</channel>
+	<channel name="macOnlineIpAddress" label="MAC Online IP" description="IP of the device with the given MAC">
+		<item type="String"/>
+		<service deviceType="urn:dslforum-org:device:LANDevice:1" serviceId="urn:LanDeviceHosts-com:serviceId:Hosts1"/>
+		<getAction name="GetSpecificHostEntry" argument="NewIPAddress">
+			<parameter name="NewMACAddress" thingParameter="macOnline"
+				pattern="([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}(\s*#.*)*"/>
+		</getAction>
+		<service deviceType="urn:dslforum-org:device:LANDevice:1" serviceId="urn:LanDeviceHosts-com:serviceId:Hosts1"/>
+	</channel>
+
 
 	<!-- WAN Device -->
 	<channel name="wanAccessType" label="Access Type">
