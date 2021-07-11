@@ -61,6 +61,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.common.ThreadPoolManager;
 import org.openhab.core.library.types.QuantityType;
+import org.openhab.core.library.types.StringType;
 import org.openhab.core.library.unit.SIUnits;
 import org.openhab.core.util.HexUtils;
 import org.slf4j.Logger;
@@ -1185,6 +1186,10 @@ public class Connection {
                     parameters.addProperty(property, (boolean) value);
                 } else if (value instanceof String) {
                     parameters.addProperty(property, (String) value);
+                } else if (value instanceof StringType) {
+                    JsonObject propertyObj = new JsonObject();
+                    propertyObj.addProperty("value", value.toString());
+                    parameters.add(property, propertyObj);
                 } else if (value instanceof Number) {
                     parameters.addProperty(property, (Number) value);
                 } else if (value instanceof Character) {
