@@ -31,7 +31,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
@@ -58,7 +58,7 @@ import com.google.gson.JsonSyntaxException;
 @NonNullByDefault
 public class WebSocketConnection {
     private final Logger logger = LoggerFactory.getLogger(WebSocketConnection.class);
-    private final Gson gson = new Gson();
+    private final Gson gson;
     private final WebSocketClient webSocketClient;
     private final IWebSocketCommandHandler webSocketCommandHandler;
     private final AmazonEchoControlWebSocket amazonEchoControlWebSocket;
@@ -68,13 +68,14 @@ public class WebSocketConnection {
     private @Nullable Timer pongTimeoutTimer;
     private @Nullable Future<?> sessionFuture;
 
-    private boolean closed;
+    private boolean closed = false;
 
     public WebSocketConnection(String amazonSite, List<HttpCookie> sessionCookies,
-            IWebSocketCommandHandler webSocketCommandHandler) throws IOException {
+            IWebSocketCommandHandler webSocketCommandHandler, Gson gson, HttpClient httpClient) throws IOException {
         this.webSocketCommandHandler = webSocketCommandHandler;
-        amazonEchoControlWebSocket = new AmazonEchoControlWebSocket();
-        webSocketClient = new WebSocketClient(new SslContextFactory.Client());
+        this.gson = gson;
+        amazonEchoControlWebSocket = new AmazonEchoControlWebSocket(this, webSocketCommandHandler, gson);
+        webSocketClient = new WebSocketClient(httpClient);
         try {
             String host;
             if ("amazon.com".equalsIgnoreCase(amazonSite)) {
@@ -120,9 +121,7 @@ public class WebSocketConnection {
         }
     }
 
-    private void setSession(Session session) {
-        this.session = session;
-        logger.debug("Web Socket session started");
+    private void onConnect() {
         Timer pingTimer = new Timer();
         this.pingTimer = pingTimer;
         pingTimer.schedule(new TimerTask() {
@@ -140,32 +139,25 @@ public class WebSocketConnection {
 
     public void close() {
         closed = true;
+        final Future<?> sessionFuture = this.sessionFuture;
+        if (sessionFuture != null) {
+            sessionFuture.cancel(true);
+        }
+
         Timer pingTimer = this.pingTimer;
         if (pingTimer != null) {
             pingTimer.cancel();
         }
         clearPongTimeoutTimer();
-        Session session = this.session;
-        this.session = null;
-        if (session != null) {
-            try {
-                session.close();
-            } catch (Exception e) {
-                logger.debug("Closing session failed", e);
-            }
-        }
         logger.trace("Connect future = {}", sessionFuture);
-        final Future<?> sessionFuture = this.sessionFuture;
-        if (sessionFuture != null && !sessionFuture.isDone()) {
-            sessionFuture.cancel(true);
-        }
         try {
             webSocketClient.stop();
         } catch (InterruptedException e) {
             // Just ignore
         } catch (Exception e) {
-            logger.debug("Stopping websocket failed", e);
+            logger.warn("Stopping websocket failed", e);
         }
+
         webSocketClient.destroy();
     }
 
@@ -194,11 +186,21 @@ public class WebSocketConnection {
     }
 
     @WebSocket(maxTextMessageSize = 64 * 1024, maxBinaryMessageSize = 64 * 1024)
-    public class AmazonEchoControlWebSocket {
+    public static class AmazonEchoControlWebSocket {
+        private final Logger logger = LoggerFactory.getLogger(AmazonEchoControlWebSocket.class);
+
+        private final Gson gson;
+        private final WebSocketConnection webSocketConnection;
+        private final IWebSocketCommandHandler webSocketCommandHandler;
+
         int msgCounter = -1;
         int messageId;
 
-        AmazonEchoControlWebSocket() {
+        AmazonEchoControlWebSocket(WebSocketConnection webSocketConnection,
+                IWebSocketCommandHandler webSocketCommandHandler, Gson gson) {
+            this.webSocketConnection = webSocketConnection;
+            this.webSocketCommandHandler = webSocketCommandHandler;
+            this.gson = gson;
             this.messageId = ThreadLocalRandom.current().nextInt(0, Short.MAX_VALUE);
         }
 
@@ -213,13 +215,13 @@ public class WebSocketConnection {
         void sendMessage(byte[] buffer) {
             try {
                 logger.debug("Send message with length {}", buffer.length);
-                Session session = WebSocketConnection.this.session;
+                Session session = webSocketConnection.session;
                 if (session != null) {
                     session.getRemote().sendBytes(ByteBuffer.wrap(buffer));
                 }
             } catch (IOException e) {
                 logger.debug("Send message failed", e);
-                WebSocketConnection.this.close();
+                webSocketConnection.close();
             }
         }
 
@@ -371,7 +373,7 @@ public class WebSocketConnection {
         public void onWebSocketConnect(@Nullable Session session) {
             if (session != null) {
                 this.msgCounter = -1;
-                setSession(session);
+                webSocketConnection.onConnect();
                 sendMessage("0x99d4f71a 0x0000001d A:HTUNE");
             } else {
                 logger.debug("Web Socket connect without session");
@@ -401,7 +403,7 @@ public class WebSocketConnection {
                     if (message.service.equals("FABE") && message.content.messageType.equals("PON")
                             && message.content.payloadData.length > 0) {
                         logger.debug("Pong received");
-                        WebSocketConnection.this.clearPongTimeoutTimer();
+                        webSocketConnection.clearPongTimeoutTimer();
                         return;
                     } else {
                         JsonPushCommand pushCommand = message.content.pushCommand;
@@ -423,22 +425,28 @@ public class WebSocketConnection {
         }
 
         @OnWebSocketClose
-        public void onWebSocketClose(int code, @Nullable String reason) {
+        public void onWebSocketClose(@Nullable Session session, int code, @Nullable String reason) {
+            if (session != null) {
+                session.close();
+            }
             logger.info("Web Socket close {}. Reason: {}", code, reason);
-            WebSocketConnection.this.close();
+            webSocketConnection.close();
         }
 
         @OnWebSocketError
-        public void onWebSocketError(@Nullable Throwable error) {
-            logger.info("Web Socket error", error);
-            if (!closed) {
-                WebSocketConnection.this.close();
+        public void onWebSocketError(@Nullable Session session, @Nullable Throwable error) {
+            if (session != null) {
+                session.close();
             }
+            logger.info("Web Socket error: {}", error == null ? "<null>" : error.getMessage());
+            // if (!closed) {
+            webSocketConnection.close();
+            // }
         }
 
         public void sendPing() {
             logger.debug("Send Ping");
-            WebSocketConnection.this.initPongTimeoutTimer();
+            webSocketConnection.initPongTimeoutTimer();
             sendMessage(encodePing());
         }
 
