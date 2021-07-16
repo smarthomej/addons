@@ -32,6 +32,7 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Store;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 import javax.mail.search.FlagTerm;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -185,11 +186,19 @@ public class POP3IMAPHandler extends BaseThingHandler {
                                     logger.trace("Detected plain text message");
                                     contentAsString = (String) rawContent;
                                 } else if (rawContent instanceof MimeMessage) {
-                                    logger.trace("Detected MIME multipart message");
+                                    logger.trace("Detected MIME message");
                                     MimeMessage mimeMessage = (MimeMessage) rawContent;
-                                    ByteArrayOutputStream os = new ByteArrayOutputStream();
-                                    mimeMessage.writeTo(os);
-                                    contentAsString = os.toString();
+                                    try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+                                        mimeMessage.writeTo(os);
+                                        contentAsString = os.toString();
+                                    }
+                                } else if (rawContent instanceof MimeMultipart) {
+                                    logger.trace("Detected MIME multipart message");
+                                    MimeMultipart mimeMultipart = (MimeMultipart) rawContent;
+                                    try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+                                        mimeMultipart.writeTo(os);
+                                        contentAsString = os.toString();
+                                    }
                                 } else {
                                     logger.warn(
                                             "Failed to convert mail content from '{}' with subject '{}', to String: {}",
