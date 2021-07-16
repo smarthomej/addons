@@ -18,6 +18,7 @@ import java.net.URI;
 import java.util.Collection;
 import java.util.IllegalFormatException;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -76,8 +77,9 @@ public class FormatTransformationService extends AbstractFileTransformationServi
             @Nullable Locale locale) {
         if (PROFILE_CONFIG_URI.equals(uri.toString()) && CONFIG_PARAM_FUNCTION.equals(param)) {
             File path = new File(getSourcePath());
-            return Stream.of(path.listFiles()).map(File::getName).filter(f -> f.endsWith(".format"))
-                    .map(f -> new ParameterOption(f, f)).collect(Collectors.toList());
+            return Stream.of(Objects.requireNonNullElse(path.listFiles(), new File[0])).map(File::getName)
+                    .filter(f -> f.endsWith(".format")).map(f -> new ParameterOption(f, f))
+                    .collect(Collectors.toList());
         }
 
         return null;
