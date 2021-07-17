@@ -55,7 +55,7 @@ Channels with type `UNREAD` give the number on unread mails in that folder.
 ### Type `content`
 
 The `content` type channel presents the contents of an unread mail.
-If the message is a MIME-multipart message, all parts are concatenated.
+If the message is a MIME- or MIME-multipart message, all parts are concatenated.
 The content is converted to a plain string without processing (i.e. HTML tags are still present).
 In most cases the mail content needs further processing in rules to trigger appropriate action.
 
