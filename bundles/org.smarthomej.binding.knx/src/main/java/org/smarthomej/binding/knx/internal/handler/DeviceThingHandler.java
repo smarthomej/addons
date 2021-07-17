@@ -357,7 +357,7 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
                     }
                 }
             } else {
-                if (value instanceof State) {
+                if (value instanceof State && !(value instanceof UnDefType)) {
                     updateState(knxChannel.getChannelUID(), (State) value);
                 }
             }
