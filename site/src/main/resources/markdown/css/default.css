@@ -1,0 +1,62 @@
+body {
+    background-color: var(--gen-docu-background-color);
+
+    font-family: -apple-system, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif, Helvetica, Arial, sans-serif;
+    font-size: 14px;
+
+    line-height: 1.5;
+
+    --gen-docu-text-color: #202070;
+    --gen-docu-code-background-color: #d0e0ff;
+    --gen-docu-background-color: #f0f7ff;
+    --gen-docu-border: 1px solid black;
+
+    color: var(--gen-docu-text-color);
+
+    margin: 10px;
+    padding: 10px;
+}
+
+.version {
+    display: block;
+    text-align: right;
+}
+
+code {
+    background-color: var(--gen-docu-code-background-color);
+    padding-left: 0.3em;
+    padding-right: 0.3em;
+}
+
+pre>code {
+    padding-left: 0;
+}
+
+pre {
+    background-color: var(--gen-docu-code-background-color);
+    padding: 0.5em;
+    border: var(--gen-docu-border);
+}
+
+.table-bordered {
+    border: var(--gen-docu-border);
+    border-collapse: collapse;
+    padding: 0.5em;
+}
+
+a, a:visited {
+    color: var(--gen-docu-text-color);
+}
+
+h1>a, h2>a, h3>a {
+    text-decoration: none;
+}
+
+h2 {
+    width: 100%;
+    background-color: #405080;
+}
+
+h2>a, h2>a:visited {
+    color: var(--gen-docu-background-color);
+}

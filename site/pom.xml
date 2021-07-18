@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.smarthomej.addons</groupId>
+    <artifactId>org.smarthomej.addons.reactor</artifactId>
+    <version>3.2.4-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>org.smarthomej.addons.site</artifactId>
+  <packaging>pom</packaging>
+
+  <name>SmartHome/J Add-ons :: Site</name>
+  <description>SmartHome/J Documentation Website</description>
+
+  <build>
+    <resources>
+      <resource>
+        <targetPath>${project.build.directory}</targetPath>
+        <filtering>true</filtering>
+        <directory>${project.basedir}/src/main/resources</directory>
+      </resource>
+    </resources>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.8</version>
+        <inherited>false</inherited>
+        <executions>
+          <execution>
+            <id>create-bundle-documentation</id>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <phase>generate-sources</phase>
+            <configuration>
+              <target>
+                <!-- copy bundle documentation -->
+                <copy todir="${project.build.directory}/markdown">
+                  <fileset dir="${basedirRoot}/bundles">
+                    <include name="*/README.md"/>
+                    <exclude name="**/org.smarthomej.commons/*"/>
+                  </fileset>
+                  <regexpmapper from="^(.*)[\\/]README\.md$$" to="\1.md"/>
+                </copy>
+                <!-- add TOC to all files -->
+                <replaceregexp>
+                  <fileset dir="${project.build.directory}/markdown">
+                    <include name="*.md"/>
+                  </fileset>
+                  <regexp pattern="##"/>
+                  <substitution expression="\[TOC levels=2\] ${line.separator}${line.separator}##"/>
+                </replaceregexp>
+                <!-- generate list of all markdown files for index -->
+                <pathconvert property="alldocs.list" pathsep="${line.separator}">
+                  <fileset dir="${project.build.directory}/markdown"/>
+                  <map from="${project.build.directory}/markdown/" to=""/>
+                </pathconvert>
+                <echo file="${project.build.directory}/alldocs.list" message="${alldocs.list}"/>
+                <!-- generate index -->
+                <replaceregexp byline="true" file="${project.build.directory}/alldocs.list">
+                  <regexp pattern="(.*)\.md"/>
+                  <substitution expression="- \[\1\]\(\1\.html\)${line.separator}"/>
+                </replaceregexp>
+                <concat destfile="${project.build.directory}/markdown/index.md">
+                  <header file="src/main/resources/index-header.md" filtering="no"/>
+                  <filelist dir="${project.build.directory}" files="alldocs.list"/>
+                </concat>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>resources</goal>
+            </goals>
+            <phase>generate-resources</phase>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.ruleoftech</groupId>
+        <artifactId>markdown-page-generator-plugin</artifactId>
+        <version>2.2.0</version>
+        <executions>
+          <execution>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <inputDirectory>${project.build.directory}/markdown</inputDirectory>
+          <outputDirectory>${project.build.directory}/html/${project.version}</outputDirectory>
+          <copyDirectories>css</copyDirectories>
+          <attributes>
+            <attribute>TableBlock|class=table-bordered</attribute>
+            <attribute>TableCell|class=table-bordered</attribute>
+          </attributes>
+          <headerHtmlFile>${project.build.directory}/template/header.html</headerHtmlFile>
+          <footerHtmlFile>${project.build.directory}/template/footer.html</footerHtmlFile>
+          <pegdownExtensions>TABLES,FENCED_CODE_BLOCKS,AUTOLINKS,ANCHORLINKS,TOC</pegdownExtensions>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-artifacts</id>
+            <goals>
+              <goal>attach-artifact</goal>
+            </goals>
+            <phase>none</phase>
+            <configuration>
+              <artifacts>
+                <artifact>
+                  <file>${project.build.directory}/feature/feature.xml</file>
+                  <type>xml</type>
+                  <classifier>features</classifier>
+                </artifact>
+              </artifacts>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
