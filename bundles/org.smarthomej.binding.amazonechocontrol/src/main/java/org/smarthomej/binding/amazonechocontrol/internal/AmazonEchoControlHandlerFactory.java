@@ -26,6 +26,8 @@ import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.openhab.core.config.discovery.AbstractDiscoveryService;
 import org.openhab.core.config.discovery.DiscoveryService;
 import org.openhab.core.storage.Storage;
@@ -41,6 +43,7 @@ import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.http.HttpService;
 import org.slf4j.Logger;
@@ -72,14 +75,24 @@ public class AmazonEchoControlHandlerFactory extends BaseThingHandlerFactory {
     private final StorageService storageService;
     private final BindingServlet bindingServlet;
     private final Gson gson;
+    private final HttpClient httpClient;
 
     @Activate
-    public AmazonEchoControlHandlerFactory(@Reference HttpService httpService,
-            @Reference StorageService storageService) {
+    public AmazonEchoControlHandlerFactory(@Reference HttpService httpService, @Reference StorageService storageService)
+            throws Exception {
         this.storageService = storageService;
         this.httpService = httpService;
         this.gson = new Gson();
+        this.httpClient = new HttpClient(new SslContextFactory.Client());
         this.bindingServlet = new BindingServlet(httpService);
+
+        httpClient.start();
+    }
+
+    @Deactivate
+    @SuppressWarnings("unused")
+    public void deactivate() throws Exception {
+        httpClient.stop();
     }
 
     @Override
@@ -101,7 +114,7 @@ public class AmazonEchoControlHandlerFactory extends BaseThingHandlerFactory {
         if (thingTypeUID.equals(THING_TYPE_ACCOUNT)) {
             Storage<String> storage = storageService.getStorage(thing.getUID().toString(),
                     String.class.getClassLoader());
-            AccountHandler bridgeHandler = new AccountHandler((Bridge) thing, httpService, storage, gson);
+            AccountHandler bridgeHandler = new AccountHandler((Bridge) thing, httpService, storage, gson, httpClient);
             accountHandlers.add(bridgeHandler);
             registerDiscoveryService(bridgeHandler);
             bindingServlet.addAccountThing(thing);

@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.jetty.client.HttpClient;
 import org.openhab.core.storage.Storage;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.ChannelUID;
@@ -94,6 +95,7 @@ import com.google.gson.JsonSyntaxException;
 public class AccountHandler extends BaseBridgeHandler implements IWebSocketCommandHandler, IAmazonThingHandler {
     private final Logger logger = LoggerFactory.getLogger(AccountHandler.class);
     private final Storage<String> stateStorage;
+    private final HttpClient httpClient;
     private @Nullable Connection connection;
     private @Nullable WebSocketConnection webSocketConnection;
 
@@ -123,9 +125,11 @@ public class AccountHandler extends BaseBridgeHandler implements IWebSocketComma
 
     private AccountHandlerConfig handlerConfig = new AccountHandlerConfig();
 
-    public AccountHandler(Bridge bridge, HttpService httpService, Storage<String> stateStorage, Gson gson) {
+    public AccountHandler(Bridge bridge, HttpService httpService, Storage<String> stateStorage, Gson gson,
+            HttpClient httpClient) {
         super(bridge);
         this.gson = gson;
+        this.httpClient = httpClient;
         this.httpService = httpService;
         this.stateStorage = stateStorage;
         channelHandlers.add(new ChannelHandlerSendMessage(this, this.gson));
@@ -432,7 +436,7 @@ public class AccountHandler extends BaseBridgeHandler implements IWebSocketComma
             if (connection != null && connection.getIsLoggedIn()) {
                 try {
                     this.webSocketConnection = new WebSocketConnection(connection.getAmazonSite(),
-                            connection.getSessionCookies(), this);
+                            connection.getSessionCookies(), this, gson, httpClient);
                 } catch (IOException e) {
                     logger.warn("Web socket connection starting failed", e);
                 }
