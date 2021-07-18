@@ -45,7 +45,7 @@ public class CascadedValueTransformation implements ValueTransformation {
                     .collect(Collectors.toList());
         } catch (IllegalArgumentException e) {
             transformations = List.of(NoOpValueTransformation.getInstance());
-            logger.warn("Transformation ignore, failed to parse {}: {}", transformationString, e.getMessage());
+            logger.warn("Transformation ignored, failed to parse {}: {}", transformationString, e.getMessage());
         }
         this.transformations = transformations;
     }
