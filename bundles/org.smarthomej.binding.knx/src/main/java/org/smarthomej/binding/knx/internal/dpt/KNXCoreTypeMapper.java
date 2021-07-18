@@ -322,15 +322,16 @@ public class KNXCoreTypeMapper {
                     DPTXlator3BitControlled translator3BitControlled = (DPTXlator3BitControlled) translator;
                     if (translator3BitControlled.getStepCode() == 0) {
                         LOGGER.debug("convertRawDataToType: KNX DPT_Control_Dimming: break received.");
-                        return UnDefType.UNDEF;
+                        return UnDefType.NULL;
                     }
                     switch (m.group("sub")) {
-                        case "7":
+                        case "007":
                             return translator3BitControlled.getControlBit() ? IncreaseDecreaseType.INCREASE
                                     : IncreaseDecreaseType.DECREASE;
-                        case "8":
+                        case "008":
                             return translator3BitControlled.getControlBit() ? UpDownType.DOWN : UpDownType.UP;
                     }
+                    break;
                 case "18":
                     DPTXlatorSceneControl translatorSceneControl = (DPTXlatorSceneControl) translator;
                     int decimalValue = translatorSceneControl.getSceneNumber();
