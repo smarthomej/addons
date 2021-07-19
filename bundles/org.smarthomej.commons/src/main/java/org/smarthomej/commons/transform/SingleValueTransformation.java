@@ -43,7 +43,7 @@ public class SingleValueTransformation implements ValueTransformation {
      *
      * @param pattern A transformation pattern, starting with the transformation service
      *            name, followed by a colon and the transformation itself.
-     * @param transformationServiceSupplier
+     * @param transformationServiceSupplier a {@link Function} providing transformations
      */
     public SingleValueTransformation(String pattern,
             Function<String, @Nullable TransformationService> transformationServiceSupplier) {
@@ -53,8 +53,8 @@ public class SingleValueTransformation implements ValueTransformation {
             throw new IllegalArgumentException(
                     "The transformation pattern must consist of the type and the pattern separated by a colon");
         }
-        this.serviceName = pattern.substring(0, index).toUpperCase();
-        this.pattern = pattern.substring(index + 1);
+        this.serviceName = pattern.substring(0, index).toUpperCase().trim();
+        this.pattern = pattern.substring(index + 1).trim();
     }
 
     @Override
