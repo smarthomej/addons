@@ -138,7 +138,8 @@
 		<getAction name="GetInfo" argument="NewEnable"/>
 		<setAction name="SetEnable" argument="NewEnable"/>
 	</channel>
-	<channel name="macOnline" label="MAC Online" description="Online status of the device with the given MAC">
+	<channel name="macOnline" label="MAC Online" description="Online status of the device with the given MAC"
+		advanced="true">
 		<item type="Switch"/>
 		<service deviceType="urn:dslforum-org:device:LANDevice:1" serviceId="urn:LanDeviceHosts-com:serviceId:Hosts1"/>
 		<getAction name="GetSpecificHostEntry" argument="NewActive">
@@ -146,6 +147,17 @@
 				pattern="([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}(\s*#.*)*"/>
 		</getAction>
 	</channel>
+	<channel name="macOnlineIpAddress" label="MAC Online IP" description="IP of the device with the given MAC"
+		advanced="true">
+		<item type="String"/>
+		<service deviceType="urn:dslforum-org:device:LANDevice:1" serviceId="urn:LanDeviceHosts-com:serviceId:Hosts1"/>
+		<getAction name="GetSpecificHostEntry" argument="NewIPAddress">
+			<parameter name="NewMACAddress" thingParameter="macOnline"
+				pattern="([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}(\s*#.*)*"/>
+		</getAction>
+		<service deviceType="urn:dslforum-org:device:LANDevice:1" serviceId="urn:LanDeviceHosts-com:serviceId:Hosts1"/>
+	</channel>
+
 
 	<!-- WAN Device -->
 	<channel name="wanAccessType" label="Access Type">
