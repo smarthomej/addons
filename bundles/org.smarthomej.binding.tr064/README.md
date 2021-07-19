@@ -132,6 +132,7 @@ The call-types are the same as provided by the FritzBox, i.e. `1` (inbound), `2`
 | `wifi5GHzEnable`           | `Switch`                  |          | Enable/Disable the 5.0 GHz WiFi device.                        |
 | `wifiGuestEnable`          | `Switch`                  |          | Enable/Disable the guest WiFi.                                 |
 | `macOnline`                | `Switch`                  |     x    | Online status of the device with the given MAC                 |
+| `macOnlineIpAddress`       | `String`                  |     x    | IP of the MAC (uses same parameter as `macOnline`)             |
 
 Older FritzBox devices may not support 5 GHz WiFi.
 In this case you have to use the `wifi5GHzEnable` channel for switching the guest WiFi.
