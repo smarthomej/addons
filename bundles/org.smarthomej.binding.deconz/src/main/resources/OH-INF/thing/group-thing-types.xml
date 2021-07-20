@@ -25,7 +25,7 @@
 
 		<representation-property>uid</representation-property>
 
-		<config-description-ref uri="thing-type:deconz:group"/>
+		<config-description-ref uri="thing-type:deconz:lightgroup"/>
 	</thing-type>
 
 	<channel-type id="all_on">
