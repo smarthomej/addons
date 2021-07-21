@@ -28,6 +28,7 @@ import javax.measure.quantity.Temperature;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.DecimalType;
+import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.OpenClosedType;
 import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.library.types.StringType;
@@ -68,7 +69,7 @@ public class SensorThermostatThingHandler extends SensorBaseThingHandler {
     public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES = Collections.singleton(THING_TYPE_THERMOSTAT);
 
     private static final List<String> CONFIG_CHANNELS = Arrays.asList(CHANNEL_BATTERY_LEVEL, CHANNEL_BATTERY_LOW,
-            CHANNEL_HEATSETPOINT, CHANNEL_TEMPERATURE_OFFSET, CHANNEL_THERMOSTAT_MODE);
+            CHANNEL_HEATSETPOINT, CHANNEL_TEMPERATURE_OFFSET, CHANNEL_THERMOSTAT_MODE, CHANNEL_THERMOSTAT_LOCKED);
 
     private final Logger logger = LoggerFactory.getLogger(SensorThermostatThingHandler.class);
 
@@ -85,6 +86,9 @@ public class SensorThermostatThingHandler extends SensorBaseThingHandler {
         }
         ThermostatUpdateConfig newConfig = new ThermostatUpdateConfig();
         switch (channelUID.getId()) {
+            case CHANNEL_THERMOSTAT_LOCKED:
+                newConfig.locked = OnOffType.ON.equals(command);
+                break;
             case CHANNEL_HEATSETPOINT:
                 Integer newHeatsetpoint = getTemperatureFromCommand(command);
                 if (newHeatsetpoint == null) {
@@ -135,6 +139,9 @@ public class SensorThermostatThingHandler extends SensorBaseThingHandler {
         ThermostatMode thermostatMode = newConfig.mode;
         String mode = thermostatMode != null ? thermostatMode.name() : ThermostatMode.UNKNOWN.name();
         switch (channelUID.getId()) {
+            case CHANNEL_THERMOSTAT_LOCKED:
+                updateSwitchChannel(channelUID, newConfig.locked);
+                break;
             case CHANNEL_HEATSETPOINT:
                 updateQuantityTypeChannel(channelUID, newConfig.heatsetpoint, CELSIUS, 1.0 / 100);
                 break;
@@ -169,7 +176,11 @@ public class SensorThermostatThingHandler extends SensorBaseThingHandler {
     @Override
     protected boolean createTypeSpecificChannels(ThingBuilder thingBuilder, SensorConfig sensorConfig,
             SensorState sensorState) {
-        return false;
+        boolean thingEdited = false;
+        if (sensorConfig.locked != null && createChannel(thingBuilder, CHANNEL_THERMOSTAT_LOCKED, ChannelKind.STATE)) {
+            thingEdited = true;
+        }
+        return thingEdited;
     }
 
     @Override
