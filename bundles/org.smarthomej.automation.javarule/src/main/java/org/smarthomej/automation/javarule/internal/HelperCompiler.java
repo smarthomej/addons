@@ -12,7 +12,6 @@
  */
 package org.smarthomej.automation.javarule.internal;
 
-import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.EXT_LIB_DIR;
 import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.HELPER_PACKAGE;
 import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.LIB_DIR;
 
@@ -241,19 +240,19 @@ public class HelperCompiler implements EventSubscriber {
             generateItems(helperDir);
             generateThingActions(helperDir);
 
-            if (!compiler.compile(helperDir, null) && Files.exists(LIB_DIR.resolve(JavaRuleConstants.HELPER_JAR))) {
+            if (!compiler.compile(helperDir)) {
                 // nothing compiled, keep old jar
                 return;
             }
 
             try (FileOutputStream outFile = new FileOutputStream(
-                    EXT_LIB_DIR.resolve(JavaRuleConstants.HELPER_JAR).toFile())) {
+                    LIB_DIR.resolve(JavaRuleConstants.HELPER_JAR).toFile())) {
                 Manifest manifest = new Manifest();
                 manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
                 JarOutputStream target = new JarOutputStream(outFile, manifest);
 
                 try (Stream<Path> helperPath = Files.list(helperDir)) {
-                    helperPath.filter(JavaRuleConstants.CLASS_FILE_Filter).forEach(f -> addClassToJar(f, target));
+                    helperPath.filter(JavaRuleConstants.CLASS_FILE_FILTER).forEach(f -> addClassToJar(f, target));
                 }
                 target.close();
             }

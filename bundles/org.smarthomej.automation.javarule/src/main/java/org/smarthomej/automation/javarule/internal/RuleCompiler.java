@@ -18,7 +18,7 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.ANNOTATION_DEFAULT;
 import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.CONDITION_FROM_ANNOTATION;
 import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.DEPENDENCY_JAR;
-import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.EXT_LIB_DIR;
+import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.DEPLIB_DIR;
 import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.HELPER_JAR;
 import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.JAVA_CLASS_PATH_PROPERTY;
 import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.LIB_DIR;
@@ -93,7 +93,6 @@ public class RuleCompiler extends AbstractWatchService {
     private final Logger logger = LoggerFactory.getLogger(RuleCompiler.class);
 
     // rule management
-    private String rulesClassPath = "";
     private final Map<String, RuleContext> ruleContexts = new HashMap<>();
 
     // injected services
@@ -119,7 +118,7 @@ public class RuleCompiler extends AbstractWatchService {
         this.thingRegistry = thingRegistry;
         this.eventPublisher = eventPublisher;
 
-        if (!(Util.checkFolder(EXT_LIB_DIR) && Util.checkFolder(RULES_DIR))) {
+        if (!Util.checkFolder(RULES_DIR)) {
             throw new IllegalStateException("Failed to initialize folders");
         }
 
@@ -147,27 +146,18 @@ public class RuleCompiler extends AbstractWatchService {
     }
 
     private void initialize() {
-        // create classpath && classloader
-        List<String> classPathFragments = new ArrayList<>();
+        // create classloader
         List<URI> uriList = new ArrayList<>();
 
-        classPathFragments.add(Objects.requireNonNull(System.getProperty(JAVA_CLASS_PATH_PROPERTY)));
-        classPathFragments.add(EXT_LIB_DIR.resolve(HELPER_JAR).toString());
-        classPathFragments.add(LIB_DIR.resolve(DEPENDENCY_JAR).toString());
-
-        uriList.add(EXT_LIB_DIR.resolve(HELPER_JAR).toUri());
+        uriList.add(LIB_DIR.resolve(HELPER_JAR).toUri());
         uriList.add(WORKING_DIR.resolve(JavaRuleConstants.RULES_DIR_START).toUri());
-        //
-        try (Stream<Path> extLibStream = Files.list(EXT_LIB_DIR)) {
-            extLibStream.forEach(path -> {
-                classPathFragments.add(path.toString());
-                uriList.add(path.toUri());
-            });
+
+        try (Stream<Path> extLibStream = Files.list(LIB_DIR)) {
+            extLibStream.map(Path::toUri).forEach(uriList::add);
         } catch (IOException e) {
             logger.warn("Failed to add external libraries: {}", e.getMessage());
         }
 
-        rulesClassPath = String.join(File.pathSeparator, classPathFragments);
         rulesClassPathUris = uriList;
 
         reloadRules();
@@ -218,10 +208,10 @@ public class RuleCompiler extends AbstractWatchService {
         ruleContexts.values().forEach(RuleContext::dispose);
         ruleContexts.clear();
 
-        compiler.compile(RULES_DIR, rulesClassPath);
+        compiler.compile(RULES_DIR);
 
         try (Stream<Path> ruleFileStream = Files.list(RULES_DIR)) {
-            List<Path> classFiles = ruleFileStream.filter(JavaRuleConstants.CLASS_FILE_Filter)
+            List<Path> classFiles = ruleFileStream.filter(JavaRuleConstants.CLASS_FILE_FILTER)
                     .collect(Collectors.toList());
             logger.info("Number of Java Rules classes to load from '{}' to memory: {}", RULES_DIR, classFiles.size());
 
@@ -242,7 +232,7 @@ public class RuleCompiler extends AbstractWatchService {
             return null;
         });
 
-        compiler.compile(path, rulesClassPath);
+        compiler.compile(path);
         initializeRule(Path.of(scriptIdentifier + JavaRuleConstants.CLASS_FILE_TYPE));
     }
 

@@ -62,8 +62,8 @@ public class JavaRuleConstants {
     public static final String RULES_DIR_START = "rules";
 
     public static final Path WORKING_DIR = Path.of(OpenHAB.getConfigFolder(), "automation", "javarule");
-    public static final Path LIB_DIR = WORKING_DIR.resolve("deplib");
-    public static final Path EXT_LIB_DIR = WORKING_DIR.resolve("lib");
+    public static final Path DEPLIB_DIR = WORKING_DIR.resolve("deplib");
+    public static final Path LIB_DIR = WORKING_DIR.resolve("lib");
     public static final Path RULES_DIR = WORKING_DIR
             .resolve(Path.of(RULES_DIR_START, "org", "smarthomej", "automation", "javarule", "rules", "user"));
 
@@ -71,7 +71,10 @@ public class JavaRuleConstants {
     public static final Predicate<Path> JAVA_FILE_FILTER = p -> p.toString().endsWith(JAVA_FILE_TYPE);
 
     public static final String CLASS_FILE_TYPE = ".class";
-    public static final Predicate<Path> CLASS_FILE_Filter = p -> p.toString().endsWith(CLASS_FILE_TYPE);
+    public static final Predicate<Path> CLASS_FILE_FILTER = p -> p.toString().endsWith(CLASS_FILE_TYPE);
+
+    public static final String JAR_FILE_TYPE = ".jar";
+    public static final Predicate<Path> JAR_FILE_FILTER = p -> p.toString().endsWith(JAR_FILE_TYPE);
 
     public static final String JAVA_CLASS_PATH_PROPERTY = "java.class.path";
 

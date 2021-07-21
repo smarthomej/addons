@@ -15,7 +15,7 @@ package org.smarthomej.automation.javarule.internal;
 import static org.osgi.framework.wiring.BundleWiring.LISTRESOURCES_LOCAL;
 import static org.osgi.framework.wiring.BundleWiring.LISTRESOURCES_RECURSE;
 import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.DEPENDENCY_JAR;
-import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.LIB_DIR;
+import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.DEPLIB_DIR;
 import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.WORKING_DIR;
 
 import java.io.FileOutputStream;
@@ -38,7 +38,6 @@ import java.util.stream.Stream;
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaCompiler;
-import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
 
@@ -50,6 +49,7 @@ import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.automation.javarule.Util;
@@ -67,12 +67,15 @@ public class BaseCompilerService {
             "org.smarthomej.automation.javarule");
 
     private final Logger logger = LoggerFactory.getLogger(BaseCompilerService.class);
+    private final JavaRuleJavaFileManager fileManager;
 
     @Activate
-    public BaseCompilerService(Map<String, Object> properties) {
-        if (!(Util.checkFolder(WORKING_DIR) && Util.checkFolder(LIB_DIR))) {
+    public BaseCompilerService(@Reference JavaRuleJavaFileManager fileManager, Map<String, Object> properties) {
+        if (!(Util.checkFolder(WORKING_DIR) && Util.checkFolder(DEPLIB_DIR))) {
             throw new IllegalStateException("Failed to initialize folders!");
         }
+
+        this.fileManager = fileManager;
 
         createDependencyJar();
     }
@@ -86,7 +89,7 @@ public class BaseCompilerService {
     }
 
     private void createDependencyJar() {
-        try (FileOutputStream outFile = new FileOutputStream(LIB_DIR.resolve(DEPENDENCY_JAR).toFile())) {
+        try (FileOutputStream outFile = new FileOutputStream(DEPLIB_DIR.resolve(DEPENDENCY_JAR).toFile())) {
             Manifest manifest = new Manifest();
             manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
             JarOutputStream target = new JarOutputStream(outFile, manifest);
@@ -128,18 +131,17 @@ public class BaseCompilerService {
      * Compile one or more java files to classes
      *
      * @param sourcePath the input path
-     * @param classPath the classpath used for compiling
      *
      * @return true if at least one file was compiles
      */
-    public boolean compile(Path sourcePath, @Nullable String classPath) {
+    public boolean compile(Path sourcePath) {
         try {
             List<URI> javaSourceFiles;
 
             if (Files.isDirectory(sourcePath)) {
                 try (Stream<Path> pathStream = Files.list(sourcePath)) {
                     List<Path> files = pathStream.collect(Collectors.toList());
-                    List<String> javaClassFiles = files.stream().filter(JavaRuleConstants.CLASS_FILE_Filter)
+                    List<String> javaClassFiles = files.stream().filter(JavaRuleConstants.CLASS_FILE_FILTER)
                             .map(Path::toString).map(Util::removeExtension).collect(Collectors.toList());
                     javaSourceFiles = files.stream().filter(JavaRuleConstants.JAVA_FILE_FILTER)
                             .filter(source -> !javaClassFiles.contains(Util.removeExtension(source.toString())))
@@ -155,19 +157,15 @@ public class BaseCompilerService {
                 return false;
             }
 
-            DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
             JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-            JavaFileManager fileManager = new JavaRuleJavaFileManager<>(
-                    compiler.getStandardFileManager(diagnostics, null, null), DEPENDENCY_BUNDLES);
+            fileManager.addBundles(DEPENDENCY_BUNDLES);
+            DiagnosticCollector<JavaFileObject> diagnostics = fileManager.getDiagnostics();
 
-            List<String> optionList = classPath == null ? List.of("-Xlint:unchecked", "-Xlint:varargs")
-                    : List.of("-classpath", classPath, "-Xlint:unchecked", "-Xlint:varargs");
+            List<String> optionList = List.of("-Xlint:unchecked", "-Xlint:varargs");
             logger.debug("Compiling java sources: {}", javaSourceFiles);
-            logger.trace("Compiling classes using classpath: {}", classPath);
 
             List<? extends JavaFileObject> compilationUnit = javaSourceFiles.stream()
-                    .map(path -> new JavaRuleSimpleJavaFileObject(path, JavaFileObject.Kind.SOURCE))
-                    .collect(Collectors.toList());
+                    .map(JavaRuleJavaFileObject::sourceFileObject).collect(Collectors.toList());
 
             final JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnostics, optionList, null,
                     compilationUnit);

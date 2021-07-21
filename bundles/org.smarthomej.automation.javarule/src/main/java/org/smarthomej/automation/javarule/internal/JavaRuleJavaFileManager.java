@@ -12,34 +12,51 @@
  */
 package org.smarthomej.automation.javarule.internal;
 
+import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import static org.osgi.framework.wiring.BundleWiring.LISTRESOURCES_LOCAL;
 import static org.osgi.framework.wiring.BundleWiring.LISTRESOURCES_RECURSE;
 import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.CLASS_FILE_TYPE;
+import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.JAR_FILE_TYPE;
+import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.LIB_DIR;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.WatchEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.ServiceLoader;
 import java.util.Set;
+import java.util.jar.JarEntry;
+import java.util.jar.JarInputStream;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import javax.tools.DiagnosticCollector;
 import javax.tools.FileObject;
-import javax.tools.ForwardingJavaFileManager;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 import javax.tools.ToolProvider;
 
+import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.core.service.AbstractWatchService;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.wiring.BundleWiring;
+import org.osgi.service.component.annotations.Component;
 import org.smarthomej.automation.javarule.Util;
 
 /**
@@ -47,20 +64,29 @@ import org.smarthomej.automation.javarule.Util;
  *
  * @author Jan N. Klug - Initial contribution
  */
-public class JavaRuleJavaFileManager<M extends JavaFileManager> extends ForwardingJavaFileManager<M> {
+@Component(service = JavaRuleJavaFileManager.class)
+public class JavaRuleJavaFileManager extends AbstractWatchService implements JavaFileManager {
+    private final Map<String, List<JavaFileObject>> additionalOSGiPackages = new HashMap<>();
+    private final Map<String, List<JavaFileObject>> additionalLibraryPackages = new HashMap<>();
 
-    private final Map<String, List<URI>> additionalPackages = new HashMap<>();
+    private final DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
+    private final JavaFileManager systemFileManager;
 
-    /**
-     * Creates a new instance of ForwardingJavaFileManager.
-     *
-     * @param fileManager delegate to this file manager
-     * @param additionalBundles a list of additional OSGi bundles
-     */
-    public JavaRuleJavaFileManager(M fileManager, List<String> additionalBundles) {
-        super(ToolProvider.getSystemJavaCompiler().getStandardFileManager());
+    public JavaRuleJavaFileManager() {
+        super(LIB_DIR.toString());
 
+        if (!Util.checkFolder(LIB_DIR)) {
+            throw new IllegalStateException("Failed to check folder " + LIB_DIR);
+        }
 
+        systemFileManager = ToolProvider.getSystemJavaCompiler().getStandardFileManager(diagnostics, null, null);
+    }
+
+    public DiagnosticCollector<JavaFileObject> getDiagnostics() {
+        return diagnostics;
+    }
+
+    public void addBundles(List<String> additionalBundles) {
         BundleContext context = FrameworkUtil.getBundle(Util.class).getBundleContext();
         List<Bundle> bundles = Arrays.stream(context.getBundles())
                 .filter(bundle -> additionalBundles.contains(bundle.getSymbolicName())).collect(Collectors.toList());
@@ -69,12 +95,12 @@ public class JavaRuleJavaFileManager<M extends JavaFileManager> extends Forwardi
                     .collect(Collectors.toList());
 
             exportedPackages.forEach(packageName -> {
-                List<URI> entries = bundle.adapt(BundleWiring.class)
+                List<JavaFileObject> entries = bundle.adapt(BundleWiring.class)
                         .listResources("", "*.class", LISTRESOURCES_LOCAL + LISTRESOURCES_RECURSE).stream()
                         .map(className -> uriFromClassName(className, packageName, bundle)).filter(Optional::isPresent)
-                        .map(Optional::get).collect(Collectors.toList());
+                        .map(Optional::get).map(JavaRuleJavaFileObject::classFileObject).collect(Collectors.toList());
 
-                Objects.requireNonNull(additionalPackages.computeIfAbsent(packageName, k -> new ArrayList<>()))
+                Objects.requireNonNull(additionalOSGiPackages.computeIfAbsent(packageName, k -> new ArrayList<>()))
                         .addAll(entries);
             });
         });
@@ -99,21 +125,51 @@ public class JavaRuleJavaFileManager<M extends JavaFileManager> extends Forwardi
         }
     }
 
+    private void rebuildLibPackages() {
+        try (Stream<Path> ruleFileStream = Files.list(LIB_DIR)) {
+            List<Path> jarFiles = ruleFileStream.filter(JavaRuleConstants.JAR_FILE_FILTER).collect(Collectors.toList());
+            logger.info("Number of libraries classes to load from '{}' to memory: {}", LIB_DIR, jarFiles.size());
+
+            jarFiles.forEach(this::processJarLibrary);
+        } catch (IOException e) {
+            logger.warn("Could not load libraries: {}", e.getMessage());
+        }
+    }
+
+    private void processJarLibrary(Path jarFile) {
+        try (JarInputStream jis = new JarInputStream(new FileInputStream(jarFile.toFile()))) {
+            JarEntry entry;
+            while ((entry = jis.getNextJarEntry()) != null) {
+                String entryName = entry.getName();
+                String packageName = entry.getName().substring(0, entryName.lastIndexOf("/")).replaceAll("/", ".");
+                URI classUri = URI.create("jar:" + jarFile.toUri() + "!/" + entryName);
+
+                Objects.requireNonNull(additionalLibraryPackages.computeIfAbsent(packageName, k -> new ArrayList<>()))
+                        .add(JavaRuleJavaFileObject.classFileObject(classUri));
+                logger.trace("Added entry {} to additional libraries with package {}.", entry, packageName);
+            }
+        } catch (IOException e) {
+            logger.warn("Failed to process {}: {}", jarFile, e.getMessage());
+        }
+    }
+
+    /*
+     * the following methods implement the modified JavaFileManager behaviour
+     */
+
     @Override
     public Iterable<JavaFileObject> list(Location location, String packageName, Set<JavaFileObject.Kind> kinds,
             boolean recurse) throws IOException {
-        Iterable<JavaFileObject> stdResult = fileManager.list(location, packageName, kinds, recurse);
+        Iterable<JavaFileObject> stdResult = systemFileManager.list(location, packageName, kinds, recurse);
 
         if (location != StandardLocation.CLASS_PATH || !kinds.contains(JavaFileObject.Kind.CLASS)) {
             return stdResult;
         }
+
         List<JavaFileObject> mergedFileObjects = new ArrayList<>();
         stdResult.forEach(mergedFileObjects::add);
-
-        List<URI> additionalClasses = additionalPackages.getOrDefault(packageName, List.of());
-        additionalClasses.stream()
-                .map(classUri -> new JavaRuleSimpleJavaFileObject(classUri, JavaFileObject.Kind.CLASS))
-                .forEach(mergedFileObjects::add);
+        mergedFileObjects.addAll(additionalOSGiPackages.getOrDefault(packageName, List.of()));
+        mergedFileObjects.addAll(additionalLibraryPackages.getOrDefault(packageName, List.of()));
 
         return mergedFileObjects;
     }
@@ -121,18 +177,141 @@ public class JavaRuleJavaFileManager<M extends JavaFileManager> extends Forwardi
     @Override
     public JavaFileObject getJavaFileForOutput(Location location, String className, JavaFileObject.Kind kind,
             FileObject sibling) throws IOException {
-        if (sibling instanceof JavaRuleSimpleJavaFileObject) {
+        if (sibling instanceof JavaRuleJavaFileObject) {
             URI outFile = URI.create(Util.removeExtension(sibling.toUri().toString()) + CLASS_FILE_TYPE);
-            return new JavaRuleSimpleJavaFileObject(outFile, JavaFileObject.Kind.CLASS);
+            return JavaRuleJavaFileObject.classFileObject(outFile);
         }
-        return fileManager.getJavaFileForOutput(location, className, kind, sibling);
+        return systemFileManager.getJavaFileForOutput(location, className, kind, sibling);
+    }
+
+    @Override
+    public FileObject getFileForOutput(Location location, String packageName, String relativeName, FileObject sibling)
+            throws IOException {
+        return systemFileManager.getFileForOutput(location, packageName, relativeName, sibling);
+    }
+
+    private String getPath(URI uri) {
+        if ("jar".equals(uri.getScheme())) {
+            String uriString = uri.toString();
+            return uriString.substring(uriString.lastIndexOf("!"));
+        } else {
+            return uri.getPath();
+        }
     }
 
     @Override
     public String inferBinaryName(Location location, JavaFileObject file) {
-        if (file instanceof JavaRuleSimpleJavaFileObject) {
-            return Util.removeExtension(file.toUri().getPath().replaceAll("/", ".").substring(1));
+        if (file instanceof JavaRuleJavaFileObject) {
+            return Util.removeExtension(getPath(file.toUri()).replaceAll("/", ".").substring(1));
         }
-        return fileManager.inferBinaryName(location, file);
+        return systemFileManager.inferBinaryName(location, file);
+    }
+
+    /*
+     * the following methods just delegate to the system JavaFileManager
+     */
+
+    @Override
+    public ClassLoader getClassLoader(Location location) {
+        return systemFileManager.getClassLoader(location);
+    }
+
+    @Override
+    public FileObject getFileForInput(Location location, String packageName, String relativeName) throws IOException {
+        return systemFileManager.getFileForInput(location, packageName, relativeName);
+    }
+
+    @Override
+    public void flush() throws IOException {
+        systemFileManager.flush();
+    }
+
+    @Override
+    public void close() throws IOException {
+        systemFileManager.close();
+    }
+
+    @Override
+    public boolean isSameFile(FileObject a, FileObject b) {
+        return systemFileManager.isSameFile(a, b);
+    }
+
+    @Override
+    public boolean handleOption(String current, Iterator<String> remaining) {
+        return systemFileManager.handleOption(current, remaining);
+    }
+
+    @Override
+    public boolean hasLocation(Location location) {
+        return systemFileManager.hasLocation(location);
+    }
+
+    @Override
+    public JavaFileObject getJavaFileForInput(Location location, String className, JavaFileObject.Kind kind)
+            throws IOException {
+        return systemFileManager.getJavaFileForInput(location, className, kind);
+    }
+
+    @Override
+    public int isSupportedOption(String option) {
+        return systemFileManager.isSupportedOption(option);
+    }
+
+    @Override
+    public Location getLocationForModule(Location location, String moduleName) throws IOException {
+        return systemFileManager.getLocationForModule(location, moduleName);
+    }
+
+    @Override
+    public Location getLocationForModule(Location location, JavaFileObject fo) throws IOException {
+        return systemFileManager.getLocationForModule(location, fo);
+    }
+
+    @Override
+    public <S> ServiceLoader<S> getServiceLoader(Location location, Class<S> service) throws IOException {
+        return systemFileManager.getServiceLoader(location, service);
+    }
+
+    @Override
+    public String inferModuleName(Location location) throws IOException {
+        return systemFileManager.inferModuleName(location);
+    }
+
+    @Override
+    public Iterable<Set<Location>> listLocationsForModules(Location location) throws IOException {
+        return systemFileManager.listLocationsForModules(location);
+    }
+
+    @Override
+    public boolean contains(Location location, FileObject fo) throws IOException {
+        return systemFileManager.contains(location, fo);
+    }
+
+    /*
+     * following methods implement the watch service
+     */
+    @Override
+    public boolean watchSubDirectories() {
+        return true;
+    }
+
+    @Override
+    public WatchEvent.Kind<?>[] getWatchEventKinds(@Nullable Path directory) {
+        return new WatchEvent.Kind<?>[] { ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY };
+    }
+
+    @Override
+    public void processWatchEvent(@Nullable WatchEvent<?> event, WatchEvent.@Nullable Kind<?> kind,
+            @Nullable Path path) {
+        if (path == null || kind == null || (kind != ENTRY_CREATE && kind != ENTRY_MODIFY && kind != ENTRY_DELETE)) {
+            logger.trace("Received '{}' for path '{}' - ignoring (null or wrong kind)", kind, path);
+            return;
+        }
+        if (!path.getFileName().toString().endsWith(JAR_FILE_TYPE)) {
+            logger.trace("Received '{}' for path '{}' - ignoring (wrong extension)", kind, path);
+            return;
+        }
+
+        rebuildLibPackages();
     }
 }
