@@ -19,6 +19,8 @@
   <modules>
     <!-- common -->
     <module>org.smarthomej.commons</module>
+    <!-- automation -->
+    <module>org.smarthomej.automation.javarule</module>
     <!-- bindings -->
     <module>org.smarthomej.binding.androiddebugbridge</module>
     <module>org.smarthomej.binding.amazonechocontrol</module>

@@ -1,0 +1,1 @@
+Switch RFLinkTimersSwitch                "Christmas Timers Swtich"           <switch>         (RFLinkTimers,OutsideLight)    { channel="mqtt:topic:drakemqtt:timers:switch" }
