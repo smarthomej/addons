@@ -119,19 +119,27 @@ public abstract class HandlerBase {
         public final String propertyName;
         public final String channelId;
         public final String itemType;
-        public ChannelTypeUID channelTypeUID;
+        public final String propertyNameSend;
+        public final ChannelTypeUID channelTypeUID;
 
-        public ChannelInfo(String propertyName, String channelId, ChannelTypeUID channelTypeUID, String itemType) {
-            this.propertyName = propertyName;
+        public ChannelInfo(String propertyNameReceive, String propertyNameSend, String channelId,
+                ChannelTypeUID channelTypeUID, String itemType) {
+            this.propertyName = propertyNameReceive;
+            this.propertyNameSend = propertyNameSend;
             this.channelId = channelId;
             this.itemType = itemType;
             this.channelTypeUID = channelTypeUID;
         }
 
+        public ChannelInfo(String propertyName, String channelId, ChannelTypeUID channelTypeUID, String itemType) {
+            this(propertyName, propertyName, channelId, channelTypeUID, itemType);
+        }
+
         @Override
         public String toString() {
-            return "ChannelInfo{propertyName='" + propertyName + "', channelId='" + channelId + "', itemType='"
-                    + itemType + "', channelTypeUID=" + channelTypeUID + "}";
+            return "ChannelInfo{" + "propertyName='" + propertyName + "', channelId='" + channelId + "', itemType='"
+                    + itemType + "', propertyNameSend='" + propertyNameSend + "', channelTypeUID=" + channelTypeUID
+                    + "}";
         }
     }
 

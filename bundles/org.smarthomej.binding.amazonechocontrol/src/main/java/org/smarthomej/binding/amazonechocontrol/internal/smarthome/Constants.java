@@ -50,6 +50,8 @@ public class Constants {
             AmazonEchoControlBindingConstants.BINDING_ID, "lowerSetpoint");
     public static final ChannelTypeUID CHANNEL_TYPE_UPPERSETPOINT = new ChannelTypeUID(
             AmazonEchoControlBindingConstants.BINDING_ID, "upperSetpoint");
+    public static final ChannelTypeUID CHANNEL_TYPE_THERMOSTATMODE = new ChannelTypeUID(
+            AmazonEchoControlBindingConstants.BINDING_ID, "thermostatMode");
 
     // List of Item types
     public static final String ITEM_TYPE_SWITCH = "Switch";

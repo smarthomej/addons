@@ -19,6 +19,7 @@ import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Consta
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -140,7 +141,7 @@ public class HandlerColorController extends HandlerBase {
                     colorObject.addProperty("hue", color.getHue());
                     colorObject.addProperty("saturation", color.getSaturation().floatValue() / 100);
                     colorObject.addProperty("brightness", color.getBrightness().floatValue() / 100);
-                    connection.smartHomeCommand(entityId, "setColor", "value", colorObject);
+                    connection.smartHomeCommand(entityId, "setColor", Map.of("value", colorObject));
                 }
             }
         }
@@ -150,7 +151,7 @@ public class HandlerColorController extends HandlerBase {
                     String colorName = command.toFullString();
                     if (!colorName.isEmpty()) {
                         lastColorName = colorName;
-                        connection.smartHomeCommand(entityId, "setColor", "colorName", colorName);
+                        connection.smartHomeCommand(entityId, "setColor", Map.of("colorName", colorName));
                         return true;
                     }
                 }

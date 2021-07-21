@@ -61,6 +61,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.common.ThreadPoolManager;
 import org.openhab.core.library.types.QuantityType;
+import org.openhab.core.library.types.StringType;
 import org.openhab.core.library.unit.SIUnits;
 import org.openhab.core.util.HexUtils;
 import org.slf4j.Logger;
@@ -1159,10 +1160,10 @@ public class Connection {
     }
 
     public void smartHomeCommand(String entityId, String action) throws IOException, InterruptedException {
-        smartHomeCommand(entityId, action, null, null);
+        smartHomeCommand(entityId, action, Map.of());
     }
 
-    public void smartHomeCommand(String entityId, String action, @Nullable String property, @Nullable Object value)
+    public void smartHomeCommand(String entityId, String action, Map<String, Object> values)
             throws IOException, InterruptedException {
         String url = alexaServer + "/api/phoenix/state";
 
@@ -1173,22 +1174,30 @@ public class Connection {
         controlRequest.addProperty("entityType", "APPLIANCE");
         JsonObject parameters = new JsonObject();
         parameters.addProperty("action", action);
-        if (property != null) {
-            if (value instanceof QuantityType<?>) {
-                parameters.addProperty(property + ".value", ((QuantityType<?>) value).floatValue());
-                parameters.addProperty(property + ".scale",
-                        ((QuantityType<?>) value).getUnit().equals(SIUnits.CELSIUS) ? "celsius" : "fahrenheit");
-            } else if (value instanceof Boolean) {
-                parameters.addProperty(property, (boolean) value);
-            } else if (value instanceof String) {
-                parameters.addProperty(property, (String) value);
-            } else if (value instanceof Number) {
-                parameters.addProperty(property, (Number) value);
-            } else if (value instanceof Character) {
-                parameters.addProperty(property, (Character) value);
-            } else if (value instanceof JsonElement) {
-                parameters.add(property, (JsonElement) value);
-            }
+        if (!values.isEmpty()) {
+            values.forEach((property, value) -> {
+                if (value instanceof QuantityType<?>) {
+                    JsonObject propertyObj = new JsonObject();
+                    propertyObj.addProperty("value", Double.toString(((QuantityType<?>) value).doubleValue()));
+                    propertyObj.addProperty("scale",
+                            ((QuantityType<?>) value).getUnit().equals(SIUnits.CELSIUS) ? "celsius" : "fahrenheit");
+                    parameters.add(property, propertyObj);
+                } else if (value instanceof Boolean) {
+                    parameters.addProperty(property, (boolean) value);
+                } else if (value instanceof String) {
+                    parameters.addProperty(property, (String) value);
+                } else if (value instanceof StringType) {
+                    JsonObject propertyObj = new JsonObject();
+                    propertyObj.addProperty("value", value.toString());
+                    parameters.add(property, propertyObj);
+                } else if (value instanceof Number) {
+                    parameters.addProperty(property, (Number) value);
+                } else if (value instanceof Character) {
+                    parameters.addProperty(property, (Character) value);
+                } else if (value instanceof JsonElement) {
+                    parameters.add(property, (JsonElement) value);
+                }
+            });
         }
         controlRequest.add("parameters", parameters);
         controlRequests.add(controlRequest);
