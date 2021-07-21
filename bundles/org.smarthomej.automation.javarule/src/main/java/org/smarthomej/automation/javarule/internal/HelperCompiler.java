@@ -12,9 +12,8 @@
  */
 package org.smarthomej.automation.javarule.internal;
 
-import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.DEPENDENCY_JAR;
+import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.EXT_LIB_DIR;
 import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.HELPER_PACKAGE;
-import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.JAVA_CLASS_PATH_PROPERTY;
 import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.LIB_DIR;
 
 import java.io.File;
@@ -75,28 +74,27 @@ import org.smarthomej.automation.javarule.Util;
 public class HelperCompiler implements EventSubscriber {
     private static final Set<ThingStatus> INITIALIZED = Set.of(ThingStatus.ONLINE, ThingStatus.OFFLINE,
             ThingStatus.UNKNOWN);
+    private static final Set<String> EVENTS = Set.of(ItemAddedEvent.TYPE, ItemRemovedEvent.TYPE, ThingAddedEvent.TYPE,
+            ThingRemovedEvent.TYPE, ThingStatusInfoChangedEvent.TYPE);
+
     private final Logger logger = LoggerFactory.getLogger(HelperCompiler.class);
 
     // configuration
     private final ItemRegistry itemRegistry;
     private final BaseCompilerService compiler;
 
-    private final Path helperDir;
-
     @Activate
-    public HelperCompiler(@Reference BaseCompilerService compiler, @Reference ItemRegistry itemRegistry) throws IOException {
+    public HelperCompiler(@Reference BaseCompilerService compiler, @Reference ItemRegistry itemRegistry) {
         this.compiler = compiler;
         this.itemRegistry = itemRegistry;
-
-        helperDir = Files.createTempDirectory("javarule");
 
         generateHelpers();
         logger.debug("Java helper compiler initialized!");
     }
 
-    private void generateItems() throws IOException {
+    private void generateItems(Path helperDir) throws IOException {
         Path itemJavaFile = helperDir.resolve("Items" + JavaRuleConstants.JAVA_FILE_TYPE);
-        Path itemClassPath = helperDir.resolve("Items" + JavaRuleConstants.CLASS_FILE_TYPE);
+        Path itemClassFile = helperDir.resolve("Items" + JavaRuleConstants.CLASS_FILE_TYPE);
 
         String allItems = itemRegistry.getItems().stream()
                 .map(item -> "    public static final String " + item.getName() + " = \"" + item.getName() + "\";\n")
@@ -107,10 +105,10 @@ public class HelperCompiler implements EventSubscriber {
                 + allItems //
                 + "}\n";
 
-        replaceIfNotEqual(itemJavaFile, itemClassPath, generatedClass);
+        replaceIfNotEqual(itemJavaFile, itemClassFile, generatedClass);
     }
 
-    private void generateThingActions() throws IOException {
+    private void generateThingActions(Path helperDir) throws IOException {
         List<ThingActions> thingActions = Util.findServices(ThingActions.class);
 
         Map<String, String> scopeToClasses = new HashMap<>();
@@ -238,16 +236,18 @@ public class HelperCompiler implements EventSubscriber {
 
     private synchronized void generateHelpers() {
         try {
-            generateItems();
-            generateThingActions();
+            Path helperDir = Files.createTempDirectory("javarule");
 
-            if (!compileHelpers() && Files.exists(LIB_DIR.resolve(JavaRuleConstants.HELPER_JAR))) {
+            generateItems(helperDir);
+            generateThingActions(helperDir);
+
+            if (!compiler.compile(helperDir, null) && Files.exists(LIB_DIR.resolve(JavaRuleConstants.HELPER_JAR))) {
                 // nothing compiled, keep old jar
                 return;
             }
 
             try (FileOutputStream outFile = new FileOutputStream(
-                    LIB_DIR.resolve(JavaRuleConstants.HELPER_JAR).toFile())) {
+                    EXT_LIB_DIR.resolve(JavaRuleConstants.HELPER_JAR).toFile())) {
                 Manifest manifest = new Manifest();
                 manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
                 JarOutputStream target = new JarOutputStream(outFile, manifest);
@@ -282,17 +282,6 @@ public class HelperCompiler implements EventSubscriber {
             logger.warn("Failed to add {} to jar: {}", path, e.getMessage());
         }
     }
-
-    private boolean compileHelpers() {
-        String helperClassPath = System.getProperty(JAVA_CLASS_PATH_PROPERTY) + File.pathSeparator //
-                + LIB_DIR.resolve(DEPENDENCY_JAR);
-
-        logger.debug("Compiling helper classes in folder: {}", helperDir);
-        return compiler.compile(helperDir, helperClassPath);
-    }
-
-    private static final Set<String> EVENTS = Set.of(ItemAddedEvent.TYPE, ItemRemovedEvent.TYPE, ThingAddedEvent.TYPE,
-            ThingRemovedEvent.TYPE, ThingStatusInfoChangedEvent.TYPE);
 
     @Override
     public Set<String> getSubscribedEventTypes() {

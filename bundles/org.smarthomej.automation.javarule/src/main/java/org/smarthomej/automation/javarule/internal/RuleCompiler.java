@@ -152,11 +152,10 @@ public class RuleCompiler extends AbstractWatchService {
         List<URI> uriList = new ArrayList<>();
 
         classPathFragments.add(Objects.requireNonNull(System.getProperty(JAVA_CLASS_PATH_PROPERTY)));
-        classPathFragments.add(LIB_DIR.resolve(HELPER_JAR).toString());
+        classPathFragments.add(EXT_LIB_DIR.resolve(HELPER_JAR).toString());
         classPathFragments.add(LIB_DIR.resolve(DEPENDENCY_JAR).toString());
 
-        // uriList.add(LIB_DIR.resolve(DEPENDENCY_JAR).toUri());
-        uriList.add(LIB_DIR.resolve(HELPER_JAR).toUri());
+        uriList.add(EXT_LIB_DIR.resolve(HELPER_JAR).toUri());
         uriList.add(WORKING_DIR.resolve(JavaRuleConstants.RULES_DIR_START).toUri());
         //
         try (Stream<Path> extLibStream = Files.list(EXT_LIB_DIR)) {

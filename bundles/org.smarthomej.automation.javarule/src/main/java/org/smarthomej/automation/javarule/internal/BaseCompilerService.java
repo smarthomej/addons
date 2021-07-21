@@ -18,9 +18,9 @@ import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.DEPE
 import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.LIB_DIR;
 import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.WORKING_DIR;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -38,11 +38,12 @@ import java.util.stream.Stream;
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaCompiler;
+import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
-import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
@@ -131,9 +132,9 @@ public class BaseCompilerService {
      *
      * @return true if at least one file was compiles
      */
-    public boolean compile(Path sourcePath, String classPath) {
+    public boolean compile(Path sourcePath, @Nullable String classPath) {
         try {
-            List<File> javaSourceFiles;
+            List<URI> javaSourceFiles;
 
             if (Files.isDirectory(sourcePath)) {
                 try (Stream<Path> pathStream = Files.list(sourcePath)) {
@@ -142,11 +143,11 @@ public class BaseCompilerService {
                             .map(Path::toString).map(Util::removeExtension).collect(Collectors.toList());
                     javaSourceFiles = files.stream().filter(JavaRuleConstants.JAVA_FILE_FILTER)
                             .filter(source -> !javaClassFiles.contains(Util.removeExtension(source.toString())))
-                            .map(Path::toFile).filter(File::canRead).collect(Collectors.toList());
+                            .filter(Files::isReadable).map(Path::toUri).collect(Collectors.toList());
                 }
             } else {
                 // compile a single file only
-                javaSourceFiles = List.of(sourcePath.toFile());
+                javaSourceFiles = List.of(sourcePath.toUri());
             }
 
             if (javaSourceFiles.isEmpty()) {
@@ -156,14 +157,18 @@ public class BaseCompilerService {
 
             DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
             JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-            StandardJavaFileManager fileManager = compiler.getStandardFileManager(diagnostics, null, null);
+            JavaFileManager fileManager = new JavaRuleJavaFileManager<>(
+                    compiler.getStandardFileManager(diagnostics, null, null), DEPENDENCY_BUNDLES);
 
-            List<String> optionList = List.of("-classpath", classPath, "-Xlint:unchecked", "-Xlint:varargs");
+            List<String> optionList = classPath == null ? List.of("-Xlint:unchecked", "-Xlint:varargs")
+                    : List.of("-classpath", classPath, "-Xlint:unchecked", "-Xlint:varargs");
             logger.debug("Compiling java sources: {}", javaSourceFiles);
             logger.trace("Compiling classes using classpath: {}", classPath);
 
-            final Iterable<? extends JavaFileObject> compilationUnit = fileManager
-                    .getJavaFileObjectsFromFiles(javaSourceFiles);
+            List<? extends JavaFileObject> compilationUnit = javaSourceFiles.stream()
+                    .map(path -> new JavaRuleSimpleJavaFileObject(path, JavaFileObject.Kind.SOURCE))
+                    .collect(Collectors.toList());
+
             final JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnostics, optionList, null,
                     compilationUnit);
             if (task.call()) {
@@ -176,7 +181,7 @@ public class BaseCompilerService {
             }
             fileManager.close();
         } catch (RuntimeException | IOException e) {
-            logger.warn("Compiler failed: {}", e.getMessage());
+            logger.warn("Compiler failed: {}", e.getMessage(), e);
             return false;
         }
 
