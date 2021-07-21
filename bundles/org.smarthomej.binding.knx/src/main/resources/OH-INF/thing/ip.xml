@@ -66,6 +66,14 @@
 				<description>Seconds between connection retries when KNX link has been lost, 0 means never retry, minimum 30s</description>
 				<default>60</default>
 			</parameter>
+			<parameter name="keyringFile" type="text">
+				<label>Keyring File</label>
+				<description>Keyring file exported from ETS and placed in openhab config/misc folder, e.g. knx.knxkeys</description>
+			</parameter>
+			<parameter name="keyringPassword" type="text">
+				<label>Keyring Password</label>
+				<description>Keyring file password (set during exported from ETS)</description>
+			</parameter>
 		</config-description>
 	</bridge-type>
 
