@@ -467,6 +467,10 @@ The channels of the smarthome devices will be generated at runtime. Check in the
 | glassBreakDetectionState | Contact   | R           | smartHomeDevice | Glass break detection alarm
 | smokeAlarmDetectionState | Contact   | R           | smartHomeDevice | Smoke detection alarm
 | temperature              | Number    | R           | smartHomeDevice | Temperature
+| targetSetpoint           | Number:Temperature | R/W | smartHomeDevice | Thermostat Setpoint |
+| lowerSetpoint            | Number:Temperature | R/W | smartHomeDevice | Thermostat Lower Setpoint |
+| upperSetpoint            | Number:Temperature | R/W | smartHomeDevice | Thermostat Upper Setpoint |
+| thermostatMode           | String    | R/W         | smartHomeDevice | Thermostat Mode (`AUTO`, `COOL`, `HEAT`, `OFF`, `ECO`) |
 
 ### Example
 

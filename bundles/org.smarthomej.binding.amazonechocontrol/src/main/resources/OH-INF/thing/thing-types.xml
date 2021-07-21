@@ -625,4 +625,17 @@
 		<label>Upper Setpoint</label>
 		<state pattern="%.1f %unit%"/>
 	</channel-type>
+	<channel-type id="thermostatMode">
+		<item-type>String</item-type>
+		<label>Thermostat Mode</label>
+		<state>
+			<options>
+				<option value="AUTO">Auto</option>
+				<option value="HEAT">Heat</option>
+				<option value="COOL">Cool</option>
+				<option value="OFF">Off</option>
+				<option value="ECO">Eco</option>
+			</options>
+		</state>
+	</channel-type>
 </thing:thing-descriptions>

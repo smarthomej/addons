@@ -19,6 +19,7 @@ import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Consta
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -140,7 +141,8 @@ public class HandlerColorTemperatureController extends HandlerBase {
                     if (intValue > 10000) {
                         intValue = 10000;
                     }
-                    connection.smartHomeCommand(entityId, "setColorTemperature", "colorTemperatureInKelvin", intValue);
+                    connection.smartHomeCommand(entityId, "setColorTemperature",
+                            Map.of("colorTemperatureInKelvin", intValue));
                     return true;
                 }
             }
@@ -151,8 +153,8 @@ public class HandlerColorTemperatureController extends HandlerBase {
                     String colorTemperatureName = command.toFullString();
                     if (!colorTemperatureName.isEmpty()) {
                         lastColorName = colorTemperatureName;
-                        connection.smartHomeCommand(entityId, "setColorTemperature", "colorTemperatureName",
-                                colorTemperatureName);
+                        connection.smartHomeCommand(entityId, "setColorTemperature",
+                                Map.of("colorTemperatureName", colorTemperatureName));
                         return true;
                     }
                 }
