@@ -525,6 +525,7 @@
 		<item-type>Switch</item-type>
 		<label>Locked</label>
 		<description>Status of this thermostat's childlock.</description>
+		<category>Lock</category>
 	</channel-type>
 	<channel-type id="heatsetpoint">
 		<item-type>Number:Temperature</item-type>
