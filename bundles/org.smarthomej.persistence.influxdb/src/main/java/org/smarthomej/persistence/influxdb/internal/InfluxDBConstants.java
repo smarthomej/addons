@@ -29,6 +29,7 @@ public class InfluxDBConstants {
     public static final String COLUMN_TIME_NAME_V2 = "_time";
 
     public static final String FIELD_VALUE_NAME = "value";
+    public static final String FIELD_MEASUREMENT_NAME = "_measurement";
     public static final String TAG_ITEM_NAME = "item";
     public static final String TAG_CATEGORY_NAME = "category";
     public static final String TAG_TYPE_NAME = "type";
