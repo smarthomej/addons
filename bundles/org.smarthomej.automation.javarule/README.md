@@ -80,17 +80,20 @@ Methods/fields not mentioned in this documentation are for internal use only and
 
 ## Annotations
 
+Annotations are used to mark special methods as rules in stand-alone files.
 Rules, triggers and conditions are defined by annotation methods in the class inherited from `JavaRule`.
 All triggers and some conditions (see below) can be repeated.
 
 ### `@Rule`
 
-Each individual rules has to be annotated with the `@Rule` annotation.
+Each individual rule has to be annotated with the `@Rule` annotation.
 
-There is one mandatory parameter `name` which is used for logging purposes.
+There are two optional parameters: `name` and `disabled`.
+
+The `name` is used for some logging, if it is not present or empty, the method name is used.
 You should use unique rule names, but this is not enforced by the addon.
 
-An optional parameter is `disabled`.
+The disabled parameter enables or disables a rule.
 If set to `true`, the method will be ignored (similar to methods without `@Rule` annotation).
 The default value is `false`.
 

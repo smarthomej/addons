@@ -64,12 +64,16 @@ public class RuleProcessor {
 
         for (Method method : script.getClass().getDeclaredMethods()) {
             Rule ruleAnnotation = method.getDeclaredAnnotation(Rule.class);
-            if (ruleAnnotation == null || ruleAnnotation.name().isBlank()) {
-                LOGGER.debug("Rule method ignored since RuleName annotation is missing: {}", method.getName());
+            if (ruleAnnotation == null) {
+                LOGGER.debug("Method '{}' ignored since @Rule annotation is missing.", method.getName());
                 continue;
             }
 
-            String ruleName = ruleAnnotation.name();
+            String ruleName = method.getName();
+            String ruleDescription = ruleAnnotation.name();
+            if (ruleDescription.isBlank() || ANNOTATION_DEFAULT.equals(ruleDescription)) {
+                ruleDescription = method.getName();
+            }
 
             if (ruleAnnotation.disabled()) {
                 LOGGER.info("Ignoring rule '{}', disabled", ruleAnnotation.name());
@@ -102,7 +106,7 @@ public class RuleProcessor {
                 }
             };
             simpleRule.setName(ruleName);
-            simpleRule.setDescription(ruleName);
+            simpleRule.setDescription(ruleDescription);
             simpleRule.setTriggers(triggers);
             simpleRule.setConditions(conditions);
 
