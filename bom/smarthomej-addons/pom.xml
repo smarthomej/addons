@@ -18,6 +18,11 @@
   <dependencies>
     <dependency>
       <groupId>org.smarthomej.addons.bundles</groupId>
+      <artifactId>org.smarthomej.automation.javarule</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.smarthomej.addons.bundles</groupId>
       <artifactId>org.smarthomej.binding.androiddebugbridge</artifactId>
       <version>${project.version}</version>
     </dependency>

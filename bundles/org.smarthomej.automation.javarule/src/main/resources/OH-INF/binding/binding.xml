@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<binding:binding id="snmp" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:binding="https://openhab.org/schemas/binding/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/binding/v1.0.0 https://openhab.org/schemas/binding-1.0.0.xsd">
+
+	<name>Java Automation</name>
+	<description>This is the bundle for using Java rules.</description>
+
+	<config-description>
+		<parameter name="additionalBundles" type="text">
+			<label>Additional Bundles</label>
+			<description>Additional bundles for developing, concatenated by ",".</description>
+		</parameter>
+	</config-description>
+
+</binding:binding>

@@ -17,6 +17,8 @@
   <name>SmartHome/J Add-ons :: Bundles</name>
 
   <modules>
+    <!-- automation -->
+    <module>org.smarthomej.automation.javarule</module>
     <!-- common -->
     <module>org.smarthomej.commons</module>
     <!-- bindings -->
