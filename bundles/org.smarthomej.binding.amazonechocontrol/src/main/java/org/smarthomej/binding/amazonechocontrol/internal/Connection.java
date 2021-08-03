@@ -556,7 +556,7 @@ public class Connection {
             @Nullable Map<String, String> customHeaders) throws IOException, URISyntaxException, InterruptedException {
         HttpsURLConnection connection = makeRequest(verb, url, postData, json, true, customHeaders, 3);
         String result = convertStream(connection);
-        logger.debug("Result of {} {}:{}", verb, url, result);
+        logger.trace("Result of {} {}:{}", verb, url, result);
         return result;
     }
 
