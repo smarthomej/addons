@@ -881,7 +881,7 @@ public class AccountHandler extends BaseBridgeHandler implements IWebSocketComma
 
     private synchronized void updateSmartHomeState(@Nullable String deviceFilterId) {
         try {
-            logger.debug("updateSmartHomeState started with deviceFilterId={}", deviceFilterId);
+            logger.trace("updateSmartHomeState started with deviceFilterId={}", deviceFilterId);
             Connection connection = this.connection;
             if (connection == null || !connection.getIsLoggedIn()) {
                 return;

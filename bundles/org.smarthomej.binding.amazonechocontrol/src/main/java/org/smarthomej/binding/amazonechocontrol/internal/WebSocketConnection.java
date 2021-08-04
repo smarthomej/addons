@@ -63,7 +63,6 @@ public class WebSocketConnection {
     private final IWebSocketCommandHandler webSocketCommandHandler;
     private final AmazonEchoControlWebSocket amazonEchoControlWebSocket;
 
-    private @Nullable Session session;
     private @Nullable Timer pingTimer;
     private @Nullable Timer pongTimeoutTimer;
     private @Nullable Future<?> sessionFuture;
@@ -195,6 +194,7 @@ public class WebSocketConnection {
 
         int msgCounter = -1;
         int messageId;
+        private @Nullable Session session;
 
         AmazonEchoControlWebSocket(WebSocketConnection webSocketConnection,
                 IWebSocketCommandHandler webSocketCommandHandler, Gson gson) {
@@ -215,9 +215,11 @@ public class WebSocketConnection {
         void sendMessage(byte[] buffer) {
             try {
                 logger.debug("Send message with length {}", buffer.length);
-                Session session = webSocketConnection.session;
+                Session session = this.session;
                 if (session != null) {
                     session.getRemote().sendBytes(ByteBuffer.wrap(buffer));
+                } else {
+                    logger.warn("Tried to send message '{}' but session is null. Looks like a bug!", buffer);
                 }
             } catch (IOException e) {
                 logger.debug("Send message failed", e);
@@ -373,6 +375,7 @@ public class WebSocketConnection {
         public void onWebSocketConnect(@Nullable Session session) {
             if (session != null) {
                 this.msgCounter = -1;
+                this.session = session;
                 webSocketConnection.onConnect();
                 sendMessage("0x99d4f71a 0x0000001d A:HTUNE");
             } else {
@@ -407,7 +410,7 @@ public class WebSocketConnection {
                         return;
                     } else {
                         JsonPushCommand pushCommand = message.content.pushCommand;
-                        logger.debug("Message received: {}", message.content.payload);
+                        logger.trace("Message received: {}", message.content.payload);
                         if (pushCommand != null) {
                             webSocketCommandHandler.webSocketCommandReceived(pushCommand);
                         }
