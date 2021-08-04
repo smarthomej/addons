@@ -16,7 +16,10 @@ package org.smarthomej.persistence.influxdb.internal.influx2;
 import static com.influxdb.query.dsl.functions.restriction.Restrictions.measurement;
 import static com.influxdb.query.dsl.functions.restriction.Restrictions.tag;
 import static org.smarthomej.persistence.influxdb.internal.InfluxDBConstants.COLUMN_TIME_NAME_V2;
+import static org.smarthomej.persistence.influxdb.internal.InfluxDBConstants.COLUMN_VALUE_NAME_V2;
+import static org.smarthomej.persistence.influxdb.internal.InfluxDBConstants.FIELD_MEASUREMENT_NAME;
 import static org.smarthomej.persistence.influxdb.internal.InfluxDBConstants.FIELD_VALUE_NAME;
+import static org.smarthomej.persistence.influxdb.internal.InfluxDBConstants.TAG_ITEM_NAME;
 import static org.smarthomej.persistence.influxdb.internal.InfluxDBStateConvertUtils.stateToObject;
 
 import java.time.temporal.ChronoUnit;
@@ -55,12 +58,12 @@ public class InfluxDB2FilterCriteriaQueryCreatorImpl implements FilterCriteriaQu
 
         RangeFlux range = flux.range();
         if (criteria.getBeginDate() != null) {
-            range = range.withStart(criteria.getBeginDate().toInstant());
+            range.withStart(criteria.getBeginDate().toInstant());
         } else {
             range = flux.range(-100L, ChronoUnit.YEARS); // Flux needs a mandatory start range
         }
         if (criteria.getEndDate() != null) {
-            range = range.withStop(criteria.getEndDate().toInstant());
+            range.withStop(criteria.getEndDate().toInstant());
         }
         flux = range;
 
@@ -69,7 +72,11 @@ public class InfluxDB2FilterCriteriaQueryCreatorImpl implements FilterCriteriaQu
             String measurementName = getMeasurementName(itemName);
             flux = flux.filter(measurement().equal(measurementName));
             if (!measurementName.equals(itemName)) {
-                flux = flux.filter(tag("item").equal(itemName));
+                flux = flux.filter(tag(TAG_ITEM_NAME).equal(itemName));
+                flux = flux.keep(new String[] { FIELD_MEASUREMENT_NAME, COLUMN_TIME_NAME_V2, COLUMN_VALUE_NAME_V2,
+                        TAG_ITEM_NAME });
+            } else {
+                flux = flux.keep(new String[] { FIELD_MEASUREMENT_NAME, COLUMN_TIME_NAME_V2, COLUMN_VALUE_NAME_V2 });
             }
         }
 
