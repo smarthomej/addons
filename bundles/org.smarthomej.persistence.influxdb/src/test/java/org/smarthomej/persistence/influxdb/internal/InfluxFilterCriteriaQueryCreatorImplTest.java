@@ -81,8 +81,10 @@ public class InfluxFilterCriteriaQueryCreatorImplTest {
         assertThat(queryV1, equalTo("SELECT \"value\"::field,\"item\"::tag FROM origin.sampleItem;"));
 
         String queryV2 = instanceV2.createQuery(criteria, RETENTION_POLICY);
-        assertThat(queryV2, equalTo("from(bucket:\"origin\")\n\t" + "|> range(start:-100y)\n\t"
-                + "|> filter(fn: (r) => r[\"_measurement\"] == \"sampleItem\")"));
+        assertThat(queryV2,
+                equalTo("from(bucket:\"origin\")\n\t" + "|> range(start:-100y)\n\t"
+                        + "|> filter(fn: (r) => r[\"_measurement\"] == \"sampleItem\")\n\t"
+                        + "|> keep(columns:[\"_measurement\", \"_time\", \"_value\"])"));
     }
 
     @Test
@@ -114,7 +116,8 @@ public class InfluxFilterCriteriaQueryCreatorImplTest {
         String queryV2 = instanceV2.createQuery(criteria, RETENTION_POLICY);
         String expectedQueryV2 = String.format(
                 "from(bucket:\"origin\")\n\t" + "|> range(start:%s, stop:%s)\n\t"
-                        + "|> filter(fn: (r) => r[\"_measurement\"] == \"sampleItem\")",
+                        + "|> filter(fn: (r) => r[\"_measurement\"] == \"sampleItem\")\n\t"
+                        + "|> keep(columns:[\"_measurement\", \"_time\", \"_value\"])",
                 INFLUX2_DATE_FORMATTER.format(now.toInstant()), INFLUX2_DATE_FORMATTER.format(tomorrow.toInstant()));
         assertThat(queryV2, equalTo(expectedQueryV2));
     }
@@ -132,6 +135,7 @@ public class InfluxFilterCriteriaQueryCreatorImplTest {
         assertThat(queryV2,
                 equalTo("from(bucket:\"origin\")\n\t" + "|> range(start:-100y)\n\t"
                         + "|> filter(fn: (r) => r[\"_measurement\"] == \"sampleItem\")\n\t"
+                        + "|> keep(columns:[\"_measurement\", \"_time\", \"_value\"])\n\t"
                         + "|> filter(fn: (r) => (r[\"_field\"] == \"value\" and r[\"_value\"] <= 90))"));
     }
 
@@ -146,7 +150,8 @@ public class InfluxFilterCriteriaQueryCreatorImplTest {
 
         String queryV2 = instanceV2.createQuery(criteria, RETENTION_POLICY);
         assertThat(queryV2, equalTo("from(bucket:\"origin\")\n\t" + "|> range(start:-100y)\n\t"
-                + "|> filter(fn: (r) => r[\"_measurement\"] == \"sampleItem\")\n\t" + "|> limit(n:10, offset:20)"));
+                + "|> filter(fn: (r) => r[\"_measurement\"] == \"sampleItem\")\n\t"
+                + "|> keep(columns:[\"_measurement\", \"_time\", \"_value\"])\n\t" + "|> limit(n:10, offset:20)"));
     }
 
     @Test
@@ -161,6 +166,8 @@ public class InfluxFilterCriteriaQueryCreatorImplTest {
         assertThat(queryV2,
                 equalTo("from(bucket:\"origin\")\n\t" + "|> range(start:-100y)\n\t"
                         + "|> filter(fn: (r) => r[\"_measurement\"] == \"sampleItem\")\n\t"
+                        + "|> keep(columns:[\"_measurement\", \"_time\", \"_value\"])\n\t"
+
                         + "|> sort(desc:false, columns:[\"_time\"])"));
     }
 
@@ -191,8 +198,8 @@ public class InfluxFilterCriteriaQueryCreatorImplTest {
         assertThat(queryV2,
                 equalTo("from(bucket:\"origin\")\n\t" + "|> range(start:-100y)\n\t"
                         + "|> filter(fn: (r) => r[\"_measurement\"] == \"measurementName\")\n\t"
-                        + "|> filter(fn: (r) => r[\"item\"] == \"sampleItem\")"));
-
+                        + "|> filter(fn: (r) => r[\"item\"] == \"sampleItem\")\n\t"
+                        + "|> keep(columns:[\"_measurement\", \"_time\", \"_value\", \"item\"])"));
         when(metadataRegistry.get(metadataKey))
                 .thenReturn(new Metadata(metadataKey, "", Map.of("key1", "val1", "key2", "val2")));
 
@@ -200,7 +207,9 @@ public class InfluxFilterCriteriaQueryCreatorImplTest {
         assertThat(queryV1, equalTo("SELECT \"value\"::field,\"item\"::tag FROM origin.sampleItem;"));
 
         queryV2 = instanceV2.createQuery(criteria, RETENTION_POLICY);
-        assertThat(queryV2, equalTo("from(bucket:\"origin\")\n\t" + "|> range(start:-100y)\n\t"
-                + "|> filter(fn: (r) => r[\"_measurement\"] == \"sampleItem\")"));
+        assertThat(queryV2,
+                equalTo("from(bucket:\"origin\")\n\t" + "|> range(start:-100y)\n\t"
+                        + "|> filter(fn: (r) => r[\"_measurement\"] == \"sampleItem\")\n\t"
+                        + "|> keep(columns:[\"_measurement\", \"_time\", \"_value\"])"));
     }
 }
