@@ -33,11 +33,14 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.WatchEvent;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
@@ -46,7 +49,8 @@ import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.tools.DiagnosticCollector;
+import javax.tools.Diagnostic;
+import javax.tools.DiagnosticListener;
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
@@ -106,7 +110,7 @@ public class CompilerService extends AbstractWatchService implements EventSubscr
 
     private final Path tempFolder;
     private final ClassGenerator classGenerator;
-    private final DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
+    private final JavaRuleDiagnosticCollector<JavaFileObject> diagnostics = new JavaRuleDiagnosticCollector<>();
     private final JavaRuleFileManager<? extends JavaFileManager> fileManager;
 
     @Activate
@@ -403,6 +407,25 @@ public class CompilerService extends AbstractWatchService implements EventSubscr
             } catch (IOException e) {
                 logger.warn("Failed to (re-)build thing class: {}", e.getMessage());
             }
+        }
+    }
+
+    /*
+     * we need to clear the diagnostic list after each run, the default implementation just adds to the end
+     */
+    private static class JavaRuleDiagnosticCollector<S> implements DiagnosticListener<S> {
+        private final List<Diagnostic<? extends S>> diagnostics = new CopyOnWriteArrayList<>();
+
+        @Override
+        public void report(@Nullable Diagnostic<? extends S> diagnostic) {
+            Objects.requireNonNull(diagnostic);
+            diagnostics.add(diagnostic);
+        }
+
+        public List<Diagnostic<? extends S>> getDiagnostics() {
+            List<Diagnostic<? extends S>> list = new ArrayList<>(diagnostics);
+            diagnostics.clear();
+            return list;
         }
     }
 }
