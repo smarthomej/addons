@@ -12,6 +12,8 @@
  */
 package org.smarthomej.automation.javarule.annotation;
 
+import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.ANNOTATION_DEFAULT;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
@@ -31,4 +33,6 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 @NonNullByDefault
 public @interface ChannelEventTrigger {
     String channelUID();
+
+    String event() default ANNOTATION_DEFAULT;
 }

@@ -55,9 +55,9 @@ public class JavaRuleConstants {
 
     public static final String ANNOTATION_DEFAULT = "\u0002\u0003";
 
-    public static final String HELPER_PACKAGE = "org.smarthomej.automation.javarule.helper";
+    public static final String HELPER_PACKAGE = "org.smarthomej.automation.javarule";
 
-    public static final Path LIB_DIR = Path.of(OpenHAB.getConfigFolder(), "automation", "jsr223", "java", "lib");
+    public static final Path LIB_DIR = Path.of(OpenHAB.getConfigFolder(), "automation", "lib", "java");
     public static final Path JAVARULE_DEPENDENCY_JAR = LIB_DIR.resolve("javarule-dependency.jar");
     public static final Path CORE_DEPENDENCY_JAR = LIB_DIR.resolve("core-dependency.jar");
 

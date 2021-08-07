@@ -2,13 +2,13 @@
 
 This addon allows writing rules in Java and provides support for code-completion for most IDEs.
 
-All paths referenced in this document are relative to the `<openhab-config-directory>/automation/jsr223/java`.
-This is `/etc/openhab/automation/jsr223/java` on most Linux systems and `c:\openhab-3.1.0\conf\automation\jsr223\java` or similar on Windows systems.
+All paths referenced in this document are relative to the `<openhab-config-directory>/automation`.
+This is `/etc/openhab/automation` on most Linux systems and `c:\openhab-3.1.0\conf\automation` or similar on Windows systems.
 The addon creates all needed directories during startup.
 
 ## Setup And Configuration
 
-For supporting ease of development a `core-dependency.jar` is created in the `lib` directory. 
+For supporting ease of development a `core-dependency.jar` is created in the `lib/java` directory. 
 This includes the exported classes from `javax.measure.unit-api`, `org.openhab.core`, `org.openhab.core.automation`, `org.openhab.core.model.script`, `org.openhab.core.thing`, `org.openhab.core.persistence`, `org.ops4j.pax.logging.pax-logging-api` and `org.smarthomej.automation.javarule`.
 In most cases this is sufficient and provides all core data types, items, things and core actions (including persistence). 
 If you need to expose additional classes, you can add them using the `additionalBundles` configuration option.
@@ -40,12 +40,12 @@ Rules defined using annotations can use a `Map<String, Object> input` parameter 
 
 The `javarule-dependency.jar` contains several classes to ease the development of rules and prevent unnecessary errors.
 
-The `org.smarthomej.automation.javarule.helper.Items` class contains `String` constants for all items.
+The `org.smarthomej.automation.javarule.Items` class contains `String` constants for all items.
 It is re-generated if items are added or removed.
 You can use is at all places where you would normally put the item name e.g. instead of `postUpdate("MySwitchItem", OFF);` you could use `postUpdate(Items.MySwitchItem, OFF)`.
 This allows code completion (if your IDE supports it)  and reduces the risk of typos.
 
-The `org.smarthomej.automation.javarule.helper.Things` class contains `String` constants for all items.
+The `org.smarthomej.automation.javarule.Things` class contains `String` constants for all items.
 It is re-generated if things are added or removed.
 You can use is at all places where you would normally put the thing UID e.g. instead of `actions.get("deconz", "deconz:deconz:1234abcd");` you could use `actions.get("deconz", Things.deconz_deconz_1234abcd)`.
 This allows code completion (if your IDE supports it)  and reduces the risk of typos.
@@ -188,17 +188,20 @@ Announce via the core voice action that the state of the `DoorBellSwitch` item's
 The condition ensures that the kids will not wake up, because the rule only triggers between 07:00 in the morning and 22:00 in the evening.
 
 ```java
-package org.smarthomej.automation.javarule.rules.user;
+package org.smarthomej.automation.javarule;
 
 import org.openhab.core.model.script.actions.Voice;
-import org.smarthomej.automation.javarule.helper.Items;
+import org.smarthomej.automation.javarule.Items;
 import org.smarthomej.automation.javarule.annotation.ItemStateUpdateTrigger;
 import org.smarthomej.automation.javarule.annotation.Rule;
 import org.smarthomej.automation.javarule.annotation.TimeOfDayCondition;
 
 public class DoorBell extends JavaRule {
 
-    @Rule(name = "Ring the bell") @ItemStateUpdateTrigger(itemName = Items.DoorBellSwitch, state = "ON") @TimeOfDayCondition(startTime = "07:00", endTime = "22:00") public void doorbell() {
+    @Rule(name = "Ring the bell") 
+    @ItemStateUpdateTrigger(itemName = Items.DoorBellSwitch, state = "ON") 
+    @TimeOfDayCondition(startTime = "07:00", endTime = "22:00") 
+    public void doorbell() {
         Voice.say("Attention, someone rang the bell!");
     }
 
@@ -217,7 +220,7 @@ import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.model.script.actions.Log;
 import org.openhab.core.types.State;
-import org.smarthomej.automation.javarule.helper.Items;
+import org.smarthomej.automation.javarule.Items;
 import org.smarthomej.automation.javarule.annotation.ItemStateChangeTrigger;
 import org.smarthomej.automation.javarule.annotation.Rule;
 
@@ -225,8 +228,9 @@ import java.util.Map;
 
 public class Thermostat extends JavaRule {
 
-    @Rule(name = "Standby Switch") @ItemStateChangeTrigger(itemName = Items.Presence) public void standby(
-            Map<String, Object> input) {
+    @Rule(name = "Standby Switch") 
+    @ItemStateChangeTrigger(itemName = Items.Presence) 
+    public void standby(Map<String, Object> input) {
         State newState = (State) input.get("newState");
         if (OnOffType.ON.equals(newState)) {
             sendCommand(Items.HeatingSetpoint, new QuantityType<>("20°C"));
@@ -249,7 +253,7 @@ package org.smarthomej.automation.javarule;
 
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.QuantityType;
-import org.smarthomej.automation.javarule.helper.Items;
+import org.smarthomej.automation.javarule.Items;
 import org.smarthomej.automation.javarule.annotation.ItemCommandTrigger;
 import org.smarthomej.automation.javarule.annotation.Rule;
 

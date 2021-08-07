@@ -20,7 +20,7 @@ import org.smarthomej.automation.javarule.internal.compiler.CompilerService;
 import ch.obermuhlner.scriptengine.java.JavaScriptEngineFactory;
 
 /**
- * The {@link JavaRuleJavaScriptEngineFactory} is responsible for
+ * The {@link JavaRuleJavaScriptEngineFactory} is responsible for creating the JavaRule script engine
  *
  * @author Jan N. Klug - Initial contribution
  */
