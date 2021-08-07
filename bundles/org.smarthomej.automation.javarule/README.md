@@ -74,7 +74,9 @@ The documented fields for `ON`, `CLOSED`, etc are not present, since the corresp
 
 In addition, you can use
 
-- `scheduler`: A scheduled executor for scheduling tasks. Be careful, you have to take care on your own that scheduled tasks are cancelled when the rule is unloaded.
+- `scheduler`: A scheduled executor for scheduling tasks. 
+Be careful, you have to take care on your own that scheduled tasks are cancelled when the rule is unloaded.
+One way to ensure this, is to add the returned `ScheduledFuture` to the `futures` set.
 
 Methods/fields not mentioned in this documentation are for internal use only and should not be used in rules.
 

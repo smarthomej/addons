@@ -242,7 +242,12 @@ public class CompilerService extends AbstractWatchService implements EventSubscr
     }
 
     private void copyExportedClasses(Bundle bundle, JarOutputStream target) {
-        List<String> exportedPackages = Arrays.stream(bundle.getHeaders().get("Export-Package") //
+        String exportPackage = bundle.getHeaders().get("Export-Package");
+        if (exportPackage == null) {
+            logger.warn("Bundle '{}' does not export any package!", bundle.getSymbolicName());
+            return;
+        }
+        List<String> exportedPackages = Arrays.stream(exportPackage //
                 .split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)")) // split only on comma not in double quotes
                 .map(s -> s.split(";")[0]) // get only package name and drop uses, version, etc.
                 .map(b -> b.replace(".", "/")).collect(Collectors.toList());

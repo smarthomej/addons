@@ -20,10 +20,14 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.core.automation.Rule;
 import org.openhab.core.automation.RuleRegistry;
 import org.openhab.core.automation.module.script.ScriptEngineContainer;
 import org.openhab.core.automation.module.script.rulesupport.shared.ScriptedAutomationManager;
@@ -34,6 +38,7 @@ import org.openhab.core.types.State;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.automation.javarule.internal.script.RuleProcessor;
+import org.smarthomej.automation.javarule.internal.script.RuleTracker;
 
 /**
  * The {@link JavaRule} is responsible for
@@ -61,6 +66,8 @@ public class JavaRule implements Runnable {
     private Map<String, Object> ruleSupport = Map.of();
     private String hashedScriptIdentifier = "";
 
+    public final Set<ScheduledFuture<?>> futures = ConcurrentHashMap.newKeySet();
+
     /**
      * Override this method in standalone scripts (e.g. UI defined rules)
      */
@@ -71,7 +78,10 @@ public class JavaRule implements Runnable {
             return;
         }
 
-        RuleProcessor.getSimpleRules(hashedScriptIdentifier, this).forEach(automationManager::addRule);
+        RuleProcessor.getSimpleRules(hashedScriptIdentifier, this).forEach(simpleRule -> {
+            Rule rule = automationManager.addRule(simpleRule);
+            RuleTracker.addRule(rule.getUID(), this);
+        });
     }
 
     /**
