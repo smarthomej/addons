@@ -118,6 +118,9 @@ The default value is `false`.
 
 ### Other Triggers
 
+- `@GenericAutomationTrigger`: triggers on a custom trigger with uid `typeUid`.
+Custom triggers are provided by non-core automation modules (like the PID Controller)
+Trigger module configuration can be added with the `params` parameter as an array of "key=value" entries.
 - `@GenericEventTrigger`: triggers on a custom event defined by the `eventTopic`, `eventSource` and `eventTypes` parameters. Wildcards are allowed.
 - `@SystemStartLevelTrigger`: triggers when the system reaches the configured `startLevel`.
 
@@ -153,7 +156,7 @@ The returned value is `null` (if either the scope is unknown, the thing not pres
 Non-`null` values are of type `Object` and need a type-cast before usage.
 Calling the `permitJoin` action on Deconz bridge things would look like 
 
-```
+```java
 BridgeActions bridgeAction = (BridgeActions) actions.get("deconz", "deconz:deconz:00212E040ED9");
 if (bridgeAction != null) {
     bridgeAction.permitJoin(10);
@@ -269,6 +272,34 @@ public class Thermostat extends JavaRule {
         QuantityType<Temperature> oldState = items.get(Items.HeaterSetpoint).as(QuantityType.class);
         QuantityType<Temperature> step = OnOffType.ON.equals(input.get("state")) ? new QuantityType<>("1 °C") : new QuantityType<>("-1 °C");
         events.postUpdate(Items.HeaterSetpoint, oldState.add(step));
+    }
+}
+```
+
+### Heating PID controller
+
+This requires the `PID Controller` automation addon.
+For the description of the parameters see the addon documentation.
+The rule itself coerces the command from the trigger to the allowed range 0-255 (depends on the allowed values for valve control) and sends it to the valve controlling item.
+
+```java
+package org.smarthomej.automation.javarule;
+
+import org.smarthomej.automation.javarule.annotation.GenericAutomationTrigger;
+import org.smarthomej.automation.javarule.annotation.Rule;
+
+public class HeatingController extends JavaRule {
+    
+    @Rule
+    @GenericAutomationTrigger(type="pidcontroller.trigger",
+            params = {"input=" + Items.LivingRoomTemperature, "setpoint=" + Items.LivingRoomSetpoint, 
+                    "loopTime=300000", "kp=32", "ki=2.67", "kd=0"})
+    public void livingRoom(Map<String, ?> input) {
+        // get the value from the trigger
+        int control = ((DecimalType) input.get("command")).intValue();
+        // coerce to range 0 - 255
+        control = Math.max(0, Math.min(controlInt, 255));
+        events.sendCommand(Items.LivingRoomValve, new Decimaltype(control));
     }
 }
 ```

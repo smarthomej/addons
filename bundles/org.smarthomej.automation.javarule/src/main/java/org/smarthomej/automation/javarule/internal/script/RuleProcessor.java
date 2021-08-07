@@ -35,10 +35,12 @@ import org.openhab.core.automation.Module;
 import org.openhab.core.automation.Trigger;
 import org.openhab.core.automation.module.script.rulesupport.shared.simple.SimpleRule;
 import org.openhab.core.automation.util.ModuleBuilder;
+import org.openhab.core.automation.util.TriggerBuilder;
 import org.openhab.core.config.core.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.automation.javarule.JavaRule;
+import org.smarthomej.automation.javarule.annotation.GenericAutomationTrigger;
 import org.smarthomej.automation.javarule.annotation.Rule;
 
 /**
@@ -82,10 +84,14 @@ public class RuleProcessor {
 
             String ruleUID = scriptIdentifier + "-" + script.getClass().getSimpleName() + "-" + method.getName();
 
-            List<Trigger> triggers = TRIGGER_FROM_ANNOTATION
+            List<Trigger> triggers = new ArrayList<>();
+            TRIGGER_FROM_ANNOTATION
                     .entrySet().stream().map(annotation -> getModuleForAnnotation(method, annotation.getKey(),
                             annotation.getValue(), ModuleBuilder::createTrigger))
-                    .flatMap(Collection::stream).collect(Collectors.toList());
+                    .flatMap(Collection::stream).forEach(triggers::add);
+            Arrays.stream(method.getDeclaredAnnotationsByType(GenericAutomationTrigger.class))
+                    .map(annotation -> getGenericAutomationTrigger(annotation, ruleUID)).forEach(triggers::add);
+
             List<Condition> conditions = CONDITION_FROM_ANNOTATION.entrySet().stream()
                     .map(annotationClazz -> getModuleForAnnotation(method, annotationClazz.getKey(),
                             annotationClazz.getValue(), ModuleBuilder::createCondition))
@@ -114,6 +120,20 @@ public class RuleProcessor {
         }
 
         return rules;
+    }
+
+    private static Trigger getGenericAutomationTrigger(GenericAutomationTrigger annotation, String ruleUID) {
+        String typeUid = annotation.typeUid();
+        Configuration configuration = new Configuration();
+        for (String param : annotation.params()) {
+            String[] parts = param.split("=");
+            if (parts.length != 2) {
+                LOGGER.warn("Ignoring '{}' in trigger for '{}', can not determine key and value", param, ruleUID);
+                continue;
+            }
+            configuration.put(parts[0], parts[1]);
+        }
+        return TriggerBuilder.create().withTypeUID(typeUid).withId("").withConfiguration(configuration).build();
     }
 
     private static <T extends Annotation, R extends Module> List<R> getModuleForAnnotation(Method method,
