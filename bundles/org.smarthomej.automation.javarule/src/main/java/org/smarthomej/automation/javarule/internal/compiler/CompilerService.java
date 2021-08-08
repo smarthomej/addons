@@ -12,6 +12,7 @@
  */
 package org.smarthomej.automation.javarule.internal.compiler;
 
+import static java.lang.Integer.MAX_VALUE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
@@ -19,6 +20,7 @@ import static org.osgi.framework.wiring.BundleWiring.LISTRESOURCES_LOCAL;
 import static org.osgi.framework.wiring.BundleWiring.LISTRESOURCES_RECURSE;
 import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.CORE_DEPENDENCY_JAR;
 import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.JAR_FILE_TYPE;
+import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.JAVA_FILE_TYPE;
 import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.LIB_DIR;
 
 import java.io.File;
@@ -31,6 +33,7 @@ import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.WatchEvent;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
@@ -281,7 +284,7 @@ public class CompilerService extends AbstractWatchService implements EventSubscr
         Lock fileManagerLock = fileManager.getFileManagerLock();
         fileManagerLock.lock();
         try {
-            try (Stream<Path> pathStream = Files.list(tempFolder)) {
+            try (Stream<Path> pathStream = Files.walk(tempFolder, MAX_VALUE)) {
                 List<JavaFileObject> javaSourceFiles = pathStream.filter(JavaRuleConstants.JAVA_FILE_FILTER)
                         .filter(Files::isReadable).map(Path::toUri).map(JavaRuleFileObject::sourceFileObject)
                         .collect(Collectors.toList());
@@ -296,7 +299,7 @@ public class CompilerService extends AbstractWatchService implements EventSubscr
                 manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
                 JarOutputStream target = new JarOutputStream(outFile, manifest);
 
-                try (Stream<Path> helperPath = Files.list(tempFolder)) {
+                try (Stream<Path> helperPath = Files.walk(tempFolder, MAX_VALUE)) {
                     helperPath.filter(JavaRuleConstants.CLASS_FILE_FILTER).forEach(f -> addClassToJar(f, target));
                 }
                 target.close();
@@ -311,7 +314,7 @@ public class CompilerService extends AbstractWatchService implements EventSubscr
     }
 
     private void addClassToJar(Path path, JarOutputStream jar) {
-        String name = path.getFileName().toString();
+        String name = tempFolder.relativize(path).toString();
         int extensionSeparator = name.lastIndexOf(".");
         name = name.substring(0, extensionSeparator).replace(".", "/").concat(name.substring(extensionSeparator));
 
@@ -357,12 +360,31 @@ public class CompilerService extends AbstractWatchService implements EventSubscr
             logger.trace("Received '{}' for path '{}' - ignoring (null or wrong kind)", kind, path);
             return;
         }
-        if (!path.getFileName().toString().endsWith(JAR_FILE_TYPE)) {
+        if (path.getFileName().toString().endsWith(JAR_FILE_TYPE)) {
+            fileManager.rebuildLibPackages();
+        } else if (path.getFileName().toString().endsWith(JAVA_FILE_TYPE)) {
+            try {
+                Path targetPath = tempFolder.resolve(LIB_DIR.relativize(path));
+                if (kind == ENTRY_DELETE) {
+                    if (!Files.deleteIfExists(targetPath)) {
+                        // file did not exist, no need to rebuild
+                        return;
+                    }
+                } else if (kind == ENTRY_MODIFY) {
+                    if (Files.exists(targetPath) && Files.readString(path).equals(Files.readString(targetPath))) {
+                        // file already exists and has same content, no need to rebuild
+                        return;
+                    }
+                }
+                Files.createDirectories(targetPath.getParent());
+                Files.copy(path, targetPath, StandardCopyOption.REPLACE_EXISTING);
+                buildJavaRuleDependenciesJar();
+            } catch (IOException e) {
+                logger.warn("Failed to process event '{}' for '{}': {}", kind, path, e.getMessage());
+            }
+        } else {
             logger.trace("Received '{}' for path '{}' - ignoring (wrong extension)", kind, path);
-            return;
         }
-
-        fileManager.rebuildLibPackages();
     }
 
     /*

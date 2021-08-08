@@ -146,7 +146,9 @@ public class JavaRuleFileManager<M extends JavaFileManager> extends ForwardingJa
             JarEntry entry;
             while ((entry = jis.getNextJarEntry()) != null) {
                 String entryName = entry.getName();
-                String packageName = entry.getName().substring(0, entryName.lastIndexOf("/")).replace("/", ".");
+                int fileNameStart = entryName.lastIndexOf("/");
+                String packageName = fileNameStart == -1 ? ""
+                        : entry.getName().substring(0, fileNameStart).replace("/", ".");
                 URI classUri = URI.create("jar:" + jarFile.toUri() + "!/" + entryName);
 
                 Objects.requireNonNull(additionalPackages.computeIfAbsent(packageName, k -> new ArrayList<>()))

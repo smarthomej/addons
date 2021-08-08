@@ -52,11 +52,22 @@ This allows code completion (if your IDE supports it)  and reduces the risk of t
 
 Additional classes are generated for each thing action (see below).
 
-### Additional Libraries
+### Additional 3rd party Libraries
 
-You can use additional libraries (that are not available within openHAB) by putting a JAR-file in the `lib` folder.
+You can use additional libraries (that are not available within openHAB) by putting a JAR-file in the `lib/java` folder.
 They are automatically picked up and made available when compiling the rules.
 You have to add them to the classpath of your IDE to allow code completion.
+
+### Personal Libraries
+
+Re-using code one of the great advantages of Java.
+You can create custom classes by putting the corresponding `.java`-file in the `lib/java` folder.
+A class named `Own` in package `foo.bar` needs to be
+
+- placed in the correct location for the package (i.e. `/foo/bar/Own.java`) or
+- have the package name in the file name (i.e. `foo.bar.Own.java`).
+
+Not following these conventions might result in failure to start the script engine.
 
 ## The `JavaRule` Class
 
