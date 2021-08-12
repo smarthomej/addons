@@ -153,6 +153,7 @@ public class CompilerService extends AbstractWatchService implements EventSubscr
         classGenerator.generateItems();
         classGenerator.generateThings();
         classGenerator.generateThingActions();
+        copyAdditionalSources();
         buildJavaRuleDependenciesJar();
         fileManager.rebuildLibPackages();
     }
@@ -275,6 +276,20 @@ public class CompilerService extends AbstractWatchService implements EventSubscr
                                 e.getMessage());
                     }
                 });
+    }
+
+    private void copyAdditionalSources() {
+        try (Stream<Path> pathStream = Files.walk(LIB_DIR, MAX_VALUE)) {
+            List<Path> javaSourceFiles = pathStream.filter(JavaRuleConstants.JAVA_FILE_FILTER).filter(Files::isReadable)
+                    .collect(Collectors.toList());
+            for (Path source : javaSourceFiles) {
+                Path target = tempFolder.resolve(LIB_DIR.relativize(source));
+                Files.createDirectories(target.getParent());
+                Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (IOException e) {
+            logger.warn("Failed to copy additional source files, helper libraries not available: {}", e.getMessage());
+        }
     }
 
     /*
