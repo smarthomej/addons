@@ -93,7 +93,11 @@ public class WebSocketConnection {
             client.connect(this, destUri).get();
         } catch (Exception e) {
             String reason = "Error while connecting: " + e.getMessage();
-            logger.warn("{}: {}", socketName, reason);
+            if (e.getMessage() == null) {
+                logger.warn("{}: {}", socketName, reason, e);
+            } else {
+                logger.warn("{}: {}", socketName, reason);
+            }
             connectionListener.webSocketConnectionLost(reason);
         }
     }
