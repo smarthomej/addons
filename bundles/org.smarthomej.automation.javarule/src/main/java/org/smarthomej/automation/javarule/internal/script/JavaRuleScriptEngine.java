@@ -12,14 +12,19 @@
  */
 package org.smarthomej.automation.javarule.internal.script;
 
+import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.JAVARULE_DEPENDENCY_JAR;
+
 import java.util.List;
 
+import javax.script.Bindings;
+import javax.script.CompiledScript;
 import javax.script.ScriptException;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.core.automation.module.script.ScriptDependencyListener;
 import org.smarthomej.automation.javarule.internal.compiler.CompilerException;
 import org.smarthomej.automation.javarule.internal.compiler.CompilerService;
 
@@ -42,6 +47,17 @@ public class JavaRuleScriptEngine extends JavaScriptEngine {
 
     public JavaRuleScriptEngine(CompilerService compilerService) {
         this.compilerService = compilerService;
+    }
+
+    @Override
+    public @Nullable Object eval(@Nullable String script, @Nullable Bindings bindings) throws ScriptException {
+        if (bindings != null) {
+            ScriptDependencyListener depListener = (ScriptDependencyListener) bindings.get("oh.dependency-listener");
+            depListener.accept(JAVARULE_DEPENDENCY_JAR.toString());
+        }
+
+        CompiledScript compile = this.compile(script);
+        return compile.eval(bindings);
     }
 
     @Override
