@@ -6,6 +6,16 @@ All paths referenced in this document are relative to the `<openhab-config-direc
 This is `/etc/openhab/automation` on most Linux systems and `c:\openhab-3.1.0\conf\automation` or similar on Windows systems.
 The addon creates all needed directories during startup.
 
+## Version specific information
+
+Due to limitations/bugs in the openHAB core, there are some points you should know:
+
+- A restart is necessary after updating the Java Rule bundle.
+- Changes to own classes ("Personal Libraries") are not picked up automatically.
+You need to restart the system or edit/save rules using one of these classes.
+
+These issues have been fixed in openHAB versions >= 3.2.0.M2.
+
 ## Setup And Configuration
 
 For supporting ease of development a `core-dependency.jar` is created in the `lib/java` directory. 
@@ -14,9 +24,6 @@ In most cases this is sufficient and provides all core data types, items, things
 If you need to expose additional classes, you can add them using the `additionalBundles` configuration option.
 
 During startup the bundle first compiles the dependency-bundle and then creates the helper libraries (see below).
-Since the helper libraries are required before compiling rules, a delay is recommended before the rules start running.
-This can be configured with the `initDelay` parameter.
-The default value is 5s.
 
 If you use an IDE for development, you should add `core-dependency.jar` and `javarule-dependency.jar` to your class path.
 In IntelliJ IDEA this is named `Add as Library`.
@@ -52,12 +59,6 @@ This allows code completion (if your IDE supports it)  and reduces the risk of t
 
 Additional classes are generated for each thing action (see below).
 
-### Additional 3rd party Libraries
-
-You can use additional libraries (that are not available within openHAB) by putting a JAR-file in the `lib/java` folder.
-They are automatically picked up and made available when compiling the rules.
-You have to add them to the classpath of your IDE to allow code completion.
-
 ### Personal Libraries
 
 Re-using code one of the great advantages of Java.
@@ -68,6 +69,14 @@ A class named `Own` in package `foo.bar` needs to be
 - have the package name in the file name (i.e. `foo.bar.Own.java`).
 
 Not following these conventions might result in failure to start the script engine.
+The classes generated from this code are also part of the `javarule-dependency.jar`.
+
+### Additional 3rd party Libraries
+
+You can use additional libraries (that are not available within openHAB) by putting a JAR-file in the `lib/java` folder.
+They are automatically picked up and made available when compiling the rules.
+You have to add them to the classpath of your IDE to allow code completion.
+
 
 ## The `JavaRule` Class
 
