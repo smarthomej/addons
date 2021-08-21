@@ -13,7 +13,6 @@
 package org.smarthomej.automation.javarule.internal;
 
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -21,29 +20,23 @@ import javax.script.ScriptEngine;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.core.automation.dto.RuleDTO;
-import org.openhab.core.automation.events.RuleRemovedEvent;
 import org.openhab.core.automation.module.script.AbstractScriptEngineFactory;
 import org.openhab.core.automation.module.script.ScriptEngineFactory;
-import org.openhab.core.events.Event;
-import org.openhab.core.events.EventFilter;
-import org.openhab.core.events.EventSubscriber;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.smarthomej.automation.javarule.internal.compiler.CompilerService;
 import org.smarthomej.automation.javarule.internal.script.JavaRuleJavaScriptEngineFactory;
-import org.smarthomej.automation.javarule.internal.script.RuleTracker;
 
 /**
  * The {@link JavaRuleScriptEngineFactory} is responsible for
  *
  * @author Jan N. Klug - Initial contribution
  */
-@Component(service = { ScriptEngineFactory.class, EventSubscriber.class }, immediate = true)
+@Component(service = { ScriptEngineFactory.class }, immediate = true)
 @NonNullByDefault
 @SuppressWarnings("unused")
-public class JavaRuleScriptEngineFactory extends AbstractScriptEngineFactory implements EventSubscriber {
+public class JavaRuleScriptEngineFactory extends AbstractScriptEngineFactory {
 
     private final JavaRuleJavaScriptEngineFactory factory;
     private final List<String> scriptTypes;
@@ -63,23 +56,5 @@ public class JavaRuleScriptEngineFactory extends AbstractScriptEngineFactory imp
     @Override
     public @Nullable ScriptEngine createScriptEngine(String scriptType) {
         return scriptTypes.contains(scriptType) ? factory.getScriptEngine() : null;
-    }
-
-    @Override
-    public Set<String> getSubscribedEventTypes() {
-        return Set.of(RuleRemovedEvent.TYPE);
-    }
-
-    @Override
-    public @Nullable EventFilter getEventFilter() {
-        return null;
-    }
-
-    @Override
-    public void receive(Event event) {
-        if (event instanceof RuleRemovedEvent) {
-            RuleDTO rule = ((RuleRemovedEvent) event).getRule();
-            RuleTracker.removeRule(rule.uid);
-        }
     }
 }

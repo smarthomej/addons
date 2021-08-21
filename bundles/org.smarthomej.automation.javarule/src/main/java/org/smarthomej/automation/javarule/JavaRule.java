@@ -27,7 +27,6 @@ import java.util.concurrent.ScheduledFuture;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.core.automation.Rule;
 import org.openhab.core.automation.RuleRegistry;
 import org.openhab.core.automation.module.script.ScriptEngineContainer;
 import org.openhab.core.automation.module.script.rulesupport.shared.ScriptedAutomationManager;
@@ -38,7 +37,6 @@ import org.openhab.core.types.State;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.automation.javarule.internal.script.RuleProcessor;
-import org.smarthomej.automation.javarule.internal.script.RuleTracker;
 
 /**
  * The {@link JavaRule} is responsible for
@@ -48,6 +46,8 @@ import org.smarthomej.automation.javarule.internal.script.RuleTracker;
 @NonNullByDefault
 public class JavaRule implements Runnable {
     private final Logger logger = LoggerFactory.getLogger(JavaRule.class);
+
+    private @Nullable String engineIdentifier;
 
     // direct injected fields
     public @NonNullByDefault({}) ItemRegistry itemRegistry;
@@ -78,10 +78,17 @@ public class JavaRule implements Runnable {
             return;
         }
 
-        RuleProcessor.getSimpleRules(hashedScriptIdentifier, this).forEach(simpleRule -> {
-            Rule rule = automationManager.addRule(simpleRule);
-            RuleTracker.addRule(rule.getUID(), this);
-        });
+        RuleProcessor.getSimpleRules(hashedScriptIdentifier, this).forEach(automationManager::addRule);
+    }
+
+    public void scriptLoaded(String engineIdentifier) {
+        this.engineIdentifier = engineIdentifier;
+        logger.trace("Script '{}' loaded", engineIdentifier);
+    }
+
+    public void scriptUnloaded() {
+        futures.forEach(f -> f.cancel(true));
+        logger.trace("Script '{}' unloaded", this.engineIdentifier);
     }
 
     /**

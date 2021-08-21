@@ -11,8 +11,7 @@ The addon creates all needed directories during startup.
 Due to limitations/bugs in the openHAB core, there are some points you should know:
 
 - A restart is necessary after updating the Java Rule bundle.
-- Changes to own classes ("Personal Libraries") are not picked up automatically.
-You need to restart the system or edit/save rules using one of these classes.
+- Changes to own classes ("Personal Libraries") are not picked up automatically. You need to restart the system or edit/save rules using one of these classes.
 
 These issues have been fixed in openHAB versions >= 3.2.0.M2.
 
@@ -94,9 +93,13 @@ The documented fields for `ON`, `CLOSED`, etc are not present, since the corresp
 
 In addition, you can use
 
-- `scheduler`: A scheduled executor for scheduling tasks. 
-Be careful, you have to take care on your own that scheduled tasks are cancelled when the rule is unloaded.
-One way to ensure this, is to add the returned `ScheduledFuture` to the `futures` set.
+- `scheduler`: A scheduled executor for scheduling tasks. Be careful, you have to take care on your own that scheduled tasks are cancelled when the rule is unloaded. One way to ensure this, is to add the returned `ScheduledFuture` to the `futures` set.
+- `futures`: A set of futures that will be cancelled when the script is unloaded.
+
+Besides the `runScript` method above there are two methods that can be overridden:
+
+- `scriptLoaded(String scriptIdentifier)`: Called when the script is loaded. This can be used for initialization. Make sure to call `super.scriptLoaded`.
+- `scriptUnloaded`: Called when the script is unloaded. This can be used for clean-up. The default implementation cancels all `futures`. Make sure you do this yourself or call `super.scriptUnloaded`.
 
 Methods/fields not mentioned in this documentation are for internal use only and should not be used in rules.
 

@@ -17,7 +17,7 @@ import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.JAVA
 import java.util.List;
 
 import javax.script.Bindings;
-import javax.script.CompiledScript;
+import javax.script.Invocable;
 import javax.script.ScriptException;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
@@ -25,6 +25,9 @@ import javax.tools.StandardLocation;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.automation.module.script.ScriptDependencyListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.smarthomej.automation.javarule.JavaRule;
 import org.smarthomej.automation.javarule.internal.compiler.CompilerException;
 import org.smarthomej.automation.javarule.internal.compiler.CompilerService;
 
@@ -41,9 +44,11 @@ import ch.obermuhlner.scriptengine.java.name.NameStrategy;
  * @author Jan N. Klug - Initial contribution
  */
 @NonNullByDefault
-public class JavaRuleScriptEngine extends JavaScriptEngine {
+public class JavaRuleScriptEngine extends JavaScriptEngine implements Invocable {
+    private final Logger logger = LoggerFactory.getLogger(JavaRuleScriptEngine.class);
 
     private final CompilerService compilerService;
+    private @Nullable JavaRuleCompiledScript compiledScript;
 
     public JavaRuleScriptEngine(CompilerService compilerService) {
         this.compilerService = compilerService;
@@ -56,8 +61,10 @@ public class JavaRuleScriptEngine extends JavaScriptEngine {
             depListener.accept(JAVARULE_DEPENDENCY_JAR.toString());
         }
 
-        CompiledScript compile = this.compile(script);
-        return compile.eval(bindings);
+        JavaRuleCompiledScript compiledScript = (JavaRuleCompiledScript) this.compile(script);
+        compiledScript.eval(bindings);
+        this.compiledScript = compiledScript;
+        return compiledScript;
     }
 
     @Override
@@ -73,5 +80,47 @@ public class JavaRuleScriptEngine extends JavaScriptEngine {
         } catch (CompilerException | ClassNotFoundException e) {
             throw new ScriptException(e);
         }
+    }
+
+    @Override
+    public @Nullable Object invokeMethod(@Nullable Object thiz, @Nullable String name, Object @Nullable... args)
+            throws NoSuchMethodException {
+        throw new NoSuchMethodException("not implemented");
+    }
+
+    @Override
+    public @Nullable Object invokeFunction(@Nullable String name, Object @Nullable... args) throws ScriptException {
+        JavaRuleCompiledScript compiledScript = this.compiledScript;
+        if (compiledScript == null || name == null) {
+            return null;
+        }
+        JavaRule instance = (JavaRule) compiledScript.getCompiledInstance();
+        switch (name) {
+            case "scriptLoaded":
+                if (args != null && args.length > 0 && args[0] instanceof String) {
+                    String engineIdentifier = (String) args[0];
+                    instance.scriptLoaded(engineIdentifier);
+                } else {
+                    logger.debug("{} incompatible with required parameter String", args);
+                }
+                break;
+            case "scriptUnloaded":
+                instance.scriptUnloaded();
+                break;
+            default:
+                throw new ScriptException(name + " is not an allowed method in JavaRule");
+        }
+
+        return null;
+    }
+
+    @Override
+    public <T> T getInterface(@Nullable Class<T> clasz) {
+        return null;
+    }
+
+    @Override
+    public <T> T getInterface(@Nullable Object thiz, @Nullable Class<T> clasz) {
+        return null;
     }
 }
