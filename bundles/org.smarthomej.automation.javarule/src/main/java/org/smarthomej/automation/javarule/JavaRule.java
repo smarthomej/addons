@@ -20,7 +20,6 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -66,7 +65,7 @@ public class JavaRule implements Runnable {
     private Map<String, Object> ruleSupport = Map.of();
     private String hashedScriptIdentifier = "";
 
-    public final Set<ScheduledFuture<?>> futures = ConcurrentHashMap.newKeySet();
+    public final Map<String, ScheduledFuture<?>> futures = new ConcurrentHashMap<>();
 
     /**
      * Override this method in standalone scripts (e.g. UI defined rules)
@@ -87,7 +86,7 @@ public class JavaRule implements Runnable {
     }
 
     public void scriptUnloaded() {
-        futures.forEach(f -> f.cancel(true));
+        futures.values().forEach(f -> f.cancel(true));
         logger.trace("Script '{}' unloaded", this.engineIdentifier);
     }
 

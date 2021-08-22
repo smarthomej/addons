@@ -80,7 +80,7 @@ You have to add them to the classpath of your IDE to allow code completion.
 ## The `JavaRule` Class
 
 Rules classes must inherit from the `JavaRule` class.
-This class provides some fields needed for development, as explained in the official [JSR-223 documentation}(https://www.openhab.org/docs/configuration/jsr223.html).
+This class provides some fields needed for development, as explained in the official [JSR-223 documentation](https://www.openhab.org/docs/configuration/jsr223.html).
 
 - `items`:	Instance of java.util.Map<String, State>
 - `itemRegistry`, `ir`:	Instance of org.openhab.core.items.ItemRegistry
@@ -89,14 +89,14 @@ This class provides some fields needed for development, as explained in the offi
 - `events`:	Used to send events, post commands, etc.
 - `actions`:  Used to get and call thing actions
 
-The documented fields for `ON`, `CLOSED`, etc are not present, since the corresponding core `OnOffType`, `OpenClosedType`, etc. are available.
+The documented fields for `ON`, `CLOSED`, etc. are not present, since the corresponding core `OnOffType`, `OpenClosedType`, etc. are available.
 
 In addition, you can use
 
 - `scheduler`: A scheduled executor for scheduling tasks. Be careful, you have to take care on your own that scheduled tasks are cancelled when the rule is unloaded. One way to ensure this, is to add the returned `ScheduledFuture` to the `futures` set.
-- `futures`: A set of futures that will be cancelled when the script is unloaded.
+- `futures`: A `Map<String, ScheduledFuture<?>>` of String/future-pairs that will be cancelled when the script is unloaded. The keys have to be unique and can be used to reference the future within the script. 
 
-Besides the `runScript` method above there are two methods that can be overridden:
+Besides the `runScript` method above, there are two methods that can be overridden:
 
 - `scriptLoaded(String scriptIdentifier)`: Called when the script is loaded. This can be used for initialization. Make sure to call `super.scriptLoaded`.
 - `scriptUnloaded`: Called when the script is unloaded. This can be used for clean-up. The default implementation cancels all `futures`. Make sure you do this yourself or call `super.scriptUnloaded`.
@@ -126,10 +126,10 @@ The default value is `false`.
 
 - `@ChannelEventTrigger`: triggers when the channel with the `channelUid` receives an event.
 - `@ItemCommandTrigger`: triggers when the item `itemName` receives a command, if the optional `command` parameter is defined set, only if the received command matches the configured one.
-- `@ItemStateChangeTrigger`: triggers when the item `itemName` changes it state from the (optional) `oldState` to the (optiona) `state`.
+- `@ItemStateChangeTrigger`: triggers when the item `itemName` changes its state from the (optional) `oldState` to the (optional) `state`.
 - `@ItemStateUpdateTrigger`: triggers when the item `itemName` receives an update, if the optional `state` parameter is defined set, only if the received update matches the configured one.
 - `@GroupCommandTrigger`: triggers when an item in group `groupName` receives a command, if the optional `command` parameter is defined set, only if the received command matches the configured one.
-- `@GroupStateChangeTrigger`: triggers when an item in group `groupName` changes it state from the (optional) `oldState` to the (optiona) `state`.
+- `@GroupStateChangeTrigger`: triggers when an item in group `groupName` changes it state from the (optional) `oldState` to the (optional) `state`.
 - `@GroupStateUpdateTrigger`: triggers when an item in group `groupName` receives an update, if the optional `state` parameter is defined set, only if the received update matches the configured one.
 - `@ThingStatusChangeTrigger`: triggers when the thing `thingUID` changes its state from (optional) `previousStatus` to the (optional) `status`. 
 - `@ThingStatusUpdateTrigger`: triggers every time a binding updates the status of `thingUID` to the (optional) `status`.
@@ -150,7 +150,7 @@ Trigger module configuration can be added with the `params` parameter as an arra
 ### Time Based Conditions
 
 - `@DayOfWeekCondition`: allows the rule execution only if the current day is listed in the `days` array. Allowed values are `MON`, `TUE`, `WED`, `THU`, `FRI`, `SAT` and `SUN`.
-- `@EphemerisDaysetCondition`: allows the rule execution only if the current day is a member of the ephemeris dayset `dayset`.
+- `@EphemerisDaysetCondition`: allows the rule execution only if the current day is a member of the ephemeris day set `dayset`.
 - `@EphemerisHolidayCondition`, `@EphemerisNotHolidayCondition`: allows the rule execution only if the current day is a holiday/not a holiday.
 - `@EphemerisWeekdayCondition`, `@EphemerisWeekendCondition`: allows the rule execution only if the current day is a weekday/not a weekday.
 - `@TimeOfDayCondition`: allows the rule execution only if the current time is between `startTime` and `endTime`. If `startTime` or `endTime` is not configured, start or end of the day is used.
@@ -179,7 +179,7 @@ The returned value is `null` (if either the scope is unknown, the thing not pres
 Non-`null` values are of type `Object` and need a type-cast before usage.
 Calling the `permitJoin` action on Deconz bridge things would look like 
 
-```java
+```
 BridgeActions bridgeAction = (BridgeActions) actions.get("deconz", "deconz:deconz:00212E040ED9");
 if (bridgeAction != null) {
     bridgeAction.permitJoin(10);
@@ -238,7 +238,7 @@ public class DoorBell extends JavaRule {
 
 ### Send a value if rule triggers on item 
 
-If the item `Presence` changes to `ON` (someone is in the house) the heating setpoint is set to 20 °C, if the item changes to `OFF` (everybody left), it is reduced to 17 °C to save energy.
+If the item `Presence` changes to `ON` (someone is in the house) the heating set point is set to 20 °C, if the item changes to `OFF` (everybody left), it is reduced to 17 °C to save energy.
 A warning is logged if an unexpected value is received.
 
 ```java
@@ -272,9 +272,9 @@ public class Thermostat extends JavaRule {
 }
 ```
 
-### Adjust Setpoint Value
+### Adjust Set Point Value
 
-If the item `SetpointButton` receives a command, the value of the `HeaterSetpoint` item is increased (`ON`) or decreased (`OFF`) by 1°C.
+If the item `SetpointButton` receives a command, the value of the `HeaterSetpoint` item is increased (`ON`) or decreased (`OFF`) by 1 °C.
 
 ```java
 package org.smarthomej.automation.javarule;
@@ -289,9 +289,9 @@ import javax.measure.quantity.Temperature;
 
 public class Thermostat extends JavaRule {
 
-    @Rule(name = "Adjust Heater Setpoint") 
+    @Rule(name = "Adjust Heater Set Point") 
     @ItemCommandTrigger(itemName = Items.SetpointButton) 
-    public void adjustSetpoint() {
+    public void adjustSetPoint() {
         QuantityType<Temperature> oldState = items.get(Items.HeaterSetpoint).as(QuantityType.class);
         QuantityType<Temperature> step = OnOffType.ON.equals(input.get("state")) ? new QuantityType<>("1 °C") : new QuantityType<>("-1 °C");
         events.postUpdate(Items.HeaterSetpoint, oldState.add(step));
@@ -321,7 +321,7 @@ public class HeatingController extends JavaRule {
         // get the value from the trigger
         int control = ((DecimalType) input.get("command")).intValue();
         // coerce to range 0 - 255
-        control = Math.max(0, Math.min(controlInt, 255));
+        control = Math.max(0, Math.min(control, 255));
         events.sendCommand(Items.LivingRoomValve, new Decimaltype(control));
     }
 }
