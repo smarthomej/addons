@@ -450,7 +450,7 @@
 		<label>Speak Volume</label>
 		<description>Volume of the Speak channel. If 0, the current volume will be used.</description>
 	</channel-type>
-	<channel-type id="textCommand" advanced="true">
+	<channel-type id="textCommand">
 		<item-type>String</item-type>
 		<label>TextCommand</label>
 		<description>Run a command (Write only). The command can run like a spoken command.</description>
