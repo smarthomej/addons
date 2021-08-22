@@ -162,11 +162,11 @@ It will be configured at runtime by using the save channel to store the current 
 | bluetoothMAC          | String      | R/W         | echo, echoshow, echospot      | Bluetooth device MAC. Used to connect to a specific device or disconnect if an empty string was provided
 | bluetooth             | Switch      | R/W         | echo, echoshow, echospot      | Connect/Disconnect to the last used bluetooth device (works after a bluetooth connection was established after the openHAB start) 
 | bluetoothDeviceName   | String      | R           | echo, echoshow, echospot      | User friendly name of the connected bluetooth device
-| radioStationId        | String      | R/W         | echo, echoshow, echospot, wha | Start playing of a TuneIn radio station by specifying its id or stops playing if an empty string was provided
-| radio                 | Switch      | R/W         | echo, echoshow, echospot, wha | Start playing of the last used TuneIn radio station (works after the radio station started after the openHAB start)
-| amazonMusicTrackId    | String      | R/W         | echo, echoshow, echospot, wha | Start playing of an Amazon Music track by its id or stops playing if an empty string was provided
-| amazonMusicPlayListId | String      | W           | echo, echoshow, echospot, wha | Write Only! Start playing of an Amazon Music playlist by specifying its id or stops playing if an empty string was provided.
-| amazonMusic           | Switch      | R/W         | echo, echoshow, echospot, wha | Start playing of the last used Amazon Music song (works after at least one song was started after the openHAB start)
+| radioStationId (*)    | String      | R/W         | echo, echoshow, echospot, wha | Start playing of a TuneIn radio station by specifying its id or stops playing if an empty string was provided
+| radio (*)             | Switch      | R/W         | echo, echoshow, echospot, wha | Start playing of the last used TuneIn radio station (works after the radio station started after the openHAB start)
+| amazonMusicTrackId (*) | String      | R/W         | echo, echoshow, echospot, wha | Start playing of an Amazon Music track by its id or stops playing if an empty string was provided
+| amazonMusicPlayListId (*) | String      | W           | echo, echoshow, echospot, wha | Write Only! Start playing of an Amazon Music playlist by specifying its id or stops playing if an empty string was provided.
+| amazonMusic (*)       | Switch      | R/W         | echo, echoshow, echospot, wha | Start playing of the last used Amazon Music song (works after at least one song was started after the openHAB start)
 | remind                | String      | R/W         | echo, echoshow, echospot      | Write Only! Speak the reminder and sends a notification to the Alexa app (Currently the reminder is played and notified two times, this seems to be a bug in the Amazon software)
 | nextReminder          | DateTime    | R           | echo, echoshow, echospot      | Next reminder on the device
 | playAlarmSound        | String      | W           | echo, echoshow, echospot      | Write Only! Plays an Alarm sound
@@ -191,6 +191,10 @@ It will be configured at runtime by using the save channel to store the current 
 | save                  | Switch      | W           | flashbriefingprofile          | Write Only! Stores the current configuration of flash briefings within the thing
 | active                | Switch      | R/W         | flashbriefingprofile          | Active the profile
 | playOnDevice          | String      | W           | flashbriefingprofile          | Specify the echo serial number or name to start the flash briefing. 
+
+**Attention:** Channels marked with (*) are deprecated and will be removed in the future.
+Amazon already started to remove some of the functionality.
+You can use the `textCommand` channel with a value of `Play Radio XYZ on TuneIn` or `Play playlist CrazyMusic on AmazonMusic` instead.
 
 ## Advanced Feature Technically Experienced Users
 
@@ -250,15 +254,6 @@ String Echo_Living_Room_ProviderDisplayName    "Provider"                       
 String Echo_Living_Room_MusicProviderId        "Music Provider Id"                     (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:musicProviderId"}
 String Echo_Living_Room_PlayMusicCommand       "Play music voice command (Write Only)" (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:playMusicVoiceCommand"}
 String Echo_Living_Room_StartCommand           "Start Information"                     (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:startCommand"}
-
-// TuneIn Radio
-String Echo_Living_Room_RadioStationId         "TuneIn Radio Station Id"               (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:radioStationId"}
-Switch Echo_Living_Room_Radio                  "TuneIn Radio"                          (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:radio"}
-
-// Amazon Music
-String Echo_Living_Room_AmazonMusicTrackId     "Amazon Music Track Id"                 (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:amazonMusicTrackId"}
-String Echo_Living_Room_AmazonMusicPlayListId  "Amazon Music Playlist Id"              (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:amazonMusicPlayListId"}
-Switch Echo_Living_Room_AmazonMusic            "Amazon Music"                          (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:amazonMusic"}
 
 // Bluetooth
 String Echo_Living_Room_BluetoothMAC           "Bluetooth MAC Address" <bluetooth>     (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:bluetoothMAC"}
@@ -335,14 +330,6 @@ sitemap amazonechocontrol label="Echo Devices"
 
             // To start one of your flashbriefings use Flashbriefing.<YOUR FLASHBRIEFING THING ID>
             Selection item=Echo_Living_Room_StartCommand mappings=[ 'Weather'='Weather', 'Traffic'='Traffic', 'GoodMorning'='Good Morning', 'SingASong'='Song', 'TellStory'='Story', 'FlashBriefing'='Flash Briefing', 'FlashBriefing.flashbriefing1'='Technical', 'FlashBriefing.flashbriefing2'='Life Style' ]
-
-            Selection item=Echo_Living_Room_RadioStationId mappings=[ ''='Off', 's1139'='Antenne Steiermark', 's8007'='Hitradio Ö3', 's16793'='Radio 10', 's8235'='FM4' ]
-            Text    item=Echo_Living_Room_RadioStationId
-            Switch  item=Echo_Living_Room_Radio
-
-            Text    item=Echo_Living_Room_AmazonMusicTrackId
-            Text    item=Echo_Living_Room_AmazonMusicPlayListId
-            Switch  item=Echo_Living_Room_AmazonMusic
 
             Text    item=Echo_Living_Room_BluetoothMAC
             // Change the <YOUR_DEVICE_MAC> Place holder with the MAC address shown, if Alexa is connected to the device
@@ -429,7 +416,7 @@ sitemap flashbriefings label="Flash Briefings"
 
 ## Smart Home Devices
 
-Note: the cannels of smartHomeDevices and smartHomeDeviceGroup will be created dynamically based on the capabilities reported by the amazon server. This can take a little bit of time. 
+Note: the channels of smartHomeDevices and smartHomeDeviceGroup will be created dynamically based on the capabilities reported by the amazon server. This can take a little bit of time. 
 The polling interval configured in the Account Thing to get the state is specified in minutes and has a minimum of 10. This means it takes up to 10 minutes to see the state of a channel. The reason for this low interval is, that the polling causes a big server load for the Smart Home Skills.
 
 #### Supported Things
