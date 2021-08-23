@@ -83,7 +83,7 @@ public class JavaRuleScriptEngine extends JavaScriptEngine implements Invocable 
     }
 
     @Override
-    public @Nullable Object invokeMethod(@Nullable Object thiz, @Nullable String name, Object @Nullable... args)
+    public @Nullable Object invokeMethod(@Nullable Object o, @Nullable String name, Object @Nullable... args)
             throws NoSuchMethodException {
         throw new NoSuchMethodException("not implemented");
     }
@@ -115,12 +115,14 @@ public class JavaRuleScriptEngine extends JavaScriptEngine implements Invocable 
     }
 
     @Override
-    public <T> T getInterface(@Nullable Class<T> clasz) {
+    @SuppressWarnings("null")
+    public <T> T getInterface(@Nullable Class<T> clazz) {
         return null;
     }
 
     @Override
-    public <T> T getInterface(@Nullable Object thiz, @Nullable Class<T> clasz) {
+    @SuppressWarnings("null")
+    public <T> T getInterface(@Nullable Object o, @Nullable Class<T> clazz) {
         return null;
     }
 }

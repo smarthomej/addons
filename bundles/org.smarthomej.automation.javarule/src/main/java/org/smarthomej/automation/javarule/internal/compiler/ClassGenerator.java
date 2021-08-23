@@ -56,7 +56,6 @@ import org.smarthomej.automation.javarule.internal.JavaRuleConstants;
  * @author Jan N. Klug - Initial contribution
  */
 @NonNullByDefault
-
 public class ClassGenerator {
     private static final Logger logger = LoggerFactory.getLogger(ClassGenerator.class);
 

@@ -38,6 +38,7 @@ import javax.tools.FileObject;
 import javax.tools.ForwardingJavaFileManager;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
+import javax.tools.JavaFileObject.Kind;
 import javax.tools.StandardLocation;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -47,7 +48,7 @@ import org.slf4j.LoggerFactory;
 import org.smarthomej.automation.javarule.internal.JavaRuleConstants;
 
 /**
- * The {@link JavaRuleFileManager} is responsible for
+ * The {@link JavaRuleFileManager} is an implementation of {@link JavaFileManager} with extensions for JAR files
  *
  * @author Jan N. Klug - Initial contribution
  */
@@ -120,7 +121,7 @@ public class JavaRuleFileManager<M extends JavaFileManager> extends ForwardingJa
 
     @Override
     public JavaFileObject getJavaFileForOutput(@Nullable Location location, @Nullable String className,
-            JavaFileObject.@Nullable Kind kind, @Nullable FileObject sibling) throws IOException {
+            @Nullable Kind kind, @Nullable FileObject sibling) throws IOException {
         if (sibling instanceof JavaRuleFileObject) {
             URI outFile = URI.create(removeExtension(sibling.toUri().toString()) + CLASS_FILE_TYPE);
             return JavaRuleFileObject.classFileObject(outFile);

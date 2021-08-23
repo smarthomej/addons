@@ -23,6 +23,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
  */
 @NonNullByDefault
 public class CompilerException extends Exception {
+    public static final long serialVersionUID = 1L;
 
     public CompilerException(Throwable t) {
         super(Objects.requireNonNullElse(t.getMessage(), "null"));

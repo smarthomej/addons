@@ -74,7 +74,7 @@ public class RuleProcessor {
             String ruleName = method.getName();
             String ruleDescription = ruleAnnotation.name();
             if (ruleDescription.isBlank() || ANNOTATION_DEFAULT.equals(ruleDescription)) {
-                ruleDescription = method.getName();
+                ruleDescription = script.getClass().getSimpleName() + "/" + method.getName();
             }
 
             if (ruleAnnotation.disabled()) {
