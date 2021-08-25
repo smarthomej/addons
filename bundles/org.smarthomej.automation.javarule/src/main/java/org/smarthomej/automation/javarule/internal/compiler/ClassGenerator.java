@@ -30,9 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -77,8 +74,9 @@ public class ClassGenerator {
     public boolean generateThingActions() throws IOException {
         List<ThingActions> thingActions;
         try {
+            Set<Class<?>> classes = new HashSet<>();
             thingActions = bundleContext.getServiceReferences(ThingActions.class, null).stream()
-                    .map(bundleContext::getService).filter(distinctByKey(ThingActions::getClass))
+                    .map(bundleContext::getService).filter(sr -> classes.add(sr.getClass()))
                     .collect(Collectors.toList());
         } catch (InvalidSyntaxException e) {
             logger.warn("Failed to get thing actions: {}", e.getMessage());
@@ -256,10 +254,5 @@ public class ClassGenerator {
             outFile.write(generatedClass.getBytes(StandardCharsets.UTF_8));
             logger.debug("Wrote generated class: {}", thingJavaFile.toAbsolutePath());
         }
-    }
-
-    private static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
-        Map<Object, Boolean> seen = new ConcurrentHashMap<>();
-        return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
     }
 }
