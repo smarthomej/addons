@@ -67,6 +67,8 @@ public class AndroidDebugBridgeDevice {
     private static final Pattern TAP_EVENT_PATTERN = Pattern.compile("(?<x>\\d+),(?<y>\\d+)");
     private static final Pattern PACKAGE_NAME_PATTERN = Pattern
             .compile("^([A-Za-z]{1}[A-Za-z\\d_\\/]*\\.)+[A-Za-z][A-Za-z\\d_]*$");
+    private static final Pattern INTENT_STRING_PATTERN = Pattern
+            .compile("intent://(?:[\\w\\./]*?)#Intent;(?:[\\w\\.]+=[\\w\\.]+;)+end");
 
     private static @Nullable AdbCrypto adbCrypto;
 
@@ -161,9 +163,13 @@ public class AndroidDebugBridgeDevice {
         runAdbShell("am", "start", "-a", "android.intent.action.VIEW", "-d", url);
     }
 
-    public void startIntent(String intent)
+    public void startIntent(String intentString)
             throws AndroidDebugBridgeDeviceException, InterruptedException, TimeoutException, ExecutionException {
-        runAdbShell("am", "start", "\"" + intent + "\"");
+        if (!INTENT_STRING_PATTERN.matcher(intentString).matches()) {
+            LOGGER.warn("{} is not a valid intent string", intentString);
+            return;
+        }
+        runAdbShell("am", "start", "\"" + intentString + "\"");
     }
 
     public String getCurrentPackage() throws AndroidDebugBridgeDeviceException, InterruptedException,
