@@ -156,6 +156,11 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
                 handleCommandInternal(new ChannelUID(this.thing.getUID(), CURRENT_PACKAGE_CHANNEL),
                         RefreshType.REFRESH);
                 break;
+            case START_INTENT_CHANNEL:
+                adbConnection.startIntent(command.toFullString());
+                handleCommandInternal(new ChannelUID(this.thing.getUID(), CURRENT_PACKAGE_CHANNEL),
+                        RefreshType.REFRESH);
+                break;
             case CURRENT_PACKAGE_CHANNEL:
                 if (command instanceof RefreshType) {
                     String currentPackage = adbConnection.getCurrentPackage();

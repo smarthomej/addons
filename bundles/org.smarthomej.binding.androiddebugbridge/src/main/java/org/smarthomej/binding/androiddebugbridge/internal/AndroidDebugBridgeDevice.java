@@ -161,6 +161,11 @@ public class AndroidDebugBridgeDevice {
         runAdbShell("am", "start", "-a", "android.intent.action.VIEW", "-d", url);
     }
 
+    public void startIntent(String intent)
+            throws AndroidDebugBridgeDeviceException, InterruptedException, TimeoutException, ExecutionException {
+        runAdbShell("am", "start", "\"" + intent + "\"");
+    }
+
     public String getCurrentPackage() throws AndroidDebugBridgeDeviceException, InterruptedException,
             AndroidDebugBridgeDeviceReadException, TimeoutException, ExecutionException {
         String result = runAdbShell("dumpsys", "window", "windows", "|", "grep", "mFocusedApp");

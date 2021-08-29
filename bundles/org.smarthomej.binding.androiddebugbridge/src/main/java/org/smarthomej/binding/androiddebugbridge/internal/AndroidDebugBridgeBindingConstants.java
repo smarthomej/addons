@@ -44,6 +44,7 @@ public class AndroidDebugBridgeBindingConstants {
     public static final String STOP_PACKAGE_CHANNEL = "stop-package";
     public static final String STOP_CURRENT_PACKAGE_CHANNEL = "stop-current-package";
     public static final String OPEN_URL_CHANNEL = "open-url";
+    public static final String START_INTENT_CHANNEL = "start-intent";
     public static final String CURRENT_PACKAGE_CHANNEL = "current-package";
     public static final String SHUTDOWN_CHANNEL = "shutdown";
     public static final String AWAKE_STATE_CHANNEL = "awake-state";

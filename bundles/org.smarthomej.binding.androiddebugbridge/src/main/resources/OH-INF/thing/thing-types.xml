@@ -17,6 +17,7 @@
 			<channel id="stop-package" typeId="stop-package-channel"/>
 			<channel id="stop-current-package" typeId="stop-current-package-channel"/>
 			<channel id="open-url" typeId="open-url-channel"/>
+			<channel id="start-intent" typeId="start-intent-channel"/>
 			<channel id="current-package" typeId="current-package-channel"/>
 			<channel id="wake-lock" typeId="wake-lock-channel"/>
 			<channel id="screen-state" typeId="screen-state-channel"/>
@@ -387,6 +388,12 @@
 		<item-type>String</item-type>
 		<label>Open URL</label>
 		<description>Open URL</description>
+	</channel-type>
+
+	<channel-type id="start-intent-channel">
+		<item-type>String</item-type>
+		<label>Start Intent</label>
+		<description>Start Intent</description>
 	</channel-type>
 
 	<channel-type id="current-package-channel">
