@@ -161,6 +161,7 @@ public class CompilerService extends AbstractWatchService implements EventSubscr
 
     @Deactivate
     public void deactivate() {
+        super.deactivate();
         // delete all files in temp folder, adapted from https://stackoverflow.com/a/20280989
         try {
             Files.walkFileTree(tempFolder, new SimpleFileVisitor<>() {
