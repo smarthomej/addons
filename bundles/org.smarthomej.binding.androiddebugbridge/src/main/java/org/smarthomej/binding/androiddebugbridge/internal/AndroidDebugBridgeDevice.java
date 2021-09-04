@@ -68,7 +68,7 @@ public class AndroidDebugBridgeDevice {
     private static final Pattern PACKAGE_NAME_PATTERN = Pattern
             .compile("^([A-Za-z]{1}[A-Za-z\\d_\\/]*\\.)+[A-Za-z][A-Za-z\\d_]*$");
     private static final Pattern INTENT_STRING_PATTERN = Pattern
-            .compile("intent://(?:[\\w\\./]*?)#Intent;(?:[\\w\\.]+=[\\w\\.]+;)+end");
+            .compile("intent://(?:[\\w\\./\\-_]*?)#Intent;(?:[\\w\\.\\-_]+=[\\w\\.\\-_]+;)+end");
 
     private static @Nullable AdbCrypto adbCrypto;
 

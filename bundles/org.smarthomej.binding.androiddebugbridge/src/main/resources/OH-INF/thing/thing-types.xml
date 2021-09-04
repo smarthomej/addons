@@ -25,6 +25,9 @@
 			<channel id="hdmi-state" typeId="hdmi-state-channel"/>
 			<channel id="shutdown" typeId="shutdown-channel"/>
 		</channels>
+		<properties>
+			<property name="thingTypeVersion">1</property>
+		</properties>
 		<representation-property>serial</representation-property>
 		<config-description>
 			<parameter name="ip" type="text" required="true">
