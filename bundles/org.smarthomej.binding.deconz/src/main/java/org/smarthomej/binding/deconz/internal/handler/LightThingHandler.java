@@ -51,6 +51,7 @@ import org.openhab.core.types.StateDescriptionFragmentBuilder;
 import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smarthomej.binding.deconz.internal.ColorUtil;
 import org.smarthomej.binding.deconz.internal.CommandDescriptionProvider;
 import org.smarthomej.binding.deconz.internal.StateDescriptionProvider;
 import org.smarthomej.binding.deconz.internal.Util;
@@ -221,14 +222,12 @@ public class LightThingHandler extends DeconzBaseThingHandler {
                     if ("hs".equals(colorMode)) {
                         newLightState.hue = (int) (hsbCommand.getHue().doubleValue() * HUE_FACTOR);
                         newLightState.sat = Util.fromPercentType(hsbCommand.getSaturation());
+                        newLightState.bri = Util.fromPercentType(hsbCommand.getBrightness());
                     } else {
-                        PercentType[] xy = hsbCommand.toXY();
-                        if (xy.length < 2) {
-                            logger.warn("Failed to convert {} to xy-values", command);
-                        }
-                        newLightState.xy = new double[] { xy[0].doubleValue() / 100.0, xy[1].doubleValue() / 100.0 };
+                        double[] xy = ColorUtil.hsbToXY(hsbCommand);
+                        newLightState.xy = new double[] { xy[0], xy[1] };
+                        newLightState.bri = (int) (xy[2] * BRIGHTNESS_MAX);
                     }
-                    newLightState.bri = Util.fromPercentType(hsbCommand.getBrightness());
                 } else if (command instanceof PercentType) {
                     newLightState.bri = Util.fromPercentType((PercentType) command);
                 } else if (command instanceof DecimalType) {
@@ -422,8 +421,11 @@ public class LightThingHandler extends DeconzBaseThingHandler {
                 } else if (bri != null && "xy".equals(newState.colormode)) {
                     final double @Nullable [] xy = newState.xy;
                     if (xy != null && xy.length == 2) {
-                        HSBType color = HSBType.fromXY((float) xy[0], (float) xy[1]);
-                        updateState(channelId, new HSBType(color.getHue(), color.getSaturation(), toPercentType(bri)));
+                        double[] xyY = new double[3];
+                        xyY[0] = xy[0];
+                        xyY[1] = xy[1];
+                        xyY[2] = ((double) bri) / BRIGHTNESS_MAX;
+                        updateState(channelId, ColorUtil.xyToHsv(xyY));
                     }
                 } else if (bri != null && hue != null && sat != null) {
                     updateState(channelId,

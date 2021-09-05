@@ -42,6 +42,7 @@ import org.openhab.core.types.State;
 import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smarthomej.binding.deconz.internal.ColorUtil;
 import org.smarthomej.binding.deconz.internal.CommandDescriptionProvider;
 import org.smarthomej.binding.deconz.internal.Util;
 import org.smarthomej.binding.deconz.internal.action.GroupActions;
@@ -114,14 +115,12 @@ public class GroupThingHandler extends DeconzBaseThingHandler {
                     if ("hs".equals(colorMode)) {
                         newGroupAction.hue = (int) (hsbCommand.getHue().doubleValue() * HUE_FACTOR);
                         newGroupAction.sat = Util.fromPercentType(hsbCommand.getSaturation());
+                        newGroupAction.bri = Util.fromPercentType(hsbCommand.getBrightness());
                     } else {
-                        PercentType[] xy = hsbCommand.toXY();
-                        if (xy.length < 2) {
-                            logger.warn("Failed to convert {} to xy-values", command);
-                        }
-                        newGroupAction.xy = new double[] { xy[0].doubleValue() / 100.0, xy[1].doubleValue() / 100.0 };
+                        double[] xy = ColorUtil.hsbToXY(hsbCommand);
+                        newGroupAction.xy = new double[] { xy[0], xy[1] };
+                        newGroupAction.bri = (int) (xy[2] * BRIGHTNESS_MAX);
                     }
-                    newGroupAction.bri = Util.fromPercentType(hsbCommand.getBrightness());
                 } else if (command instanceof PercentType) {
                     newGroupAction.bri = Util.fromPercentType((PercentType) command);
                 } else if (command instanceof DecimalType) {
