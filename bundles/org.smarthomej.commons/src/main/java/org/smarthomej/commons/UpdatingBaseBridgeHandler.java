@@ -47,7 +47,7 @@ public abstract class UpdatingBaseBridgeHandler extends BaseBridgeHandler {
     public void setCallback(@Nullable ThingHandlerCallback thingHandlerCallback) {
         super.setCallback(thingHandlerCallback);
         if (thingHandlerCallback != null && thingUpdater.thingNeedsUpdate()) {
-            updateThing(thingUpdater.update(editThing(), thingHandlerCallback).build());
+            thingUpdater.update(editThing(), thingHandlerCallback, this::isInitialized, this::updateThing);
         }
     }
 }
