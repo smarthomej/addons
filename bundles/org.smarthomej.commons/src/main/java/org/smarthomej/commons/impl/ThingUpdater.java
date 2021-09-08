@@ -112,13 +112,15 @@ public class ThingUpdater {
         return !updateInstructions.isEmpty();
     }
 
-    public void update(ThingBuilder thingBuilder, ThingHandlerCallback callback, Supplier<Boolean> isInitialized,
-            Consumer<Thing> update) {
+    public void update(Supplier<ThingBuilder> thingBuilderSupplier, ThingHandlerCallback callback,
+            Supplier<Boolean> isInitialized, Consumer<Thing> update) {
         if (!isInitialized.get()) {
             logger.trace("Thing {} is not yet initialized, deferring update for 500ms.", thingUid);
-            scheduler.schedule(() -> update(thingBuilder, callback, isInitialized, update), 500, TimeUnit.MILLISECONDS);
+            scheduler.schedule(() -> update(thingBuilderSupplier, callback, isInitialized, update), 500,
+                    TimeUnit.MILLISECONDS);
             return;
         }
+        ThingBuilder thingBuilder = thingBuilderSupplier.get();
         updateInstructions.forEach((targetThingTypeVersion, updateInstruction) -> {
             logger.info("Updating {} from version {} to {}", thingUid, currentThingTypeVersion, targetThingTypeVersion);
             updateInstruction.forEach(instruction -> processUpdateInstruction(instruction, thingBuilder, callback));
