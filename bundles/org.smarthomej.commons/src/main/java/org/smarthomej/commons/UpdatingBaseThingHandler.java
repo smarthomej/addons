@@ -46,7 +46,7 @@ public abstract class UpdatingBaseThingHandler extends BaseThingHandler {
     public void setCallback(@Nullable ThingHandlerCallback thingHandlerCallback) {
         super.setCallback(thingHandlerCallback);
         if (thingHandlerCallback != null && thingUpdater.thingNeedsUpdate()) {
-            updateThing(thingUpdater.update(editThing(), thingHandlerCallback).build());
+            thingUpdater.update(this::editThing, thingHandlerCallback, this::isInitialized, this::updateThing);
         }
     }
 }

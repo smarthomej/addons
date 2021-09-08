@@ -14,6 +14,7 @@ package org.smarthomej.commons;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.timeout;
 import static org.smarthomej.commons.UpdatingBaseThingHandler.PROPERTY_THING_TYPE_VERSION;
 
 import java.util.Map;
@@ -88,7 +89,8 @@ public class UpdatingBaseBridgeHandlerTest {
         TestBridgeHandler testBridgeHandler = new TestBridgeHandler(bridge);
         testBridgeHandler.setCallback(callback);
 
-        Mockito.verify(callback).thingUpdated(thingCaptor.capture());
+        Mockito.verify(callback, timeout(2000)).thingUpdated(thingCaptor.capture());
+        Assertions.assertEquals(2, testBridgeHandler.initializeCounter);
         Bridge newBridge = thingCaptor.getValue();
 
         Channel newChannel = newBridge.getChannel("testChannel1");
@@ -123,7 +125,8 @@ public class UpdatingBaseBridgeHandlerTest {
         TestBridgeHandler testBridgeHandler = new TestBridgeHandler(bridge);
         testBridgeHandler.setCallback(callback);
 
-        Mockito.verify(callback).thingUpdated(thingCaptor.capture());
+        Mockito.verify(callback, timeout(2000)).thingUpdated(thingCaptor.capture());
+        Assertions.assertEquals(2, testBridgeHandler.initializeCounter);
         Bridge newBridge = thingCaptor.getValue();
 
         Assertions.assertEquals(0, newBridge.getChannels().size());
@@ -140,7 +143,8 @@ public class UpdatingBaseBridgeHandlerTest {
         TestBridgeHandler testBridgeHandler = new TestBridgeHandler(bridge);
         testBridgeHandler.setCallback(callback);
 
-        Mockito.verify(callback).thingUpdated(thingCaptor.capture());
+        Mockito.verify(callback, timeout(2000)).thingUpdated(thingCaptor.capture());
+        Assertions.assertEquals(2, testBridgeHandler.initializeCounter);
         Bridge newBridge = thingCaptor.getValue();
 
         Channel newChannel = newBridge.getChannel("testChannel");
@@ -163,7 +167,8 @@ public class UpdatingBaseBridgeHandlerTest {
         TestBridgeHandler testBridgeHandler = new TestBridgeHandler(bridge);
         testBridgeHandler.setCallback(callback);
 
-        Mockito.verify(callback).thingUpdated(thingCaptor.capture());
+        Mockito.verify(callback, timeout(2000)).thingUpdated(thingCaptor.capture());
+        Assertions.assertEquals(2, testBridgeHandler.initializeCounter);
         Bridge newBridge = thingCaptor.getValue();
 
         // added channel
@@ -203,6 +208,13 @@ public class UpdatingBaseBridgeHandlerTest {
     private static class TestBridgeHandler extends UpdatingBaseBridgeHandler {
         public TestBridgeHandler(Bridge bridge) {
             super(bridge);
+        }
+
+        private int initializeCounter = 0;
+
+        @Override
+        protected boolean isInitialized() {
+            return ++initializeCounter > 1;
         }
 
         @Override
