@@ -22,10 +22,15 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.TreeMap;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.core.common.ThreadPoolManager;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingUID;
@@ -50,6 +55,8 @@ public class ThingUpdater {
     private final TreeMap<Integer, List<UpdateInstruction>> updateInstructions = new TreeMap<>();
     private final ThingUID thingUid;
     private int currentThingTypeVersion;
+    private final ScheduledExecutorService scheduler = ThreadPoolManager
+            .getScheduledPool(ThreadPoolManager.THREAD_POOL_NAME_COMMON);
 
     public ThingUpdater(Thing thing, Class<?> clazz) {
         currentThingTypeVersion = Integer
@@ -105,14 +112,22 @@ public class ThingUpdater {
         return !updateInstructions.isEmpty();
     }
 
-    public ThingBuilder update(ThingBuilder thingBuilder, ThingHandlerCallback callback) {
+    public void update(Supplier<ThingBuilder> thingBuilderSupplier, ThingHandlerCallback callback,
+            Supplier<Boolean> isInitialized, Consumer<Thing> update) {
+        if (!isInitialized.get()) {
+            logger.trace("Thing {} is not yet initialized, deferring update for 500ms.", thingUid);
+            scheduler.schedule(() -> update(thingBuilderSupplier, callback, isInitialized, update), 500,
+                    TimeUnit.MILLISECONDS);
+            return;
+        }
+        ThingBuilder thingBuilder = thingBuilderSupplier.get();
         updateInstructions.forEach((targetThingTypeVersion, updateInstruction) -> {
             logger.info("Updating {} from version {} to {}", thingUid, currentThingTypeVersion, targetThingTypeVersion);
             updateInstruction.forEach(instruction -> processUpdateInstruction(instruction, thingBuilder, callback));
             currentThingTypeVersion = targetThingTypeVersion;
         });
         thingBuilder.withProperties(Map.of(PROPERTY_THING_TYPE_VERSION, String.valueOf(updateInstructions.lastKey())));
-        return thingBuilder;
+        update.accept(thingBuilder.build());
     }
 
     private void processUpdateInstruction(UpdateInstruction instruction, ThingBuilder thingBuilder,
