@@ -210,14 +210,14 @@ public class SOAPValueConverter {
     @SuppressWarnings("unused")
     private State processTamListURL(State state, Tr064ChannelConfig channelConfig) throws PostProcessingException {
         try {
-            ContentResponse response = httpClient.newRequest(state.toString()).timeout(1000, TimeUnit.MILLISECONDS)
+            ContentResponse response = httpClient.newRequest(state.toString()).timeout(timeout, TimeUnit.MILLISECONDS)
                     .send();
             String responseContent = response.getContentAsString();
             int messageCount = responseContent.split("<New>1</New>").length - 1;
 
             return new DecimalType(messageCount);
         } catch (InterruptedException | TimeoutException | ExecutionException e) {
-            throw new PostProcessingException("Failed to get TAM list from URL " + state.toString(), e);
+            throw new PostProcessingException("Failed to get TAM list from URL " + state, e);
         }
     }
 
@@ -299,7 +299,7 @@ public class SOAPValueConverter {
             throws PostProcessingException {
         Root callListRoot = Util.getAndUnmarshalXML(httpClient, state + "&days=" + days, Root.class, timeout);
         if (callListRoot == null) {
-            throw new PostProcessingException("Failed to get call list from URL " + state.toString());
+            throw new PostProcessingException("Failed to get call list from URL " + state);
         }
         List<Call> calls = callListRoot.getCall();
         switch (type) {
