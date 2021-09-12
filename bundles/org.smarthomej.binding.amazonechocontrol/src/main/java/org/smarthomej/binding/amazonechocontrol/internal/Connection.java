@@ -1578,7 +1578,7 @@ public class Connection {
                         Map.of("value", standardVolume)));
             }
         }
-        if (standardVolumeNodesToExecute.size() > 0) {
+        if (standardVolumeNodesToExecute.size() > 0 && !"AlexaAnnouncement".equals(command)) {
             JsonObject parallelNodesToExecute = new JsonObject();
             parallelNodesToExecute.addProperty("@type", "com.amazon.alexa.behaviors.model.ParallelNode");
             parallelNodesToExecute.add("nodesToExecute", standardVolumeNodesToExecute);
@@ -1587,6 +1587,10 @@ public class Connection {
 
         if (serialNodesToExecute.size() > 0) {
             executeSequenceNodes(devices, serialNodesToExecute, false);
+
+            if (standardVolumeNodesToExecute.size() > 0 && "AlexaAnnouncement".equals(command)) {
+                executeSequenceNodes(devices, standardVolumeNodesToExecute, true);
+            }
         }
     }
 
