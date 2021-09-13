@@ -31,6 +31,8 @@ import org.openhab.core.config.discovery.AbstractDiscoveryService;
 import org.openhab.core.config.discovery.DiscoveryResult;
 import org.openhab.core.config.discovery.DiscoveryResultBuilder;
 import org.openhab.core.thing.ThingUID;
+import org.openhab.core.thing.binding.ThingHandler;
+import org.openhab.core.thing.binding.ThingHandlerService;
 import org.osgi.service.component.annotations.Activate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,18 +48,28 @@ import org.smarthomej.binding.amazonechocontrol.internal.smarthome.Constants;
 
 /**
  * @author Lukas Knoeller - Initial contribution
+ * @author Jan N. Klug - Refactored to ThingHandlerService
  */
 @NonNullByDefault
-public class SmartHomeDevicesDiscovery extends AbstractDiscoveryService {
-    private AccountHandler accountHandler;
+public class SmartHomeDevicesDiscovery extends AbstractDiscoveryService implements ThingHandlerService {
+    private @Nullable AccountHandler accountHandler;
     private final Logger logger = LoggerFactory.getLogger(SmartHomeDevicesDiscovery.class);
 
     private @Nullable ScheduledFuture<?> startScanStateJob;
     private @Nullable Long activateTimeStamp;
 
-    public SmartHomeDevicesDiscovery(AccountHandler accountHandler) {
+    public SmartHomeDevicesDiscovery() {
         super(SUPPORTED_SMART_HOME_THING_TYPES_UIDS, 10);
-        this.accountHandler = accountHandler;
+    }
+
+    @Override
+    public void setThingHandler(ThingHandler thingHandler) {
+        this.accountHandler = (AccountHandler) thingHandler;
+    }
+
+    @Override
+    public @Nullable ThingHandler getThingHandler() {
+        return accountHandler;
     }
 
     public void activate() {
@@ -71,6 +83,10 @@ public class SmartHomeDevicesDiscovery extends AbstractDiscoveryService {
 
     @Override
     protected void startScan() {
+        AccountHandler accountHandler = this.accountHandler;
+        if (accountHandler == null) {
+            return;
+        }
         stopScanJob();
         Long activateTimeStamp = this.activateTimeStamp;
         if (activateTimeStamp != null) {
@@ -80,11 +96,15 @@ public class SmartHomeDevicesDiscovery extends AbstractDiscoveryService {
     }
 
     protected void startAutomaticScan() {
-        if (!this.accountHandler.getThing().getThings().isEmpty()) {
+        AccountHandler accountHandler = this.accountHandler;
+        if (accountHandler == null) {
+            return;
+        }
+        if (!accountHandler.getThing().getThings().isEmpty()) {
             stopScanJob();
             return;
         }
-        Connection connection = this.accountHandler.findConnection();
+        Connection connection = accountHandler.findConnection();
         if (connection == null) {
             return;
         }
@@ -130,16 +150,20 @@ public class SmartHomeDevicesDiscovery extends AbstractDiscoveryService {
         if (activateTimeStamp == null) {
             this.activateTimeStamp = new Date().getTime();
         }
-    };
+    }
 
-    synchronized void setSmartHomeDevices(List<SmartHomeBaseDevice> deviceList) {
+    private synchronized void setSmartHomeDevices(List<SmartHomeBaseDevice> deviceList) {
+        AccountHandler accountHandler = this.accountHandler;
+        if (accountHandler == null) {
+            return;
+        }
         int smartHomeDeviceDiscoveryMode = accountHandler.getSmartHomeDevicesDiscoveryMode();
         if (smartHomeDeviceDiscoveryMode == 0) {
             return;
         }
 
         for (Object smartHomeDevice : deviceList) {
-            ThingUID bridgeThingUID = this.accountHandler.getThing().getUID();
+            ThingUID bridgeThingUID = accountHandler.getThing().getUID();
             ThingUID thingUID = null;
             String deviceName = null;
             Map<String, Object> props = new HashMap<>();

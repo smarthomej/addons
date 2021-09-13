@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -31,6 +32,8 @@ import org.openhab.core.config.discovery.DiscoveryResult;
 import org.openhab.core.config.discovery.DiscoveryResultBuilder;
 import org.openhab.core.thing.ThingTypeUID;
 import org.openhab.core.thing.ThingUID;
+import org.openhab.core.thing.binding.ThingHandler;
+import org.openhab.core.thing.binding.ThingHandlerService;
 import org.osgi.service.component.annotations.Activate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,20 +46,29 @@ import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDevices.Devic
  * the amazon account specified in the binding.
  *
  * @author Michael Geramb - Initial contribution
+ * @author Jan N. Klug - Refactored to ThingHandlerService
  */
 @NonNullByDefault
-public class AmazonEchoDiscovery extends AbstractDiscoveryService {
-
-    AccountHandler accountHandler;
+public class AmazonEchoDiscovery extends AbstractDiscoveryService implements ThingHandlerService {
+    private @Nullable AccountHandler accountHandler;
     private final Logger logger = LoggerFactory.getLogger(AmazonEchoDiscovery.class);
     private final Set<String> discoveredFlashBriefings = new HashSet<>();
 
     private @Nullable ScheduledFuture<?> startScanStateJob;
     private @Nullable Long activateTimeStamp;
 
-    public AmazonEchoDiscovery(AccountHandler accountHandler) {
+    public AmazonEchoDiscovery() {
         super(SUPPORTED_ECHO_THING_TYPES_UIDS, 10);
-        this.accountHandler = accountHandler;
+    }
+
+    @Override
+    public void setThingHandler(ThingHandler thingHandler) {
+        this.accountHandler = (AccountHandler) thingHandler;
+    }
+
+    @Override
+    public @Nullable ThingHandler getThingHandler() {
+        return accountHandler;
     }
 
     public void activate() {
@@ -70,6 +82,10 @@ public class AmazonEchoDiscovery extends AbstractDiscoveryService {
 
     @Override
     protected void startScan() {
+        AccountHandler accountHandler = this.accountHandler;
+        if (accountHandler == null) {
+            return;
+        }
         stopScanJob();
         final Long activateTimeStamp = this.activateTimeStamp;
         if (activateTimeStamp != null) {
@@ -82,11 +98,15 @@ public class AmazonEchoDiscovery extends AbstractDiscoveryService {
     }
 
     protected void startAutomaticScan() {
-        if (!this.accountHandler.getThing().getThings().isEmpty()) {
+        AccountHandler accountHandler = this.accountHandler;
+        if (accountHandler == null) {
+            return;
+        }
+        if (!accountHandler.getThing().getThings().isEmpty()) {
             stopScanJob();
             return;
         }
-        Connection connection = this.accountHandler.findConnection();
+        Connection connection = accountHandler.findConnection();
         if (connection == null) {
             return;
         }
@@ -133,32 +153,43 @@ public class AmazonEchoDiscovery extends AbstractDiscoveryService {
         }
     }
 
-    synchronized void setDevices(List<Device> deviceList) {
+    private synchronized void setDevices(List<Device> deviceList) {
+        AccountHandler accountHandler = this.accountHandler;
+        if (accountHandler == null) {
+            return;
+        }
         for (Device device : deviceList) {
             String serialNumber = device.serialNumber;
             if (serialNumber != null) {
                 String deviceFamily = device.deviceFamily;
                 if (deviceFamily != null) {
                     ThingTypeUID thingTypeId;
-                    if ("ECHO".equals(deviceFamily)) {
-                        thingTypeId = THING_TYPE_ECHO;
-                    } else if ("ROOK".equals(deviceFamily)) {
-                        thingTypeId = THING_TYPE_ECHO_SPOT;
-                    } else if ("KNIGHT".equals(deviceFamily)) {
-                        thingTypeId = THING_TYPE_ECHO_SHOW;
-                    } else if ("WHA".equals(deviceFamily)) {
-                        thingTypeId = THING_TYPE_ECHO_WHA;
-                    } else {
-                        logger.debug("Unknown thing type '{}'", deviceFamily);
-                        continue;
+                    switch (deviceFamily) {
+                        case "ECHO":
+                            thingTypeId = THING_TYPE_ECHO;
+                            break;
+                        case "ROOK":
+                            thingTypeId = THING_TYPE_ECHO_SPOT;
+                            break;
+                        case "KNIGHT":
+                            thingTypeId = THING_TYPE_ECHO_SHOW;
+                            break;
+                        case "WHA":
+                            thingTypeId = THING_TYPE_ECHO_WHA;
+                            break;
+                        default:
+                            logger.debug("Unknown thing type '{}'", deviceFamily);
+                            continue;
                     }
 
-                    ThingUID bridgeThingUID = this.accountHandler.getThing().getUID();
+                    ThingUID bridgeThingUID = accountHandler.getThing().getUID();
                     ThingUID thingUID = new ThingUID(thingTypeId, bridgeThingUID, serialNumber);
 
                     DiscoveryResult result = DiscoveryResultBuilder.create(thingUID).withLabel(device.accountName)
                             .withProperty(DEVICE_PROPERTY_SERIAL_NUMBER, serialNumber)
                             .withProperty(DEVICE_PROPERTY_FAMILY, deviceFamily)
+                            .withProperty(DEVICE_PROPERTY_DEVICE_TYPE_ID,
+                                    Objects.requireNonNullElse(device.deviceType, "<unknown>"))
                             .withRepresentationProperty(DEVICE_PROPERTY_SERIAL_NUMBER).withBridge(bridgeThingUID)
                             .build();
 
@@ -171,13 +202,18 @@ public class AmazonEchoDiscovery extends AbstractDiscoveryService {
         }
     }
 
-    public synchronized void discoverFlashBriefingProfiles(String currentFlashBriefingJson) {
+    private synchronized void discoverFlashBriefingProfiles(String currentFlashBriefingJson) {
+        AccountHandler accountHandler = this.accountHandler;
+        if (accountHandler == null) {
+            return;
+        }
+
         if (currentFlashBriefingJson.isEmpty()) {
             return;
         }
 
         if (!discoveredFlashBriefings.contains(currentFlashBriefingJson)) {
-            ThingUID bridgeThingUID = this.accountHandler.getThing().getUID();
+            ThingUID bridgeThingUID = accountHandler.getThing().getUID();
             ThingUID freeThingUID = new ThingUID(THING_TYPE_FLASH_BRIEFING_PROFILE, bridgeThingUID,
                     Integer.toString(currentFlashBriefingJson.hashCode()));
             DiscoveryResult result = DiscoveryResultBuilder.create(freeThingUID).withLabel("FlashBriefing")
@@ -186,12 +222,6 @@ public class AmazonEchoDiscovery extends AbstractDiscoveryService {
             logger.debug("Flash Briefing {} discovered", currentFlashBriefingJson);
             thingDiscovered(result);
             discoveredFlashBriefings.add(currentFlashBriefingJson);
-        }
-    }
-
-    public synchronized void removeExistingFlashBriefingProfile(@Nullable String currentFlashBriefingJson) {
-        if (currentFlashBriefingJson != null) {
-            discoveredFlashBriefings.remove(currentFlashBriefingJson);
         }
     }
 }
