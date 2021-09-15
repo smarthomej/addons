@@ -206,8 +206,12 @@ public abstract class SensorBaseThingHandler extends DeconzBaseThingHandler {
             SensorMessage sensorMessage = (SensorMessage) message;
             SensorConfig sensorConfig = sensorMessage.config;
             if (sensorConfig != null) {
-                this.sensorConfig = sensorConfig;
-                updateChannels(sensorConfig);
+                if (sensorConfig.reachable) {
+                    updateStatus(ThingStatus.ONLINE);
+                    updateChannels(sensorConfig);
+                } else {
+                    updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.GONE, "Not reachable");
+                }
             }
             SensorState sensorState = sensorMessage.state;
             if (sensorState != null) {
@@ -217,6 +221,7 @@ public abstract class SensorBaseThingHandler extends DeconzBaseThingHandler {
     }
 
     private void updateChannels(SensorConfig newConfig) {
+        this.sensorConfig = newConfig;
         List<String> configChannels = getConfigChannels();
         thing.getChannels().stream().map(Channel::getUID)
                 .filter(channelUID -> configChannels.contains(channelUID.getId()))

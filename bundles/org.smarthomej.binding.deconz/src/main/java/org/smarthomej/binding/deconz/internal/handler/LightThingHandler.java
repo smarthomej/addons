@@ -47,7 +47,6 @@ import org.openhab.core.types.CommandOption;
 import org.openhab.core.types.RefreshType;
 import org.openhab.core.types.StateDescriptionFragment;
 import org.openhab.core.types.StateDescriptionFragmentBuilder;
-import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.deconz.internal.ColorUtil;
@@ -459,9 +458,9 @@ public class LightThingHandler extends DeconzBaseThingHandler {
 
     @Override
     public void messageReceived(DeconzBaseMessage message) {
+        logger.trace("{} received {}", thing.getUID(), message);
         if (message instanceof LightMessage) {
             LightMessage lightMessage = (LightMessage) message;
-            logger.trace("{} received {}", thing.getUID(), lightMessage);
             LightState lightState = lightMessage.state;
             if (lightState != null) {
                 if (lastCommandExpireTimestamp > System.currentTimeMillis()
@@ -483,7 +482,6 @@ public class LightThingHandler extends DeconzBaseThingHandler {
                     thing.getChannels().stream().map(c -> c.getUID().getId()).forEach(c -> valueUpdated(c, lightState));
                 } else {
                     updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.GONE, "Not reachable");
-                    thing.getChannels().stream().map(c -> c.getUID()).forEach(c -> updateState(c, UnDefType.UNDEF));
                 }
             }
         }
