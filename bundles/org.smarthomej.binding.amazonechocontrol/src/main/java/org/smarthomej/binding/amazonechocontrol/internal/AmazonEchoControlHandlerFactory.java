@@ -15,31 +15,21 @@ package org.smarthomej.binding.amazonechocontrol.internal;
 
 import static org.smarthomej.binding.amazonechocontrol.internal.AmazonEchoControlBindingConstants.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.openhab.core.config.discovery.AbstractDiscoveryService;
-import org.openhab.core.config.discovery.DiscoveryService;
 import org.openhab.core.storage.Storage;
 import org.openhab.core.storage.StorageService;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingTypeUID;
-import org.openhab.core.thing.ThingUID;
 import org.openhab.core.thing.binding.BaseThingHandlerFactory;
 import org.openhab.core.thing.binding.ThingHandler;
 import org.openhab.core.thing.binding.ThingHandlerFactory;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -48,8 +38,6 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.http.HttpService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthomej.binding.amazonechocontrol.internal.discovery.AmazonEchoDiscovery;
-import org.smarthomej.binding.amazonechocontrol.internal.discovery.SmartHomeDevicesDiscovery;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.AccountHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.EchoHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.FlashBriefingProfileHandler;
@@ -68,7 +56,6 @@ import com.google.gson.Gson;
 @NonNullByDefault
 public class AmazonEchoControlHandlerFactory extends BaseThingHandlerFactory {
     private final Logger logger = LoggerFactory.getLogger(AmazonEchoControlHandlerFactory.class);
-    private final Map<ThingUID, List<ServiceRegistration<?>>> discoveryServiceRegistrations = new HashMap<>();
 
     private final Set<AccountHandler> accountHandlers = new HashSet<>();
     private final HttpService httpService;
@@ -116,7 +103,6 @@ public class AmazonEchoControlHandlerFactory extends BaseThingHandlerFactory {
                     String.class.getClassLoader());
             AccountHandler bridgeHandler = new AccountHandler((Bridge) thing, httpService, storage, gson, httpClient);
             accountHandlers.add(bridgeHandler);
-            registerDiscoveryService(bridgeHandler);
             bindingServlet.addAccountThing(thing);
             return bridgeHandler;
         } else if (thingTypeUID.equals(THING_TYPE_FLASH_BRIEFING_PROFILE)) {
@@ -131,45 +117,12 @@ public class AmazonEchoControlHandlerFactory extends BaseThingHandlerFactory {
         return null;
     }
 
-    private synchronized void registerDiscoveryService(AccountHandler bridgeHandler) {
-        List<ServiceRegistration<?>> discoveryServiceRegistration = Objects.requireNonNull(discoveryServiceRegistrations
-                .computeIfAbsent(bridgeHandler.getThing().getUID(), k -> new ArrayList<>()));
-        SmartHomeDevicesDiscovery smartHomeDevicesDiscovery = new SmartHomeDevicesDiscovery(bridgeHandler);
-        smartHomeDevicesDiscovery.activate();
-        discoveryServiceRegistration.add(bundleContext.registerService(DiscoveryService.class.getName(),
-                smartHomeDevicesDiscovery, new Hashtable<>()));
-
-        AmazonEchoDiscovery discoveryService = new AmazonEchoDiscovery(bridgeHandler);
-        discoveryService.activate();
-        discoveryServiceRegistration.add(
-                bundleContext.registerService(DiscoveryService.class.getName(), discoveryService, new Hashtable<>()));
-    }
-
     @Override
     protected synchronized void removeHandler(ThingHandler thingHandler) {
         if (thingHandler instanceof AccountHandler) {
             accountHandlers.remove(thingHandler);
             BindingServlet bindingServlet = this.bindingServlet;
             bindingServlet.removeAccountThing(thingHandler.getThing());
-
-            List<ServiceRegistration<?>> discoveryServiceRegistration = discoveryServiceRegistrations
-                    .remove(thingHandler.getThing().getUID());
-            if (discoveryServiceRegistration != null) {
-                discoveryServiceRegistration.forEach(serviceReg -> {
-                    AbstractDiscoveryService service = (AbstractDiscoveryService) bundleContext
-                            .getService(serviceReg.getReference());
-                    serviceReg.unregister();
-                    if (service != null) {
-                        if (service instanceof AmazonEchoDiscovery) {
-                            ((AmazonEchoDiscovery) service).deactivate();
-                        } else if (service instanceof SmartHomeDevicesDiscovery) {
-                            ((SmartHomeDevicesDiscovery) service).deactivate();
-                        } else {
-                            logger.warn("Found unknown discovery-service instance: {}", service);
-                        }
-                    }
-                });
-            }
         }
     }
 
