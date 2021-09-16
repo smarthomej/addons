@@ -4,6 +4,7 @@
 
 	<feature name="smarthomej-automation-javarule" description="Java Rule Support" version="${project.version}">
 		<feature>openhab-runtime-base</feature>
+		<bundle dependency="true">mvn:org.smarthomej.addons.bundles/org.smarthomej.commons/${project.version}</bundle>
 		<bundle start-level="80">mvn:org.smarthomej.addons.bundles/org.smarthomej.automation.javarule/${project.version}</bundle>
 	</feature>
 </features>

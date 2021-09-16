@@ -69,7 +69,6 @@ import org.openhab.core.events.EventSubscriber;
 import org.openhab.core.items.ItemRegistry;
 import org.openhab.core.items.events.ItemAddedEvent;
 import org.openhab.core.items.events.ItemRemovedEvent;
-import org.openhab.core.service.AbstractWatchService;
 import org.openhab.core.thing.ThingRegistry;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.events.ThingAddedEvent;
@@ -85,6 +84,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.automation.javarule.internal.JavaRuleConstants;
+import org.smarthomej.commons.service.AbstractWatchService;
 
 import ch.obermuhlner.scriptengine.java.MemoryFileManager;
 
