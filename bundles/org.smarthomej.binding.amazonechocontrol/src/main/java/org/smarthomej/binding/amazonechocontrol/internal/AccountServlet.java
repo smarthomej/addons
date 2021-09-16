@@ -425,7 +425,8 @@ public class AccountServlet extends HttpServlet {
             html.append("</td><td>");
             html.append(HtmlEscape.escapeHtml4(nullReplacement(device.deviceFamily)));
             html.append("</td><td>");
-            html.append(HtmlEscape.escapeHtml4(nullReplacement(device.deviceType)));
+            String deviceTypeId = nullReplacement(device.deviceType);
+            html.append(HtmlEscape.escapeHtml4(DEVICE_TYPES.getOrDefault(deviceTypeId, deviceTypeId)));
             html.append("</td><td>");
             html.append(HtmlEscape.escapeHtml4(nullReplacement(device.deviceOwnerCustomerId)));
             html.append("</td>");

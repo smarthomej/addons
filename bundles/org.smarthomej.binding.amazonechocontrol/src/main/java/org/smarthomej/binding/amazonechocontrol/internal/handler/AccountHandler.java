@@ -20,6 +20,7 @@ import java.net.UnknownHostException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -45,6 +46,7 @@ import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.ThingUID;
 import org.openhab.core.thing.binding.BaseBridgeHandler;
 import org.openhab.core.thing.binding.ThingHandler;
+import org.openhab.core.thing.binding.ThingHandlerService;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.RefreshType;
 import org.openhab.core.types.State;
@@ -61,6 +63,8 @@ import org.smarthomej.binding.amazonechocontrol.internal.WebSocketConnection;
 import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.ChannelHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.ChannelHandlerSendMessage;
 import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.IAmazonThingHandler;
+import org.smarthomej.binding.amazonechocontrol.internal.discovery.AmazonEchoDiscovery;
+import org.smarthomej.binding.amazonechocontrol.internal.discovery.SmartHomeDevicesDiscovery;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonAscendingAlarm.AscendingAlarmModel;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates.BluetoothState;
@@ -934,5 +938,10 @@ public class AccountHandler extends BaseBridgeHandler implements IWebSocketComma
         } catch (Exception e) { // this handler can be removed later, if we know that nothing else can fail.
             logger.warn("updateSmartHomeState fails with unexpected error", e);
         }
+    }
+
+    @Override
+    public Collection<Class<? extends ThingHandlerService>> getServices() {
+        return Set.of(AmazonEchoDiscovery.class, SmartHomeDevicesDiscovery.class);
     }
 }
