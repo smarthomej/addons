@@ -24,6 +24,7 @@
       <groupId>org.smarthomej.addons.bundles</groupId>
       <artifactId>org.smarthomej.commons</artifactId>
       <version>${project.version}</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 
