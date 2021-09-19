@@ -116,11 +116,15 @@
       </resource>
       <resource>
         <targetPath>${project.build.directory}/kar</targetPath>
-        <directory>${pom.basedir}</directory>
+        <directory>${project.basedir}</directory>
         <includes>
           <include>NOTICE</include>
           <include>README.md</include>
         </includes>
+      </resource>
+      <resource>
+        <targetPath>${project.build.directory}/classes</targetPath>
+        <directory>${project.basedir}/src/main/resources</directory>
       </resource>
     </resources>
 
