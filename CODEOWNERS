@@ -5,6 +5,7 @@
 *       @J-N-K
 
 # Bundle-Maintainers:
+/bundles/org.smarthomej.automation.javarule/ @J-N-K
 /bundles/org.smarthomej.binding.amazonechocontrol/ @Trinitus01 @J-N-K
 /bundles/org.smarthomej.binding.androiddebugbridge/ @Trinitus01
 /bundles/org.smarthomej.binding.deconz/ @J-N-K
