@@ -1327,14 +1327,14 @@ public class Connection {
 
     public void announcement(Device device, String speak, String bodyText, @Nullable String title,
             @Nullable Integer ttsVolume, @Nullable Integer standardVolume) {
-        speak = speak.replaceAll("\\s+", " ").trim();
-        bodyText = bodyText.replaceAll("\\s+", " ").trim();
-        String plainSpeak = speak.replaceAll("<.+?>", " ").trim();
-        String plainBodyText = bodyText.replaceAll("<.+?>", " ").trim();
+        String trimmedSpeak = speak.replaceAll("\\s+", " ").trim();
+        String trimmedBodyText = bodyText.replaceAll("\\s+", " ").trim();
+        String plainSpeak = trimmedSpeak.replaceAll("<.+?>", " ").trim();
+        String plainBodyText = trimmedBodyText.replaceAll("<.+?>", " ").trim();
         if (plainSpeak.isEmpty() && plainBodyText.isEmpty()) {
             return;
         }
-        String escapedSpeak = speak.replace(plainSpeak, XmlEscape.escapeXml10(plainSpeak));
+        String escapedSpeak = trimmedSpeak.replace(plainSpeak, XmlEscape.escapeXml10(plainSpeak));
 
         // we lock announcements until we have finished adding this one
         Lock lock = Objects.requireNonNull(locks.computeIfAbsent(TimerType.ANNOUNCEMENT, k -> new ReentrantLock()));
@@ -1394,12 +1394,12 @@ public class Connection {
 
     public void textToSpeech(Device device, String text, @Nullable Integer ttsVolume,
             @Nullable Integer standardVolume) {
-        text = text.replaceAll("\\s+", " ").trim();
+        String trimmedText = text.replaceAll("\\s+", " ").trim();
         String plainText = text.replaceAll("<.+?>", "").trim();
         if (plainText.isEmpty()) {
             return;
         }
-        String escapedText = text.replace(plainText, XmlEscape.escapeXml10(plainText));
+        String escapedText = trimmedText.replace(plainText, XmlEscape.escapeXml10(plainText));
 
         // we lock TTS until we have finished adding this one
         Lock lock = Objects.requireNonNull(locks.computeIfAbsent(TimerType.TTS, k -> new ReentrantLock()));
@@ -1447,12 +1447,12 @@ public class Connection {
     }
 
     public void textCommand(Device device, String text, @Nullable Integer ttsVolume, @Nullable Integer standardVolume) {
-        text = text.replaceAll("\\s+", " ").trim();
-        String plainText = text.replaceAll("<.+?>", "").trim();
+        String trimmedText = text.replaceAll("\\s+", " ").trim();
+        String plainText = trimmedText.replaceAll("<.+?>", "").trim();
         if (plainText.isEmpty()) {
             return;
         }
-        String escapedText = text.replace(plainText, XmlEscape.escapeXml10(plainText));
+        String escapedText = trimmedText.replace(plainText, XmlEscape.escapeXml10(plainText));
 
         // we lock TextCommands until we have finished adding this one
         Lock lock = Objects.requireNonNull(locks.computeIfAbsent(TimerType.TEXT_COMMAND, k -> new ReentrantLock()));
