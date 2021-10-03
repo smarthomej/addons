@@ -78,7 +78,7 @@ public class JavaRuleFileManager<M extends JavaFileManager> extends ForwardingJa
         fileManagerLock.lock();
         try (Stream<Path> libFileStream = Files.list(LIB_DIR)) {
             List<Path> libFiles = libFileStream.filter(JavaRuleConstants.JAR_FILE_FILTER).collect(Collectors.toList());
-            logger.info("Number of libraries classes to load from '{}' to memory: {}", LIB_DIR, libFiles.size());
+            logger.debug("Libraries to load from '{}' to memory: {}", LIB_DIR, libFiles);
 
             JarClassLoader classLoader = new JarClassLoader(parentClassLoader);
             Map<String, List<JavaFileObject>> additionalPackages = new HashMap<>();
