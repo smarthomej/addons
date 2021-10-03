@@ -29,7 +29,7 @@ In IntelliJ IDEA this is named `Add as Library`.
 
 ## Rule Development
 
-All script need to provide a class that inherits from `org.smarthomej.automation.javarule.rules.JavaRule`.
+All scripts need to provide a class that inherits from `org.smarthomej.automation.javarule.rules.JavaRule`.
 
 If the script is evaluated, the `runScript` method is executed.
 The default implementation of `runScript` scans all methods in the class for annotations and creates corresponding triggers, conditions and rules (see below).
@@ -60,11 +60,11 @@ Additional classes are generated for each thing action (see below).
 
 ### Personal Libraries
 
-Re-using code one of the great advantages of Java.
+Re-using code is one of the great advantages of Java.
 You can create custom classes by putting the corresponding `.java`-file in the `lib/java` folder.
 A class named `Own` in package `foo.bar` needs to be
 
-- placed in the correct location for the package (i.e. `/foo/bar/Own.java`) or
+- placed in the correct location for the package (i.e. `lib/java/foo/bar/Own.java`) or
 - have the package name in the file name (i.e. `foo.bar.Own.java`).
 
 Not following these conventions might result in failure to start the script engine.
@@ -75,7 +75,6 @@ The classes generated from this code are also part of the `javarule-dependency.j
 You can use additional libraries (that are not available within openHAB) by putting a JAR-file in the `lib/java` folder.
 They are automatically picked up and made available when compiling the rules.
 You have to add them to the classpath of your IDE to allow code completion.
-
 
 ## The `JavaRule` Class
 
@@ -88,6 +87,7 @@ This class provides some fields needed for development, as explained in the offi
 - `rules`:	Instance of org.openhab.core.automation.RuleRegistry
 - `events`:	Used to send events, post commands, etc.
 - `actions`:  Used to get and call thing actions
+- `scriptExtension`: An `Object` that can be used to import further presets
 
 The documented fields for `ON`, `CLOSED`, etc. are not present, since the corresponding core `OnOffType`, `OpenClosedType`, etc. are available.
 
@@ -95,13 +95,14 @@ In addition, you can use
 
 - `scheduler`: A scheduled executor for scheduling tasks. Be careful, you have to take care on your own that scheduled tasks are cancelled when the rule is unloaded. One way to ensure this, is to add the returned `ScheduledFuture` to the `futures` set.
 - `futures`: A `Map<String, ScheduledFuture<?>>` of String/future-pairs that will be cancelled when the script is unloaded. The keys have to be unique and can be used to reference the future within the script. 
-
+    
 Besides the `runScript` method above, there are two methods that can be overridden:
 
 - `scriptLoaded(String scriptIdentifier)`: Called when the script is loaded. This can be used for initialization. Make sure to call `super.scriptLoaded`.
 - `scriptUnloaded`: Called when the script is unloaded. This can be used for clean-up. The default implementation cancels all `futures`. Make sure you do this yourself or call `super.scriptUnloaded`.
 
 Methods/fields not mentioned in this documentation are for internal use only and should not be used in rules.
+This currently applies to the method name `run`.
 
 ## Annotations
 

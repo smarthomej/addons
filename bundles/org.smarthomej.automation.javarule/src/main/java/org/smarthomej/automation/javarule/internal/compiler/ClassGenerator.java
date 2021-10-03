@@ -54,7 +54,7 @@ import org.smarthomej.automation.javarule.internal.JavaRuleConstants;
  */
 @NonNullByDefault
 public class ClassGenerator {
-    private static final Logger logger = LoggerFactory.getLogger(ClassGenerator.class);
+    private final Logger logger = LoggerFactory.getLogger(ClassGenerator.class);
 
     private final Map<String, String> scopeClasses = new HashMap<>();
 
