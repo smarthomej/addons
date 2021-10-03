@@ -40,7 +40,6 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -301,14 +300,12 @@ public class WatchQueueReader implements Runnable {
                                     }
 
                                     services.forEach(service -> forgetChecksum(service, resolvedPath));
-                                    Iterator<Notification> it = notifications.iterator();
-                                    while (it.hasNext()) {
-                                        Notification notification = it.next();
+                                    notifications.forEach(notification -> {
                                         if (notification.path.equals(resolvedPath)) {
                                             notification.future.cancel(true);
-                                            it.remove();
+                                            notifications.remove(notification);
                                         }
-                                    }
+                                    });
                                 }
                             }
                         }
@@ -317,9 +314,8 @@ public class WatchQueueReader implements Runnable {
 
                 key.reset();
             }
-        } catch (Exception exc) {
-            logger.debug("ClosedWatchServiceException caught! {}. \n{} Stopping ", exc.getLocalizedMessage(),
-                    Thread.currentThread().getName());
+        } catch (Exception e) {
+            logger.debug("Unexpected Exception in runMethod", e);
         }
     }
 
