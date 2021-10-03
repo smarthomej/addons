@@ -160,7 +160,7 @@ In this case you have to use the `wifi5GHzEnable` channel for switching the gues
 | `dslEnable`                | `Switch`                  |          | DSL Enable                                                     |
 | `dslFECErrors`             | `Number:Dimensionless`    |     x    | DSL FEC Errors                                                 |
 | `dslHECErrors`             | `Number:Dimensionless`    |     x    | DSL HEC Errors                                                 |
-| `dslStatus`                | `Switch`                  |          | DSL Status                                                     |
+| `dslStatus`                | `String`                  |          | DSL Status                                                     |
 | `dslUpstreamMaxRate`       | `Number:DataTransferRate` |     x    | DSL Max Upstream Rate                                          |
 | `dslUpstreamCurrRate`      | `Number:DataTransferRate` |     x    | DSL Curr. Upstream Rate                                        |
 | `dslUpstreamNoiseMargin`   | `Number:Dimensionless`    |     x    | DSL Upstream Noise Margin                                      |
@@ -174,7 +174,7 @@ In this case you have to use the `wifi5GHzEnable` channel for switching the gues
 | `wanTotalBytesReceived`    | `Number:DataAmount`       |     x    | Total Bytes Received                                           |
 | `wanTotalBytesSent`        | `Number:DataAmount`       |     x    | Total Bytes Sent                                               |
  
-**Note:** AVM Fritzbox devices use 4-byte-unsigned-integers for `wanTotalBytesReceived` and `wanTotalBytesSent`, because of that the counters are reset after around 4GB data.
+**Note:** AVM FritzBox devices use 4-byte-unsigned-integers for `wanTotalBytesReceived` and `wanTotalBytesSent`, because of that the counters are reset after around 4GB data.
 
 ## `PHONEBOOK` Profile
 
