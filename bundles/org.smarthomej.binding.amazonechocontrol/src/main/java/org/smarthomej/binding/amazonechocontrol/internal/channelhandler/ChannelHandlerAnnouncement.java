@@ -23,7 +23,6 @@ import org.openhab.core.library.types.StringType;
 import org.openhab.core.types.Command;
 import org.smarthomej.binding.amazonechocontrol.internal.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDevices.Device;
-import org.unbescape.xml.XmlEscape;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -73,7 +72,7 @@ public class ChannelHandlerAnnouncement extends ChannelHandler {
                             Boolean sound = request.sound;
                             if (sound != null) {
                                 if (!sound && !speak.startsWith("<speak>")) {
-                                    speak = "<speak>" + XmlEscape.escapeXml10(speak) + "</speak>";
+                                    speak = "<speak>" + speak + "</speak>";
                                 }
                                 if (sound && speak.startsWith("<speak>")) {
                                     body = "Error: The combination of sound and speak in SSML syntax is not allowed";
@@ -88,7 +87,7 @@ public class ChannelHandlerAnnouncement extends ChannelHandler {
                     } catch (JsonSyntaxException e) {
                         body = "Invalid Json." + e.getLocalizedMessage();
                         title = "Error";
-                        speak = "<speak><lang xml:lang=\"en-US\">" + XmlEscape.escapeXml10(body) + "</lang></speak>";
+                        speak = "<speak><lang xml:lang=\"en-US\">" + body + "</lang></speak>";
                         body = e.getLocalizedMessage();
                     }
                 }
