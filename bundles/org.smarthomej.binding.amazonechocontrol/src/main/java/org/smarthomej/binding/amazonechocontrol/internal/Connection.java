@@ -1329,8 +1329,8 @@ public class Connection {
             @Nullable Integer ttsVolume, @Nullable Integer standardVolume) {
         String trimmedSpeak = speak.replaceAll("\\s+", " ").trim();
         String trimmedBodyText = bodyText.replaceAll("\\s+", " ").trim();
-        String plainSpeak = trimmedSpeak.replaceAll("<.+?>", " ").trim();
-        String plainBodyText = trimmedBodyText.replaceAll("<.+?>", " ").trim();
+        String plainSpeak = trimmedSpeak.replaceAll("<.+?>", "").trim();
+        String plainBodyText = trimmedBodyText.replaceAll("<.+?>", "").trim();
         if (plainSpeak.isEmpty() && plainBodyText.isEmpty()) {
             return;
         }
@@ -1395,7 +1395,7 @@ public class Connection {
     public void textToSpeech(Device device, String text, @Nullable Integer ttsVolume,
             @Nullable Integer standardVolume) {
         String trimmedText = text.replaceAll("\\s+", " ").trim();
-        String plainText = text.replaceAll("<.+?>", "").trim();
+        String plainText = trimmedText.replaceAll("<.+?>", "").trim();
         if (plainText.isEmpty()) {
             return;
         }
