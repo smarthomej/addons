@@ -115,6 +115,7 @@ import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonWakeWords;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonWakeWords.WakeWord;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonWebSiteCookie;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.SmartHomeBaseDevice;
+import org.unbescape.xml.XmlEscape;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -1326,20 +1327,22 @@ public class Connection {
 
     public void announcement(Device device, String speak, String bodyText, @Nullable String title,
             @Nullable Integer ttsVolume, @Nullable Integer standardVolume) {
-        String plainSpeak = speak.replaceAll("<.+?>", " ").replaceAll("\\s+", " ").trim();
-        String plainBody = bodyText.replaceAll("<.+?>", " ").replaceAll("\\s+", " ").trim();
-
-        if (plainSpeak.isEmpty() && plainBody.isEmpty()) {
-            // if there is neither a bodytext nor (except tags) a speaktext, we have nothing to announce
+        String trimmedSpeak = speak.replaceAll("\\s+", " ").trim();
+        String trimmedBodyText = bodyText.replaceAll("\\s+", " ").trim();
+        String plainSpeak = trimmedSpeak.replaceAll("<.+?>", "").trim();
+        String plainBodyText = trimmedBodyText.replaceAll("<.+?>", "").trim();
+        if (plainSpeak.isEmpty() && plainBodyText.isEmpty()) {
             return;
         }
+        String escapedSpeak = trimmedSpeak.replace(plainSpeak, XmlEscape.escapeXml10(plainSpeak));
 
         // we lock announcements until we have finished adding this one
         Lock lock = Objects.requireNonNull(locks.computeIfAbsent(TimerType.ANNOUNCEMENT, k -> new ReentrantLock()));
         lock.lock();
         try {
-            AnnouncementWrapper announcement = Objects.requireNonNull(announcements.computeIfAbsent(
-                    Objects.hash(speak, plainBody, title), k -> new AnnouncementWrapper(speak, plainBody, title)));
+            AnnouncementWrapper announcement = Objects
+                    .requireNonNull(announcements.computeIfAbsent(Objects.hash(escapedSpeak, plainBodyText, title),
+                            k -> new AnnouncementWrapper(escapedSpeak, plainBodyText, title)));
             announcement.devices.add(device);
             announcement.ttsVolumes.add(ttsVolume);
             announcement.standardVolumes.add(standardVolume);
@@ -1391,16 +1394,19 @@ public class Connection {
 
     public void textToSpeech(Device device, String text, @Nullable Integer ttsVolume,
             @Nullable Integer standardVolume) {
-        if (text.replaceAll("<.+?>", "").replaceAll("\\s+", " ").trim().isEmpty()) {
+        String trimmedText = text.replaceAll("\\s+", " ").trim();
+        String plainText = trimmedText.replaceAll("<.+?>", "").trim();
+        if (plainText.isEmpty()) {
             return;
         }
+        String escapedText = trimmedText.replace(plainText, XmlEscape.escapeXml10(plainText));
 
         // we lock TTS until we have finished adding this one
         Lock lock = Objects.requireNonNull(locks.computeIfAbsent(TimerType.TTS, k -> new ReentrantLock()));
         lock.lock();
         try {
-            TextToSpeech textToSpeech = Objects
-                    .requireNonNull(textToSpeeches.computeIfAbsent(Objects.hash(text), k -> new TextToSpeech(text)));
+            TextToSpeech textToSpeech = Objects.requireNonNull(
+                    textToSpeeches.computeIfAbsent(Objects.hash(escapedText), k -> new TextToSpeech(escapedText)));
             textToSpeech.devices.add(device);
             textToSpeech.ttsVolumes.add(ttsVolume);
             textToSpeech.standardVolumes.add(standardVolume);
@@ -1441,16 +1447,19 @@ public class Connection {
     }
 
     public void textCommand(Device device, String text, @Nullable Integer ttsVolume, @Nullable Integer standardVolume) {
-        if (text.replaceAll("<.+?>", "").replaceAll("\\s+", " ").trim().isEmpty()) {
+        String trimmedText = text.replaceAll("\\s+", " ").trim();
+        String plainText = trimmedText.replaceAll("<.+?>", "").trim();
+        if (plainText.isEmpty()) {
             return;
         }
+        String escapedText = trimmedText.replace(plainText, XmlEscape.escapeXml10(plainText));
 
         // we lock TextCommands until we have finished adding this one
         Lock lock = Objects.requireNonNull(locks.computeIfAbsent(TimerType.TEXT_COMMAND, k -> new ReentrantLock()));
         lock.lock();
         try {
-            TextCommand textCommand = Objects
-                    .requireNonNull(textCommands.computeIfAbsent(Objects.hash(text), k -> new TextCommand(text)));
+            TextCommand textCommand = Objects.requireNonNull(
+                    textCommands.computeIfAbsent(Objects.hash(escapedText), k -> new TextCommand(escapedText)));
             textCommand.devices.add(device);
             textCommand.ttsVolumes.add(ttsVolume);
             textCommand.standardVolumes.add(standardVolume);
