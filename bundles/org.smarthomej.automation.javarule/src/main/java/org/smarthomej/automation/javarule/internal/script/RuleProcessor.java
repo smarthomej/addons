@@ -19,6 +19,7 @@ import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.TRIG
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -156,6 +157,8 @@ public class RuleProcessor {
                     }
                     if (parameterValue instanceof String[]) {
                         configuration.put(method.getName(), Arrays.asList((String[]) parameterValue));
+                    } else if (parameterValue instanceof Integer) {
+                        configuration.put(method.getName(), BigDecimal.valueOf((Integer) parameterValue));
                     } else {
                         configuration.put(method.getName(), parameterValue);
                     }
