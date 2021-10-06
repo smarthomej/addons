@@ -28,5 +28,5 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 @Target({ ElementType.METHOD })
 @NonNullByDefault
 public @interface SystemStartlevelTrigger {
-    String startLevel();
+    int startlevel();
 }
