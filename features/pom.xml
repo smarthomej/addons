@@ -22,14 +22,6 @@
   </modules>
 
   <dependencies>
-    <!-- BOM, so features are build after bundles in parallel builds -->
-    <dependency>
-      <groupId>org.smarthomej.addons.bom</groupId>
-      <artifactId>org.smarthomej.addons.bom.smarthomej-addons</artifactId>
-      <version>${project.version}</version>
-      <type>pom</type>
-    </dependency>
-
     <!-- Distribution -->
     <dependency>
       <groupId>org.apache.karaf.features</groupId>

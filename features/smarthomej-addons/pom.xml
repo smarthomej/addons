@@ -17,6 +17,14 @@
   <description>SmartHome/J Add-ons Features</description>
 
   <dependencies>
+    <!-- BOM, so features are build after bundles in parallel builds -->
+    <dependency>
+      <groupId>org.smarthomej.addons.bom</groupId>
+      <artifactId>org.smarthomej.addons.bom.smarthomej-addons</artifactId>
+      <version>${project.version}</version>
+      <type>pom</type>
+    </dependency>
+
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>org.smarthomej.addons.features.karaf.smarthomej-addons-external</artifactId>
