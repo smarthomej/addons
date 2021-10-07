@@ -107,6 +107,14 @@
       <type>xml</type>
       <scope>provided</scope>
     </dependency>
+    <!-- External features must be build first due to .kar generation -->
+    <dependency>
+      <groupId>org.smarthomej.addons.features.karaf</groupId>
+      <artifactId>org.smarthomej.addons.features.karaf.smarthomej-addons-external</artifactId>
+      <version>${project.version}</version>
+      <type>pom</type>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
 
   <build>
