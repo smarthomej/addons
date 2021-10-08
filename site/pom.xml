@@ -101,6 +101,8 @@
         </executions>
         <configuration>
           <inputDirectory>${project.build.directory}/markdown</inputDirectory>
+          <inputEncoding>UTF-8</inputEncoding>
+          <outputEncoding>UTF-8</outputEncoding>
           <outputDirectory>${project.build.directory}/html/${project.version}</outputDirectory>
           <copyDirectories>css</copyDirectories>
           <attributes>
