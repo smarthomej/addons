@@ -5,11 +5,14 @@
 .DS_Store
 *.iml
 npm-debug.log
+package-lock.json
+package.json
 .build.log
 
 .metadata/
 bin/
 target/
+node_modules/
 src-gen/
 xtend-gen/
 .history/
