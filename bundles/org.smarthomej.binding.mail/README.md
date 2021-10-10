@@ -2,6 +2,9 @@
 
 The Mail binding provides support for sending mails from rules.
 
+***Deprecation warning:*** The action methods `sendMail(...)` and `sendHtmlMail(...)` for sending mails with attachments are deprecated.
+Use `sendMailWithAttachment/sendMailWithAttachments` (or respective methods for HTML mails, see below).
+
 ## Supported Things
 
 There are three things: `smtp`, `imap` and `pop3` which represents respective servers.
@@ -119,16 +122,20 @@ Six different actions available:
 * `boolean success = sendMail(String recipient, String subject, String text)`
 * `boolean success = sendMailWithAttachment(String recipient, String subject, String text, String URL)`
 * `boolean success = sendMailWithAttachments(String recipient, String subject, String text, List<String> URL)`
+* `boolean success = sendComplexMail(String recipient, String subject, String text, List<String> URL, Map<String, String> headers)` 
 * `boolean success = sendHtmlMail(String recipient, String subject, String htmlContent)`
 * `boolean success = sendHtmlMailWithAttachment(String recipient, String subject, String htmlContent, String URL)`
 * `boolean success = sendHtmlMailWithAttachments(String recipient, String subject, String htmlContent, List<String> URL)`
+* `boolean success = sendHtmlMailWithAttachments(String recipient, String subject, String htmlContent, List<String> URL, Map<String, String> headers)`
 
-The `sendMail(...)` actions send a plain text mail (with attachments if supplied).
-The `sendHtmlMail(...)` actions send an HTML mail (with attachments if supplied).
+The `sendMail...(...)` actions send a plain text mail.
+The `sendHtmlMail...(...)` actions send an HTML mail.
 
-Both functions return a boolean as the result of the operation.
+All methods return a boolean as the result of the operation.
 
 `recipient` can be a single address (`mail@example.com`) or a list of addresses, concatenated by a comma (`mail@example.com, mail2@example.com`).
+
+The `sendComplexMail` and `sendComplexHtmlMail` methods allow `null` values for all parameters except the `recipient`.
 
 Since there is a separate rule action instance for each `smtp` thing, this needs to be retrieved through `getActions(scope, thingUID)`.
 The first parameter always has to be `mail` and the second is the full Thing UID of the SMTP server that should be used.
@@ -149,9 +156,9 @@ success = mailActions.sendMail("mail1@example.com, mail2@example.com", "Test sub
 ```
 import java.util.List
 
-val List<String> attachmentUrlList = newArrayList(
+val List<String> attachmentUrlList = new ArrayList(
   "http://some.web/site/snap.jpg&param=value",
   "file:///tmp/201601011031.jpg")
 val mailActions = getActions("mail","mail:smtp:sampleserver")
-mailActions.sendHtmlMail("mail@example.com", "Test subject", "<h1>Header</h1>This is the mail content.", attachmentUrlList)
+mailActions.sendHtmlMailWithAttachments("mail@example.com", "Test subject", "<h1>Header</h1>This is the mail content.", attachmentUrlList)
 ```
