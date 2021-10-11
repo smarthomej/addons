@@ -27,7 +27,6 @@ import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketError;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
-import org.openhab.core.util.HexUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonPushCommand;
@@ -80,7 +79,10 @@ public class AlexaWebSocket {
         if (data == null) {
             return;
         }
-        logger.debug("received: {}", new String(data));
+        if (logger.isDebugEnabled()) {
+            logger.debug("received {} bytes: {}", data.length, printableString(data));
+        }
+
         this.msgCounter++;
 
         byte[] buffer = data;
@@ -93,6 +95,7 @@ public class AlexaWebSocket {
             sendMessage(
                     "0xfe88bc52 0x0000009c {\"protocolName\":\"A:F\",\"parameters\":{\"AlphaProtocolHandler.receiveWindowSize\":\"16\",\"AlphaProtocolHandler.maxFragmentSize\":\"16000\"}}TUNE");
             sendMessage(encodeGWRegister());
+            sendPing();
         } else {
             try {
                 if (message.service.equals("FABE") && message.content.messageType.equals("PON")
@@ -138,13 +141,27 @@ public class AlexaWebSocket {
         webSocketConnection.close();
     }
 
+    private String printableString(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            if (b < 32) {
+                sb.append("\\x").append(String.format("%02x", b));
+            } else {
+                sb.append((char) b);
+            }
+        }
+        return sb.toString();
+    }
+
     private void sendMessage(String message) {
         sendMessage(message.getBytes(StandardCharsets.UTF_8));
     }
 
     private void sendMessage(byte[] buffer) {
         try {
-            logger.debug("Send message with length {}: {}", buffer.length, HexUtils.bytesToHex(buffer, " "));
+            if (logger.isDebugEnabled()) {
+                logger.debug("Send message with length {}: {}", buffer.length, printableString(buffer));
+            }
             Session session = this.session;
             if (session != null) {
                 session.getRemote().sendBytes(ByteBuffer.wrap(buffer));
@@ -161,10 +178,6 @@ public class AlexaWebSocket {
         logger.debug("Send Ping");
         webSocketConnection.initPongTimeoutTimer();
         sendMessage(encodePing());
-    }
-
-    private String encodeNumber(long val, int len) {
-        return String.format("0x%0" + len + "x", val);
     }
 
     private long computeBits(long input) {
@@ -238,19 +251,16 @@ public class AlexaWebSocket {
     }
 
     private byte[] encodePing() {
-        // MSG 0x00000065 0x0e414e47 f 0x00000001 0xbc2fbb5f 0x00000062
         this.messageId++;
-        String msg = "MSG 0x00000065 "; // Message-type and Channel = CHANNEL_FOR_HEARTBEAT;
-        msg += this.encodeNumber(this.messageId, 8) + " f 0x00000001 ";
-        int checkSumStart = msg.length();
-        msg += "0x00000000 "; // Checksum!
-        int checkSumEnd = msg.length();
-        msg += "0x00000062 "; // length content
 
-        byte[] completeBuffer = new byte[0x62];
-        byte[] startBuffer = msg.getBytes(StandardCharsets.US_ASCII);
-
-        System.arraycopy(startBuffer, 0, completeBuffer, 0, startBuffer.length);
+        ByteBuffer buffer = ByteBuffer.allocate(0x3d);
+        buffer.put("MSG".getBytes(StandardCharsets.UTF_8));
+        buffer.putInt((int) (0x00000065 & 0xffffffffL)); // Message-type and Channel = CHANNEL_FOR_HEARTBEAT;
+        buffer.putInt((int) (this.messageId & 0xffffffffL));
+        buffer.put((byte) 102); // 'f'
+        buffer.putInt((int) (0x00000001 & 0xffffffffL));
+        buffer.putInt((int) (0x00000000 & 0xffffffffL)); // Checksum!
+        buffer.putInt((int) (0x0000003d & 0xffffffffL)); // length content
 
         byte[] header = "PIN".getBytes(StandardCharsets.US_ASCII);
         byte[] payload = "Regular".getBytes(StandardCharsets.US_ASCII); // g = h.length
@@ -269,15 +279,13 @@ public class AlexaWebSocket {
             bufferPing[idx + q * 2] = (byte) 0;
             bufferPing[idx + q * 2 + 1] = payload[q];
         }
-        System.arraycopy(bufferPing, 0, completeBuffer, startBuffer.length, bufferPing.length);
 
-        byte[] buf2End = "FABE".getBytes(StandardCharsets.US_ASCII);
-        System.arraycopy(buf2End, 0, completeBuffer, startBuffer.length + bufferPing.length, buf2End.length);
+        buffer.put(bufferPing);
+        buffer.put("FABE".getBytes(StandardCharsets.UTF_8));
 
-        int checksum = this.computeChecksum(completeBuffer, checkSumStart, checkSumEnd);
-        String checksumHex = encodeNumber(checksum, 8);
-        byte[] checksumBuf = checksumHex.getBytes(StandardCharsets.US_ASCII);
-        System.arraycopy(checksumBuf, 0, completeBuffer, checkSumStart, checksumBuf.length);
-        return completeBuffer;
+        int checksum = computeChecksum(buffer.array(), 16, 20);
+        buffer.putInt(16, checksum);
+
+        return buffer.array();
     }
 }

@@ -12,6 +12,7 @@
  */
 package org.smarthomej.binding.amazonechocontrol.internal.websocket;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
@@ -58,13 +59,13 @@ public class WebsocketMessage {
             moreFlag = "";
         } else if ("FABE".equals(service)) {
             contentTune = "";
-            messageType = buffer.getNextString(3);
-            channel = buffer.getNextInt4();
-            messageId = buffer.getNextInt4();
-            moreFlag = buffer.getNextString(1);
-            seq = buffer.getNextInt4();
-            checksum = buffer.getNextInt4();
-            long contentLength = buffer.getNextInt4(); // currently unused
+            messageType = buffer.getNextString(3, false);
+            channel = buffer.getNextInt4b();
+            messageId = buffer.getNextInt4b();
+            moreFlag = buffer.getNextString(1, false);
+            seq = buffer.getNextInt4b();
+            checksum = buffer.getNextInt4b();
+            long contentLength = buffer.getNextInt4b(); // currently unused
             content.messageType = buffer.getNextString(3);
 
             if (channel == 0x361) { // GW_HANDSHAKE_CHANNEL
@@ -119,15 +120,21 @@ public class WebsocketMessage {
     static class Buffer {
         private final byte[] buffer;
         private int index = 0;
+        private final ByteBuffer byteBuffer;
 
         public Buffer(byte[] buffer) {
             this.buffer = buffer;
+            this.byteBuffer = ByteBuffer.wrap(buffer);
         }
 
         public String getNextString(int length) {
+            return getNextString(length, true);
+        }
+
+        public String getNextString(int length, boolean delimiter) {
             if (index + length <= buffer.length) {
                 String string = new String(buffer, index, length, StandardCharsets.UTF_8);
-                index = index + length + 1; // including one delimiter
+                index = index + length + (delimiter ? 1 : 0); // including one delimiter
                 return string;
             }
             throw new IllegalStateException("No more bytes left");
@@ -140,6 +147,11 @@ public class WebsocketMessage {
          */
         public long getNextInt4() {
             return getNextInt(8); // each byte has two hex characters
+        }
+
+        public long getNextInt4b() {
+            index += 4;
+            return byteBuffer.getInt(index - 4);
         }
 
         /**
