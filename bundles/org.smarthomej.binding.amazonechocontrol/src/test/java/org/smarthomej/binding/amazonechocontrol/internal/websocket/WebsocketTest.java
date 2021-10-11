@@ -10,20 +10,13 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.smarthomej.binding.amazonechocontrol.internal;
-
-import static org.junit.jupiter.api.Assertions.fail;
-
-import java.io.IOException;
-import java.util.List;
+package org.smarthomej.binding.amazonechocontrol.internal.websocket;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -47,7 +40,7 @@ public class WebsocketTest extends JavaTest {
     private final Logger logger = LoggerFactory.getLogger(WebsocketTest.class);
 
     @Mock
-    private @NonNullByDefault({}) IWebSocketCommandHandler commandHandler;
+    private @NonNullByDefault({}) WebSocketCommandHandler commandHandler;
 
     private final Gson gson = new Gson();
 
@@ -61,21 +54,5 @@ public class WebsocketTest extends JavaTest {
     @AfterAll
     public void close() throws Exception {
         httpClient.stop();
-    }
-
-    @Disabled
-    @Test
-    public void connectionFailTest() {
-        for (int i = 0; i < 10000; i++) {
-            try {
-                WebSocketConnection webSocketConnection = new WebSocketConnection("invalid-tld", List.of(),
-                        commandHandler, gson, httpClient);
-
-                while (!webSocketConnection.isClosed()) {
-                }
-            } catch (IOException e) {
-                fail("Websocket failed." + e.getMessage());
-            }
-        }
     }
 }
