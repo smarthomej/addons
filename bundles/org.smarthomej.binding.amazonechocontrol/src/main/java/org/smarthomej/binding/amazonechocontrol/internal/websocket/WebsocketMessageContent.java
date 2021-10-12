@@ -1,4 +1,5 @@
 /**
+ * Copyright (c) 2010-2021 Contributors to the openHAB project
  * Copyright (c) 2021 Contributors to the SmartHome/J project
  *
  * See the NOTICE file(s) distributed with this work for additional
@@ -17,7 +18,7 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonPushCommand;
 
 /**
- * The {@link WebsocketMessageContent} is a
+ * The {@link WebsocketMessageContent} encapsulates the content of an incoming websocket message
  *
  * @author Jan N. Klug - Initial contribution
  */

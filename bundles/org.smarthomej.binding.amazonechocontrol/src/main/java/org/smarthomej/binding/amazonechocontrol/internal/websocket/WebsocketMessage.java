@@ -1,4 +1,5 @@
 /**
+ * Copyright (c) 2010-2021 Contributors to the openHAB project
  * Copyright (c) 2021 Contributors to the SmartHome/J project
  *
  * See the NOTICE file(s) distributed with this work for additional
@@ -25,7 +26,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
 /**
- * The {@link WebsocketMessage} is a
+ * The {@link WebsocketMessage} encapsulates an incoming websocket message
  *
  * @author Jan N. Klug - Initial contribution
  */
