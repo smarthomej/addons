@@ -249,11 +249,9 @@ public class AlexaWebSocket {
         buffer.putInt((int) (0x00000000 & 0xffffffffL));
         buffer.putLong(System.currentTimeMillis());
 
-        byte[] payload = "Regular".getBytes(StandardCharsets.US_ASCII);
-        buffer.putInt((int) (payload.length & 0xffffffffL));
-        for (byte b : payload) {
-            buffer.putShort(b);
-        }
+        byte[] payload = "Regular".getBytes(StandardCharsets.UTF_16BE);
+        buffer.putInt((int) (payload.length / 2 & 0xffffffffL));
+        buffer.put(payload);
 
         buffer.put("FABE".getBytes(StandardCharsets.UTF_8));
 
