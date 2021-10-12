@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -54,7 +53,7 @@ public class AlexaWebSocket {
     private @Nullable Session session;
 
     public AlexaWebSocket(WebSocketConnection webSocketConnection, WebSocketCommandHandler webSocketCommandHandler,
-            Gson gson) throws WebsocketException {
+            Gson gson) {
         this.webSocketConnection = webSocketConnection;
         this.webSocketCommandHandler = webSocketCommandHandler;
         this.gson = gson;
@@ -93,7 +92,8 @@ public class AlexaWebSocket {
 
         if (this.msgCounter == 0) {
             sendMessage(
-                    "0xfe88bc52 0x0000009c {\"protocolName\":\"A:F\",\"parameters\":{\"AlphaProtocolHandler.receiveWindowSize\":\"16\",\"AlphaProtocolHandler.maxFragmentSize\":\"16000\"}}TUNE");
+                    "0xfe88bc52 0x0000009c {\"protocolName\":\"A:F\",\"parameters\":{\"AlphaProtocolHandler.receiveWindowSize\":\"16\",\"AlphaProtocolHandler.maxFragmentSize\":\"16000\"}}TUNE"
+                            .getBytes(StandardCharsets.UTF_8));
             sendMessage(encodeGWRegister());
             sendPing();
         } else {
@@ -151,10 +151,6 @@ public class AlexaWebSocket {
             }
         }
         return sb.toString();
-    }
-
-    private void sendMessage(String message) {
-        sendMessage(message.getBytes(StandardCharsets.UTF_8));
     }
 
     private void sendMessage(byte[] buffer) {
@@ -244,12 +240,6 @@ public class AlexaWebSocket {
         return buffer.array();
     }
 
-    private void encode(byte[] data, long b, int offset, int len) {
-        for (int index = 0; index < len; index++) {
-            data[index + offset] = (byte) (b >> 8 * (len - 1 - index) & 255);
-        }
-    }
-
     private byte[] encodePing() {
         this.messageId++;
 
@@ -262,25 +252,16 @@ public class AlexaWebSocket {
         buffer.putInt((int) (0x00000000 & 0xffffffffL)); // Checksum!
         buffer.putInt((int) (0x0000003d & 0xffffffffL)); // length content
 
-        byte[] header = "PIN".getBytes(StandardCharsets.US_ASCII);
-        byte[] payload = "Regular".getBytes(StandardCharsets.US_ASCII); // g = h.length
-        byte[] bufferPing = new byte[header.length + 4 + 8 + 4 + 2 * payload.length];
-        int idx = 0;
-        System.arraycopy(header, 0, bufferPing, 0, header.length);
-        idx += header.length;
-        encode(bufferPing, 0, idx, 4);
-        idx += 4;
-        encode(bufferPing, new Date().getTime(), idx, 8);
-        idx += 8;
-        encode(bufferPing, payload.length, idx, 4);
-        idx += 4;
+        buffer.put("PIN".getBytes(StandardCharsets.UTF_8));
+        buffer.putInt((int) (0x00000000 & 0xffffffffL));
+        buffer.putLong(System.currentTimeMillis());
 
-        for (int q = 0; q < payload.length; q++) {
-            bufferPing[idx + q * 2] = (byte) 0;
-            bufferPing[idx + q * 2 + 1] = payload[q];
+        byte[] payload = "Regular".getBytes(StandardCharsets.US_ASCII);
+        buffer.putInt((int) (payload.length & 0xffffffffL));
+        for (byte b : payload) {
+            buffer.putShort(b);
         }
 
-        buffer.put(bufferPing);
         buffer.put("FABE".getBytes(StandardCharsets.UTF_8));
 
         int checksum = computeChecksum(buffer.array(), 16, 20);
