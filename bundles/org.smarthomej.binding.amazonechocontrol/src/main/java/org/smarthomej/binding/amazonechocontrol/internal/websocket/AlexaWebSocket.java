@@ -14,6 +14,7 @@ package org.smarthomej.binding.amazonechocontrol.internal.websocket;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
@@ -48,7 +49,7 @@ public class AlexaWebSocket {
     private final WebSocketConnection webSocketConnection;
     private final WebSocketCommandHandler webSocketCommandHandler;
 
-    int msgCounter = -1;
+    boolean initialize = false;
     int messageId;
     private @Nullable Session session;
 
@@ -64,7 +65,7 @@ public class AlexaWebSocket {
     @SuppressWarnings("unused")
     public void onWebSocketConnect(@Nullable Session session) {
         if (session != null) {
-            this.msgCounter = -1;
+            this.initialize = true;
             this.session = session;
             webSocketConnection.onConnect();
         } else {
@@ -82,22 +83,22 @@ public class AlexaWebSocket {
             logger.debug("received {} bytes: {}", data.length, printableString(data));
         }
 
-        this.msgCounter++;
-
         byte[] buffer = data;
         if (offset > 0 || len != buffer.length) {
             buffer = Arrays.copyOfRange(data, offset, offset + len);
         }
         WebsocketMessage message = new WebsocketMessage(buffer, gson);
-
-        if (this.msgCounter == 0) {
-            sendMessage(
-                    "0xfe88bc52 0x0000009c {\"protocolName\":\"A:F\",\"parameters\":{\"AlphaProtocolHandler.receiveWindowSize\":\"16\",\"AlphaProtocolHandler.maxFragmentSize\":\"16000\"}}TUNE"
-                            .getBytes(StandardCharsets.UTF_8));
-            sendMessage(encodeGWRegister());
-            sendPing();
-        } else {
-            try {
+        try {
+            if (initialize) {
+                initialize = false;
+                sendMessage(
+                        "0xfe88bc52 0x0000009c {\"protocolName\":\"A:F\",\"parameters\":{\"AlphaProtocolHandler.receiveWindowSize\":\"16\",\"AlphaProtocolHandler.maxFragmentSize\":\"16000\"}}TUNE"
+                                .getBytes(StandardCharsets.UTF_8));
+                Thread.sleep(40);
+                sendMessage(encodeGWRegister());
+                Thread.sleep(40);
+                sendPing();
+            } else {
                 if (message.service.equals("FABE") && message.content.messageType.equals("PON")
                         && message.content.payloadData.length > 0) {
                     logger.debug("Pong received");
@@ -109,9 +110,9 @@ public class AlexaWebSocket {
                         webSocketCommandHandler.webSocketCommandReceived(pushCommand);
                     }
                 }
-            } catch (Exception e) {
-                logger.debug("Handling of push notification failed", e);
             }
+        } catch (Exception e) {
+            logger.debug("Handling of push notification failed", e);
         }
     }
 
@@ -178,7 +179,7 @@ public class AlexaWebSocket {
 
     private long computeBits(long input) {
         long lenCounter = 32;
-        long value = toUnsignedInt(input);
+        long value = 0 > input ? input + 0xffffffffL + 1 : input;
         while (0 != lenCounter && 0 != value) {
             value = value / 2;
             lenCounter--;
@@ -186,37 +187,28 @@ public class AlexaWebSocket {
         return value;
     }
 
-    private long toUnsignedInt(long value) {
-        long result = value;
-        if (0 > value) {
-            result = value + MAX_UNSIGNED_INT32 + 1;
-        }
-        return result;
-    }
+    private int computeChecksum(byte[] data) {
+        // convert to int-buffer
+        ByteBuffer buffer = ByteBuffer.allocate(data.length + (4 - data.length % 4));
+        buffer.put(data);
+        buffer.position(0);
+        IntBuffer intBuffer = buffer.asIntBuffer();
 
-    private int computeChecksum(byte[] data, int exclusionStart, int exclusionEnd) {
-        if (exclusionEnd < exclusionStart) {
-            return 0;
-        }
-        long overflow;
-        long sum;
-        int index;
-        for (overflow = 0, sum = 0, index = 0; index < data.length; index++) {
-            if (index != exclusionStart) {
-                sum += toUnsignedInt((data[index] & 0xFF) << ((index & 3 ^ 3) << 3));
-                overflow += computeBits(sum);
-                sum = toUnsignedInt((int) sum & (int) MAX_UNSIGNED_INT32);
+        long overflow = 0;
+        long sum = 0;
 
-            } else {
-                index = exclusionEnd - 1;
-            }
+        for (int i = 0; i < intBuffer.capacity(); i++) {
+            sum += intBuffer.get() & 0xffffffffL;
+            overflow += computeBits(sum);
+            sum = sum & 0xffffffffL;
         }
+
         while (overflow != 0) {
             sum += overflow;
             overflow = computeBits(sum);
-            sum = (int) sum & (int) MAX_UNSIGNED_INT32;
+            sum = sum & 0xffffffffL;
         }
-        long value = toUnsignedInt(sum);
+        long value = sum & 0xffffffffL;
         return (int) value;
     }
 
@@ -234,7 +226,7 @@ public class AlexaWebSocket {
                 .getBytes(StandardCharsets.UTF_8);
         buffer.put(msg);
 
-        int checksum = computeChecksum(buffer.array(), 16, 20);
+        int checksum = computeChecksum(buffer.array());
         buffer.putInt(16, checksum);
 
         return buffer.array();
@@ -264,7 +256,7 @@ public class AlexaWebSocket {
 
         buffer.put("FABE".getBytes(StandardCharsets.UTF_8));
 
-        int checksum = computeChecksum(buffer.array(), 16, 20);
+        int checksum = computeChecksum(buffer.array());
         buffer.putInt(16, checksum);
 
         return buffer.array();
