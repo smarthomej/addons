@@ -15,7 +15,6 @@ package org.smarthomej.binding.amazonechocontrol.internal.websocket;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
@@ -178,51 +177,51 @@ public class AlexaWebSocket {
         sendMessage(encodePing());
     }
 
-    private long computeBits(long input) {
-        long lenCounter = 32;
-        long value = 0 > input ? input + 0xffffffffL + 1 : input;
-        while (0 != lenCounter && 0 != value) {
-            value = value / 2;
-            lenCounter--;
-        }
-        return value;
-    }
-
+    /**
+     * compute checksum: sum of unsigned int 32 + number of overflows
+     *
+     * @param data byte array of input data
+     * @return the calculated checksum
+     */
     private int computeChecksum(byte[] data) {
-        // convert to int-buffer
         ByteBuffer buffer = ByteBuffer.allocate(data.length + (4 - data.length % 4));
-        buffer.put(data);
-        buffer.position(0);
-        IntBuffer intBuffer = buffer.asIntBuffer();
+        buffer.put(data).position(0);
 
-        long overflow = 0;
         long sum = 0;
-
-        for (int i = 0; i < intBuffer.capacity(); i++) {
-            sum += intBuffer.get() & 0xffffffffL;
-            overflow += computeBits(sum);
-            sum = sum & 0xffffffffL;
+        while (buffer.hasRemaining()) {
+            sum += buffer.getInt() & 0xffffffffL;
         }
+
+        long overflow = sum >>> 32; // get overflow count
+        sum = sum & 0xffffffffL; // coerce to unsigned int32
 
         while (overflow != 0) {
             sum += overflow;
-            overflow = computeBits(sum);
+            overflow = sum >>> 32;
             sum = sum & 0xffffffffL;
         }
-        long value = sum & 0xffffffffL;
-        return (int) value;
+
+        return (int) sum;
+    }
+
+    private ByteBuffer getMessageHeader(int packetLength, int messageType) {
+        this.messageId++;
+
+        ByteBuffer buffer = ByteBuffer.allocate(packetLength);
+        buffer.put("MSG".getBytes(StandardCharsets.UTF_8));
+        buffer.putInt(messageType); // Message-type and Channel
+        buffer.putInt(this.messageId);
+        buffer.put((byte) 102); // 'f'
+        buffer.putInt(0x00000001);
+        buffer.putInt(0x00000000); // place for checksum
+        buffer.putInt(packetLength); // packet length
+
+        return buffer;
     }
 
     private byte[] encodeGWRegister() {
-        this.messageId++;
-        ByteBuffer buffer = ByteBuffer.allocate(0xe4);
-        buffer.put("MSG".getBytes(StandardCharsets.UTF_8));
-        buffer.putInt((int) (0x00000362 & 0xffffffffL));
-        buffer.putInt((int) (messageId & 0xffffffffL));
-        buffer.put((byte) 102); // 'f'
-        buffer.putInt((int) (0x00000001 & 0xffffffffL));
-        buffer.putInt((int) (0x00000000 & 0xffffffffL)); // checksum
-        buffer.putInt((int) (0x000000e4 & 0xffffffffL)); // length#
+        ByteBuffer buffer = getMessageHeader(0x000000e4, 0x00000362);
+
         byte[] msg = "GWM MSG 0x0000b479 0x0000003b urn:tcomm-endpoint:device:deviceType:0:deviceSerialNumber:0 0x00000041 urn:tcomm-endpoint:service:serviceName:DeeWebsiteMessagingService {\"command\":\"REGISTER_CONNECTION\"}FABE"
                 .getBytes(StandardCharsets.UTF_8);
         buffer.put(msg);
@@ -234,24 +233,15 @@ public class AlexaWebSocket {
     }
 
     private byte[] encodePing() {
-        this.messageId++;
-
-        ByteBuffer buffer = ByteBuffer.allocate(0x3d);
-        buffer.put("MSG".getBytes(StandardCharsets.UTF_8));
-        buffer.putInt((int) (0x00000065 & 0xffffffffL)); // Message-type and Channel = CHANNEL_FOR_HEARTBEAT;
-        buffer.putInt((int) (this.messageId & 0xffffffffL));
-        buffer.put((byte) 102); // 'f'
-        buffer.putInt((int) (0x00000001 & 0xffffffffL));
-        buffer.putInt((int) (0x00000000 & 0xffffffffL)); // Checksum!
-        buffer.putInt((int) (0x0000003d & 0xffffffffL)); // length content
+        ByteBuffer buffer = getMessageHeader(0x0000003d, 0x00000065);
 
         buffer.put("PIN".getBytes(StandardCharsets.UTF_8));
-        buffer.putInt((int) (0x00000000 & 0xffffffffL));
+        buffer.putInt(0x00000000);
         buffer.putLong(System.currentTimeMillis());
 
-        byte[] payload = "Regular".getBytes(StandardCharsets.UTF_16BE);
-        buffer.putInt((int) (payload.length / 2 & 0xffffffffL));
-        buffer.put(payload);
+        // 7-byte payload "Regular" as UTF-16BE
+        buffer.putInt(0x00000007);
+        buffer.put("Regular".getBytes(StandardCharsets.UTF_16BE));
 
         buffer.put("FABE".getBytes(StandardCharsets.UTF_8));
 
