@@ -77,7 +77,7 @@ public class WebSocketConnection {
     public WebSocketConnection(Connection connection, WebSocketCommandHandler webSocketCommandHandler, Gson gson,
             HttpClient httpClient) throws WebsocketException {
         String amazonSite = connection.getAmazonSite();
-        List<HttpCookie> sessionCookies = connection.getSessionCookies();
+        List<HttpCookie> sessionCookies = connection.getSessionCookies(connection.getAlexaServer());
         MacDms macDms = connection.getMacDms();
         if (macDms == null) {
             throw new WebsocketException("Web socket failed: Could not get macDMS.");

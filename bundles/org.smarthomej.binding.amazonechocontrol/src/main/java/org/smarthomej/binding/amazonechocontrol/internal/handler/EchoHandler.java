@@ -714,25 +714,19 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
 
     private void startTextToSpeech(Connection connection, Device device, String text)
             throws IOException, URISyntaxException {
-        Integer volume = null;
-        if (textToSpeechVolume != 0) {
-            volume = textToSpeechVolume;
-        }
+        Integer volume = textToSpeechVolume != 0 ? textToSpeechVolume : null;
         connection.textToSpeech(device, text, volume, lastKnownVolume);
     }
 
     private void startTextCommand(Connection connection, Device device, String text)
             throws IOException, URISyntaxException {
-        Integer volume = null;
-        if (textToSpeechVolume != 0) {
-            volume = textToSpeechVolume;
-        }
+        Integer volume = textToSpeechVolume != 0 ? textToSpeechVolume : null;
         connection.textCommand(device, text, volume, lastKnownVolume);
     }
 
     @Override
     public void startAnnouncement(Device device, String speak, String bodyText, @Nullable String title,
-            @Nullable Integer volume) throws IOException, URISyntaxException {
+            @Nullable Integer volume) {
         Connection connection = this.findConnection();
         if (connection == null) {
             return;
@@ -747,10 +741,10 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
     }
 
     private void stopCurrentNotification() {
-        ScheduledFuture<?> currentNotifcationUpdateTimer = this.currentNotifcationUpdateTimer;
-        if (currentNotifcationUpdateTimer != null) {
+        ScheduledFuture<?> currentNotificationUpdateTimer = this.currentNotifcationUpdateTimer;
+        if (currentNotificationUpdateTimer != null) {
             this.currentNotifcationUpdateTimer = null;
-            currentNotifcationUpdateTimer.cancel(true);
+            currentNotificationUpdateTimer.cancel(true);
         }
         JsonNotificationResponse currentNotification = this.currentNotification;
         if (currentNotification != null) {
@@ -785,15 +779,13 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
         if (stopCurrentNotification) {
             if (currentNotification != null) {
                 String type = currentNotification.type;
-                if (type != null) {
-                    if ("Reminder".equals(type)) {
-                        updateState(CHANNEL_REMIND, StringType.EMPTY);
-                        updateRemind = false;
-                    }
-                    if ("Alarm".equals(type)) {
-                        updateState(CHANNEL_PLAY_ALARM_SOUND, StringType.EMPTY);
-                        updateAlarm = false;
-                    }
+                if ("Reminder".equals(type)) {
+                    updateState(CHANNEL_REMIND, StringType.EMPTY);
+                    updateRemind = false;
+                }
+                if ("Alarm".equals(type)) {
+                    updateState(CHANNEL_PLAY_ALARM_SOUND, StringType.EMPTY);
+                    updateAlarm = false;
                 }
             }
             stopCurrentNotification();
@@ -852,40 +844,38 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
             Progress progress = null;
             try {
                 JsonPlayerState playerState = connection.getPlayer(device);
-                if (playerState != null) {
-                    playerInfo = playerState.playerInfo;
-                    if (playerInfo != null) {
-                        infoText = playerInfo.infoText;
-                        if (infoText == null) {
-                            infoText = playerInfo.miniInfoText;
-                        }
-                        mainArt = playerInfo.mainArt;
-                        provider = playerInfo.provider;
-                        if (provider != null) {
-                            musicProviderId = provider.providerName;
-                            // Map the music provider id to the one used for starting music with voice command
-                            if (musicProviderId != null) {
-                                musicProviderId = musicProviderId.toUpperCase();
+                playerInfo = playerState.playerInfo;
+                if (playerInfo != null) {
+                    infoText = playerInfo.infoText;
+                    if (infoText == null) {
+                        infoText = playerInfo.miniInfoText;
+                    }
+                    mainArt = playerInfo.mainArt;
+                    provider = playerInfo.provider;
+                    if (provider != null) {
+                        musicProviderId = provider.providerName;
+                        // Map the music provider id to the one used for starting music with voice command
+                        if (musicProviderId != null) {
+                            musicProviderId = musicProviderId.toUpperCase();
 
-                                if ("AMAZON MUSIC".equals(musicProviderId)) {
-                                    musicProviderId = "AMAZON_MUSIC";
-                                }
-                                if ("CLOUD_PLAYER".equals(musicProviderId)) {
-                                    musicProviderId = "AMAZON_MUSIC";
-                                }
-                                if (musicProviderId.startsWith("TUNEIN")) {
-                                    musicProviderId = "TUNEIN";
-                                }
-                                if (musicProviderId.startsWith("IHEARTRADIO")) {
-                                    musicProviderId = "I_HEART_RADIO";
-                                }
-                                if (musicProviderId.startsWith("APPLE") && musicProviderId.contains("MUSIC")) {
-                                    musicProviderId = "APPLE_MUSIC";
-                                }
+                            if ("AMAZON MUSIC".equals(musicProviderId)) {
+                                musicProviderId = "AMAZON_MUSIC";
+                            }
+                            if ("CLOUD_PLAYER".equals(musicProviderId)) {
+                                musicProviderId = "AMAZON_MUSIC";
+                            }
+                            if (musicProviderId.startsWith("TUNEIN")) {
+                                musicProviderId = "TUNEIN";
+                            }
+                            if (musicProviderId.startsWith("IHEARTRADIO")) {
+                                musicProviderId = "I_HEART_RADIO";
+                            }
+                            if (musicProviderId.startsWith("APPLE") && musicProviderId.contains("MUSIC")) {
+                                musicProviderId = "APPLE_MUSIC";
                             }
                         }
-                        progress = playerInfo.progress;
                     }
+                    progress = playerInfo.progress;
                 }
             } catch (HttpException e) {
                 if (e.getCode() != 400) {
