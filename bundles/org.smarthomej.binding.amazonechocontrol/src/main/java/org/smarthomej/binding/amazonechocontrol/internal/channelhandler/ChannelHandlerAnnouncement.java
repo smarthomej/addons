@@ -61,7 +61,7 @@ public class ChannelHandlerAnnouncement extends ChannelHandler {
                         if (request != null) {
                             speak = request.speak;
                             if (speak == null || speak.length() == 0) {
-                                speak = " "; // blank generates a beep
+                                speak = "."; // dot generates a beep
                             }
                             volume = request.volume;
                             title = request.title;
