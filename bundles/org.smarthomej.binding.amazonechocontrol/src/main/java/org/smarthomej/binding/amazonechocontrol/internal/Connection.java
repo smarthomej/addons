@@ -554,7 +554,11 @@ public class Connection {
                 connection.setRequestProperty("Accept-Encoding", "gzip");
                 connection.setRequestProperty("DNT", "1");
                 connection.setRequestProperty("Upgrade-Insecure-Requests", "1");
-                customHeaders.forEach(connection::setRequestProperty);
+                for (Map.Entry<String, String> header : customHeaders.entrySet()) {
+                    if (!header.getValue().isEmpty()) {
+                        connection.setRequestProperty(header.getKey(), header.getValue());
+                    }
+                }
                 connection.setInstanceFollowRedirects(false);
 
                 // add cookies
