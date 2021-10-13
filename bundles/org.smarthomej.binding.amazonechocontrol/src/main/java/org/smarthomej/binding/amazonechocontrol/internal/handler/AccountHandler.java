@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,8 +59,6 @@ import org.smarthomej.binding.amazonechocontrol.internal.AccountServlet;
 import org.smarthomej.binding.amazonechocontrol.internal.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.ConnectionException;
 import org.smarthomej.binding.amazonechocontrol.internal.HttpException;
-import org.smarthomej.binding.amazonechocontrol.internal.IWebSocketCommandHandler;
-import org.smarthomej.binding.amazonechocontrol.internal.WebSocketConnection;
 import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.ChannelHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.ChannelHandlerSendMessage;
 import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.IAmazonThingHandler;
@@ -85,6 +84,9 @@ import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevi
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonWakeWords.WakeWord;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.SmartHomeBaseDevice;
 import org.smarthomej.binding.amazonechocontrol.internal.smarthome.SmartHomeDeviceStateGroupUpdateCalculator;
+import org.smarthomej.binding.amazonechocontrol.internal.websocket.WebSocketCommandHandler;
+import org.smarthomej.binding.amazonechocontrol.internal.websocket.WebSocketConnection;
+import org.smarthomej.binding.amazonechocontrol.internal.websocket.WebsocketException;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -96,7 +98,7 @@ import com.google.gson.JsonSyntaxException;
  * @author Michael Geramb - Initial Contribution
  */
 @NonNullByDefault
-public class AccountHandler extends BaseBridgeHandler implements IWebSocketCommandHandler, IAmazonThingHandler {
+public class AccountHandler extends BaseBridgeHandler implements WebSocketCommandHandler, IAmazonThingHandler {
     private final Logger logger = LoggerFactory.getLogger(AccountHandler.class);
     private final Storage<String> stateStorage;
     private final HttpClient httpClient;
@@ -125,7 +127,7 @@ public class AccountHandler extends BaseBridgeHandler implements IWebSocketComma
     private int checkDataCounter;
     private final LinkedBlockingQueue<String> requestedDeviceUpdates = new LinkedBlockingQueue<>();
     private @Nullable SmartHomeDeviceStateGroupUpdateCalculator smartHomeDeviceStateGroupUpdateCalculator;
-    private List<ChannelHandler> channelHandlers = new ArrayList<>();
+    private final List<ChannelHandler> channelHandlers = new ArrayList<>();
 
     private AccountHandlerConfig handlerConfig = new AccountHandlerConfig();
 
@@ -384,7 +386,7 @@ public class AccountHandler extends BaseBridgeHandler implements IWebSocketComma
                     if (!currentConnection.getIsLoggedIn()) {
                         updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_PENDING,
                                 "Please login in through web site: http(s)://<YOUROPENHAB>:<YOURPORT>/amazonechocontrol/"
-                                        + URLEncoder.encode(uid.getId(), "UTF8"));
+                                        + URLEncoder.encode(uid.getId(), StandardCharsets.UTF_8));
                     }
                 } catch (ConnectionException e) {
                     updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, e.getMessage());
@@ -393,9 +395,7 @@ public class AccountHandler extends BaseBridgeHandler implements IWebSocketComma
                 } catch (UnknownHostException e) {
                     updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
                             "Unknown host name '" + e.getMessage() + "'. Maybe your internet connection is offline");
-                } catch (IOException e) {
-                    updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getLocalizedMessage());
-                } catch (URISyntaxException e) {
+                } catch (IOException | URISyntaxException e) {
                     updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getLocalizedMessage());
                 }
             }
@@ -439,10 +439,13 @@ public class AccountHandler extends BaseBridgeHandler implements IWebSocketComma
             Connection connection = this.connection;
             if (connection != null && connection.getIsLoggedIn()) {
                 try {
-                    this.webSocketConnection = new WebSocketConnection(connection.getAmazonSite(),
-                            connection.getSessionCookies(), this, gson, httpClient);
-                } catch (IOException e) {
-                    logger.warn("Web socket connection starting failed", e);
+                    this.webSocketConnection = new WebSocketConnection(connection, this, gson, httpClient);
+                } catch (WebsocketException e) {
+                    if (e.getCause() != null) {
+                        logger.warn("{}", e.getMessage(), e);
+                    } else {
+                        logger.warn("{}", e.getMessage());
+                    }
                 }
             }
             return false;
@@ -490,7 +493,6 @@ public class AccountHandler extends BaseBridgeHandler implements IWebSocketComma
                     notifications));
         } catch (IOException | URISyntaxException | InterruptedException e) {
             logger.debug("refreshNotifications failed", e);
-            return;
         }
     }
 
@@ -500,8 +502,7 @@ public class AccountHandler extends BaseBridgeHandler implements IWebSocketComma
                 logger.debug("refreshing data {}", getThing().getUID().getAsString());
 
                 // check if logged in
-                Connection currentConnection = null;
-                currentConnection = connection;
+                Connection currentConnection = connection;
                 if (currentConnection != null) {
                     if (!currentConnection.getIsLoggedIn()) {
                         return;
@@ -829,13 +830,10 @@ public class AccountHandler extends BaseBridgeHandler implements IWebSocketComma
         if (smartHomeDevices != null) {
             // create new id map
             Map<String, SmartHomeBaseDevice> newJsonIdSmartHomeDeviceMapping = new HashMap<>();
-            for (Object smartHomeDevice : smartHomeDevices) {
-                if (smartHomeDevice instanceof SmartHomeBaseDevice) {
-                    SmartHomeBaseDevice smartHomeBaseDevice = (SmartHomeBaseDevice) smartHomeDevice;
-                    String id = smartHomeBaseDevice.findId();
-                    if (id != null) {
-                        newJsonIdSmartHomeDeviceMapping.put(id, smartHomeBaseDevice);
-                    }
+            for (SmartHomeBaseDevice smartHomeDevice : smartHomeDevices) {
+                String id = smartHomeDevice.findId();
+                if (id != null) {
+                    newJsonIdSmartHomeDeviceMapping.put(id, smartHomeDevice);
                 }
             }
             jsonIdSmartHomeDeviceMapping = newJsonIdSmartHomeDeviceMapping;
@@ -844,11 +842,7 @@ public class AccountHandler extends BaseBridgeHandler implements IWebSocketComma
         smartHomeDeviceHandlers
                 .forEach(child -> child.setDeviceAndUpdateThingState(this, findSmartDeviceHomeJson(child)));
 
-        if (smartHomeDevices != null) {
-            return smartHomeDevices;
-        }
-
-        return Collections.emptyList();
+        return Objects.requireNonNullElse(smartHomeDevices, List.of());
     }
 
     public void forceDelayedSmartHomeStateUpdate(@Nullable String deviceId) {
