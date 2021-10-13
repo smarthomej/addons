@@ -1,5 +1,4 @@
 /**
- * Copyright (c) 2010-2021 Contributors to the openHAB project
  * Copyright (c) 2021 Contributors to the SmartHome/J project
  *
  * See the NOTICE file(s) distributed with this work for additional
@@ -11,18 +10,24 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.smarthomej.binding.amazonechocontrol.internal;
+package org.smarthomej.binding.amazonechocontrol.internal.websocket;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonPushCommand;
+import org.eclipse.jdt.annotation.Nullable;
 
 /**
- * The {@link IWebSocketCommandHandler} is used for the web socket handler implementation
+ * The {@link WebsocketException} is a
  *
- * @author Michael Geramb - Initial contribution
+ * @author Jan N. Klug - Initial contribution
  */
 @NonNullByDefault
-public interface IWebSocketCommandHandler {
+public class WebsocketException extends Exception {
 
-    public void webSocketCommandReceived(JsonPushCommand pushCommand);
+    public WebsocketException(String message) {
+        super(message);
+    }
+
+    public WebsocketException(String message, @Nullable Throwable cause) {
+        super(message, cause);
+    }
 }

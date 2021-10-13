@@ -103,6 +103,7 @@ import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonRegisterAppRe
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonRegisterAppResponse.Bearer;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonRegisterAppResponse.DeviceInfo;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonRegisterAppResponse.Extensions;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonRegisterAppResponse.MacDms;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonRegisterAppResponse.Response;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonRegisterAppResponse.Success;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonRegisterAppResponse.Tokens;
@@ -161,6 +162,7 @@ public class Connection {
     private @Nullable String deviceName;
     private @Nullable String accountCustomerId;
     private @Nullable String customerName;
+    private @Nullable MacDms macDms;
 
     private Map<Integer, AnnouncementWrapper> announcements = Collections.synchronizedMap(new LinkedHashMap<>());
     private Map<Integer, TextToSpeech> textToSpeeches = Collections.synchronizedMap(new LinkedHashMap<>());
@@ -213,7 +215,7 @@ public class Connection {
         }
 
         // build user agent
-        this.userAgent = "AmazonWebView/Amazon Alexa/2.2.223830.0/iOS/11.4.1/iPhone";
+        this.userAgent = "AmazonWebView/Amazon Alexa/2.2.443692.0/iOS/14.8/iPhone";
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonWithNullSerialization = gsonBuilder.create();
 
@@ -295,6 +297,10 @@ public class Connection {
 
     public String getAlexaServer() {
         return alexaServer;
+    }
+
+    public @Nullable MacDms getMacDms() {
+        return this.macDms;
     }
 
     public String getDeviceName() {
@@ -731,6 +737,11 @@ public class Connection {
         }
         String accessToken = queryParameters.get("openid.oa2.access_token");
 
+        return reRegisterConnectionAsApp(accessToken);
+    }
+
+    private String reRegisterConnectionAsApp(@Nullable String accessToken)
+            throws IOException, URISyntaxException, InterruptedException {
         Map<String, String> cookieMap = new HashMap<>();
 
         List<JsonWebSiteCookie> webSiteCookies = new ArrayList<>();
@@ -767,6 +778,9 @@ public class Connection {
             throw new ConnectionException("Error: No bearer received from register application");
         }
         String refreshToken = bearer.refreshToken;
+
+        this.macDms = tokens.macDms;
+
         this.refreshToken = refreshToken;
         if (refreshToken == null || refreshToken.isEmpty()) {
             throw new ConnectionException("Error: No refresh token received");
@@ -775,7 +789,7 @@ public class Connection {
             exchangeToken();
             // Check which is the owner domain
             String usersMeResponseJson = makeRequestAndReturnString("GET",
-                    "https://alexa.amazon.com/api/users/me?platform=ios&version=2.2.223830.0", null, false, null);
+                    "https://alexa.amazon.com/api/users/me?platform=ios&version=2.2.443692.0", null, false, null);
             JsonUsersMeResponse usersMeResponse = parseJson(usersMeResponseJson, JsonUsersMeResponse.class);
             URI uri = new URI(usersMeResponse.marketPlaceDomainName);
             String host = uri.getHost();
@@ -808,10 +822,10 @@ public class Connection {
         String cookiesJson = "{\"cookies\":{\"." + getAmazonSite() + "\":[]}}";
         String cookiesBase64 = Base64.getEncoder().encodeToString(cookiesJson.getBytes());
 
-        String exchangePostData = "di.os.name=iOS&app_version=2.2.223830.0&domain=." + getAmazonSite()
+        String exchangePostData = "di.os.name=iOS&app_version=2.2.443692.0&domain=." + getAmazonSite()
                 + "&source_token=" + URLEncoder.encode(this.refreshToken, "UTF8")
                 + "&requested_token_type=auth_cookies&source_token_type=refresh_token&di.hw.version=iPhone&di.sdk.version=6.10.0&cookies="
-                + cookiesBase64 + "&app_name=Amazon%20Alexa&di.os.version=11.4.1";
+                + cookiesBase64 + "&app_name=Amazon%20Alexa&di.os.version=14.8";
 
         HashMap<String, String> exchangeTokenHeader = new HashMap<>();
         exchangeTokenHeader.put("Cookie", "");
@@ -855,14 +869,17 @@ public class Connection {
 
     public boolean checkRenewSession() throws URISyntaxException, IOException, InterruptedException {
         if (System.currentTimeMillis() >= this.renewTime) {
-            String renewTokenPostData = "app_name=Amazon%20Alexa&app_version=2.2.223830.0&di.sdk.version=6.10.0&source_token="
+            String renewTokenPostData = "app_name=Amazon%20Alexa&app_version=2.2.443692.0&di.sdk.version=6.10.0&source_token="
                     + URLEncoder.encode(refreshToken, StandardCharsets.UTF_8.name())
-                    + "&package_name=com.amazon.echo&di.hw.version=iPhone&platform=iOS&requested_token_type=access_token&source_token_type=refresh_token&di.os.name=iOS&di.os.version=11.4.1&current_version=6.10.0";
+                    + "&package_name=com.amazon.echo&di.hw.version=iPhone&platform=iOS&requested_token_type=access_token&source_token_type=refresh_token&di.os.name=iOS&di.os.version=14.8&current_version=6.10.0";
             String renewTokenResponseJson = makeRequestAndReturnString("POST", "https://api.amazon.com/auth/token",
                     renewTokenPostData, false, null);
-            parseJson(renewTokenResponseJson, JsonRenewTokenResponse.class);
-
-            exchangeToken();
+            if (this.macDms == null) {
+                JsonRenewTokenResponse tokenResponse = parseJson(renewTokenResponseJson, JsonRenewTokenResponse.class);
+                reRegisterConnectionAsApp(tokenResponse.accessToken);
+            } else {
+                exchangeToken();
+            }
             return true;
         }
         return false;
@@ -883,7 +900,7 @@ public class Connection {
             logger.debug("Generating new device id (old device id had invalid format).");
         }
 
-        String mapMdJson = "{\"device_user_dictionary\":[],\"device_registration_data\":{\"software_version\":\"1\"},\"app_identifier\":{\"app_version\":\"2.2.223830\",\"bundle_id\":\"com.amazon.echo\"}}";
+        String mapMdJson = "{\"device_user_dictionary\":[],\"device_registration_data\":{\"software_version\":\"1\"},\"app_identifier\":{\"app_version\":\"2.2.443692\",\"bundle_id\":\"com.amazon.echo\"}}";
         String mapMdCookie = Base64.getEncoder().encodeToString(mapMdJson.getBytes());
 
         cookieManager.getCookieStore().add(new URI("https://www.amazon.com"), new HttpCookie("map-md", mapMdCookie));
