@@ -16,6 +16,7 @@ package org.smarthomej.binding.amazonechocontrol.internal.channelhandler;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -88,7 +89,7 @@ public class ChannelHandlerSendMessage extends ChannelHandler {
                 String sendConversationBody = this.gson.toJson(new SendConversationJson[] { conversationJson });
                 String sendUrl = baseUrl + "/users/" + senderCommsId + "/conversations/" + receiverCommsId
                         + "/messages";
-                connection.makeRequestAndReturnString("POST", sendUrl, sendConversationBody, true, null);
+                connection.makeRequestAndReturnString("POST", sendUrl, sendConversationBody, true, Map.of());
             }
             refreshChannel();
         }

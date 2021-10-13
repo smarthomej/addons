@@ -379,7 +379,7 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
                         // read session data from property
                         String sessionStore = this.stateStorage.get("sessionStorage");
 
-                        // try use the session data
+                        // try to use the session data
                         if (currentConnection.tryRestoreLogin(sessionStore, null)) {
                             setConnection(currentConnection);
                         }

@@ -634,9 +634,8 @@ public class AccountServlet extends HttpServlet {
             @Nullable String referer, @Nullable String postData, boolean json, String site) throws IOException {
         HttpsURLConnection urlConnection;
         try {
-            Map<String, String> headers = null;
+            Map<String, String> headers = new HashMap<>();
             if (referer != null) {
-                headers = new HashMap<>();
                 headers.put("Referer", referer);
             }
 
