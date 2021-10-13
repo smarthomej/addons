@@ -18,7 +18,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.activation.FileDataSource;
 import javax.mail.internet.AddressException;
@@ -45,6 +47,7 @@ public class MailBuilder {
     private List<InternetAddress> recipients = new ArrayList<>();
     private List<URL> attachmentURLs = new ArrayList<>();
     private List<File> attachmentFiles = new ArrayList<>();
+    private Map<String, String> headers = new HashMap<>();
     private String subject = "(no subject)";
     private String text = "";
     private String html = "";
@@ -139,6 +142,18 @@ public class MailBuilder {
     }
 
     /**
+     *
+     *
+     * @param key the key of the header
+     * @param value the value of the header
+     * @return a MailBuilder
+     */
+    public MailBuilder withHeader(String key, String value) {
+        headers.put(key, value);
+        return this;
+    }
+
+    /**
      * Build the Mail
      *
      * @return instance of Email
@@ -194,6 +209,7 @@ public class MailBuilder {
 
         mail.setTo(recipients);
         mail.setSubject(subject);
+        mail.setHeaders(headers);
 
         if (!sender.isEmpty()) {
             mail.setFrom(sender);

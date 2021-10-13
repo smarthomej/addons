@@ -19,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.Map;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
@@ -92,5 +93,9 @@ public class MailBuilderTest {
 
         assertEquals(TEST_EMAIL, builder.build().getToAddresses().get(0).getAddress());
         assertEquals(2, builder.withRecipients(TEST_EMAIL).build().getToAddresses().size());
+
+        Map<String, String> headers = builder.withHeader(TEST_STRING, TEST_STRING).build().getHeaders();
+        assertEquals(1, headers.size());
+        assertEquals(TEST_STRING, headers.get(TEST_STRING));
     }
 }
