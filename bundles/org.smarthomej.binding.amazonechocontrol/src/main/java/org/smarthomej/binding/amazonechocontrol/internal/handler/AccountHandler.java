@@ -16,7 +16,6 @@ package org.smarthomej.binding.amazonechocontrol.internal.handler;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
-import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -58,7 +57,6 @@ import org.smarthomej.binding.amazonechocontrol.internal.AccountHandlerConfig;
 import org.smarthomej.binding.amazonechocontrol.internal.AccountServlet;
 import org.smarthomej.binding.amazonechocontrol.internal.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.ConnectionException;
-import org.smarthomej.binding.amazonechocontrol.internal.HttpException;
 import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.ChannelHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.ChannelHandlerSendMessage;
 import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.IAmazonThingHandler;
@@ -203,7 +201,7 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
             if (command instanceof RefreshType) {
                 refreshData();
             }
-        } catch (IOException | URISyntaxException | InterruptedException e) {
+        } catch (ConnectionException e) {
             logger.info("handleCommand fails", e);
         }
     }
@@ -391,11 +389,6 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
                     }
                 } catch (ConnectionException e) {
                     updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, e.getMessage());
-                } catch (HttpException e) {
-                    updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
-                } catch (UnknownHostException e) {
-                    updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-                            "Unknown host name '" + e.getMessage() + "'. Maybe your internet connection is offline");
                 } catch (IOException | URISyntaxException e) {
                     updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getLocalizedMessage());
                 }
@@ -469,7 +462,7 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
                     }
                 }
                 logger.debug("checkData {} finished", getThing().getUID().getAsString());
-            } catch (HttpException | JsonSyntaxException | ConnectionException e) {
+            } catch (JsonSyntaxException e) {
                 logger.debug("checkData fails", e);
             } catch (Exception e) { // this handler can be removed later, if we know that nothing else can fail.
                 logger.error("checkData fails with unexpected error", e);
@@ -492,7 +485,7 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
             ZonedDateTime timeStampNow = ZonedDateTime.now();
             echoHandlers.forEach(echoHandler -> echoHandler.updateNotifications(timeStamp, timeStampNow, pushPayload,
                     notifications));
-        } catch (IOException | URISyntaxException | InterruptedException e) {
+        } catch (ConnectionException e) {
             logger.debug("refreshNotifications failed", e);
         }
     }
@@ -536,7 +529,7 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
                     if (currentConnection.getIsLoggedIn()) {
                         try {
                             musicProviders = currentConnection.getMusicProviders();
-                        } catch (HttpException | JsonSyntaxException | ConnectionException e) {
+                        } catch (JsonSyntaxException e) {
                             logger.debug("Update music provider failed", e);
                         }
                     }
@@ -551,13 +544,13 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
                         // update notification sounds
                         try {
                             notificationSounds = currentConnection.getNotificationSounds(device);
-                        } catch (IOException | HttpException | JsonSyntaxException | ConnectionException e) {
+                        } catch (JsonSyntaxException | ConnectionException e) {
                             logger.debug("Update notification sounds failed", e);
                         }
                         // update playlists
                         try {
                             playlists = currentConnection.getPlaylists(device);
-                        } catch (IOException | HttpException | JsonSyntaxException | ConnectionException e) {
+                        } catch (JsonSyntaxException | ConnectionException e) {
                             logger.debug("Update playlist failed", e);
                         }
                     }
@@ -590,7 +583,7 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
                 updateStatus(ThingStatus.ONLINE);
 
                 logger.debug("refresh data {} finished", getThing().getUID().getAsString());
-            } catch (HttpException | JsonSyntaxException | ConnectionException e) {
+            } catch (JsonSyntaxException e) {
                 logger.debug("refresh data fails", e);
             } catch (Exception e) { // this handler can be removed later, if we know that nothing else can fail.
                 logger.error("refresh data fails with unexpected error", e);
@@ -626,7 +619,7 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
             if (currentConnection.getIsLoggedIn()) {
                 devices = currentConnection.getDeviceList();
             }
-        } catch (IOException | URISyntaxException | InterruptedException e) {
+        } catch (ConnectionException e) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getLocalizedMessage());
         }
         if (devices != null) {
@@ -657,7 +650,7 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
         if (currentConnection != null && feeds != null) {
             try {
                 currentConnection.setEnabledFlashBriefings(Arrays.asList(feeds));
-            } catch (IOException | URISyntaxException | InterruptedException e) {
+            } catch (ConnectionException e) {
                 logger.warn("Set flashbriefing profile failed", e);
             }
         }
@@ -709,8 +702,7 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
             JsonFeed[] forSerializer = currentConnection.getEnabledFlashBriefings().stream()
                     .map(source -> new JsonFeed(source.feedId, source.skillId)).toArray(JsonFeed[]::new);
             this.currentFlashBriefingJson = gson.toJson(forSerializer);
-        } catch (HttpException | JsonSyntaxException | IOException | URISyntaxException | ConnectionException
-                | InterruptedException e) {
+        } catch (JsonSyntaxException | ConnectionException e) {
             logger.warn("get flash briefing profiles fails", e);
         }
     }
@@ -840,7 +832,7 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
             if (currentConnection.getIsLoggedIn()) {
                 smartHomeDevices = currentConnection.getSmarthomeDeviceList();
             }
-        } catch (IOException | URISyntaxException | InterruptedException e) {
+        } catch (ConnectionException e) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getLocalizedMessage());
         }
         if (smartHomeDevices != null) {
@@ -917,11 +909,10 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
                 for (SmartHomeDeviceHandler device : smartHomeDeviceHandlers) {
                     String id = device.getId();
                     SmartHomeBaseDevice baseDevice = jsonIdSmartHomeDeviceMapping.get(id);
-                    SmartHomeDeviceHandler.getSupportedSmartHomeDevices(baseDevice, allDevices)
-                            .forEach(devicesToUpdate::add);
+                    devicesToUpdate.addAll(SmartHomeDeviceHandler.getSupportedSmartHomeDevices(baseDevice, allDevices));
                 }
                 smartHomeDeviceStateGroupUpdateCalculator.removeDevicesWithNoUpdate(devicesToUpdate);
-                devicesToUpdate.stream().filter(Objects::nonNull).forEach(targetDevices::add);
+                targetDevices.addAll(devicesToUpdate);
                 if (targetDevices.isEmpty()) {
                     return;
                 }
@@ -943,7 +934,7 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
             }
 
             logger.debug("updateSmartHomeState finished");
-        } catch (HttpException | JsonSyntaxException | ConnectionException e) {
+        } catch (JsonSyntaxException | ConnectionException e) {
             logger.debug("updateSmartHomeState fails", e);
         } catch (Exception e) { // this handler can be removed later, if we know that nothing else can fail.
             logger.warn("updateSmartHomeState fails with unexpected error", e);

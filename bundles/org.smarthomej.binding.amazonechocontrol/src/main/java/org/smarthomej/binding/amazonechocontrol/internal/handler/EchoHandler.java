@@ -15,8 +15,6 @@ package org.smarthomej.binding.amazonechocontrol.internal.handler;
 
 import static org.smarthomej.binding.amazonechocontrol.internal.AmazonEchoControlBindingConstants.*;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -57,12 +55,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.amazonechocontrol.internal.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.ConnectionException;
-import org.smarthomej.binding.amazonechocontrol.internal.HttpException;
 import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.ChannelHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.ChannelHandlerAnnouncement;
 import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.IEchoThingHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonAscendingAlarm.AscendingAlarmModel;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates.BluetoothState;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates.PairedDevice;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCommandPayloadPushNotificationChange;
@@ -97,13 +93,13 @@ import com.google.gson.Gson;
 @NonNullByDefault
 public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingHandler {
     private final Logger logger = LoggerFactory.getLogger(EchoHandler.class);
-    private Gson gson;
+    private final Gson gson;
     private @Nullable Device device;
     private Set<String> capabilities = new HashSet<>();
     private @Nullable AccountHandler account;
     private @Nullable ScheduledFuture<?> updateStateJob;
     private @Nullable ScheduledFuture<?> updateProgressJob;
-    private Object progressLock = new Object();
+    private final Object progressLock = new Object();
     private @Nullable String wakeWord;
     private @Nullable String lastKnownRadioStationId;
     private @Nullable String lastKnownBluetoothMAC;
@@ -128,7 +124,7 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
     private @Nullable JsonPlaylists playLists;
     private List<JsonNotificationSound> alarmSounds = List.of();
     private List<JsonMusicProvider> musicProviders = List.of();
-    private List<ChannelHandler> channelHandlers = new ArrayList<>();
+    private final List<ChannelHandler> channelHandlers = new ArrayList<>();
 
     private @Nullable JsonNotificationResponse currentNotification;
     private @Nullable ScheduledFuture<?> currentNotifcationUpdateTimer;
@@ -433,7 +429,7 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
             if (channelId.equals(CHANNEL_BLUETOOTH_MAC)) {
                 needBluetoothRefresh = true;
                 if (command instanceof StringType) {
-                    String address = ((StringType) command).toFullString();
+                    String address = command.toFullString();
                     if (!address.isEmpty()) {
                         waitForUpdate = 4000;
                     }
@@ -527,9 +523,8 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
                         waitForUpdate = 3000;
                         updateRemind = true;
                         currentNotification = connection.notification(device, "Reminder", reminder, null);
-                        currentNotifcationUpdateTimer = scheduler.scheduleWithFixedDelay(() -> {
-                            updateNotificationTimerState();
-                        }, 1, 1, TimeUnit.SECONDS);
+                        currentNotifcationUpdateTimer = scheduler
+                                .scheduleWithFixedDelay(this::updateNotificationTimerState, 1, 1, TimeUnit.SECONDS);
                     }
                 }
             }
@@ -550,9 +545,8 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
                             sound.id = alarmSound;
                         }
                         currentNotification = connection.notification(device, "Alarm", null, sound);
-                        currentNotifcationUpdateTimer = scheduler.scheduleWithFixedDelay(() -> {
-                            updateNotificationTimerState();
-                        }, 1, 1, TimeUnit.SECONDS);
+                        currentNotifcationUpdateTimer = scheduler
+                                .scheduleWithFixedDelay(this::updateNotificationTimerState, 1, 1, TimeUnit.SECONDS);
                     }
                 }
             }
@@ -655,13 +649,8 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
                 this.disableUpdate = false;
                 BluetoothState state = null;
                 if (bluetoothRefresh) {
-                    JsonBluetoothStates states;
-                    states = connection.getBluetoothConnectionStates();
-                    if (states != null) {
-                        state = states.findStateByDevice(device);
-                    }
+                    state = connection.getBluetoothConnectionStates().findStateByDevice(device);
                 }
-
                 updateState(account, device, state, null, null, null, null, null);
             };
             if (command instanceof RefreshType) {
@@ -673,13 +662,12 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
             } else {
                 this.updateStateJob = scheduler.schedule(doRefresh, waitForUpdate, TimeUnit.MILLISECONDS);
             }
-        } catch (IOException | URISyntaxException | InterruptedException e) {
+        } catch (ConnectionException e) {
             logger.info("handleCommand fails", e);
         }
     }
 
-    private boolean handleEqualizerCommands(String channelId, Command command, Connection connection, Device device)
-            throws URISyntaxException {
+    private boolean handleEqualizerCommands(String channelId, Command command, Connection connection, Device device) {
         if (command instanceof RefreshType) {
             this.lastKnownEqualizer = null;
         }
@@ -703,7 +691,7 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
                 try {
                     connection.setEqualizer(device, newEqualizerSetting);
                     return true;
-                } catch (HttpException | IOException | ConnectionException | InterruptedException e) {
+                } catch (ConnectionException e) {
                     logger.debug("Update equalizer failed", e);
                     this.lastKnownEqualizer = null;
                 }
@@ -712,14 +700,12 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
         return false;
     }
 
-    private void startTextToSpeech(Connection connection, Device device, String text)
-            throws IOException, URISyntaxException {
+    private void startTextToSpeech(Connection connection, Device device, String text) {
         Integer volume = textToSpeechVolume != 0 ? textToSpeechVolume : null;
         connection.textToSpeech(device, text, volume, lastKnownVolume);
     }
 
-    private void startTextCommand(Connection connection, Device device, String text)
-            throws IOException, URISyntaxException {
+    private void startTextCommand(Connection connection, Device device, String text) {
         Integer volume = textToSpeechVolume != 0 ? textToSpeechVolume : null;
         connection.textCommand(device, text, volume, lastKnownVolume);
     }
@@ -753,7 +739,7 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
             if (currentConnection != null) {
                 try {
                     currentConnection.stopNotification(currentNotification);
-                } catch (IOException | URISyntaxException | InterruptedException e) {
+                } catch (ConnectionException e) {
                     logger.warn("Stop notification failed", e);
                 }
             }
@@ -773,7 +759,7 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
                     }
                 }
             }
-        } catch (IOException | URISyntaxException | InterruptedException e) {
+        } catch (ConnectionException e) {
             logger.warn("update notification state fails", e);
         }
         if (stopCurrentNotification) {
@@ -877,11 +863,7 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
                     }
                     progress = playerInfo.progress;
                 }
-            } catch (HttpException e) {
-                if (e.getCode() != 400) {
-                    logger.info("getPlayer fails", e);
-                }
-            } catch (IOException | URISyntaxException | InterruptedException e) {
+            } catch (ConnectionException e) {
                 logger.info("getPlayer fails", e);
             }
             // check playing
@@ -919,18 +901,8 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
             }
 
             JsonMediaState mediaState = null;
-            try {
-                if ("AMAZON_MUSIC".equalsIgnoreCase(musicProviderId) || "TUNEIN".equalsIgnoreCase(musicProviderId)) {
-                    mediaState = connection.getMediaState(device);
-                }
-            } catch (HttpException e) {
-                if (e.getCode() == 400) {
-                    updateState(CHANNEL_RADIO_STATION_ID, StringType.EMPTY);
-                } else {
-                    logger.info("getMediaState fails", e);
-                }
-            } catch (IOException | URISyntaxException | InterruptedException e) {
-                logger.info("getMediaState fails", e);
+            if ("AMAZON_MUSIC".equalsIgnoreCase(musicProviderId) || "TUNEIN".equalsIgnoreCase(musicProviderId)) {
+                mediaState = connection.getMediaState(device);
             }
 
             // handle music provider id
@@ -1128,7 +1100,6 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
             this.logger.debug("Handle updateState {} failed: {}", this.getThing().getUID(), e.getMessage(), e);
 
             disableUpdate = false;
-            throw e; // Rethrow same exception
         }
     }
 
@@ -1156,7 +1127,7 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
                 treble = equalizer.treble;
             }
             this.lastKnownEqualizer = equalizer;
-        } catch (IOException | URISyntaxException | HttpException | ConnectionException | InterruptedException e) {
+        } catch (ConnectionException e) {
             logger.debug("Get equalizer failes", e);
             return;
         }

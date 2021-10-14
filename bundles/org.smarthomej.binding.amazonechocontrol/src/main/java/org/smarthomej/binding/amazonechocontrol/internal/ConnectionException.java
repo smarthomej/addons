@@ -14,6 +14,7 @@
 package org.smarthomej.binding.amazonechocontrol.internal;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 
 /**
  * The {@link ConnectionException} is used for errors in the connection to the amazon server
@@ -21,11 +22,15 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
  * @author Michael Geramb - Initial contribution
  */
 @NonNullByDefault
-public class ConnectionException extends RuntimeException {
+public class ConnectionException extends Exception {
 
     private static final long serialVersionUID = 1L;
 
     public ConnectionException(String message) {
         super(message);
+    }
+
+    public ConnectionException(@Nullable String message, @Nullable Throwable cause) {
+        super(message, cause);
     }
 }

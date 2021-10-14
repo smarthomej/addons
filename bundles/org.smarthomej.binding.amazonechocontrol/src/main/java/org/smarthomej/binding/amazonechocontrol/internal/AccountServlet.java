@@ -328,7 +328,7 @@ public class AccountServlet extends HttpServlet {
 
             String html = connection.getLoginPage();
             returnHtml(connection, resp, html, "amazon.com");
-        } catch (URISyntaxException | InterruptedException e) {
+        } catch (URISyntaxException | ConnectionException e) {
             logger.warn("get failed with uri syntax error", e);
         }
     }
@@ -436,8 +436,7 @@ public class AccountServlet extends HttpServlet {
         createPageEndAndSent(resp, html);
     }
 
-    private void handleDevices(HttpServletResponse resp, Connection connection)
-            throws IOException, URISyntaxException, InterruptedException {
+    private void handleDevices(HttpServletResponse resp, Connection connection) throws ConnectionException {
         returnHtml(connection, resp, "<html>" + HtmlEscape.escapeHtml4(connection.getDeviceListJson()) + "</html>");
     }
 
@@ -532,8 +531,7 @@ public class AccountServlet extends HttpServlet {
         String errorMessage = "No notifications sounds found";
         try {
             notificationSounds = connection.getNotificationSounds(device);
-        } catch (IOException | HttpException | URISyntaxException | JsonSyntaxException | ConnectionException
-                | InterruptedException e) {
+        } catch (ConnectionException | JsonSyntaxException e) {
             errorMessage = e.getLocalizedMessage();
         }
         if (!notificationSounds.isEmpty()) {
@@ -564,8 +562,7 @@ public class AccountServlet extends HttpServlet {
         String errorMessage = "No playlists found";
         try {
             playLists = connection.getPlaylists(device);
-        } catch (IOException | HttpException | URISyntaxException | JsonSyntaxException | ConnectionException
-                | InterruptedException e) {
+        } catch (ConnectionException | JsonSyntaxException e) {
             errorMessage = e.getLocalizedMessage();
         }
 
@@ -680,12 +677,11 @@ public class AccountServlet extends HttpServlet {
                     return;
                 }
             }
-        } catch (URISyntaxException | ConnectionException | InterruptedException e) {
+            String response = connection.convertStream(urlConnection);
+            returnHtml(connection, resp, response, site);
+        } catch (ConnectionException | InterruptedException e) {
             returnError(resp, e.getLocalizedMessage());
-            return;
         }
-        String response = connection.convertStream(urlConnection);
-        returnHtml(connection, resp, response, site);
     }
 
     private void returnHtml(Connection connection, HttpServletResponse resp, String html) {
