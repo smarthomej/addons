@@ -22,6 +22,7 @@ import org.eclipse.jdt.annotation.Nullable;
  */
 @NonNullByDefault
 public class WebsocketException extends Exception {
+    private static final long serialVersionUID = 1L;
 
     public WebsocketException(String message) {
         super(message);

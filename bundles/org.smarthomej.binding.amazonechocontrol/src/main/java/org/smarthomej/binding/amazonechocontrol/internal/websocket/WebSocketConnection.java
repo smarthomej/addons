@@ -32,7 +32,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Timer;
@@ -105,19 +104,14 @@ public class WebSocketConnection {
                 host = "dp-gw-na." + amazonSite;
             }
 
-            String deviceSerial = "";
             List<HttpCookie> cookiesForWs = new ArrayList<>();
             for (HttpCookie cookie : sessionCookies) {
-                if (cookie.getName().equals("ubid-acbde")) {
-                    deviceSerial = cookie.getValue();
-                }
                 // Clone the cookie without the security attribute, because the web socket implementation ignore secure
                 // cookies
                 String value = cookie.getValue().replaceAll("^\"|\"$", "");
                 HttpCookie cookieForWs = new HttpCookie(cookie.getName(), value);
                 cookiesForWs.add(cookieForWs);
             }
-            deviceSerial += "-" + new Date().getTime();
             URI uri;
 
             uri = new URI("wss://" + host + "/tcomm/");

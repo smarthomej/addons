@@ -55,8 +55,6 @@ import com.google.gson.Gson;
         AmazonEchoControlHandlerFactory.class }, configurationPid = "binding.amazonechocontrol")
 @NonNullByDefault
 public class AmazonEchoControlHandlerFactory extends BaseThingHandlerFactory {
-    private final Logger logger = LoggerFactory.getLogger(AmazonEchoControlHandlerFactory.class);
-
     private final Set<AccountHandler> accountHandlers = new HashSet<>();
     private final HttpService httpService;
     private final StorageService storageService;

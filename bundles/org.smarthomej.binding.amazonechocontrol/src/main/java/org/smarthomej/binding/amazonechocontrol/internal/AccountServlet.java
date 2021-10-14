@@ -575,7 +575,7 @@ public class AccountServlet extends HttpServlet {
                     {
                         if (innerLists != null && innerLists.length > 0) {
                             PlayList playList = innerLists[0];
-                            if (playList != null && playList.playlistId != null && playList.title != null) {
+                            if (playList.playlistId != null && playList.title != null) {
                                 html.append("<tr><td>");
                                 html.append(HtmlEscape.escapeHtml4(nullReplacement(playList.title)));
                                 html.append("</td><td>");
@@ -595,9 +595,6 @@ public class AccountServlet extends HttpServlet {
     private void renderBluetoothMacChannel(Connection connection, Device device, StringBuilder html) {
         html.append("<h2>").append(HtmlEscape.escapeHtml4("Channel " + CHANNEL_BLUETOOTH_MAC)).append("</h2>");
         JsonBluetoothStates bluetoothStates = connection.getBluetoothConnectionStates();
-        if (bluetoothStates == null) {
-            return;
-        }
         BluetoothState[] innerStates = bluetoothStates.bluetoothStates;
         if (innerStates == null) {
             return;

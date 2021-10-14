@@ -1451,7 +1451,7 @@ public class Connection {
         Lock lock = Objects.requireNonNull(locks.computeIfAbsent(TimerType.VOLUME, k -> new ReentrantLock()));
         lock.lock();
         try {
-            Volume volume = Objects.requireNonNull(volumes.computeIfAbsent(vol, k -> new Volume(vol)));
+            Volume volume = Objects.requireNonNull(volumes.computeIfAbsent(vol, k -> new Volume()));
             volume.devices.add(device);
             volume.volumes.add(vol);
             // schedule a TTS only if it has not been scheduled before
@@ -1653,7 +1653,6 @@ public class Connection {
                 delay += text.length() * 150;
             }
 
-            Map<String, String> headers = Map.of("Routines-Version", "1.1.218665");
             makeRequest("POST", alexaServer + "/api/behaviors/preview", json, true, true, Map.of(), 3);
 
             Thread.sleep(delay);
@@ -2037,12 +2036,7 @@ public class Connection {
 
     private static class Volume {
         public List<Device> devices = new ArrayList<>();
-        public int volume;
         public List<@Nullable Integer> volumes = new ArrayList<>();
-
-        public Volume(int volume) {
-            this.volume = volume;
-        }
     }
 
     private static class QueueObject {
