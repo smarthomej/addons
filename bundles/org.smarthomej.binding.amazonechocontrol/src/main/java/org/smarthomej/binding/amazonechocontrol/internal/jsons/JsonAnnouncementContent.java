@@ -15,7 +15,7 @@ package org.smarthomej.binding.amazonechocontrol.internal.jsons;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.smarthomej.binding.amazonechocontrol.internal.Connection;
+import org.smarthomej.binding.amazonechocontrol.internal.connection.AnnouncementWrapper;
 
 /**
  * The {@link JsonAnnouncementContent} encapsulate the GSON data of the sequence command AlexaAnnouncement for sending
@@ -29,9 +29,9 @@ public class JsonAnnouncementContent {
     public Display display;
     public Speak speak;
 
-    public JsonAnnouncementContent(Connection.AnnouncementWrapper announcement) {
-        display = new Display(announcement.bodyText, announcement.title);
-        speak = new Speak(announcement.speak);
+    public JsonAnnouncementContent(AnnouncementWrapper announcement) {
+        display = new Display(announcement.getBodyText(), announcement.getTitle());
+        speak = new Speak(announcement.getSpeak());
     }
 
     public static class Display {

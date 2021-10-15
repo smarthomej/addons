@@ -402,7 +402,7 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
     public void setConnection(@Nullable Connection connection) {
         this.connection = connection;
         if (connection != null) {
-            String serializedStorage = connection.serializeLoginData();
+            String serializedStorage = connection.getLoginData().serializeLoginData();
             this.stateStorage.put("sessionStorage", serializedStorage);
         } else {
             this.stateStorage.put("sessionStorage", null);

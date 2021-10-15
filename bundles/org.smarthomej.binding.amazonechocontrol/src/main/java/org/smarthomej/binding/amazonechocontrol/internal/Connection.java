@@ -18,7 +18,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.CookieManager;
-import java.net.CookieStore;
 import java.net.HttpCookie;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -38,7 +37,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Random;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -63,9 +61,11 @@ import org.openhab.core.common.ThreadPoolManager;
 import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.library.unit.SIUnits;
-import org.openhab.core.util.HexUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smarthomej.binding.amazonechocontrol.internal.connection.AnnouncementWrapper;
+import org.smarthomej.binding.amazonechocontrol.internal.connection.LoginData;
+import org.smarthomej.binding.amazonechocontrol.internal.connection.TextWrapper;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonActivities;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonActivities.Activity;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonAnnouncementContent;
@@ -139,36 +139,26 @@ public class Connection {
     private static final String THING_THREADPOOL_NAME = "thingHandler";
     private static final long EXPIRES_IN = 432000; // five days
     private static final Pattern CHARSET_PATTERN = Pattern.compile("(?i)\\bcharset=\\s*\"?([^\\s;\"]*)");
-    private static final String DEVICE_TYPE = "A2IVLV5VM2W81";
     private static final String USER_AGENT = "AmazonWebView/Amazon Alexa/2.2.443692.0/iOS/14.8/iPhone";
 
     private final Logger logger = LoggerFactory.getLogger(Connection.class);
 
     protected final ScheduledExecutorService scheduler = ThreadPoolManager.getScheduledPool(THING_THREADPOOL_NAME);
 
-    private final Random rand = new Random();
     private final CookieManager cookieManager = new CookieManager();
     private final Gson gson;
     private final Gson gsonWithNullSerialization;
 
-    private String amazonSite = "amazon.com";
+    private final LoginData loginData;
     private String alexaServer = "https://alexa.amazon.com";
-    private String frc;
-    private String serial;
-    private String deviceId;
-
-    private @Nullable String refreshToken;
-    private @Nullable Date loginTime;
     private @Nullable Date verifyTime;
     private long renewTime = 0;
-    private String deviceName = "Unknown";
-    private @Nullable String accountCustomerId;
     private @Nullable String customerName;
     private @Nullable MacDms macDms;
 
     private final Map<Integer, AnnouncementWrapper> announcements = Collections.synchronizedMap(new LinkedHashMap<>());
-    private final Map<Integer, TextToSpeech> textToSpeeches = Collections.synchronizedMap(new LinkedHashMap<>());
-    private final Map<Integer, TextCommand> textCommands = Collections.synchronizedMap(new LinkedHashMap<>());
+    private final Map<Integer, TextWrapper> textToSpeeches = Collections.synchronizedMap(new LinkedHashMap<>());
+    private final Map<Integer, TextWrapper> textCommands = Collections.synchronizedMap(new LinkedHashMap<>());
 
     private final Map<Integer, Volume> volumes = Collections.synchronizedMap(new LinkedHashMap<>());
     private final Map<String, LinkedBlockingQueue<QueueObject>> devices = Collections
@@ -188,13 +178,10 @@ public class Connection {
     public Connection(@Nullable Connection oldConnection, Gson gson) {
         this.gson = gson;
         if (oldConnection != null) {
-            this.deviceId = oldConnection.getDeviceId();
-            this.frc = oldConnection.getFrc();
-            this.serial = oldConnection.getSerial();
+            this.loginData = new LoginData(cookieManager, oldConnection.getDeviceId(), oldConnection.getFrc(),
+                    oldConnection.getSerial());
         } else {
-            this.frc = generateFrc();
-            this.serial = generateSerial();
-            this.deviceId = generateDeviceId();
+            this.loginData = new LoginData(cookieManager);
         }
 
         GsonBuilder gsonBuilder = new GsonBuilder();
@@ -202,47 +189,6 @@ public class Connection {
 
         replaceTimer(TimerType.DEVICES,
                 scheduler.scheduleWithFixedDelay(this::handleExecuteSequenceNode, 0, 500, TimeUnit.MILLISECONDS));
-    }
-
-    private String generateFrc() {
-        byte[] frcBinary = new byte[313];
-        rand.nextBytes(frcBinary);
-        return Base64.getEncoder().encodeToString(frcBinary);
-    }
-
-    private String generateSerial() {
-        // generate serial
-        byte[] serialBinary = new byte[16];
-        rand.nextBytes(serialBinary);
-        return HexUtils.bytesToHex(serialBinary);
-    }
-
-    /**
-     * Generate a new device id
-     *
-     * The device id consists of 16 random bytes in upper-case hex format, a # as separator and a fixed DEVICE_TYPE
-     *
-     * @return a string containing the new device-id
-     */
-    private String generateDeviceId() {
-        byte[] bytes = new byte[16];
-        rand.nextBytes(bytes);
-        String hexStr = HexUtils.bytesToHex(bytes).toUpperCase() + "#" + DEVICE_TYPE;
-        return HexUtils.bytesToHex(hexStr.getBytes());
-    }
-
-    /**
-     * Check if deviceId is valid (consisting of hex(hex(16 random bytes)) + "#" + DEVICE_TYPE)
-     *
-     * @param deviceId the deviceId
-     * @return true if valid, false if invalid
-     */
-    private boolean checkDeviceIdIsValid(@Nullable String deviceId) {
-        if (deviceId != null && deviceId.matches("^[0-9a-fA-F]{92}$")) {
-            String hexString = new String(HexUtils.hexToBytes(deviceId));
-            return hexString.matches("^[0-9A-F]{32}#" + DEVICE_TYPE + "$");
-        }
-        return false;
     }
 
     private void setAmazonSite(@Nullable String amazonSite) {
@@ -259,8 +205,13 @@ public class Connection {
         if (correctedAmazonSite.startsWith("alexa.")) {
             correctedAmazonSite = correctedAmazonSite.substring(6);
         }
-        this.amazonSite = correctedAmazonSite;
+        this.loginData.amazonSite = correctedAmazonSite;
         this.alexaServer = "https://alexa." + correctedAmazonSite;
+    }
+
+    public LoginData getLoginData() {
+        // update cookies
+        return loginData;
     }
 
     public @Nullable Date tryGetVerifyTime() {
@@ -268,19 +219,19 @@ public class Connection {
     }
 
     public String getFrc() {
-        return frc;
+        return loginData.frc;
     }
 
     public String getSerial() {
-        return serial;
+        return loginData.serial;
     }
 
     public String getDeviceId() {
-        return deviceId;
+        return loginData.deviceId;
     }
 
     public String getAmazonSite() {
-        return amazonSite;
+        return loginData.amazonSite;
     }
 
     public String getAlexaServer() {
@@ -292,11 +243,11 @@ public class Connection {
     }
 
     public String getDeviceName() {
-        return this.deviceName;
+        return this.loginData.deviceName;
     }
 
     public String getCustomerId() {
-        return Objects.requireNonNullElse(accountCustomerId, "Unknown");
+        return Objects.requireNonNullElse(loginData.accountCustomerId, "Unknown");
     }
 
     public String getCustomerName() {
@@ -308,63 +259,12 @@ public class Connection {
                 (queueObjects) -> (queueObjects.stream().anyMatch(queueObject -> queueObject.future != null)));
     }
 
-    public String serializeLoginData() {
-        Date loginTime = this.loginTime;
-        if (refreshToken == null || loginTime == null) {
-            return "";
-        }
-        StringBuilder builder = new StringBuilder();
-        builder.append("7\n"); // version
-        builder.append(frc).append("\n");
-        builder.append(serial).append("\n");
-        builder.append(deviceId).append("\n");
-        builder.append(refreshToken).append("\n");
-        builder.append(amazonSite).append("\n");
-        builder.append(deviceName).append("\n");
-        builder.append(accountCustomerId).append("\n");
-        builder.append(loginTime.getTime()).append("\n");
-        List<HttpCookie> cookies = cookieManager.getCookieStore().getCookies();
-        builder.append(cookies.size()).append("\n");
-        for (HttpCookie cookie : cookies) {
-            writeValue(builder, cookie.getName());
-            writeValue(builder, cookie.getValue());
-            writeValue(builder, cookie.getComment());
-            writeValue(builder, cookie.getCommentURL());
-            writeValue(builder, cookie.getDomain());
-            writeValue(builder, cookie.getMaxAge());
-            writeValue(builder, cookie.getPath());
-            writeValue(builder, cookie.getPortlist());
-            writeValue(builder, cookie.getVersion());
-            writeValue(builder, cookie.getSecure());
-            writeValue(builder, cookie.getDiscard());
-        }
-        return builder.toString();
-    }
-
-    private void writeValue(StringBuilder builder, @Nullable Object value) {
-        if (value == null) {
-            builder.append("0\n");
-        } else {
-            builder.append("1").append("\n").append(value).append("\n");
-        }
-    }
-
-    private String readValue(Scanner scanner) {
-        if (scanner.nextLine().equals("1")) {
-            String result = scanner.nextLine();
-            if (result != null) {
-                return result;
-            }
-        }
-        return "";
-    }
-
     public boolean tryRestoreLogin(@Nullable String data, @Nullable String overloadedDomain) {
         Date loginTime = tryRestoreSessionData(data, overloadedDomain);
         if (loginTime != null) {
             try {
                 if (verifyLogin()) {
-                    this.loginTime = loginTime;
+                    this.loginData.loginTime = loginTime;
                     return true;
                 }
             } catch (ConnectionException e) {
@@ -379,84 +279,37 @@ public class Connection {
         if (data == null || data.isEmpty()) {
             return null;
         }
-        Scanner scanner = new Scanner(data);
-        String version = scanner.nextLine();
-        // check if serialize version is supported
-        if (!"5".equals(version) && !"6".equals(version) && !"7".equals(version)) {
-            scanner.close();
+        if (!loginData.deserialize(data)) {
             return null;
         }
-        int intVersion = Integer.parseInt(version);
 
-        frc = scanner.nextLine();
-        serial = scanner.nextLine();
-        deviceId = scanner.nextLine();
-
-        // Recreate session and cookies
-        refreshToken = scanner.nextLine();
-        String domain = scanner.nextLine();
         if (overloadedDomain != null) {
-            domain = overloadedDomain;
-        }
-        setAmazonSite(domain);
-
-        deviceName = scanner.nextLine();
-
-        if (intVersion > 5) {
-            String accountCustomerId = scanner.nextLine();
-            // Note: version 5 have wrong customer id serialized.
-            // Only use it, if it at least version 6 of serialization
-            if (intVersion > 6) {
-                if (!"null".equals(accountCustomerId)) {
-                    this.accountCustomerId = accountCustomerId;
-                }
-            }
+            loginData.amazonSite = overloadedDomain;
         }
 
-        Date loginTime = new Date(Long.parseLong(scanner.nextLine()));
-        CookieStore cookieStore = cookieManager.getCookieStore();
-        cookieStore.removeAll();
+        setAmazonSite(loginData.amazonSite);
 
-        int numberOfCookies = Integer.parseInt(scanner.nextLine());
-        for (int i = 0; i < numberOfCookies; i++) {
-            String name = readValue(scanner);
-            String value = readValue(scanner);
-
-            HttpCookie clientCookie = new HttpCookie(name, value);
-            clientCookie.setComment(readValue(scanner));
-            clientCookie.setCommentURL(readValue(scanner));
-            clientCookie.setDomain(readValue(scanner));
-            clientCookie.setMaxAge(Long.parseLong(readValue(scanner)));
-            clientCookie.setPath(readValue(scanner));
-            clientCookie.setPortlist(readValue(scanner));
-            clientCookie.setVersion(Integer.parseInt(readValue(scanner)));
-            clientCookie.setSecure(Boolean.parseBoolean(readValue(scanner)));
-            clientCookie.setDiscard(Boolean.parseBoolean(readValue(scanner)));
-
-            cookieStore.add(null, clientCookie);
-        }
-        scanner.close();
         try {
             checkRenewSession();
 
-            String accountCustomerId = this.accountCustomerId;
+            String accountCustomerId = this.loginData.accountCustomerId;
             if (accountCustomerId == null || accountCustomerId.isEmpty()) {
                 List<Device> devices = this.getDeviceList();
-                accountCustomerId = devices.stream().filter(device -> serial.equals(device.serialNumber)).findAny()
-                        .map(device -> device.deviceOwnerCustomerId).orElse(null);
+                accountCustomerId = devices.stream().filter(device -> loginData.serial.equals(device.serialNumber))
+                        .findAny().map(device -> device.deviceOwnerCustomerId).orElse(null);
                 if (accountCustomerId == null || accountCustomerId.isEmpty()) {
                     accountCustomerId = devices.stream().filter(device -> "This Device".equals(device.accountName))
                             .findAny().map(device -> {
-                                serial = Objects.requireNonNullElse(device.serialNumber, serial);
+                                loginData.serial = Objects.requireNonNullElse(device.serialNumber, loginData.serial);
                                 return device.deviceOwnerCustomerId;
                             }).orElse(null);
                 }
-                this.accountCustomerId = accountCustomerId;
+                this.loginData.accountCustomerId = accountCustomerId;
             }
         } catch (URISyntaxException | IOException | ConnectionException e) {
             logger.debug("Getting account customer Id failed", e);
         }
-        return loginTime;
+        return loginData.loginTime;
     }
 
     private @Nullable Authentication tryGetBootstrap() throws ConnectionException {
@@ -471,8 +324,8 @@ public class Connection {
                 Authentication authentication = result.authentication;
                 if (authentication != null && authentication.authenticated) {
                     this.customerName = authentication.customerName;
-                    if (this.accountCustomerId == null) {
-                        this.accountCustomerId = authentication.customerId;
+                    if (this.loginData.accountCustomerId == null) {
+                        this.loginData.accountCustomerId = authentication.customerId;
                     }
                     return authentication;
                 }
@@ -700,8 +553,8 @@ public class Connection {
             webSiteCookies.add(new JsonWebSiteCookie(cookie.getName(), cookie.getValue()));
         }
 
-        JsonRegisterAppRequest registerAppRequest = new JsonRegisterAppRequest(serial, accessToken, frc,
-                webSiteCookies);
+        JsonRegisterAppRequest registerAppRequest = new JsonRegisterAppRequest(loginData.serial, accessToken,
+                loginData.frc, webSiteCookies);
         String registerAppRequestJson = gson.toJson(registerAppRequest);
 
         String registerAppResultJson = makeRequestAndReturnString("POST", "https://api.amazon.com/auth/register",
@@ -728,7 +581,7 @@ public class Connection {
 
         this.macDms = tokens.macDms;
 
-        this.refreshToken = refreshToken;
+        this.loginData.refreshToken = refreshToken;
         if (refreshToken == null || refreshToken.isEmpty()) {
             throw new ConnectionException("Error: No refresh token received");
         }
@@ -759,7 +612,7 @@ public class Connection {
             }
         }
 
-        this.deviceName = Objects.requireNonNullElse(deviceName, "Unknown");
+        this.loginData.deviceName = Objects.requireNonNullElse(deviceName, "Unknown");
     }
 
     private void exchangeToken() throws ConnectionException {
@@ -768,7 +621,7 @@ public class Connection {
         String cookiesBase64 = Base64.getEncoder().encodeToString(cookiesJson.getBytes());
 
         String exchangePostData = "di.os.name=iOS&app_version=2.2.443692.0&domain=." + getAmazonSite()
-                + "&source_token=" + URLEncoder.encode(this.refreshToken, StandardCharsets.UTF_8)
+                + "&source_token=" + URLEncoder.encode(this.loginData.refreshToken, StandardCharsets.UTF_8)
                 + "&requested_token_type=auth_cookies&source_token_type=refresh_token&di.hw.version=iPhone&di.sdk.version=6.10.0&cookies="
                 + cookiesBase64 + "&app_name=Amazon%20Alexa&di.os.version=14.8";
 
@@ -812,7 +665,7 @@ public class Connection {
     public boolean checkRenewSession() throws URISyntaxException, UnsupportedEncodingException, ConnectionException {
         if (System.currentTimeMillis() >= this.renewTime) {
             String renewTokenPostData = "app_name=Amazon%20Alexa&app_version=2.2.443692.0&di.sdk.version=6.10.0&source_token="
-                    + URLEncoder.encode(refreshToken, StandardCharsets.UTF_8.name())
+                    + URLEncoder.encode(loginData.refreshToken, StandardCharsets.UTF_8.name())
                     + "&package_name=com.amazon.echo&di.hw.version=iPhone&platform=iOS&requested_token_type=access_token&source_token_type=refresh_token&di.os.name=iOS&di.os.version=14.8&current_version=6.10.0";
             String renewTokenResponseJson = makeRequestAndReturnString("POST", "https://api.amazon.com/auth/token",
                     renewTokenPostData, false, Map.of());
@@ -828,7 +681,7 @@ public class Connection {
     }
 
     public boolean getIsLoggedIn() {
-        return loginTime != null;
+        return loginData.loginTime != null;
     }
 
     public String getLoginPage() throws ConnectionException {
@@ -837,20 +690,15 @@ public class Connection {
 
         logger.debug("Start Login to {}", alexaServer);
 
-        if (!checkDeviceIdIsValid(deviceId)) {
-            deviceId = generateDeviceId();
-            logger.debug("Generating new device id (old device id had invalid format).");
-        }
-
         String mapMdJson = "{\"device_user_dictionary\":[],\"device_registration_data\":{\"software_version\":\"1\"},\"app_identifier\":{\"app_version\":\"2.2.443692\",\"bundle_id\":\"com.amazon.echo\"}}";
         String mapMdCookie = Base64.getEncoder().encodeToString(mapMdJson.getBytes());
 
         cookieManager.getCookieStore().add(URI.create("https://www.amazon.com"), new HttpCookie("map-md", mapMdCookie));
-        cookieManager.getCookieStore().add(URI.create("https://www.amazon.com"), new HttpCookie("frc", frc));
+        cookieManager.getCookieStore().add(URI.create("https://www.amazon.com"), new HttpCookie("frc", loginData.frc));
 
         String loginFormHtml = makeRequestAndReturnString("GET", "https://www.amazon.com"
                 + "/ap/signin?openid.return_to=https://www.amazon.com/ap/maplanding&openid.assoc_handle=amzn_dp_project_dee_ios&openid.identity=http://specs.openid.net/auth/2.0/identifier_select&pageId=amzn_dp_project_dee_ios&accountStatusPolicy=P1&openid.claimed_id=http://specs.openid.net/auth/2.0/identifier_select&openid.mode=checkid_setup&openid.ns.oa2=http://www.amazon.com/ap/ext/oauth/2&openid.oa2.client_id=device:"
-                + deviceId
+                + loginData.deviceId
                 + "&openid.ns.pape=http://specs.openid.net/extensions/pape/1.0&openid.oa2.response_type=token&openid.ns=http://specs.openid.net/auth/2.0&openid.pape.max_auth_age=0&openid.oa2.scope=device_auth_access",
                 null, false, Map.of("authority", "www.amazon.com"));
 
@@ -859,14 +707,14 @@ public class Connection {
     }
 
     public boolean verifyLogin() throws ConnectionException {
-        if (this.refreshToken == null) {
+        if (this.loginData.refreshToken == null) {
             return false;
         }
         Authentication authentication = tryGetBootstrap();
         if (authentication != null && authentication.authenticated) {
             verifyTime = new Date();
-            if (loginTime == null) {
-                loginTime = verifyTime;
+            if (loginData.loginTime == null) {
+                loginData.loginTime = verifyTime;
             }
             return true;
         }
@@ -894,8 +742,8 @@ public class Connection {
     public void logout() {
         cookieManager.getCookieStore().removeAll();
         // reset all members
-        refreshToken = null;
-        loginTime = null;
+        loginData.refreshToken = null;
+        loginData.loginTime = null;
         verifyTime = null;
 
         replaceTimer(TimerType.ANNOUNCEMENT, null);
@@ -1228,7 +1076,7 @@ public class Connection {
     }
 
     private @Nullable String getCustomerId(@Nullable String defaultId) {
-        String accountCustomerId = this.accountCustomerId;
+        String accountCustomerId = this.loginData.accountCustomerId;
         return accountCustomerId == null || accountCustomerId.isEmpty() ? defaultId : accountCustomerId;
     }
 
@@ -1289,9 +1137,7 @@ public class Connection {
             AnnouncementWrapper announcement = Objects
                     .requireNonNull(announcements.computeIfAbsent(Objects.hash(escapedSpeak, plainBodyText, title),
                             k -> new AnnouncementWrapper(escapedSpeak, plainBodyText, title)));
-            announcement.devices.add(device);
-            announcement.ttsVolumes.add(ttsVolume);
-            announcement.standardVolumes.add(standardVolume);
+            announcement.add(device, ttsVolume, standardVolume);
 
             // schedule an announcement only if it has not been scheduled before
             timers.computeIfAbsent(TimerType.ANNOUNCEMENT,
@@ -1310,7 +1156,7 @@ public class Connection {
             while (iterator.hasNext()) {
                 AnnouncementWrapper announcement = iterator.next();
                 try {
-                    List<Device> devices = announcement.devices;
+                    List<Device> devices = announcement.getDevices();
                     if (!devices.isEmpty()) {
                         JsonAnnouncementContent content = new JsonAnnouncementContent(announcement);
 
@@ -1324,7 +1170,7 @@ public class Connection {
                             parameters.put("customerId", customerId);
                         }
                         executeSequenceCommandWithVolume(devices, "AlexaAnnouncement", parameters,
-                                announcement.ttsVolumes, announcement.standardVolumes);
+                                announcement.getTtsVolumes(), announcement.getStandardVolumes());
                     }
                 } catch (Exception e) {
                     logger.warn("send announcement fails with unexpected error", e);
@@ -1351,11 +1197,9 @@ public class Connection {
         Lock lock = Objects.requireNonNull(locks.computeIfAbsent(TimerType.TTS, k -> new ReentrantLock()));
         lock.lock();
         try {
-            TextToSpeech textToSpeech = Objects.requireNonNull(
-                    textToSpeeches.computeIfAbsent(Objects.hash(escapedText), k -> new TextToSpeech(escapedText)));
-            textToSpeech.devices.add(device);
-            textToSpeech.ttsVolumes.add(ttsVolume);
-            textToSpeech.standardVolumes.add(standardVolume);
+            TextWrapper textToSpeech = Objects.requireNonNull(
+                    textToSpeeches.computeIfAbsent(Objects.hash(escapedText), k -> new TextWrapper(escapedText)));
+            textToSpeech.add(device, ttsVolume, standardVolume);
             // schedule a TTS only if it has not been scheduled before
             timers.computeIfAbsent(TimerType.TTS,
                     k -> scheduler.schedule(this::sendTextToSpeech, 500, TimeUnit.MILLISECONDS));
@@ -1369,16 +1213,15 @@ public class Connection {
         Lock lock = Objects.requireNonNull(locks.computeIfAbsent(TimerType.TTS, k -> new ReentrantLock()));
         lock.lock();
         try {
-            Iterator<TextToSpeech> iterator = textToSpeeches.values().iterator();
+            Iterator<TextWrapper> iterator = textToSpeeches.values().iterator();
             while (iterator.hasNext()) {
-                TextToSpeech textToSpeech = iterator.next();
+                TextWrapper textToSpeech = iterator.next();
                 try {
-                    List<Device> devices = textToSpeech.devices;
+                    List<Device> devices = textToSpeech.getDevices();
                     if (!devices.isEmpty()) {
-                        String text = textToSpeech.text;
-                        Map<String, Object> parameters = Map.of("textToSpeak", text);
-                        executeSequenceCommandWithVolume(devices, "Alexa.Speak", parameters, textToSpeech.ttsVolumes,
-                                textToSpeech.standardVolumes);
+                        executeSequenceCommandWithVolume(devices, "Alexa.Speak",
+                                Map.of("textToSpeak", textToSpeech.getText()), textToSpeech.getTtsVolumes(),
+                                textToSpeech.getStandardVolumes());
                     }
                 } catch (Exception e) {
                     logger.warn("send textToSpeech fails with unexpected error", e);
@@ -1404,11 +1247,9 @@ public class Connection {
         Lock lock = Objects.requireNonNull(locks.computeIfAbsent(TimerType.TEXT_COMMAND, k -> new ReentrantLock()));
         lock.lock();
         try {
-            TextCommand textCommand = Objects.requireNonNull(
-                    textCommands.computeIfAbsent(Objects.hash(escapedText), k -> new TextCommand(escapedText)));
-            textCommand.devices.add(device);
-            textCommand.ttsVolumes.add(ttsVolume);
-            textCommand.standardVolumes.add(standardVolume);
+            TextWrapper textWrapper = Objects.requireNonNull(
+                    textCommands.computeIfAbsent(Objects.hash(escapedText), k -> new TextWrapper(escapedText)));
+            textWrapper.add(device, ttsVolume, standardVolume);
             // schedule a TextCommand only if it has not been scheduled before
             timers.computeIfAbsent(TimerType.TEXT_COMMAND,
                     k -> scheduler.schedule(this::sendTextCommand, 500, TimeUnit.MILLISECONDS));
@@ -1423,16 +1264,15 @@ public class Connection {
         lock.lock();
 
         try {
-            Iterator<TextCommand> iterator = textCommands.values().iterator();
+            Iterator<TextWrapper> iterator = textCommands.values().iterator();
             while (iterator.hasNext()) {
-                TextCommand textCommand = iterator.next();
+                TextWrapper textCommand = iterator.next();
                 try {
-                    List<Device> devices = textCommand.devices;
+                    List<Device> devices = textCommand.getDevices();
                     if (!devices.isEmpty()) {
-                        String text = textCommand.text;
-                        Map<String, Object> parameters = Map.of("text", text);
-                        executeSequenceCommandWithVolume(devices, "Alexa.TextCommand", parameters,
-                                textCommand.ttsVolumes, textCommand.standardVolumes);
+                        executeSequenceCommandWithVolume(devices, "Alexa.TextCommand",
+                                Map.of("text", textCommand.getText()), textCommand.getTtsVolumes(),
+                                textCommand.getStandardVolumes());
                     }
                 } catch (Exception e) {
                     logger.warn("send textCommand fails with unexpected error", e);
@@ -1629,15 +1469,9 @@ public class Connection {
             return;
         }
         List<String> types = executionNodeObject.types;
-        long delay = 0;
-        if (types.contains("Alexa.DeviceControls.Volume")) {
-            delay += 2000;
-        }
-        if (types.contains("Announcement")) {
-            delay += 3000;
-        } else {
-            delay += 2000;
-        }
+        long delay = types.contains("Alexa.DeviceControls.Volume") ? 2000 : 0;
+        delay += types.contains("Announcement") ? 3000 : 2000;
+
         try {
             JsonObject sequenceJson = new JsonObject();
             sequenceJson.addProperty("@type", "com.amazon.alexa.behaviors.model.Sequence");
@@ -1997,43 +1831,6 @@ public class Connection {
                 true, true, Map.of(), 0);
     }
 
-    public static class AnnouncementWrapper {
-        public List<Device> devices = new ArrayList<>();
-        public String speak;
-        public String bodyText;
-        public @Nullable String title;
-        public List<@Nullable Integer> ttsVolumes = new ArrayList<>();
-        public List<@Nullable Integer> standardVolumes = new ArrayList<>();
-
-        public AnnouncementWrapper(String speak, String bodyText, @Nullable String title) {
-            this.speak = speak;
-            this.bodyText = bodyText;
-            this.title = title;
-        }
-    }
-
-    private static class TextToSpeech {
-        public List<Device> devices = new ArrayList<>();
-        public String text;
-        public List<@Nullable Integer> ttsVolumes = new ArrayList<>();
-        public List<@Nullable Integer> standardVolumes = new ArrayList<>();
-
-        public TextToSpeech(String text) {
-            this.text = text;
-        }
-    }
-
-    private static class TextCommand {
-        public List<Device> devices = new ArrayList<>();
-        public String text;
-        public List<@Nullable Integer> ttsVolumes = new ArrayList<>();
-        public List<@Nullable Integer> standardVolumes = new ArrayList<>();
-
-        public TextCommand(String text) {
-            this.text = text;
-        }
-    }
-
     private static class Volume {
         public List<Device> devices = new ArrayList<>();
         public List<@Nullable Integer> volumes = new ArrayList<>();
@@ -2047,7 +1844,6 @@ public class Connection {
 
     private static class ExecutionNodeObject {
         public List<String> types = new ArrayList<>();
-        @Nullable
-        public String text;
+        public @Nullable String text;
     }
 }

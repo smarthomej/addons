@@ -155,7 +155,7 @@ public class AccountServlet extends HttpServlet {
                 return;
             }
             String domain = domainArray[0];
-            String loginData = connection.serializeLoginData();
+            String loginData = connection.getLoginData().serializeLoginData();
             Connection newConnection = new Connection(null, this.gson);
             if (newConnection.tryRestoreLogin(loginData, domain)) {
                 account.setConnection(newConnection);
