@@ -18,6 +18,7 @@ import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Consta
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -98,10 +99,10 @@ public class HandlerPowerController extends HandlerBase {
         if (channelId.equals(POWER_STATE.channelId)) {
             if (containsCapabilityProperty(capabilities, POWER_STATE.propertyName)) {
                 if (command.equals(OnOffType.ON)) {
-                    connection.smartHomeCommand(entityId, "turnOn");
+                    connection.smartHomeCommand(entityId, "turnOn", Map.of());
                     return true;
                 } else if (command.equals(OnOffType.OFF)) {
-                    connection.smartHomeCommand(entityId, "turnOff");
+                    connection.smartHomeCommand(entityId, "turnOff", Map.of());
                     return true;
                 }
             }

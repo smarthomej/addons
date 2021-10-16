@@ -754,7 +754,7 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
                 Connection currentConnection = this.findConnection();
                 if (currentConnection != null) {
                     JsonNotificationResponse newState = currentConnection.getNotificationState(currentNotification);
-                    if (newState != null && "ON".equals(newState.status)) {
+                    if ("ON".equals(newState.status)) {
                         stopCurrentNotification = false;
                     }
                 }
@@ -1116,29 +1116,23 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
         if (device == null) {
             return;
         }
-        Integer bass = null;
-        Integer midrange = null;
-        Integer treble = null;
         try {
             JsonEqualizer equalizer = connection.getEqualizer(device);
-            if (equalizer != null) {
-                bass = equalizer.bass;
-                midrange = equalizer.mid;
-                treble = equalizer.treble;
-            }
             this.lastKnownEqualizer = equalizer;
+            Integer bass = equalizer.bass;
+            if (bass != null) {
+                updateState(CHANNEL_EQUALIZER_BASS, new DecimalType(bass));
+            }
+            Integer mid = equalizer.mid;
+            if (mid != null) {
+                updateState(CHANNEL_EQUALIZER_MIDRANGE, new DecimalType(mid));
+            }
+            Integer treble = equalizer.treble;
+            if (treble != null) {
+                updateState(CHANNEL_EQUALIZER_TREBLE, new DecimalType(treble));
+            }
         } catch (ConnectionException e) {
-            logger.debug("Get equalizer failes", e);
-            return;
-        }
-        if (bass != null) {
-            updateState(CHANNEL_EQUALIZER_BASS, new DecimalType(bass));
-        }
-        if (midrange != null) {
-            updateState(CHANNEL_EQUALIZER_MIDRANGE, new DecimalType(midrange));
-        }
-        if (treble != null) {
-            updateState(CHANNEL_EQUALIZER_TREBLE, new DecimalType(treble));
+            logger.debug("Get equalizer failed", e);
         }
     }
 

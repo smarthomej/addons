@@ -16,6 +16,8 @@ package org.smarthomej.binding.amazonechocontrol.internal.jsons;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 
+import com.google.gson.JsonObject;
+
 /**
  * The {@link JsonStartRoutineRequest} encapsulate the GSON for starting a routine
  *
@@ -26,4 +28,12 @@ public class JsonStartRoutineRequest {
     public @Nullable String behaviorId = "PREVIEW";
     public @Nullable String sequenceJson;
     public @Nullable String status = "ENABLED";
+
+    public JsonStartRoutineRequest(JsonObject jsonElement) {
+        sequenceJson = jsonElement.toString();
+    }
+
+    public JsonStartRoutineRequest(String sequenceJson) {
+        this.sequenceJson = sequenceJson;
+    }
 }

@@ -110,7 +110,7 @@ public class AmazonEchoDiscovery extends AbstractDiscoveryService implements Thi
         if (connection == null) {
             return;
         }
-        Date verifyTime = connection.tryGetVerifyTime();
+        Date verifyTime = connection.getVerifyTime();
         if (verifyTime == null) {
             return;
         }

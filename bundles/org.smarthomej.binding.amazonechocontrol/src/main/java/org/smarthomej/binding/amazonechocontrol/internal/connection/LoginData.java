@@ -46,16 +46,18 @@ public class LoginData {
     public String deviceId;
     public @Nullable String refreshToken;
     public String amazonSite = "amazon.com";
+    public String alexaServer = "https://alexa.amazon.com";
+
     public String deviceName = "Unknown";
     public @Nullable String accountCustomerId;
     public @Nullable Date loginTime;
     private List<Cookie> cookies = new ArrayList<>();
 
-    public LoginData(CookieManager cookieManager, String frc, String serial, String deviceId) {
+    public LoginData(CookieManager cookieManager, LoginData loginData) {
         this.cookieManager = cookieManager;
-        this.frc = frc;
-        this.serial = serial;
-        this.deviceId = deviceId;
+        this.frc = loginData.frc;
+        this.serial = loginData.serial;
+        this.deviceId = loginData.deviceId;
     }
 
     public LoginData(CookieManager cookieManager) {
@@ -76,6 +78,24 @@ public class LoginData {
         rand.nextBytes(bytes);
         String hexStr = HexUtils.bytesToHex(bytes).toUpperCase() + "#" + DEVICE_TYPE;
         this.deviceId = HexUtils.bytesToHex(hexStr.getBytes());
+    }
+
+    public void setAmazonSite(String amazonSite) {
+        String correctedAmazonSite = Objects.requireNonNullElse(amazonSite, "amazon.com").toLowerCase();
+        if (correctedAmazonSite.startsWith("http://")) {
+            correctedAmazonSite = correctedAmazonSite.substring(7);
+        }
+        if (correctedAmazonSite.startsWith("https://")) {
+            correctedAmazonSite = correctedAmazonSite.substring(8);
+        }
+        if (correctedAmazonSite.startsWith("www.")) {
+            correctedAmazonSite = correctedAmazonSite.substring(4);
+        }
+        if (correctedAmazonSite.startsWith("alexa.")) {
+            correctedAmazonSite = correctedAmazonSite.substring(6);
+        }
+        this.amazonSite = correctedAmazonSite;
+        this.alexaServer = "https://alexa." + correctedAmazonSite;
     }
 
     @Deprecated
@@ -102,36 +122,44 @@ public class LoginData {
     }
 
     @Deprecated
-    public boolean deserialize(String data) {
+    public static @Nullable LoginData deserialize(CookieManager cookieManager, String data,
+            @Nullable String overloadedDomain) {
+        LoginData loginData = new LoginData(cookieManager);
+
         Scanner scanner = new Scanner(data);
         String version = scanner.nextLine();
         // check if serialize version is supported
         if (!"7".equals(version)) {
             scanner.close();
-            return false;
+            return null;
         }
 
-        frc = scanner.nextLine();
-        serial = scanner.nextLine();
-        deviceId = scanner.nextLine();
+        loginData.frc = scanner.nextLine();
+        loginData.serial = scanner.nextLine();
+        loginData.deviceId = scanner.nextLine();
 
-        refreshToken = scanner.nextLine();
-        amazonSite = scanner.nextLine();
-        deviceName = scanner.nextLine();
-        accountCustomerId = scanner.nextLine();
-        loginTime = new Date(Long.parseLong(scanner.nextLine()));
+        loginData.refreshToken = scanner.nextLine();
+        if (overloadedDomain != null) {
+            loginData.setAmazonSite(overloadedDomain);
+            scanner.nextLine(); // skip one line
+        } else {
+            loginData.setAmazonSite(scanner.nextLine());
+        }
+        loginData.deviceName = scanner.nextLine();
+        loginData.accountCustomerId = scanner.nextLine();
+        loginData.loginTime = new Date(Long.parseLong(scanner.nextLine()));
 
         int numberOfCookies = Integer.parseInt(scanner.nextLine());
         for (int i = 0; i < numberOfCookies; i++) {
-            cookies.add(Cookie.fromScanner(scanner));
+            loginData.cookies.add(Cookie.fromScanner(scanner));
         }
         scanner.close();
 
         CookieStore cookieStore = cookieManager.getCookieStore();
         cookieStore.removeAll();
-        cookies.forEach(cookie -> cookieStore.add(null, cookie.toHttpCookie()));
+        loginData.cookies.forEach(cookie -> cookieStore.add(null, cookie.toHttpCookie()));
 
-        return true;
+        return loginData;
     }
 
     public static class Cookie {

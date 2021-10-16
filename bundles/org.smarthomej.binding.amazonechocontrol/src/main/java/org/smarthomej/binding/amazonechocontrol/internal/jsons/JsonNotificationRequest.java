@@ -13,6 +13,9 @@
  */
 package org.smarthomej.binding.amazonechocontrol.internal.jsons;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 
@@ -23,11 +26,11 @@ import org.eclipse.jdt.annotation.Nullable;
  */
 @NonNullByDefault
 public class JsonNotificationRequest {
-    public @Nullable String type = "Reminder"; // "Reminder", "Alarm"
-    public @Nullable String status = "ON";
+    public String type; // "Reminder", "Alarm"
+    public String status = "ON";
     public long alarmTime;
-    public @Nullable String originalTime;
-    public @Nullable String originalDate;
+    public String originalTime;
+    public String originalDate;
     public @Nullable String timeZoneId;
     public @Nullable String reminderIndex;
     public @Nullable JsonNotificationSound sound;
@@ -36,7 +39,29 @@ public class JsonNotificationRequest {
     public @Nullable String recurringPattern;
     public @Nullable String reminderLabel;
     public boolean isSaveInFlight = true;
-    public @Nullable String id = "createReminder";
+    public String id;
     public boolean isRecurring = false;
     public long createdDate;
+
+    public JsonNotificationRequest(String type, JsonDevices.Device device, @Nullable String label,
+            @Nullable JsonNotificationSound sound) {
+        // set times
+        this.createdDate = System.currentTimeMillis();
+        // add 5 seconds, because amazon does not accept calls for times in the past (compared with the server time)
+        this.alarmTime = createdDate + 5000;
+        Date alarm = new Date(alarmTime);
+
+        this.originalDate = new SimpleDateFormat("yyyy-MM-dd").format(alarm);
+        this.originalTime = new SimpleDateFormat("HH:mm:ss.SSSS").format(alarm);
+
+        // fill fields
+        this.type = type;
+        this.id = "create" + type;
+
+        this.deviceSerialNumber = device.serialNumber;
+        this.deviceType = device.deviceType;
+
+        this.reminderLabel = label;
+        this.sound = sound;
+    }
 }

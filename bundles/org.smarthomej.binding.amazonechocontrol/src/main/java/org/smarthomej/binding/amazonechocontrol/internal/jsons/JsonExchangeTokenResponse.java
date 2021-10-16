@@ -34,7 +34,7 @@ public class JsonExchangeTokenResponse {
     }
 
     public static class Tokens {
-        public @Nullable Map<String, Cookie[]> cookies;
+        public @Nullable Map<String, Cookie @Nullable []> cookies;
     }
 
     public static class Cookie {

@@ -108,7 +108,7 @@ public class SmartHomeDevicesDiscovery extends AbstractDiscoveryService implemen
         if (connection == null) {
             return;
         }
-        Date verifyTime = connection.tryGetVerifyTime();
+        Date verifyTime = connection.getVerifyTime();
         if (verifyTime == null) {
             return;
         }

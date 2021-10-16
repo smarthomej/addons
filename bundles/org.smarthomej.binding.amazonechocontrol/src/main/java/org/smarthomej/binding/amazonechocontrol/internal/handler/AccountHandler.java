@@ -60,6 +60,7 @@ import org.smarthomej.binding.amazonechocontrol.internal.ConnectionException;
 import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.ChannelHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.ChannelHandlerSendMessage;
 import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.IAmazonThingHandler;
+import org.smarthomej.binding.amazonechocontrol.internal.connection.LoginData;
 import org.smarthomej.binding.amazonechocontrol.internal.discovery.AmazonEchoDiscovery;
 import org.smarthomej.binding.amazonechocontrol.internal.discovery.SmartHomeDevicesDiscovery;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonAscendingAlarm.AscendingAlarmModel;
@@ -208,7 +209,7 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
 
     @Override
     public void startAnnouncement(Device device, String speak, String bodyText, @Nullable String title,
-            @Nullable Integer volume) throws IOException, URISyntaxException {
+            @Nullable Integer volume) {
         EchoHandler echoHandler = findEchoHandlerBySerialNumber(device.serialNumber);
         if (echoHandler != null) {
             echoHandler.startAnnouncement(device, speak, bodyText, title, volume);
@@ -376,10 +377,13 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
                     } else {
                         // read session data from property
                         String sessionStore = this.stateStorage.get("sessionStorage");
-
-                        // try to use the session data
-                        if (currentConnection.tryRestoreLogin(sessionStore, null)) {
-                            setConnection(currentConnection);
+                        if (sessionStore != null && !sessionStore.isEmpty()) {
+                            // try to use the session data
+                            LoginData loginData = LoginData.deserialize(currentConnection.getCookieManager(),
+                                    sessionStore, null);
+                            if (currentConnection.tryRestoreLogin(loginData, null)) {
+                                setConnection(currentConnection);
+                            }
                         }
                     }
                     if (!currentConnection.getIsLoggedIn()) {

@@ -39,6 +39,7 @@ import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smarthomej.binding.amazonechocontrol.internal.connection.LoginData;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.AccountHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates.BluetoothState;
@@ -139,8 +140,7 @@ public class AccountServlet extends HttpServlet {
         if (requestUri == null) {
             return;
         }
-        String baseUrl = requestUri.substring(servletUrl.length());
-        String uri = baseUrl;
+        String uri = requestUri.substring(servletUrl.length());
         String queryString = req.getQueryString();
         if (queryString != null && queryString.length() > 0) {
             uri += "?" + queryString;
@@ -155,7 +155,7 @@ public class AccountServlet extends HttpServlet {
                 return;
             }
             String domain = domainArray[0];
-            String loginData = connection.getLoginData().serializeLoginData();
+            LoginData loginData = connection.getLoginData();
             Connection newConnection = new Connection(null, this.gson);
             if (newConnection.tryRestoreLogin(loginData, domain)) {
                 account.setConnection(newConnection);
@@ -481,7 +481,7 @@ public class AccountServlet extends HttpServlet {
     }
 
     private void handleIds(HttpServletResponse resp, Connection connection, Device device, @Nullable Thing thing)
-            throws IOException, URISyntaxException {
+            throws URISyntaxException {
         StringBuilder html;
         if (thing != null) {
             html = createPageStart("Channel Options - " + thing.getLabel());
