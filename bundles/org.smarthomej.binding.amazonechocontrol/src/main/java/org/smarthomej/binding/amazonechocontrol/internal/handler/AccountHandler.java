@@ -376,13 +376,26 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
                         }
                     } else {
                         // read session data from property
-                        String sessionStore = this.stateStorage.get("sessionStorage");
-                        if (sessionStore != null && !sessionStore.isEmpty()) {
-                            // try to use the session data
-                            LoginData loginData = LoginData.deserialize(currentConnection.getCookieManager(),
-                                    sessionStore, null);
+                        String session = this.stateStorage.get("session");
+                        if (session != null && !session.isEmpty()) {
+                            LoginData loginData = new LoginData(currentConnection.getCookieManager(),
+                                    Objects.requireNonNull(gson.fromJson(session, LoginData.class)));
+                            loginData.initializeCookies();
                             if (currentConnection.tryRestoreLogin(loginData, null)) {
                                 setConnection(currentConnection);
+                            }
+                        } else {
+                            // old storage
+                            logger.info("Found old storage");
+                            String sessionStore = this.stateStorage.get("sessionStorage");
+                            if (sessionStore != null && !sessionStore.isEmpty()) {
+                                this.stateStorage.remove("sessionStorage");
+                                LoginData loginData = LoginData.deserialize(currentConnection.getCookieManager(),
+                                        sessionStore, null);
+                                if (currentConnection.tryRestoreLogin(loginData, null)) {
+                                    setConnection(currentConnection);
+                                }
+
                             }
                         }
                     }
@@ -406,10 +419,10 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
     public void setConnection(@Nullable Connection connection) {
         this.connection = connection;
         if (connection != null) {
-            String serializedStorage = connection.getLoginData().serializeLoginData();
-            this.stateStorage.put("sessionStorage", serializedStorage);
+            LoginData loginData = connection.getLoginData();
+            this.stateStorage.put("session", gson.toJson(loginData));
         } else {
-            this.stateStorage.put("sessionStorage", null);
+            this.stateStorage.put("session", null);
             updateStatus(ThingStatus.OFFLINE);
         }
         closeWebSocketConnection();

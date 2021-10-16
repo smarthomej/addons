@@ -477,6 +477,8 @@ public class Connection {
                     }
                     Thread.sleep(2000);
                 }
+            } catch (ConnectionException e) {
+                throw e;
             } catch (Exception e) {
                 if (connection != null) {
                     connection.disconnect();

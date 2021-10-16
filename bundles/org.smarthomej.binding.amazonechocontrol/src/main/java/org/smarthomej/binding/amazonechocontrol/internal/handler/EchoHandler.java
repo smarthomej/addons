@@ -866,7 +866,11 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
                     progress = playerInfo.progress;
                 }
             } catch (ConnectionException e) {
-                logger.info("getPlayer fails", e);
+                if (Objects.requireNonNullElse(e.getMessage(), "").contains("code 400")) {
+                    // ignore Bad Request
+                } else {
+                    logger.info("getPlayer fails", e);
+                }
             }
             // check playing
             isPlaying = (playerInfo != null && "PLAYING".equals(playerInfo.state));

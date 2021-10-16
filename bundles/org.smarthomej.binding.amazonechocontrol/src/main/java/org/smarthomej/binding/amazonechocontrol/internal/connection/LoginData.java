@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Scanner;
-import java.util.stream.Collectors;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -37,8 +36,8 @@ import org.openhab.core.util.HexUtils;
 public class LoginData {
     private static final String DEVICE_TYPE = "A2IVLV5VM2W81";
 
-    private final Random rand = new Random();
-    private final CookieManager cookieManager;
+    private transient final Random rand = new Random();
+    private transient final CookieManager cookieManager;
 
     // data fields
     public String frc;
@@ -58,6 +57,15 @@ public class LoginData {
         this.frc = loginData.frc;
         this.serial = loginData.serial;
         this.deviceId = loginData.deviceId;
+
+        this.refreshToken = loginData.refreshToken;
+        this.amazonSite = loginData.amazonSite;
+        this.alexaServer = loginData.alexaServer;
+
+        this.deviceName = loginData.deviceName;
+        this.accountCustomerId = loginData.accountCustomerId;
+        this.loginTime = loginData.loginTime;
+        this.cookies = loginData.cookies;
     }
 
     public LoginData(CookieManager cookieManager) {
@@ -99,29 +107,6 @@ public class LoginData {
     }
 
     @Deprecated
-    public String serializeLoginData() {
-        Date loginTime = this.loginTime;
-        if (refreshToken == null || loginTime == null) {
-            return "";
-        }
-        StringBuilder builder = new StringBuilder();
-        builder.append("7\n"); // version
-        builder.append(frc).append("\n");
-        builder.append(serial).append("\n");
-        builder.append(deviceId).append("\n");
-        builder.append(refreshToken).append("\n");
-        builder.append(amazonSite).append("\n");
-        builder.append(deviceName).append("\n");
-        builder.append(accountCustomerId).append("\n");
-        builder.append(loginTime.getTime()).append("\n");
-        builder.append(cookies.size()).append("\n");
-        cookies = cookieManager.getCookieStore().getCookies().stream().map(LoginData.Cookie::fromHttpCookie)
-                .collect(Collectors.toList());
-        cookies.forEach(cookie -> builder.append(cookie.serialize()));
-        return builder.toString();
-    }
-
-    @Deprecated
     public static @Nullable LoginData deserialize(CookieManager cookieManager, String data,
             @Nullable String overloadedDomain) {
         LoginData loginData = new LoginData(cookieManager);
@@ -160,6 +145,12 @@ public class LoginData {
         loginData.cookies.forEach(cookie -> cookieStore.add(null, cookie.toHttpCookie()));
 
         return loginData;
+    }
+
+    public void initializeCookies() {
+        CookieStore cookieStore = cookieManager.getCookieStore();
+        cookieStore.removeAll();
+        cookies.forEach(cookie -> cookieStore.add(null, cookie.toHttpCookie()));
     }
 
     public static class Cookie {
