@@ -11,7 +11,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.smarthomej.binding.amazonechocontrol.internal;
+package org.smarthomej.binding.amazonechocontrol.internal.connection;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -62,9 +62,6 @@ import org.openhab.core.library.types.StringType;
 import org.openhab.core.library.unit.SIUnits;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthomej.binding.amazonechocontrol.internal.connection.AnnouncementWrapper;
-import org.smarthomej.binding.amazonechocontrol.internal.connection.LoginData;
-import org.smarthomej.binding.amazonechocontrol.internal.connection.TextWrapper;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonActivities;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonActivities.Activity;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonAnnouncementContent;

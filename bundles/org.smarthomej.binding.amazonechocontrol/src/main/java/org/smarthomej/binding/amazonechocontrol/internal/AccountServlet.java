@@ -39,6 +39,8 @@ import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
+import org.smarthomej.binding.amazonechocontrol.internal.connection.ConnectionException;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.LoginData;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.AccountHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates;
