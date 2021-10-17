@@ -2,6 +2,8 @@
 
 This binding can control Amazon Echo devices (Alexa).
 
+***Upgrade notice:*** If you upgrade from a version before 2.5.0 you need to reset the account and login again (see at the bottom).
+
 It provides features to control and view the current state of echo devices:
 
 - use echo device as text to speech from a rule
