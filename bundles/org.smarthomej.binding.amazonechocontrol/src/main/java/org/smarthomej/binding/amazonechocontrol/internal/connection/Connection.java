@@ -764,7 +764,7 @@ public class Connection {
     private void searchSmartHomeDevicesRecursive(@Nullable Object jsonNode, List<SmartHomeBaseDevice> devices)
             throws ConnectionException {
         if (jsonNode instanceof Map) {
-            @SuppressWarnings("rawtypes")
+            @SuppressWarnings({"rawtypes", "unchecked"})
             Map<String, Object> map = (Map) jsonNode;
             if (map.containsKey("entityId") && map.containsKey("friendlyName") && map.containsKey("actions")) {
                 // device node found, create type element and add it to the results
@@ -1359,13 +1359,13 @@ public class Connection {
 
     private void executeSequenceNode(List<Device> devices, JsonObject nodeToExecute) {
         QueueObject queueObject = new QueueObject(devices, nodeToExecute);
-        String serialNumbers = "";
+        StringBuilder serialNumbers = new StringBuilder();
         for (Device device : devices) {
             String serialNumber = device.serialNumber;
             if (serialNumber != null) {
                 Objects.requireNonNull(this.devices.computeIfAbsent(serialNumber, k -> new LinkedBlockingQueue<>()))
                         .offer(queueObject);
-                serialNumbers = serialNumbers + device.serialNumber + " ";
+                serialNumbers.append(device.serialNumber).append(" ");
             }
         }
         logger.debug("added {} devices {}", queueObject.hashCode(), serialNumbers);
@@ -1449,7 +1449,7 @@ public class Connection {
     }
 
     private void removeObjectFromQueueAfterExecutionCompletion(QueueObject queueObject) {
-        String serial = "";
+        StringBuilder serial = new StringBuilder();
         for (Device device : queueObject.devices) {
             String serialNumber = device.serialNumber;
             if (serialNumber != null) {
@@ -1457,13 +1457,10 @@ public class Connection {
                 if (queue != null) {
                     queue.remove(queueObject);
                 }
-                serial = serial + serialNumber + " ";
+                serial.append(serialNumber).append(" ");
             }
         }
         logger.debug("removed {} device {}", queueObject.hashCode(), serial);
-    }
-
-    private void executeSequenceNodes(List<Device> devices, JsonArray nodesToExecute, boolean parallel) {
     }
 
     private JsonObject createExecutionNode(@Nullable Device device, String command, Map<String, Object> parameters) {

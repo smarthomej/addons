@@ -558,7 +558,6 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
                 if (command instanceof StringType) {
                     String text = command.toFullString();
                     if (!text.isEmpty()) {
-                        waitForUpdate = 1000;
                         updateTextToSpeech = true;
                         startTextToSpeech(connection, device, text);
                     }
@@ -587,7 +586,6 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
                 if (command instanceof StringType) {
                     String text = command.toFullString();
                     if (!text.isEmpty()) {
-                        waitForUpdate = 1000;
                         updateTextCommand = true;
                         startTextCommand(connection, device, text);
                     }
@@ -625,7 +623,6 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
                             if (!commandText.startsWith("Alexa.")) {
                                 commandText = "Alexa." + commandText + ".Play";
                             }
-                            waitForUpdate = 1000;
                             connection.executeSequenceCommand(device, commandText, Map.of());
                         }
                     }
@@ -635,7 +632,6 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
                 if (command instanceof StringType) {
                     String utterance = command.toFullString();
                     if (!utterance.isEmpty()) {
-                        waitForUpdate = 1000;
                         updateRoutine = true;
                         connection.startRoutine(device, utterance);
                     }
@@ -866,9 +862,7 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
                     progress = playerInfo.progress;
                 }
             } catch (ConnectionException e) {
-                if (Objects.requireNonNullElse(e.getMessage(), "").contains("code 400")) {
-                    // ignore Bad Request
-                } else {
+                if (!Objects.requireNonNullElse(e.getMessage(), "").contains("code 400")) {
                     logger.info("getPlayer fails", e);
                 }
             }
@@ -998,13 +992,13 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
                 if (!queueEntries.isEmpty()) {
                     QueueEntry entry = queueEntries.get(0);
                     if (isRadio) {
-                        if ((imageUrl == null || imageUrl.isEmpty()) && entry.imageURL != null) {
+                        if (imageUrl.isEmpty() && entry.imageURL != null) {
                             imageUrl = entry.imageURL;
                         }
-                        if ((subTitle1 == null || subTitle1.isEmpty()) && entry.radioStationSlogan != null) {
+                        if (subTitle1.isEmpty() && entry.radioStationSlogan != null) {
                             subTitle1 = entry.radioStationSlogan;
                         }
-                        if ((subTitle2 == null || subTitle2.isEmpty()) && entry.radioStationLocation != null) {
+                        if (subTitle2.isEmpty() && entry.radioStationLocation != null) {
                             subTitle2 = entry.radioStationLocation;
                         }
                     }
