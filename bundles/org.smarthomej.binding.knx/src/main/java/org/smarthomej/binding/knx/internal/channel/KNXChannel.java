@@ -35,6 +35,7 @@ import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.OpenClosedType;
 import org.openhab.core.library.types.PercentType;
 import org.openhab.core.library.types.QuantityType;
+import org.openhab.core.library.types.StopMoveType;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.library.types.UpDownType;
 import org.openhab.core.thing.Channel;
@@ -78,9 +79,11 @@ public abstract class KNXChannel {
             Map.entry("Color", Set.of(OnOffType.class, PercentType.class, HSBType.class, IncreaseDecreaseType.class)), //
             Map.entry("DateTime", Set.of(DateTimeType.class)), //
             Map.entry("Number", Set.of(DecimalType.class, QuantityType.class)), //
-            Map.entry("Rollershutter", Set.of(PercentType.class, UpDownType.class)), //
-            Map.entry("String", Set.of(OnOffType.class, PercentType.class, OpenClosedType.class, DecimalType.class,
-                    QuantityType.class, StringType.class, DateTimeType.class)));
+            Map.entry("Rollershutter", Set.of(PercentType.class, UpDownType.class, StopMoveType.class)), //
+            Map.entry("String",
+                    Set.of(OnOffType.class, PercentType.class, OpenClosedType.class, DecimalType.class,
+                            QuantityType.class, StringType.class, DateTimeType.class, IncreaseDecreaseType.class,
+                            UpDownType.class, StopMoveType.class)));
 
     KNXChannel(Set<String> gaKeys, Channel channel) {
         this.gaKeys = gaKeys;
