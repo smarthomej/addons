@@ -972,20 +972,18 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
             String imageUrl = "";
             if (infoText != null) {
                 if (infoText.title != null) {
-                    title = infoText.title;
+                    title = Objects.requireNonNullElse(infoText.title, title);
                 }
                 if (infoText.subText1 != null) {
-                    subTitle1 = infoText.subText1;
+                    subTitle1 = Objects.requireNonNullElse(infoText.subText1, subTitle1);
                 }
 
                 if (infoText.subText2 != null) {
-                    subTitle2 = infoText.subText2;
+                    subTitle2 = Objects.requireNonNullElse(infoText.subText2, subTitle2);
                 }
             }
             if (mainArt != null) {
-                if (mainArt.url != null) {
-                    imageUrl = mainArt.url;
-                }
+                imageUrl = Objects.requireNonNullElse(mainArt.url, imageUrl);
             }
             if (mediaState != null) {
                 List<QueueEntry> queueEntries = Objects.requireNonNullElse(mediaState.queue, List.of());

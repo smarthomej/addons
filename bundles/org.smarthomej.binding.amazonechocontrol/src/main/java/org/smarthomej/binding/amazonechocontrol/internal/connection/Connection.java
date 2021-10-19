@@ -764,7 +764,7 @@ public class Connection {
     private void searchSmartHomeDevicesRecursive(@Nullable Object jsonNode, List<SmartHomeBaseDevice> devices)
             throws ConnectionException {
         if (jsonNode instanceof Map) {
-            @SuppressWarnings({"rawtypes", "unchecked"})
+            @SuppressWarnings({ "rawtypes", "unchecked" })
             Map<String, Object> map = (Map) jsonNode;
             if (map.containsKey("entityId") && map.containsKey("friendlyName") && map.containsKey("actions")) {
                 // device node found, create type element and add it to the results
