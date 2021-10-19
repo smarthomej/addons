@@ -80,10 +80,7 @@ public abstract class KNXChannel {
             Map.entry("DateTime", Set.of(DateTimeType.class)), //
             Map.entry("Number", Set.of(DecimalType.class, QuantityType.class)), //
             Map.entry("Rollershutter", Set.of(PercentType.class, UpDownType.class, StopMoveType.class)), //
-            Map.entry("String",
-                    Set.of(OnOffType.class, PercentType.class, OpenClosedType.class, DecimalType.class,
-                            QuantityType.class, StringType.class, DateTimeType.class, IncreaseDecreaseType.class,
-                            UpDownType.class, StopMoveType.class)));
+            Map.entry("String", Set.of(StringType.class)));
 
     KNXChannel(Set<String> gaKeys, Channel channel) {
         this.gaKeys = gaKeys;
