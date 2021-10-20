@@ -144,6 +144,7 @@ public class KNXChannelTest {
 
         when(channel.getChannelTypeUID()).thenReturn(new ChannelTypeUID("a:b:c"));
         when(channel.getConfiguration()).thenReturn(configuration);
+        when(channel.getAcceptedItemType()).thenReturn("none");
 
         MyKNXChannel knxChannel = new MyKNXChannel(channel);
 
