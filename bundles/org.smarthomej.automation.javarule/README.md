@@ -189,6 +189,38 @@ if (bridgeAction != null) {
 
 If you don't know the correct action class, look into the `javarule-dependency.jar`.
 
+### Sharing variables between rules
+
+The easiest way to achieve this is to put all rules in the same `.java` file and declare a field in the class.
+
+Another option to create a class in the proper folder under `lib/java` (see above).
+A `public static` member of that class is then accessible as import in other rules.
+But take care: the value of the variables are not persisted, if the libraries (and subsequently the rules) reload, the value is reset.
+
+```java
+package org.smarthomej.automation.javarule;
+
+public class Shared {
+    public static int COUNTER;
+} 
+```
+
+```java
+package org.smarthomej.automation.javarule;
+
+import static org.smarthomej.automation.javarule.Shared.COUNTER;
+import org.smarthomej.automation.javarule.annotation.Rule;
+
+public class TestRule extends JavaRule {
+    
+    @Rule
+    public void counter() {
+        COUNTER++;
+        // do something else
+    }
+}
+```
+
 ## Examples
 
 ### The "hello world" rule
@@ -324,6 +356,73 @@ public class HeatingController extends JavaRule {
         // coerce to range 0 - 255
         control = Math.max(0, Math.min(control, 255));
         events.sendCommand(Items.LivingRoomValve, new Decimaltype(control));
+    }
+}
+```
+
+## Sleep timer
+
+This realizes a slowly fading light.
+A press on button initiates a trigger which executes the rule itself.
+If the sleep timer is already running, the trigger is ignored.
+The current state of the `Night_Light` is divided by 20 to get 20 equal steps.
+A task is scheduled with a delay of 30s.
+
+The task takes the current light state, decreases the brightness by the calculated step and sends a command to the light.
+If the brightness is still greater than 0, the task is re-scheduled.
+If the light is off, the future is removed from the task list.
+
+If the rule is removed or reloaded, the task is removed automatically because all tasks in the `futures` map are cancelled.
+
+```java
+package org.smarthomej.automation.javarule;
+
+import org.openhab.core.library.types.PercentType;
+import org.openhab.core.model.script.actions.Log;
+import org.smarthomej.automation.javarule.annotation.ChannelEventTrigger;
+import org.smarthomej.automation.javarule.annotation.Rule;
+
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
+
+public class Bedroom extends JavaRule {
+    private static final String LOGGER_NAME = Bedroom.class.getName();
+
+    private static final String NIGHT_LIGHT_FUTURE = "dimDown";
+    private static final int NIGHT_LIGHT_DELAY = 30;
+    private double lightStateStep = 0.0;
+
+    private void dimDown() {
+        double lightState = Objects.requireNonNullElse((PercentType) items.get(Items.Schlafzimmer_Lampe_Jan),
+                PercentType.ZERO).doubleValue() - lightStateJanStep;
+
+        if (lightState < 0.0) {
+            lightState = 0.0;
+        }
+        events.sendCommand(Items.Night_Light, new PercentType((int) lightState));
+
+        if (lightState > 0) {
+            futures.put(NIGHT_LIGHT_FUTURE, scheduler.schedule(this::dimDown, NIGHT_LIGHT_DELAY, TimeUnit.SECONDS));
+        } else {
+            futures.remove(NIGHT_LIGHT_FUTURE);
+        }
+    }
+
+    @Rule
+    @ChannelEventTrigger(channelUID = "deconz:switch:cee86e78:000b57fffec72211000000:buttonevent", event = "1002")
+    public void nightLight() {
+        double lightState = Objects.requireNonNullElse((PercentType) items.get(Items.Night_Light), PercentType.ZERO)
+                .doubleValue();
+
+        lightStateStep = lightState / 20.0;
+
+        if (futures.containsKey(NIGHT_LIGHT_FUTURE)) {
+            Log.logDebug(LOGGER_NAME, "Trigger ignored");
+        } else {
+            futures.put(NIGHT_LIGHT_FUTURE, scheduler.schedule(this::dimDown, NIGHT_LIGHT_DELAY, TimeUnit.SECONDS));
+        }
+
     }
 }
 ```
