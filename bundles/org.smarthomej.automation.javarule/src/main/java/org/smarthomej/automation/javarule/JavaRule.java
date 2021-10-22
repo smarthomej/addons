@@ -17,7 +17,9 @@ import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.JAVA
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -47,6 +49,7 @@ public class JavaRule implements Runnable {
     private final Logger logger = LoggerFactory.getLogger(JavaRule.class);
 
     private @Nullable String engineIdentifier;
+    private final List<Method> scriptLoadedMethods = new ArrayList<>();
 
     // direct injected fields
     public @NonNullByDefault({}) ItemRegistry itemRegistry;
@@ -77,13 +80,32 @@ public class JavaRule implements Runnable {
             return;
         }
 
-        RuleProcessor.getSimpleRules(hashedScriptIdentifier, this).forEach(automationManager::addRule);
+        RuleProcessor.getSimpleRules(hashedScriptIdentifier, this, scriptLoadedMethods::add)
+                .forEach(automationManager::addRule);
     }
 
     public void scriptLoaded(String engineIdentifier) {
         this.engineIdentifier = engineIdentifier;
-        logger.trace("Script '{}' loaded", engineIdentifier);
-    }
+        logger.trace("Script '{}' loaded, executing ScriptLoadedTriggers", engineIdentifier);
+
+        // the ScriptLoadedTrigger is a "virtual trigger" that only exists in the script itself and bypasses the event system
+        for (Method method : scriptLoadedMethods) {
+            try {
+                switch (method.getParameterCount()) {
+                    case 0:
+                        method.invoke(this);
+                        break;
+                    case 1:
+                        method.invoke(this, (Object) null);
+                        break;
+                    default:
+                        logger.warn("Method has too many parameters: {}", method.getName());
+                }
+            } catch (InvocationTargetException | IllegalAccessException e) {
+                logger.warn("Could not invoke method '{}' on scriptLoaded: {}", method.getName(), e.getMessage());
+            }
+        }
+     }
 
     public void scriptUnloaded() {
         futures.values().forEach(f -> f.cancel(true));

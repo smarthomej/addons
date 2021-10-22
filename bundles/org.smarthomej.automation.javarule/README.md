@@ -147,6 +147,7 @@ Custom triggers are provided by non-core automation modules (like the PID Contro
 Trigger module configuration can be added with the `params` parameter as an array of "key=value" entries.
 - `@GenericEventTrigger`: triggers on a custom event defined by the `eventTopic`, `eventSource` and `eventTypes` parameters. Wildcards are allowed.
 - `@SystemStartLevelTrigger`: triggers when the system reaches the configured `startLevel`.
+- `@ScriptLoadedTrigger`: triggers when the script containing the rule is loaded. Rules with parameter are invoked with a `null` value. In case other parameter values are needed, you can override the `scriptLoaded` and call the rule method manually.
 
 ### Time Based Conditions
 
@@ -189,7 +190,7 @@ if (bridgeAction != null) {
 
 If you don't know the correct action class, look into the `javarule-dependency.jar`.
 
-### Sharing variables between rules
+## Sharing variables between rules
 
 The easiest way to achieve this is to put all rules in the same `.java` file and declare a field in the class.
 
@@ -360,7 +361,7 @@ public class HeatingController extends JavaRule {
 }
 ```
 
-## Sleep timer
+### Sleep timer
 
 This realizes a slowly fading light.
 A press on button initiates a trigger which executes the rule itself.
