@@ -1,4 +1,3 @@
-
 # KNX Binding
 
 The openHAB KNX binding allows to connect to [KNX Home Automation](https://www.knx.org/) installations.
@@ -9,6 +8,8 @@ This can be either an Ethernet (as a Router or a Tunnel type) or a serial gatewa
 The KNX binding then can communicate directly with this gateway.
 Alternatively a PC running [KNXD](https://github.com/knxd/knxd) (free open source component sofware) can be put in between which then acts as a broker allowing multiple client to connect to the same gateway.
 Since the protocol is identical, the KNX binding can also communicate with it transparently.
+
+***Attention:*** With the introduction of UoM support in version 3.2.7 (see `number` channel below) the data type for DPT 9.007 has been changed from PercentType to QuantityType.
 
 ## Supported Things
 
@@ -115,9 +116,14 @@ A change would break all existing installations and is therefore not implemented
 |-----------|---------------|-------------|
 | ga        | Group address | 9.001       |
 
-*Attention:* When linking the channel to an item that has a dimension (e.g. `Number:Temperature`) the unit is stripped (i.e. no conversion takes place).
-So if you send `23.1 °C` to the item a value of `23.1` will be send to the KNX bus, no matter if you choose DPT 9.001 (which is temperature in degree Celsius and 23.1 is indeed the correct value) or DPT 9.002 (which is temperature in Kelvin where 296.25 would be the correct value).
-If you need other units, you need to use a rule or a profile to convert the value.
+The `number` channel has full support for UoM.
+
+Incoming values from the KNX bus are converted to values with units (e.g. `23 °C`).
+If the channel is linked to the correct item-type (`Number:Temperature` in this case) the display unit can be controlled my item metadata (e.g. `%.1f °F` for 1 digit of precision in Fahrenheit).
+The unit is stripped if the channel is linked to a plain number item (type `Number`). 
+
+Outgoing values with unit are first converted to the unit associated with the DPT (e.g. a value of `10 °F` is converted to `-8.33 °C` if the channel has DPT 9.001).
+Values from plain number channels are sent as-is (without any conversion).
 
 ##### Channel Type "string"
 
@@ -176,6 +182,8 @@ A change would break all existing installations and is therefore not implemented
 | Parameter | Description   | Default DPT |
 |-----------|---------------|-------------|
 | ga        | Group address | 9.001       |
+
+For UoM support see the explanations of the `number` channel.
 
 ##### Channel Type "string-control"
 
@@ -293,13 +301,13 @@ Bridge knx:ip:bridge [
 knx.items:
 
 ```xtend
-Switch        demoSwitch         "Light [%s]"               <light>          { channel="knx:device:bridge:generic:demoSwitch" }
-Dimmer        demoDimmer         "Dimmer [%d %%]"           <light>          { channel="knx:device:bridge:generic:demoDimmer" }
-Rollershutter demoRollershutter  "Shade [%d %%]"            <rollershutter>  { channel="knx:device:bridge:generic:demoRollershutter" }
-Contact       demoContact        "Front Door [%s]"          <frontdoor>      { channel="knx:device:bridge:generic:demoContact" }
-Number        demoTemperature    "Temperature [%.1f °C]"    <temperature>    { channel="knx:device:bridge:generic:demoTemperature" }
-String        demoString         "Message of the day [%s]"                   { channel="knx:device:bridge:generic:demoString" }
-DateTime      demoDatetime       "Alarm [%1$tH:%1$tM]"                       { channel="knx:device:bridge:generic:demoDatetime" }
+Switch              demoSwitch         "Light [%s]"               <light>          { channel="knx:device:bridge:generic:demoSwitch" }
+Dimmer              demoDimmer         "Dimmer [%d %%]"           <light>          { channel="knx:device:bridge:generic:demoDimmer" }
+Rollershutter       demoRollershutter  "Shade [%d %%]"            <rollershutter>  { channel="knx:device:bridge:generic:demoRollershutter" }
+Contact             demoContact        "Front Door [%s]"          <frontdoor>      { channel="knx:device:bridge:generic:demoContact" }
+Number:Temperature  demoTemperature    "Temperature [%.1f °F]"    <temperature>    { channel="knx:device:bridge:generic:demoTemperature" }
+String              demoString         "Message of the day [%s]"                   { channel="knx:device:bridge:generic:demoString" }
+DateTime            demoDatetime       "Alarm [%1$tH:%1$tM]"                       { channel="knx:device:bridge:generic:demoDatetime" }
 ```
 
 knx.sitemap:

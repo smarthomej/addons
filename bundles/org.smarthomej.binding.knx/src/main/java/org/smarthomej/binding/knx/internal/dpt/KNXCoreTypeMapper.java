@@ -13,12 +13,14 @@
  */
 package org.smarthomej.binding.knx.internal.dpt;
 
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -44,6 +46,7 @@ import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import tech.units.indriya.unit.Units;
 import tuwien.auto.calimero.KNXException;
 import tuwien.auto.calimero.KNXFormatException;
 import tuwien.auto.calimero.KNXIllegalArgumentException;
@@ -51,23 +54,16 @@ import tuwien.auto.calimero.dptxlator.DPT;
 import tuwien.auto.calimero.dptxlator.DPTXlator;
 import tuwien.auto.calimero.dptxlator.DPTXlator1BitControlled;
 import tuwien.auto.calimero.dptxlator.DPTXlator2ByteFloat;
-import tuwien.auto.calimero.dptxlator.DPTXlator2ByteUnsigned;
 import tuwien.auto.calimero.dptxlator.DPTXlator3BitControlled;
 import tuwien.auto.calimero.dptxlator.DPTXlator4ByteFloat;
-import tuwien.auto.calimero.dptxlator.DPTXlator4ByteSigned;
-import tuwien.auto.calimero.dptxlator.DPTXlator4ByteUnsigned;
-import tuwien.auto.calimero.dptxlator.DPTXlator64BitSigned;
 import tuwien.auto.calimero.dptxlator.DPTXlator8BitSigned;
 import tuwien.auto.calimero.dptxlator.DPTXlator8BitUnsigned;
 import tuwien.auto.calimero.dptxlator.DPTXlatorBoolean;
 import tuwien.auto.calimero.dptxlator.DPTXlatorDate;
 import tuwien.auto.calimero.dptxlator.DPTXlatorDateTime;
-import tuwien.auto.calimero.dptxlator.DPTXlatorRGB;
 import tuwien.auto.calimero.dptxlator.DPTXlatorSceneControl;
-import tuwien.auto.calimero.dptxlator.DPTXlatorSceneNumber;
 import tuwien.auto.calimero.dptxlator.DPTXlatorString;
 import tuwien.auto.calimero.dptxlator.DPTXlatorTime;
-import tuwien.auto.calimero.dptxlator.DPTXlatorUtf8;
 import tuwien.auto.calimero.dptxlator.TranslatorTypes;
 
 /**
@@ -141,32 +137,10 @@ public class KNXCoreTypeMapper {
             Map.entry(DPTXlator8BitUnsigned.DPT_PERCENT_U8.getID(), Set.of(PercentType.class)), //
             Map.entry(DPTXlator8BitSigned.DPT_PERCENT_V8.getID(), Set.of(PercentType.class)), //
             Map.entry(DPTXlator8BitSigned.DPT_STATUS_MODE3.getID(), Set.of(StringType.class)), //
-            Map.entry(DPTXlator2ByteFloat.DPT_HUMIDITY.getID(), Set.of(PercentType.class)), //
             Map.entry(DPTXlatorString.DPT_STRING_8859_1.getID(), Set.of(StringType.class)), //
             Map.entry(DPTXlatorString.DPT_STRING_ASCII.getID(), Set.of(StringType.class)));
 
-    /** stores the default KNX DPT to use for each openHAB type */
-    @SuppressWarnings("unused")
-    private static final Map<Class<? extends Type>, String> DEFAULT_DPT_MAP = Map.ofEntries(
-            Map.entry(OnOffType.class, DPTXlatorBoolean.DPT_SWITCH.getID()), //
-            Map.entry(UpDownType.class, DPTXlatorBoolean.DPT_UPDOWN.getID()), //
-            Map.entry(StopMoveType.class, DPTXlatorBoolean.DPT_START.getID()), //
-            Map.entry(OpenClosedType.class, DPTXlatorBoolean.DPT_WINDOW_DOOR.getID()), //
-            Map.entry(IncreaseDecreaseType.class, DPTXlator3BitControlled.DPT_CONTROL_DIMMING.getID()), //
-            Map.entry(PercentType.class, DPTXlator8BitUnsigned.DPT_SCALING.getID()), //
-            Map.entry(DecimalType.class, DPTXlator2ByteFloat.DPT_TEMPERATURE.getID()), //
-            Map.entry(QuantityType.class, DPTXlator2ByteFloat.DPT_TEMPERATURE.getID()), //
-            Map.entry(DateTimeType.class, DPTXlatorTime.DPT_TIMEOFDAY.getID()), //
-            Map.entry(StringType.class, DPTXlatorString.DPT_STRING_8859_1.getID()), //
-            Map.entry(HSBType.class, DPTXlatorRGB.DPT_RGB.getID()));
-
-    @SuppressWarnings("unused")
-    private static final List<Class<? extends DPTXlator>> XLATORS = List.of(DPTXlator1BitControlled.class,
-            DPTXlator2ByteFloat.class, DPTXlator2ByteUnsigned.class, DPTXlator3BitControlled.class,
-            DPTXlator4ByteFloat.class, DPTXlator4ByteSigned.class, DPTXlator4ByteUnsigned.class,
-            DPTXlator64BitSigned.class, DPTXlator8BitSigned.class, DPTXlator8BitUnsigned.class, DPTXlatorBoolean.class,
-            DPTXlatorDate.class, DPTXlatorDateTime.class, DPTXlatorRGB.class, DPTXlatorSceneControl.class,
-            DPTXlatorSceneNumber.class, DPTXlatorString.class, DPTXlatorTime.class, DPTXlatorUtf8.class);
+    static final Map<String, String> DPT_UNIT_MAP = loadDatapointUnits();
 
     private KNXCoreTypeMapper() {
         // prevent instantiation
@@ -228,8 +202,25 @@ public class KNXCoreTypeMapper {
             } else if (value instanceof PercentType) {
                 return String.valueOf(((DecimalType) value).intValue());
             } else if (value instanceof DecimalType || value instanceof QuantityType<?>) {
-                BigDecimal bigDecimal = value instanceof DecimalType ? ((DecimalType) value).toBigDecimal()
-                        : ((QuantityType<?>) value).toBigDecimal();
+                BigDecimal bigDecimal;
+                if (value instanceof DecimalType) {
+                    bigDecimal = ((DecimalType) value).toBigDecimal();
+                } else {
+                    String unit = DPT_UNIT_MAP.get(dptId);
+                    if (unit != null) {
+                        QuantityType<?> converted = ((QuantityType<?>) value).toUnit(unit);
+                        if (converted == null) {
+                            LOGGER.warn(
+                                    "Could not convert {} to unit {}, stripping unit only. Check your configuration.",
+                                    value, unit);
+                            bigDecimal = ((QuantityType<?>) value).toBigDecimal();
+                        } else {
+                            bigDecimal = converted.toBigDecimal();
+                        }
+                    } else {
+                        bigDecimal = ((QuantityType<?>) value).toBigDecimal();
+                    }
+                }
                 switch (mainNumber) {
                     case "2":
                         DPT valueDPT = ((DPTXlator1BitControlled.DPT1BitControlled) dpt).getValueDPT();
@@ -302,7 +293,7 @@ public class KNXCoreTypeMapper {
                             return translatorBoolean.getValueBoolean() ? UpDownType.DOWN : UpDownType.UP;
                         case "009":
                         case "019":
-                            // This is wrong for DPT 9. It should be true -> CLOSE, false -> OPEN, but unfortunately
+                            // This is wrong for DPT 1.009. It should be true -> CLOSE, false -> OPEN, but unfortunately
                             // can't be fixed without breaking a lot of working installations.
                             // The documentation has been updated to reflect that. / @J-N-K
                             return translatorBoolean.getValueBoolean() ? OpenClosedType.OPEN : OpenClosedType.CLOSED;
@@ -399,6 +390,14 @@ public class KNXCoreTypeMapper {
             if (typeClass.contains(PercentType.class)) {
                 return new PercentType(BigDecimal.valueOf(Math.round(translator.getNumericValue())));
             }
+            if (typeClass.contains(QuantityType.class)) {
+                String unit = DPT_UNIT_MAP.get(id);
+                if (unit != null) {
+                    return new QuantityType<>(translator.getNumericValue() + " " + unit);
+                } else {
+                    LOGGER.trace("Could not determine unit for DPT {}, fall back to plain decimal", id);
+                }
+            }
             if (typeClass.contains(DecimalType.class)) {
                 return new DecimalType(translator.getNumericValue());
             }
@@ -478,7 +477,7 @@ public class KNXCoreTypeMapper {
                      * date of "1970-01-01".
                      * Replace "no-day" with the current day name
                      */
-                    StringBuffer stb = new StringBuffer(value);
+                    StringBuilder stb = new StringBuilder(value);
                     int start = stb.indexOf("no-day");
                     int end = start + "no-day".length();
                     stb.replace(start, end, String.format(Locale.US, "%1$ta", Calendar.getInstance()));
@@ -529,5 +528,66 @@ public class KNXCoreTypeMapper {
     private static int convertPercentToByte(PercentType percent) {
         return percent.toBigDecimal().multiply(BigDecimal.valueOf(255))
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP).intValue();
+    }
+
+    private static Map<String, String> loadDatapointUnits() {
+        Map<String, String> unitMap = new HashMap<>();
+        List<Class<? extends DPTXlator>> translators = List.of(DPTXlator2ByteFloat.class, DPTXlator4ByteFloat.class);
+        for (Class<? extends DPTXlator> translator : translators) {
+            Field[] fields = translator.getFields();
+            for (Field field : fields) {
+                try {
+                    Object o = field.get(null);
+                    if (o instanceof DPT) {
+                        DPT dpt = (DPT) o;
+                        String unit = fixUnit(dpt.getUnit());
+                        if (!unit.isEmpty()) {
+                            unitMap.put(dpt.getID(), unit);
+                        }
+                    }
+                } catch (IllegalAccessException e) {
+                    // ignore errors
+                }
+            }
+        }
+
+        // override values where Calimero provides unparsable data
+        unitMap.put(DPTXlator4ByteFloat.DPT_CONDUCTANCE.getID(), Units.SIEMENS.getSymbol());
+        unitMap.put(DPTXlator4ByteFloat.DPT_ANGULAR_MOMENTUM.getID(), Units.JOULE.multiply(Units.SECOND).toString());
+        unitMap.put(DPTXlator4ByteFloat.DPT_ACTIVITY.getID(), Units.BECQUEREL.getSymbol());
+        unitMap.put(DPTXlator4ByteFloat.DPT_ELECTRICAL_CONDUCTIVITY.getID(),
+                Units.SIEMENS.divide(Units.METRE).toString());
+        unitMap.put(DPTXlator4ByteFloat.DPT_TORQUE.getID(), Units.NEWTON.multiply(Units.METRE).toString());
+        unitMap.put(DPTXlator4ByteFloat.DPT_RESISTIVITY.getID(), Units.OHM.multiply(Units.METRE).toString());
+        unitMap.put(DPTXlator4ByteFloat.DPT_ELECTRIC_DIPOLEMOMENT.getID(),
+                Units.COULOMB.multiply(Units.METRE).toString());
+        unitMap.put(DPTXlator4ByteFloat.DPT_ELECTRIC_FLUX.getID(), Units.VOLT.multiply(Units.METRE).toString());
+        unitMap.put(DPTXlator4ByteFloat.DPT_MAGNETIC_MOMENT.getID(),
+                Units.AMPERE.multiply(Units.SQUARE_METRE).toString());
+        unitMap.put(DPTXlator4ByteFloat.DPT_ELECTROMAGNETIC_MOMENT.getID(),
+                Units.AMPERE.multiply(Units.SQUARE_METRE).toString());
+
+        return unitMap;
+    }
+
+    /**
+     * Fix unit string
+     *
+     * Calimero provides some units (like "ms⁻²") that can't be parsed by our library
+     *
+     * @param input unit string as provided by Calimero
+     * @return unit string accepted by out UoM library
+     */
+    static String fixUnit(String input) {
+        String output = input.replaceAll(" ", "");
+
+        int index = output.indexOf("⁻");
+        if (index != -1) {
+            output = output.substring(0, index - 1) + "/"
+                    + output.substring(index - 1).replace("⁻", "").replace("¹", "");
+            output = output.startsWith("/") ? "1" + output : output;
+        }
+
+        return output;
     }
 }
