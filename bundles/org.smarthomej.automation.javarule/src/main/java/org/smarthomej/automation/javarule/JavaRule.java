@@ -88,7 +88,8 @@ public class JavaRule implements Runnable {
         this.engineIdentifier = engineIdentifier;
         logger.trace("Script '{}' loaded, executing ScriptLoadedTriggers", engineIdentifier);
 
-        // the ScriptLoadedTrigger is a "virtual trigger" that only exists in the script itself and bypasses the event system
+        // the ScriptLoadedTrigger is a "virtual trigger" that only exists in the script itself and bypasses the event
+        // system
         for (Method method : scriptLoadedMethods) {
             try {
                 switch (method.getParameterCount()) {
@@ -105,7 +106,7 @@ public class JavaRule implements Runnable {
                 logger.warn("Could not invoke method '{}' on scriptLoaded: {}", method.getName(), e.getMessage());
             }
         }
-     }
+    }
 
     public void scriptUnloaded() {
         futures.values().forEach(f -> f.cancel(true));
