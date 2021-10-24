@@ -48,12 +48,13 @@ import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.library.types.StopMoveType;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.library.types.UpDownType;
+import org.openhab.core.library.unit.SIUnits;
+import org.openhab.core.library.unit.Units;
 import org.openhab.core.types.Type;
 import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import tech.units.indriya.unit.Units;
 import tuwien.auto.calimero.KNXException;
 import tuwien.auto.calimero.KNXFormatException;
 import tuwien.auto.calimero.KNXIllegalArgumentException;
@@ -61,8 +62,12 @@ import tuwien.auto.calimero.dptxlator.DPT;
 import tuwien.auto.calimero.dptxlator.DPTXlator;
 import tuwien.auto.calimero.dptxlator.DPTXlator1BitControlled;
 import tuwien.auto.calimero.dptxlator.DPTXlator2ByteFloat;
+import tuwien.auto.calimero.dptxlator.DPTXlator2ByteUnsigned;
 import tuwien.auto.calimero.dptxlator.DPTXlator3BitControlled;
 import tuwien.auto.calimero.dptxlator.DPTXlator4ByteFloat;
+import tuwien.auto.calimero.dptxlator.DPTXlator4ByteSigned;
+import tuwien.auto.calimero.dptxlator.DPTXlator4ByteUnsigned;
+import tuwien.auto.calimero.dptxlator.DPTXlator64BitSigned;
 import tuwien.auto.calimero.dptxlator.DPTXlator8BitSigned;
 import tuwien.auto.calimero.dptxlator.DPTXlator8BitUnsigned;
 import tuwien.auto.calimero.dptxlator.DPTXlatorBoolean;
@@ -272,7 +277,7 @@ public class KNXCoreTypeMapper {
      *
      * @param dptId the DPT of the given data
      * @param data a byte array containing the value
-     * @param channelType
+     * @param channelType the type of the KNXChannel (used to determine if PercentType is supported or not)
      * @return the data converted to an openHAB Type (or null if conversion failed)
      */
     public static @Nullable Type convertRawDataToType(String dptId, byte[] data, String channelType) {
@@ -539,9 +544,13 @@ public class KNXCoreTypeMapper {
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP).intValue();
     }
 
+    // TODO: 2byte signed (DPT 8)
     private static Map<String, String> loadDatapointUnits() {
         Map<String, String> unitMap = new HashMap<>();
-        List<Class<? extends DPTXlator>> translators = List.of(DPTXlator2ByteFloat.class, DPTXlator4ByteFloat.class);
+        List<Class<? extends DPTXlator>> translators = List.of(DPTXlator2ByteUnsigned.class, DPTXlator2ByteFloat.class,
+                DPTXlator4ByteUnsigned.class, DPTXlator4ByteSigned.class, DPTXlator4ByteFloat.class,
+                DPTXlator64BitSigned.class);
+
         for (Class<? extends DPTXlator> translator : translators) {
             Field[] fields = translator.getFields();
             for (Field field : fields) {
@@ -560,26 +569,49 @@ public class KNXCoreTypeMapper {
             }
         }
 
-        // override values where Calimero provides unparsable data
-        unitMap.put(DPTXlator4ByteFloat.DPT_CONDUCTANCE.getID(), Units.SIEMENS.getSymbol());
-        unitMap.put(DPTXlator4ByteFloat.DPT_ANGULAR_MOMENTUM.getID(), Units.JOULE.multiply(Units.SECOND).toString());
-        unitMap.put(DPTXlator4ByteFloat.DPT_ACTIVITY.getID(), Units.BECQUEREL.getSymbol());
-        unitMap.put(DPTXlator4ByteFloat.DPT_ELECTRICAL_CONDUCTIVITY.getID(),
-                Units.SIEMENS.divide(Units.METRE).toString());
-        unitMap.put(DPTXlator4ByteFloat.DPT_TORQUE.getID(), Units.NEWTON.multiply(Units.METRE).toString());
-        unitMap.put(DPTXlator4ByteFloat.DPT_RESISTIVITY.getID(), Units.OHM.multiply(Units.METRE).toString());
-        unitMap.put(DPTXlator4ByteFloat.DPT_ELECTRIC_DIPOLEMOMENT.getID(),
-                Units.COULOMB.multiply(Units.METRE).toString());
-        unitMap.put(DPTXlator4ByteFloat.DPT_ELECTRIC_FLUX.getID(), Units.VOLT.multiply(Units.METRE).toString());
-        unitMap.put(DPTXlator4ByteFloat.DPT_MAGNETIC_MOMENT.getID(),
-                Units.AMPERE.multiply(Units.SQUARE_METRE).toString());
-        unitMap.put(DPTXlator4ByteFloat.DPT_ELECTROMAGNETIC_MOMENT.getID(),
-                Units.AMPERE.multiply(Units.SQUARE_METRE).toString());
+        // now override units where Calimero provides unparsable data
 
-        // 8bit
+        // 8 bit unsigned (DPT 5)
         unitMap.put(DPTXlator8BitUnsigned.DPT_SCALING.getID(), Units.PERCENT.getSymbol());
         unitMap.put(DPTXlator8BitUnsigned.DPT_PERCENT_U8.getID(), Units.PERCENT.getSymbol());
+
+        // 8bit signed (DPT 6)
         unitMap.put(DPTXlator8BitSigned.DPT_PERCENT_V8.getID(), Units.PERCENT.getSymbol());
+
+        // two byte unsigned (DPT 7)
+        unitMap.remove(DPTXlator2ByteUnsigned.DPT_VALUE_2_UCOUNT.getID()); // counts have no unit
+
+        // 4 byte unsigned (DPT 12)
+        unitMap.put(DPTXlator4ByteUnsigned.DptVolumeLiquid.getID(), Units.LITRE.toString());
+        unitMap.remove(DPTXlator4ByteUnsigned.DPT_VALUE_4_UCOUNT.getID()); // counts have no unit
+
+        // 4 byte signed (DPT 13)
+        unitMap.put(DPTXlator4ByteSigned.DPT_ACTIVE_ENERGY_KWH.getID(), Units.KILOWATT_HOUR.toString());
+        unitMap.put(DPTXlator4ByteSigned.DPT_REACTIVE_ENERGY.getID(), Units.VAR_HOUR.toString());
+        unitMap.put(DPTXlator4ByteSigned.DPT_REACTIVE_ENERGY_KVARH.getID(), Units.KILOVAR_HOUR.toString());
+        unitMap.put(DPTXlator4ByteSigned.DPT_APPARENT_ENERGY_KVAH.getID(), Units.KILOVOLT_AMPERE.toString());
+        unitMap.put(DPTXlator4ByteSigned.DPT_FLOWRATE.getID(), Units.CUBICMETRE_PER_HOUR.toString());
+        unitMap.remove(DPTXlator4ByteSigned.DPT_COUNT.getID()); // counts have no unit
+
+        // four byte float (DPT 14)
+        unitMap.put(DPTXlator4ByteFloat.DPT_CONDUCTANCE.getID(), Units.SIEMENS.toString());
+        unitMap.put(DPTXlator4ByteFloat.DPT_ANGULAR_MOMENTUM.getID(), Units.JOULE.multiply(Units.SECOND).toString());
+        unitMap.put(DPTXlator4ByteFloat.DPT_ACTIVITY.getID(), Units.BECQUEREL.toString());
+        unitMap.put(DPTXlator4ByteFloat.DPT_ELECTRICAL_CONDUCTIVITY.getID(),
+                Units.SIEMENS.divide(SIUnits.METRE).toString());
+        unitMap.put(DPTXlator4ByteFloat.DPT_TORQUE.getID(), Units.NEWTON.multiply(SIUnits.METRE).toString());
+        unitMap.put(DPTXlator4ByteFloat.DPT_RESISTIVITY.getID(), Units.OHM.multiply(SIUnits.METRE).toString());
+        unitMap.put(DPTXlator4ByteFloat.DPT_ELECTRIC_DIPOLEMOMENT.getID(),
+                Units.COULOMB.multiply(SIUnits.METRE).toString());
+        unitMap.put(DPTXlator4ByteFloat.DPT_ELECTRIC_FLUX.getID(), Units.VOLT.multiply(SIUnits.METRE).toString());
+        unitMap.put(DPTXlator4ByteFloat.DPT_MAGNETIC_MOMENT.getID(),
+                Units.AMPERE.multiply(SIUnits.SQUARE_METRE).toString());
+        unitMap.put(DPTXlator4ByteFloat.DPT_ELECTROMAGNETIC_MOMENT.getID(),
+                Units.AMPERE.multiply(SIUnits.SQUARE_METRE).toString());
+
+        // 64 bit signed (DPT 29)
+        unitMap.put(DPTXlator64BitSigned.DPT_REACTIVE_ENERGY.getID(), Units.VAR_HOUR.toString());
+
         return unitMap;
     }
 
