@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -43,6 +44,7 @@ import org.slf4j.LoggerFactory;
 import org.smarthomej.automation.javarule.JavaRule;
 import org.smarthomej.automation.javarule.annotation.GenericAutomationTrigger;
 import org.smarthomej.automation.javarule.annotation.Rule;
+import org.smarthomej.automation.javarule.annotation.ScriptLoadedTrigger;
 
 /**
  * The {@link RuleProcessor} is responsible for processing scripts
@@ -62,7 +64,8 @@ public class RuleProcessor {
      **
      * @return a list of {@link SimpleRule}s that correspond to the rules contained in the argument class
      */
-    public static List<SimpleRule> getSimpleRules(String scriptIdentifier, JavaRule script) {
+    public static List<SimpleRule> getSimpleRules(String scriptIdentifier, JavaRule script,
+            Consumer<Method> scriptLoadedMethods) {
         List<SimpleRule> rules = new ArrayList<>();
 
         for (Method method : script.getClass().getDeclaredMethods()) {
@@ -118,6 +121,11 @@ public class RuleProcessor {
             simpleRule.setConditions(conditions);
 
             rules.add(simpleRule);
+
+            // check if ScriptLoadedTrigger is present
+            if (method.getDeclaredAnnotation(ScriptLoadedTrigger.class) != null) {
+                scriptLoadedMethods.accept(method);
+            }
         }
 
         return rules;
