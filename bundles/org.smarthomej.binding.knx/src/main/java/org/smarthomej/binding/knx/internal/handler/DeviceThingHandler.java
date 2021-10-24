@@ -299,7 +299,8 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
                  */
                 if (knxChannel.isControl()) {
                     logger.trace("onGroupWrite isControl");
-                    Type value = KNXCoreTypeMapper.convertRawDataToType(listenSpec.getDPT(), asdu);
+                    Type value = KNXCoreTypeMapper.convertRawDataToType(listenSpec.getDPT(), asdu,
+                            knxChannel.getChannelType());
                     if (value != null) {
                         OutboundSpec commandSpec = knxChannel.getCommandSpec(value);
                         if (commandSpec != null) {
@@ -320,7 +321,7 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
             return;
         }
 
-        Type value = KNXCoreTypeMapper.convertRawDataToType(listenSpec.getDPT(), asdu);
+        Type value = KNXCoreTypeMapper.convertRawDataToType(listenSpec.getDPT(), asdu, knxChannel.getChannelType());
         if (value != null) {
             if (knxChannel.isControl()) {
                 ChannelUID channelUID = knxChannel.getChannelUID();

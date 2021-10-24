@@ -13,6 +13,13 @@
  */
 package org.smarthomej.binding.knx.internal.dpt;
 
+import static org.smarthomej.binding.knx.internal.KNXBindingConstants.CHANNEL_COLOR;
+import static org.smarthomej.binding.knx.internal.KNXBindingConstants.CHANNEL_COLOR_CONTROL;
+import static org.smarthomej.binding.knx.internal.KNXBindingConstants.CHANNEL_DIMMER;
+import static org.smarthomej.binding.knx.internal.KNXBindingConstants.CHANNEL_DIMMER_CONTROL;
+import static org.smarthomej.binding.knx.internal.KNXBindingConstants.CHANNEL_ROLLERSHUTTER;
+import static org.smarthomej.binding.knx.internal.KNXBindingConstants.CHANNEL_ROLLERSHUTTER_CONTROL;
+
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -94,6 +101,8 @@ public class KNXCoreTypeMapper {
     private static final Pattern RGB_PATTERN = Pattern.compile("r:(?<r>\\d+) g:(?<g>\\d+) b:(?<b>\\d+)");
     private static final Pattern DPT_PATTERN = Pattern.compile("^(?<main>[1-9][0-9]{0,2})(?:\\.(?<sub>\\d{3,4}))?$");
 
+    private static final Set<String> PERCENT_TYPE_CHANNELS = Set.of(CHANNEL_DIMMER, CHANNEL_DIMMER_CONTROL,
+            CHANNEL_ROLLERSHUTTER, CHANNEL_ROLLERSHUTTER_CONTROL, CHANNEL_COLOR, CHANNEL_COLOR_CONTROL);
     /**
      * stores the openHAB type class for (supported) KNX datapoint types in a generic way.
      * dptTypeMap stores more specific type class and exceptions.
@@ -103,8 +112,8 @@ public class KNXCoreTypeMapper {
             Map.entry("2", Set.of(DecimalType.class)), //
             Map.entry("3", Set.of(IncreaseDecreaseType.class)), //
             Map.entry("4", Set.of(StringType.class)), //
-            Map.entry("5", Set.of(DecimalType.class)), //
-            Map.entry("6", Set.of(DecimalType.class)), //
+            Map.entry("5", Set.of(DecimalType.class, QuantityType.class)), //
+            Map.entry("6", Set.of(DecimalType.class, QuantityType.class)), //
             Map.entry("7", Set.of(DecimalType.class, QuantityType.class)), //
             Map.entry("8", Set.of(DecimalType.class, QuantityType.class)), //
             Map.entry("9", Set.of(DecimalType.class, QuantityType.class)), //
@@ -133,9 +142,8 @@ public class KNXCoreTypeMapper {
             Map.entry(DPTXlatorBoolean.DPT_WINDOW_DOOR.getID(), Set.of(OpenClosedType.class)), //
             Map.entry(DPTXlatorBoolean.DPT_SCENE_AB.getID(), Set.of(DecimalType.class)), //
             Map.entry(DPTXlator3BitControlled.DPT_CONTROL_BLINDS.getID(), Set.of(UpDownType.class)), //
-            Map.entry(DPTXlator8BitUnsigned.DPT_SCALING.getID(), Set.of(PercentType.class)), //
-            Map.entry(DPTXlator8BitUnsigned.DPT_PERCENT_U8.getID(), Set.of(PercentType.class)), //
-            Map.entry(DPTXlator8BitSigned.DPT_PERCENT_V8.getID(), Set.of(PercentType.class)), //
+            Map.entry(DPTXlator8BitUnsigned.DPT_SCALING.getID(),
+                    Set.of(DecimalType.class, QuantityType.class, PercentType.class)), //
             Map.entry(DPTXlator8BitSigned.DPT_STATUS_MODE3.getID(), Set.of(StringType.class)), //
             Map.entry(DPTXlatorString.DPT_STRING_8859_1.getID(), Set.of(StringType.class)), //
             Map.entry(DPTXlatorString.DPT_STRING_ASCII.getID(), Set.of(StringType.class)));
@@ -264,9 +272,10 @@ public class KNXCoreTypeMapper {
      *
      * @param dptId the DPT of the given data
      * @param data a byte array containing the value
+     * @param channelType
      * @return the data converted to an openHAB Type (or null if conversion failed)
      */
-    public static @Nullable Type convertRawDataToType(String dptId, byte[] data) {
+    public static @Nullable Type convertRawDataToType(String dptId, byte[] data, String channelType) {
         try {
             DPTXlator translator = TranslatorTypes.createTranslator(0, dptId);
             translator.setData(data);
@@ -387,7 +396,7 @@ public class KNXCoreTypeMapper {
             }
 
             Set<Class<? extends Type>> typeClass = getAllowedTypes(id);
-            if (typeClass.contains(PercentType.class)) {
+            if (typeClass.contains(PercentType.class) && PERCENT_TYPE_CHANNELS.contains(channelType)) {
                 return new PercentType(BigDecimal.valueOf(Math.round(translator.getNumericValue())));
             }
             if (typeClass.contains(QuantityType.class)) {
@@ -567,6 +576,10 @@ public class KNXCoreTypeMapper {
         unitMap.put(DPTXlator4ByteFloat.DPT_ELECTROMAGNETIC_MOMENT.getID(),
                 Units.AMPERE.multiply(Units.SQUARE_METRE).toString());
 
+        // 8bit
+        unitMap.put(DPTXlator8BitUnsigned.DPT_SCALING.getID(), Units.PERCENT.getSymbol());
+        unitMap.put(DPTXlator8BitUnsigned.DPT_PERCENT_U8.getID(), Units.PERCENT.getSymbol());
+        unitMap.put(DPTXlator8BitSigned.DPT_PERCENT_V8.getID(), Units.PERCENT.getSymbol());
         return unitMap;
     }
 

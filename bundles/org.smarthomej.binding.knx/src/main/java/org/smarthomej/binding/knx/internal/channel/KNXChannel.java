@@ -79,7 +79,7 @@ public abstract class KNXChannel {
             Map.entry("Color", Set.of(OnOffType.class, PercentType.class, HSBType.class, IncreaseDecreaseType.class)), //
             Map.entry("DateTime", Set.of(DateTimeType.class)), //
             Map.entry("Number", Set.of(DecimalType.class, QuantityType.class)), //
-            Map.entry("Rollershutter", Set.of(PercentType.class, UpDownType.class, StopMoveType.class)), //
+            Map.entry("Rollershutter", Set.of(DecimalType.class, UpDownType.class, StopMoveType.class)), //
             Map.entry("String", Set.of(StringType.class)));
 
     KNXChannel(Set<String> gaKeys, Channel channel) {
@@ -109,7 +109,7 @@ public abstract class KNXChannel {
                         logger.debug(
                                 "Could not determine accepted types for channel '{}', assuming DPT assignment is ok.",
                                 channelUID);
-                    } else if (!channelTypes.containsAll(types)) {
+                    } else if (channelTypes.stream().noneMatch(types::contains)) {
                         logger.warn("Configured DPT '{}' is incompatible with accepted item type '{}' for channel '{}'",
                                 dpt, itemType, channelUID);
                     }

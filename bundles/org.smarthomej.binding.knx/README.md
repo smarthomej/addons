@@ -9,7 +9,12 @@ The KNX binding then can communicate directly with this gateway.
 Alternatively a PC running [KNXD](https://github.com/knxd/knxd) (free open source component sofware) can be put in between which then acts as a broker allowing multiple client to connect to the same gateway.
 Since the protocol is identical, the KNX binding can also communicate with it transparently.
 
-***Attention:*** With the introduction of UoM support in version 3.2.7 (see `number` channel below) the data type for DPT 9.007 has been changed from PercentType to QuantityType.
+***Attention:*** With the introduction of UoM support in version 3.2.7 (see `number` channel below) some data types have changed:
+- the data type for DPT 9.007 (Humidity) has changed from `PercentType` to `QuantityType` 
+- the data type for DPT 5.001 (Percent 8bit, 0 -> 100%) has changed from `PercentType` to `QuantityType`for `number` channels (`dimmer`, `color`, `rollershutter` channels stay with `PercentType`)
+- the data type for DPT 5.004 (Percent 8bit, 0 -> 255%) has changed from `PercentType` to `QuantityType`
+- the data type for DPT 6.001 (Percent 8bit -128 -> 127%) has changed from `PercentType` to `QuantityType`
+
 
 ## Supported Things
 
