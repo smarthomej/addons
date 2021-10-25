@@ -63,7 +63,7 @@ public class KNXCoreTypeMapperTest {
         int b = Integer.parseInt(value.split(" ")[2].split(":")[1]);
         HSBType expected = HSBType.fromRGB(r, g, b);
 
-        assertEquals(expected, KNXCoreTypeMapper.convertRawDataToType("232.600", data, "string"));
+        assertEquals(expected, KNXCoreTypeMapper.convertRawDataToType("232.600", data, false));
     }
 
     @Test

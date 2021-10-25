@@ -27,17 +27,7 @@ import java.util.Set;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.config.core.Configuration;
-import org.openhab.core.library.types.DateTimeType;
-import org.openhab.core.library.types.DecimalType;
-import org.openhab.core.library.types.HSBType;
-import org.openhab.core.library.types.IncreaseDecreaseType;
-import org.openhab.core.library.types.OnOffType;
-import org.openhab.core.library.types.OpenClosedType;
 import org.openhab.core.library.types.PercentType;
-import org.openhab.core.library.types.QuantityType;
-import org.openhab.core.library.types.StopMoveType;
-import org.openhab.core.library.types.StringType;
-import org.openhab.core.library.types.UpDownType;
 import org.openhab.core.thing.Channel;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.types.Type;
@@ -60,30 +50,21 @@ import tuwien.auto.calimero.GroupAddress;
 public abstract class KNXChannel {
     private final Logger logger = LoggerFactory.getLogger(KNXChannel.class);
     private final Set<String> gaKeys;
-
     private final Map<String, GroupAddressConfiguration> groupAddressConfigurations = new HashMap<>();
     private final Set<GroupAddress> listenAddresses = new HashSet<>();
     private final Set<GroupAddress> writeAddresses = new HashSet<>();
     private final String channelType;
     private final ChannelUID channelUID;
     private final boolean isControl;
+    private final boolean supportsPercentType;
 
-    KNXChannel(Channel channel) {
-        this(Set.of(GA), channel);
+    KNXChannel(Set<Class<? extends Type>> acceptedTypes, Channel channel) {
+        this(Set.of(GA), acceptedTypes, channel);
     }
 
-    private static final Map<String, Set<Class<? extends Type>>> ACCEPTED_TYPES = Map.ofEntries( //
-            Map.entry("Switch", Set.of(OnOffType.class)), //
-            Map.entry("Dimmer", Set.of(OnOffType.class, PercentType.class, IncreaseDecreaseType.class)), //
-            Map.entry("Contact", Set.of(OpenClosedType.class)), //
-            Map.entry("Color", Set.of(OnOffType.class, PercentType.class, HSBType.class, IncreaseDecreaseType.class)), //
-            Map.entry("DateTime", Set.of(DateTimeType.class)), //
-            Map.entry("Number", Set.of(DecimalType.class, QuantityType.class)), //
-            Map.entry("Rollershutter", Set.of(PercentType.class, UpDownType.class, StopMoveType.class)), //
-            Map.entry("String", Set.of(StringType.class)));
-
-    KNXChannel(Set<String> gaKeys, Channel channel) {
+    KNXChannel(Set<String> gaKeys, Set<Class<? extends Type>> acceptedTypes, Channel channel) {
         this.gaKeys = gaKeys;
+        this.supportsPercentType = acceptedTypes.contains(PercentType.class);
 
         // this is safe because we already checked the presence of the ChannelTypeUID before
         this.channelType = Objects.requireNonNull(channel.getChannelTypeUID()).getId();
@@ -100,18 +81,9 @@ public abstract class KNXChannel {
                 String dpt = groupAddressConfiguration.getDPT();
                 if (dpt != null) {
                     Set<Class<? extends Type>> types = KNXCoreTypeMapper.getAllowedTypes(dpt);
-                    String itemType = Objects.requireNonNull(channel.getAcceptedItemType());
-                    if (itemType.contains(":")) {
-                        itemType = itemType.substring(0, itemType.indexOf(":"));
-                    }
-                    Set<Class<? extends Type>> channelTypes = ACCEPTED_TYPES.get(itemType);
-                    if (channelTypes == null) {
-                        logger.debug(
-                                "Could not determine accepted types for channel '{}', assuming DPT assignment is ok.",
-                                channelUID);
-                    } else if (channelTypes.stream().noneMatch(types::contains)) {
-                        logger.warn("Configured DPT '{}' is incompatible with accepted item type '{}' for channel '{}'",
-                                dpt, itemType, channelUID);
+                    if (acceptedTypes.stream().noneMatch(types::contains)) {
+                        logger.warn("Configured DPT '{}' is incompatible with accepted types '{}' for channel '{}'",
+                                dpt, acceptedTypes, channelUID);
                     }
                 }
                 groupAddressConfigurations.put(key, groupAddressConfiguration);
@@ -132,6 +104,10 @@ public abstract class KNXChannel {
 
     public boolean isControl() {
         return isControl;
+    }
+
+    public boolean supportsPercentType() {
+        return supportsPercentType;
     }
 
     public final Set<GroupAddress> getAllGroupAddresses() {

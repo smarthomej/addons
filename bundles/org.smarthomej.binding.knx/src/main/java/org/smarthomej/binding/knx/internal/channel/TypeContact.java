@@ -18,6 +18,7 @@ import static org.smarthomej.binding.knx.internal.KNXBindingConstants.*;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.core.library.types.OpenClosedType;
 import org.openhab.core.thing.Channel;
 
 import tuwien.auto.calimero.dptxlator.DPTXlatorBoolean;
@@ -33,7 +34,7 @@ class TypeContact extends KNXChannel {
     public static final Set<String> SUPPORTED_CHANNEL_TYPES = Set.of(CHANNEL_CONTACT, CHANNEL_CONTACT_CONTROL);
 
     TypeContact(Channel channel) {
-        super(channel);
+        super(Set.of(OpenClosedType.class), channel);
     }
 
     @Override

@@ -13,13 +13,6 @@
  */
 package org.smarthomej.binding.knx.internal.dpt;
 
-import static org.smarthomej.binding.knx.internal.KNXBindingConstants.CHANNEL_COLOR;
-import static org.smarthomej.binding.knx.internal.KNXBindingConstants.CHANNEL_COLOR_CONTROL;
-import static org.smarthomej.binding.knx.internal.KNXBindingConstants.CHANNEL_DIMMER;
-import static org.smarthomej.binding.knx.internal.KNXBindingConstants.CHANNEL_DIMMER_CONTROL;
-import static org.smarthomej.binding.knx.internal.KNXBindingConstants.CHANNEL_ROLLERSHUTTER;
-import static org.smarthomej.binding.knx.internal.KNXBindingConstants.CHANNEL_ROLLERSHUTTER_CONTROL;
-
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -107,8 +100,6 @@ public class KNXCoreTypeMapper {
     private static final Pattern RGB_PATTERN = Pattern.compile("r:(?<r>\\d+) g:(?<g>\\d+) b:(?<b>\\d+)");
     private static final Pattern DPT_PATTERN = Pattern.compile("^(?<main>[1-9][0-9]{0,2})(?:\\.(?<sub>\\d{3,4}))?$");
 
-    private static final Set<String> PERCENT_TYPE_CHANNELS = Set.of(CHANNEL_DIMMER, CHANNEL_DIMMER_CONTROL,
-            CHANNEL_ROLLERSHUTTER, CHANNEL_ROLLERSHUTTER_CONTROL, CHANNEL_COLOR, CHANNEL_COLOR_CONTROL);
     /**
      * stores the openHAB type class for (supported) KNX datapoint types in a generic way.
      * dptTypeMap stores more specific type class and exceptions.
@@ -278,10 +269,10 @@ public class KNXCoreTypeMapper {
      *
      * @param dptId the DPT of the given data
      * @param data a byte array containing the value
-     * @param channelType the type of the KNXChannel (used to determine if PercentType is supported or not)
+     * @param supportsPercentType whether the KNXChannel supports PercentType or not
      * @return the data converted to an openHAB Type (or null if conversion failed)
      */
-    public static @Nullable Type convertRawDataToType(String dptId, byte[] data, String channelType) {
+    public static @Nullable Type convertRawDataToType(String dptId, byte[] data, boolean supportsPercentType) {
         try {
             DPTXlator translator = TranslatorTypes.createTranslator(0, dptId);
             translator.setData(data);
@@ -402,7 +393,7 @@ public class KNXCoreTypeMapper {
             }
 
             Set<Class<? extends Type>> typeClass = getAllowedTypes(id);
-            if (typeClass.contains(PercentType.class) && PERCENT_TYPE_CHANNELS.contains(channelType)) {
+            if (typeClass.contains(PercentType.class) && supportsPercentType) {
                 return new PercentType(BigDecimal.valueOf(Math.round(translator.getNumericValue())));
             }
             if (typeClass.contains(QuantityType.class)) {
