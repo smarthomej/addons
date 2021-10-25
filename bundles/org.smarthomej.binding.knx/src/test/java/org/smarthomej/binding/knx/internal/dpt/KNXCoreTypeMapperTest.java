@@ -69,7 +69,6 @@ public class KNXCoreTypeMapperTest {
     @Test
     public void unitFix() {
         Assertions.assertEquals("m/s²", KNXCoreTypeMapper.fixUnit("ms⁻²"));
-        Assertions.assertEquals("1/s", KNXCoreTypeMapper.fixUnit("s⁻¹"));
         Assertions.assertEquals("Ah", KNXCoreTypeMapper.fixUnit("A h"));
     }
 

@@ -48,6 +48,7 @@ import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.library.types.StopMoveType;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.library.types.UpDownType;
+import org.openhab.core.library.unit.MetricPrefix;
 import org.openhab.core.library.unit.SIUnits;
 import org.openhab.core.library.unit.Units;
 import org.openhab.core.types.Type;
@@ -544,7 +545,6 @@ public class KNXCoreTypeMapper {
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP).intValue();
     }
 
-    // TODO: 2byte signed (DPT 8)
     private static Map<String, String> loadDatapointUnits() {
         Map<String, String> unitMap = new HashMap<>();
         List<Class<? extends DPTXlator>> translators = List.of(DPTXlator2ByteUnsigned.class, DPTXlator2ByteFloat.class,
@@ -569,7 +569,7 @@ public class KNXCoreTypeMapper {
             }
         }
 
-        // now override units where Calimero provides unparsable data
+        // override/fix units where Calimero data is still unparsable or missing
 
         // 8 bit unsigned (DPT 5)
         unitMap.put(DPTXlator8BitUnsigned.DPT_SCALING.getID(), Units.PERCENT.getSymbol());
@@ -580,6 +580,18 @@ public class KNXCoreTypeMapper {
 
         // two byte unsigned (DPT 7)
         unitMap.remove(DPTXlator2ByteUnsigned.DPT_VALUE_2_UCOUNT.getID()); // counts have no unit
+
+        // two byte signed (DPT 8, DPTXlator is missing in calimero 2.5-M1)
+        // TODO: 2byte signed (DPT 8) use DptXlator2ByteSigned after 2.5 release of calimero
+        unitMap.put("8.002", MetricPrefix.MILLI(Units.SECOND).toString());
+        unitMap.put("8.003", MetricPrefix.MILLI(Units.SECOND).toString());
+        unitMap.put("8.004", MetricPrefix.MILLI(Units.SECOND).toString());
+        unitMap.put("8.005", Units.SECOND.toString());
+        unitMap.put("8.006", Units.MINUTE.toString());
+        unitMap.put("8.007", Units.HOUR.toString());
+        unitMap.put("8.010", Units.PERCENT.toString());
+        unitMap.put("8.011", Units.DEGREE_ANGLE.toString());
+        unitMap.put("8.012", SIUnits.METRE.toString());
 
         // 4 byte unsigned (DPT 12)
         unitMap.put(DPTXlator4ByteUnsigned.DptVolumeLiquid.getID(), Units.LITRE.toString());
@@ -621,16 +633,14 @@ public class KNXCoreTypeMapper {
      * Calimero provides some units (like "ms⁻²") that can't be parsed by our library
      *
      * @param input unit string as provided by Calimero
-     * @return unit string accepted by out UoM library
+     * @return unit string accepted by our UoM library
      */
     static String fixUnit(String input) {
         String output = input.replaceAll(" ", "");
 
         int index = output.indexOf("⁻");
         if (index != -1) {
-            output = output.substring(0, index - 1) + "/"
-                    + output.substring(index - 1).replace("⁻", "").replace("¹", "");
-            output = output.startsWith("/") ? "1" + output : output;
+            output = output.substring(0, index - 1) + "/" + output.substring(index - 1).replace("⁻", "");
         }
 
         return output;
