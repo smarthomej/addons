@@ -18,6 +18,8 @@ import static org.smarthomej.binding.knx.internal.KNXBindingConstants.*;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.core.library.types.DecimalType;
+import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.thing.Channel;
 
 /**
@@ -31,7 +33,7 @@ class TypeNumber extends KNXChannel {
     public static final Set<String> SUPPORTED_CHANNEL_TYPES = Set.of(CHANNEL_NUMBER, CHANNEL_NUMBER_CONTROL);
 
     TypeNumber(Channel channel) {
-        super(channel);
+        super(Set.of(DecimalType.class, QuantityType.class), channel);
     }
 
     @Override

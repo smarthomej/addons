@@ -18,6 +18,10 @@ import static org.smarthomej.binding.knx.internal.KNXBindingConstants.*;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.core.library.types.HSBType;
+import org.openhab.core.library.types.IncreaseDecreaseType;
+import org.openhab.core.library.types.OnOffType;
+import org.openhab.core.library.types.PercentType;
 import org.openhab.core.thing.Channel;
 
 import tuwien.auto.calimero.dptxlator.DPTXlator3BitControlled;
@@ -36,7 +40,8 @@ class TypeColor extends KNXChannel {
     public static final Set<String> SUPPORTED_CHANNEL_TYPES = Set.of(CHANNEL_COLOR, CHANNEL_COLOR_CONTROL);
 
     TypeColor(Channel channel) {
-        super(Set.of(SWITCH_GA, POSITION_GA, INCREASE_DECREASE_GA, HSB_GA), channel);
+        super(Set.of(SWITCH_GA, POSITION_GA, INCREASE_DECREASE_GA, HSB_GA),
+                Set.of(OnOffType.class, PercentType.class, HSBType.class, IncreaseDecreaseType.class), channel);
     }
 
     @Override

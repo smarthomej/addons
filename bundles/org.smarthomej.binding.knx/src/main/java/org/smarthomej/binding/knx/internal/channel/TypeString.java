@@ -18,6 +18,7 @@ import static org.smarthomej.binding.knx.internal.KNXBindingConstants.*;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.core.library.types.StringType;
 import org.openhab.core.thing.Channel;
 
 import tuwien.auto.calimero.dptxlator.DPTXlatorString;
@@ -33,7 +34,7 @@ class TypeString extends KNXChannel {
     public static final Set<String> SUPPORTED_CHANNEL_TYPES = Set.of(CHANNEL_STRING, CHANNEL_STRING_CONTROL);
 
     TypeString(Channel channel) {
-        super(channel);
+        super(Set.of(StringType.class), channel);
     }
 
     @Override
