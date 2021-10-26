@@ -203,9 +203,8 @@ public class KNXCoreTypeMapper {
                     double[] xyY = ColorUtil.hsbToXY(hsb);
                     return String.format("(%,.4f %,.4f) %,.1f %%", xyY[0], xyY[1], xyY[2] * 100.0);
                 } else if ("251.600".equals(dptId)) {
-                    String s = String.format("%d %d %d - %%", hsb.getRed().intValue(), hsb.getGreen().intValue(),
+                    return String.format("%d %d %d - %%", hsb.getRed().intValue(), hsb.getGreen().intValue(),
                             hsb.getBlue().intValue());
-                    return s;
                 } else {
                     return null;
                 }
