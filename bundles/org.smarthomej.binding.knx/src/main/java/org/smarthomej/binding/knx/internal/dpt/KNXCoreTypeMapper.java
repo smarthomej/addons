@@ -48,6 +48,7 @@ import org.openhab.core.types.Type;
 import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smarthomej.binding.knx.internal.ColorUtil;
 
 import tuwien.auto.calimero.KNXException;
 import tuwien.auto.calimero.KNXFormatException;
@@ -98,6 +99,10 @@ public class KNXCoreTypeMapper {
     private static final String TIME_DAY_FORMAT = "EEE, HH:mm:ss";
     private static final String DATE_FORMAT = "yyyy-MM-dd";
     private static final Pattern RGB_PATTERN = Pattern.compile("r:(?<r>\\d+) g:(?<g>\\d+) b:(?<b>\\d+)");
+    private static final Pattern RGBW_PATTERN = Pattern
+            .compile("(?:(?<r>\\d+)|-)\\s(?:(?<g>\\d+)|-)\\s(?:(?<b>\\d+)|-)\\s(?:(?<w>\\d+)|-)\\s%");
+    private static final Pattern XYY_PATTERN = Pattern
+            .compile("(?:\\((?<x>\\d+(?:,\\d+)?) (?<y>\\d+(?:,\\d+)?)\\))?\\s*(?:(?<Y>\\d+(?:,\\d+)?)\\s%)?");
     private static final Pattern DPT_PATTERN = Pattern.compile("^(?<main>[1-9][0-9]{0,2})(?:\\.(?<sub>\\d{3,4}))?$");
 
     /**
@@ -129,7 +134,9 @@ public class KNXCoreTypeMapper {
             Map.entry("28", Set.of(StringType.class)), //
             Map.entry("29", Set.of(DecimalType.class, QuantityType.class)), //
             Map.entry("229", Set.of(DecimalType.class)), //
-            Map.entry("232", Set.of(HSBType.class)));
+            Map.entry("232", Set.of(HSBType.class)), //
+            Map.entry("242", Set.of(HSBType.class)), //
+            Map.entry("251", Set.of(HSBType.class, PercentType.class)));
 
     /** stores the openHAB type class for all (supported) KNX datapoint types */
     private static final Map<String, Set<Class<? extends Type>>> DPT_TYPE_MAP = Map.ofEntries(
@@ -189,9 +196,19 @@ public class KNXCoreTypeMapper {
                         default:
                             return hsb.getBrightness().toString();
                     }
+                } else if ("232.600".equals(dptId)) {
+                    return "r:" + convertPercentToByte(hsb.getRed()) + " g:" + convertPercentToByte(hsb.getGreen())
+                            + " b:" + convertPercentToByte(hsb.getBlue());
+                } else if ("242.600".equals(dptId)) {
+                    double[] xyY = ColorUtil.hsbToXY(hsb);
+                    return String.format("(%,.4f %,.4f) %,.1f %%", xyY[0], xyY[1], xyY[2] * 100.0);
+                } else if ("251.600".equals(dptId)) {
+                    String s = String.format("%d %d %d - %%", hsb.getRed().intValue(), hsb.getGreen().intValue(),
+                            hsb.getBlue().intValue());
+                    return s;
+                } else {
+                    return null;
                 }
-                return "r:" + convertPercentToByte(hsb.getRed()) + " g:" + convertPercentToByte(hsb.getGreen()) + " b:"
-                        + convertPercentToByte(hsb.getBlue());
             } else if (value instanceof OnOffType) {
                 return value.equals(OnOffType.OFF) ? dpt.getLowerValue() : dpt.getUpperValue();
             } else if (value instanceof UpDownType) {
@@ -205,7 +222,12 @@ public class KNXCoreTypeMapper {
             } else if (value instanceof StopMoveType) {
                 return value.equals(StopMoveType.STOP) ? dpt.getLowerValue() : dpt.getUpperValue();
             } else if (value instanceof PercentType) {
-                return String.valueOf(((DecimalType) value).intValue());
+                int intValue = ((PercentType) value).intValue();
+                if ("251.600".equals(dptId)) {
+                    return String.format("- - - %d %%", intValue);
+                } else {
+                    return String.valueOf(intValue);
+                }
             } else if (value instanceof DecimalType || value instanceof QuantityType<?>) {
                 BigDecimal bigDecimal;
                 if (value instanceof DecimalType) {
@@ -269,10 +291,10 @@ public class KNXCoreTypeMapper {
      *
      * @param dptId the DPT of the given data
      * @param data a byte array containing the value
-     * @param supportsPercentType whether the KNXChannel supports PercentType or not
+     * @param preferredType whether the KNXChannel supports PercentType or not
      * @return the data converted to an openHAB Type (or null if conversion failed)
      */
-    public static @Nullable Type convertRawDataToType(String dptId, byte[] data, boolean supportsPercentType) {
+    public static @Nullable Type convertRawDataToType(String dptId, byte[] data, Class<? extends Type> preferredType) {
         try {
             DPTXlator translator = TranslatorTypes.createTranslator(0, dptId);
             translator.setData(data);
@@ -390,10 +412,38 @@ public class KNXCoreTypeMapper {
                         return DateTimeType.valueOf(value);
                     }
                     break;
+                case "251":
+                    Matcher rgbw = RGBW_PATTERN.matcher(value);
+                    if (rgbw.matches()) {
+                        String rString = rgbw.group("r");
+                        String gString = rgbw.group("g");
+                        String bString = rgbw.group("b");
+                        String wString = rgbw.group("w");
+
+                        if (rString != null && gString != null && bString != null
+                                && HSBType.class.equals(preferredType)) {
+                            // does not support PercentType and r,g,b valid -> HSBType
+                            int r = (int) (Integer.parseInt(rString) * 2.56);
+                            int g = (int) (Integer.parseInt(gString) * 2.56);
+                            int b = (int) (Integer.parseInt(bString) * 2.56);
+
+                            return HSBType.fromRGB(r, g, b);
+                        } else if (wString != null && PercentType.class.equals(preferredType)) {
+                            // does support PercentType and w valid -> PercentType
+                            int w = Integer.parseInt(wString);
+
+                            return new PercentType(w);
+                        } else {
+                            // either a value is missing or no valid configuration found
+                            return null;
+                        }
+                    } else {
+                        return null;
+                    }
             }
 
             Set<Class<? extends Type>> typeClass = getAllowedTypes(id);
-            if (typeClass.contains(PercentType.class) && supportsPercentType) {
+            if (typeClass.contains(PercentType.class) && PercentType.class.equals(preferredType)) {
                 return new PercentType(BigDecimal.valueOf(Math.round(translator.getNumericValue())));
             }
             if (typeClass.contains(QuantityType.class)) {
@@ -428,6 +478,23 @@ public class KNXCoreTypeMapper {
                     int b = Integer.parseInt(rgb.group("b"));
 
                     return HSBType.fromRGB(r, g, b);
+                }
+                Matcher xyY = XYY_PATTERN.matcher(value);
+                if (xyY.matches()) {
+                    String xString = xyY.group("x");
+                    String yString = xyY.group("y");
+                    String YString = xyY.group("Y");
+
+                    if (xString != null && yString != null) {
+                        double x = Double.parseDouble(xString.replace(",", "."));
+                        double y = Double.parseDouble(yString.replace(",", "."));
+                        if (YString == null) {
+                            return ColorUtil.xyToHsv(new double[] { x, y });
+                        } else {
+                            double Y = Double.parseDouble(YString.replace(",", "."));
+                            return ColorUtil.xyToHsv(new double[] { x, y, Y });
+                        }
+                    }
                 }
             }
         } catch (NumberFormatException | KNXFormatException | KNXIllegalArgumentException e) {

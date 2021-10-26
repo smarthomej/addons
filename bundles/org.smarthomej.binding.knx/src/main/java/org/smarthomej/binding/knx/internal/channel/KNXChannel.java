@@ -27,7 +27,6 @@ import java.util.Set;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.config.core.Configuration;
-import org.openhab.core.library.types.PercentType;
 import org.openhab.core.thing.Channel;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.types.Type;
@@ -56,15 +55,15 @@ public abstract class KNXChannel {
     private final String channelType;
     private final ChannelUID channelUID;
     private final boolean isControl;
-    private final boolean supportsPercentType;
+    private final Class<? extends Type> preferredType;
 
-    KNXChannel(Set<Class<? extends Type>> acceptedTypes, Channel channel) {
+    KNXChannel(List<Class<? extends Type>> acceptedTypes, Channel channel) {
         this(Set.of(GA), acceptedTypes, channel);
     }
 
-    KNXChannel(Set<String> gaKeys, Set<Class<? extends Type>> acceptedTypes, Channel channel) {
+    KNXChannel(Set<String> gaKeys, List<Class<? extends Type>> acceptedTypes, Channel channel) {
         this.gaKeys = gaKeys;
-        this.supportsPercentType = acceptedTypes.contains(PercentType.class);
+        this.preferredType = acceptedTypes.get(0);
 
         // this is safe because we already checked the presence of the ChannelTypeUID before
         this.channelType = Objects.requireNonNull(channel.getChannelTypeUID()).getId();
@@ -106,8 +105,8 @@ public abstract class KNXChannel {
         return isControl;
     }
 
-    public boolean supportsPercentType() {
-        return supportsPercentType;
+    public Class<? extends Type> preferredType() {
+        return preferredType;
     }
 
     public final Set<GroupAddress> getAllGroupAddresses() {

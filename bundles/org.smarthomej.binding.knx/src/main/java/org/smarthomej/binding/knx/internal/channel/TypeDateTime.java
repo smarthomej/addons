@@ -15,6 +15,7 @@ package org.smarthomej.binding.knx.internal.channel;
 
 import static org.smarthomej.binding.knx.internal.KNXBindingConstants.*;
 
+import java.util.List;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -34,7 +35,7 @@ class TypeDateTime extends KNXChannel {
     public static final Set<String> SUPPORTED_CHANNEL_TYPES = Set.of(CHANNEL_DATETIME, CHANNEL_DATETIME_CONTROL);
 
     TypeDateTime(Channel channel) {
-        super(Set.of(DateTimeType.class), channel);
+        super(List.of(DateTimeType.class), channel);
     }
 
     @Override
