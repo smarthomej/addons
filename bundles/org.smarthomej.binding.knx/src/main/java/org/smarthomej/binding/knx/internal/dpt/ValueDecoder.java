@@ -59,8 +59,8 @@ import tuwien.auto.calimero.dptxlator.TranslatorTypes;
  * @author Jan N. Klug - Initial contribution
  */
 @NonNullByDefault
-public class KNXValueDecoder {
-    private static final Logger LOGGER = LoggerFactory.getLogger(KNXValueDecoder.class);
+public class ValueDecoder {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ValueDecoder.class);
 
     private static final String TIME_DAY_FORMAT = "EEE, HH:mm:ss";
     private static final String DATE_FORMAT = "yyyy-MM-dd";
@@ -179,6 +179,7 @@ public class KNXValueDecoder {
             case "008":
                 return translator3BitControlled.getControlBit() ? UpDownType.DOWN : UpDownType.UP;
             default:
+                LOGGER.warn("DPT3, subtype '{}' is unknown.", subType);
                 return null;
         }
     }
@@ -205,26 +206,23 @@ public class KNXValueDecoder {
         DPTXlatorDateTime translatorDateTime = (DPTXlatorDateTime) translator;
         if (translatorDateTime.isFaultyClock()) {
             // Not supported: faulty clock
-            LOGGER.debug("convertRawDataToType: KNX clock msg ignored: clock faulty bit set, which is not supported");
+            LOGGER.debug("KNX clock msg ignored: clock faulty bit set, which is not supported");
             return null;
         } else if (!translatorDateTime.isValidField(DPTXlatorDateTime.YEAR)
                 && translatorDateTime.isValidField(DPTXlatorDateTime.DATE)) {
             // Not supported: "/1/1" (month and day without year)
-            LOGGER.debug(
-                    "convertRawDataToType: KNX clock msg ignored: no year, but day and month, which is not supported");
+            LOGGER.debug("KNX clock msg ignored: no year, but day and month, which is not supported");
             return null;
         } else if (translatorDateTime.isValidField(DPTXlatorDateTime.YEAR)
                 && !translatorDateTime.isValidField(DPTXlatorDateTime.DATE)) {
             // Not supported: "1900" (year without month and day)
-            LOGGER.debug(
-                    "convertRawDataToType: KNX clock msg ignored: no day and month, but year, which is not supported");
+            LOGGER.debug("KNX clock msg ignored: no day and month, but year, which is not supported");
             return null;
         } else if (!translatorDateTime.isValidField(DPTXlatorDateTime.YEAR)
                 && !translatorDateTime.isValidField(DPTXlatorDateTime.DATE)
                 && !translatorDateTime.isValidField(DPTXlatorDateTime.TIME)) {
             // Not supported: No year, no date and no time
-            LOGGER.debug(
-                    "convertRawDataToType: KNX clock msg ignored: no day and month or year, which is not supported");
+            LOGGER.debug("KNX clock msg ignored: no day and month or year, which is not supported");
             return null;
         }
 
@@ -251,6 +249,7 @@ public class KNXValueDecoder {
             String value = new SimpleDateFormat(DateTimeType.DATE_PATTERN).format(cal.getTime());
             return DateTimeType.valueOf(value);
         } else {
+            LOGGER.warn("Failed to convert '{}'", translator.getValue());
             return null;
         }
     }
@@ -264,6 +263,7 @@ public class KNXValueDecoder {
 
             return HSBType.fromRGB(r, g, b);
         }
+        LOGGER.warn("Failed to convert '{}' (DPT 232): Pattern does not match", value);
         return null;
     }
 
@@ -285,6 +285,7 @@ public class KNXValueDecoder {
                 }
             }
         }
+        LOGGER.warn("Failed to convert '{}' (DPT 242): Pattern does not match", value);
         return null;
     }
 
@@ -310,6 +311,7 @@ public class KNXValueDecoder {
                 return new PercentType(w);
             }
         }
+        LOGGER.warn("Failed to convert '{}' (DPT 251): Pattern does not match or invalid content", value);
         return null;
     }
 
@@ -320,18 +322,17 @@ public class KNXValueDecoder {
         double value = translator.getNumericValue();
         if (allowedTypes.contains(PercentType.class) && PercentType.class.equals(preferredType)) {
             return new PercentType(BigDecimal.valueOf(Math.round(value)));
-        }
-        if (allowedTypes.contains(QuantityType.class)) {
-            String unit = KNXUnits.getUnitForDpt(id);
+        } else if (allowedTypes.contains(QuantityType.class)) {
+            String unit = DPTUnits.getUnitForDpt(id);
             if (unit != null) {
                 return new QuantityType<>(value + " " + unit);
             } else {
                 LOGGER.trace("Could not determine unit for DPT '{}', fallback to plain decimal", id);
             }
-        }
-        if (allowedTypes.contains(DecimalType.class)) {
+        } else if (allowedTypes.contains(DecimalType.class)) {
             return new DecimalType(value);
         }
+        LOGGER.warn("Failed to convert '{}' (DPT '{}'): no matching type found", value, id);
         return null;
     }
 }

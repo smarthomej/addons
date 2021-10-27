@@ -46,7 +46,7 @@ import org.smarthomej.binding.knx.internal.client.InboundSpec;
 import org.smarthomej.binding.knx.internal.client.OutboundSpec;
 import org.smarthomej.binding.knx.internal.config.DeviceConfig;
 import org.smarthomej.binding.knx.internal.dpt.DPTUtil;
-import org.smarthomej.binding.knx.internal.dpt.KNXValueDecoder;
+import org.smarthomej.binding.knx.internal.dpt.ValueDecoder;
 
 import tuwien.auto.calimero.GroupAddress;
 import tuwien.auto.calimero.IndividualAddress;
@@ -301,7 +301,7 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
                  */
                 if (knxChannel.isControl()) {
                     logger.trace("onGroupWrite isControl");
-                    Type value = KNXValueDecoder.decode(listenSpec.getDPT(), asdu, knxChannel.preferredType());
+                    Type value = ValueDecoder.decode(listenSpec.getDPT(), asdu, knxChannel.preferredType());
                     if (value != null) {
                         OutboundSpec commandSpec = knxChannel.getCommandSpec(value);
                         if (commandSpec != null) {
@@ -322,7 +322,7 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
             return;
         }
 
-        Type value = KNXValueDecoder.decode(listenSpec.getDPT(), asdu, knxChannel.preferredType());
+        Type value = ValueDecoder.decode(listenSpec.getDPT(), asdu, knxChannel.preferredType());
         if (value != null) {
             if (knxChannel.isControl()) {
                 ChannelUID channelUID = knxChannel.getChannelUID();
@@ -364,7 +364,8 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
                 }
             }
         } else {
-            logger.warn("Ignoring KNX bus data for channel '{}': couldn't transform to any Type (GA='{}', DPT='{}', data='{}')",
+            logger.debug(
+                    "Ignoring KNX bus data for channel '{}': couldn't transform to any Type (GA='{}', DPT='{}', data='{}')",
                     knxChannel.getChannelUID(), destination, listenSpec.getDPT(), HexUtils.bytesToHex(asdu));
         }
     }

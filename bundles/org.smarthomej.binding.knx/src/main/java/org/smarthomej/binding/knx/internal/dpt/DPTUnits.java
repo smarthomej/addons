@@ -41,10 +41,10 @@ import tuwien.auto.calimero.dptxlator.DPTXlator8BitUnsigned;
  * @author Jan N. Klug - Initial contribution
  */
 @NonNullByDefault
-public class KNXUnits {
+public class DPTUnits {
     private static final Map<String, String> DPT_UNIT_MAP = new HashMap<>();
 
-    private KNXUnits() {
+    private DPTUnits() {
         // prevent instantiation
     }
 

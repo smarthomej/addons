@@ -30,7 +30,7 @@ import org.openhab.core.thing.ThingUID;
 import org.openhab.core.types.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthomej.binding.knx.internal.dpt.KNXValueEncoder;
+import org.smarthomej.binding.knx.internal.dpt.ValueEncoder;
 import org.smarthomej.binding.knx.internal.handler.GroupAddressListener;
 
 import tuwien.auto.calimero.CloseEvent;
@@ -105,17 +105,20 @@ public abstract class AbstractKNXClient implements NetworkLinkListener, KNXClien
 
         @Override
         public void groupWrite(ProcessEvent e) {
-            processEvent("Group Write", e, (listener, source, destination, asdu) -> listener.onGroupWrite(AbstractKNXClient.this, source, destination, asdu));
+            processEvent("Group Write", e, (listener, source, destination, asdu) -> listener
+                    .onGroupWrite(AbstractKNXClient.this, source, destination, asdu));
         }
 
         @Override
         public void groupReadRequest(ProcessEvent e) {
-            processEvent("Group Read Request", e, (listener, source, destination, asdu) -> listener.onGroupRead(AbstractKNXClient.this, source, destination, asdu));
+            processEvent("Group Read Request", e, (listener, source, destination, asdu) -> listener
+                    .onGroupRead(AbstractKNXClient.this, source, destination, asdu));
         }
 
         @Override
         public void groupReadResponse(ProcessEvent e) {
-            processEvent("Group Read Response", e, (listener, source, destination, asdu) -> listener.onGroupReadResponse(AbstractKNXClient.this, source, destination, asdu));
+            processEvent("Group Read Response", e, (listener, source, destination, asdu) -> listener
+                    .onGroupReadResponse(AbstractKNXClient.this, source, destination, asdu));
         }
     };
 
@@ -417,14 +420,14 @@ public abstract class AbstractKNXClient implements NetworkLinkListener, KNXClien
         sendToKNX(responseCommunicator, groupAddress, responseSpec.getDPT(), responseSpec.getValue());
     }
 
-    private void sendToKNX(ProcessCommunication communicator, GroupAddress groupAddress,
-            String dpt, Type type) throws KNXException {
+    private void sendToKNX(ProcessCommunication communicator, GroupAddress groupAddress, String dpt, Type type)
+            throws KNXException {
         if (!connectIfNotAutomatic()) {
             return;
         }
 
         Datapoint datapoint = new CommandDP(groupAddress, thingUID.toString(), 0, dpt);
-        String mappedValue = KNXValueEncoder.encode(type, dpt);
+        String mappedValue = ValueEncoder.encode(type, dpt);
         if (mappedValue == null) {
             logger.debug("Value '{}' of type '{}' cannot be mapped to datapoint '{}'", type, type.getClass(),
                     datapoint);
@@ -432,7 +435,7 @@ public abstract class AbstractKNXClient implements NetworkLinkListener, KNXClien
         }
         logger.trace("sendToKNX mappedValue: '{}' groupAddress: '{}'", mappedValue, groupAddress);
 
-        for (int i = 0; ; i++) {
+        for (int i = 0;; i++) {
             try {
                 communicator.write(datapoint, mappedValue);
                 logger.debug("Wrote value '{}' to datapoint '{}' ({}. attempt).", type, datapoint, i);

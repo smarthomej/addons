@@ -53,10 +53,10 @@ import tuwien.auto.calimero.dptxlator.TranslatorTypes;
  * @author Jan N. Klug - Initial contribution
  */
 @NonNullByDefault
-public class KNXValueEncoder {
-    private static final Logger LOGGER = LoggerFactory.getLogger(KNXValueEncoder.class);
+public class ValueEncoder {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ValueEncoder.class);
 
-    private KNXValueEncoder() {
+    private ValueEncoder() {
         // prevent instantiation
     }
 
@@ -163,7 +163,7 @@ public class KNXValueEncoder {
         if (value instanceof DecimalType) {
             bigDecimal = ((DecimalType) value).toBigDecimal();
         } else {
-            String unit = KNXUnits.getUnitForDpt(dptId);
+            String unit = DPTUnits.getUnitForDpt(dptId);
             if (unit != null) {
                 QuantityType<?> converted = ((QuantityType<?>) value).toUnit(unit);
                 if (converted == null) {

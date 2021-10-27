@@ -28,26 +28,26 @@ import org.openhab.core.library.types.QuantityType;
 
 /**
  *
- * @author Simon Kaufmann - initial contribution and API
+ * @author Simon Kaufmann - Initial contribution
  *
  */
 @NonNullByDefault
-public class KNXCoreTypeMapperTest {
+public class DPTTest {
 
     @Test
     public void testToDPTValueTrailingZeroesStrippedOff() {
-        assertEquals("3", KNXValueEncoder.encode(new DecimalType("3"), "17.001"));
-        assertEquals("3", KNXValueEncoder.encode(new DecimalType("3.0"), "17.001"));
+        assertEquals("3", ValueEncoder.encode(new DecimalType("3"), "17.001"));
+        assertEquals("3", ValueEncoder.encode(new DecimalType("3.0"), "17.001"));
     }
 
     @Test
     public void testToDPTValueDecimalType() {
-        assertEquals("23.1", KNXValueEncoder.encode(new DecimalType("23.1"), "9.001"));
+        assertEquals("23.1", ValueEncoder.encode(new DecimalType("23.1"), "9.001"));
     }
 
     @Test
     public void testToDPTValueQuantityType() {
-        assertEquals("23.1", KNXValueEncoder.encode(new QuantityType<>("23.1 °C"), "9.001"));
+        assertEquals("23.1", ValueEncoder.encode(new QuantityType<>("23.1 °C"), "9.001"));
     }
 
     @Test
@@ -62,11 +62,12 @@ public class KNXCoreTypeMapperTest {
         int b = Integer.parseInt(value.split(" ")[2].split(":")[1]);
         HSBType expected = HSBType.fromRGB(r, g, b);
 
-        assertEquals(expected, KNXValueDecoder.decode("232.600", data, HSBType.class));
+        assertEquals(expected, ValueDecoder.decode("232.600", data, HSBType.class));
     }
 
+    @SuppressWarnings("unused")
     private static Stream<String> unitProvider() {
-        return KNXUnits.getAllUnitStrings();
+        return DPTUnits.getAllUnitStrings();
     }
 
     @ParameterizedTest
