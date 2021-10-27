@@ -29,7 +29,7 @@ import org.openhab.core.thing.ThingUID;
 import org.openhab.core.types.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthomej.binding.knx.internal.dpt.KNXCoreTypeMapper;
+import org.smarthomej.binding.knx.internal.dpt.KNXValueEncoder;
 import org.smarthomej.binding.knx.internal.handler.GroupAddressListener;
 
 import tuwien.auto.calimero.CloseEvent;
@@ -430,14 +430,14 @@ public abstract class AbstractKNXClient implements NetworkLinkListener, KNXClien
         }
 
         Datapoint datapoint = new CommandDP(groupAddress, thingUID.toString(), 0, dpt);
-        String mappedValue = KNXCoreTypeMapper.formatAsDPTString(type, dpt);
-
-        logger.trace("sendToKNX mappedValue: '{}' groupAddress: '{}'", mappedValue, groupAddress);
-
+        String mappedValue = KNXValueEncoder.encode(type, dpt);
         if (mappedValue == null) {
-            logger.debug("Value '{}' cannot be mapped to datapoint '{}'", type, datapoint);
+            logger.debug("Value '{}' of type '{}' cannot be mapped to datapoint '{}'", type, type.getClass(),
+                    datapoint);
             return;
         }
+        logger.trace("sendToKNX mappedValue: '{}' groupAddress: '{}'", mappedValue, groupAddress);
+
         for (int i = 0; i < MAX_SEND_ATTEMPTS; i++) {
             try {
                 communicator.write(datapoint, mappedValue);

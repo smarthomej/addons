@@ -14,7 +14,6 @@
 package org.smarthomej.binding.knx.internal.dpt;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.smarthomej.binding.knx.internal.dpt.KNXCoreTypeMapper.DPT_UNIT_MAP;
 
 import java.util.stream.Stream;
 
@@ -37,18 +36,18 @@ public class KNXCoreTypeMapperTest {
 
     @Test
     public void testToDPTValueTrailingZeroesStrippedOff() {
-        assertEquals("3", KNXCoreTypeMapper.formatAsDPTString(new DecimalType("3"), "17.001"));
-        assertEquals("3", KNXCoreTypeMapper.formatAsDPTString(new DecimalType("3.0"), "17.001"));
+        assertEquals("3", KNXValueEncoder.encode(new DecimalType("3"), "17.001"));
+        assertEquals("3", KNXValueEncoder.encode(new DecimalType("3.0"), "17.001"));
     }
 
     @Test
     public void testToDPTValueDecimalType() {
-        assertEquals("23.1", KNXCoreTypeMapper.formatAsDPTString(new DecimalType("23.1"), "9.001"));
+        assertEquals("23.1", KNXValueEncoder.encode(new DecimalType("23.1"), "9.001"));
     }
 
     @Test
     public void testToDPTValueQuantityType() {
-        assertEquals("23.1", KNXCoreTypeMapper.formatAsDPTString(new QuantityType<>("23.1 °C"), "9.001"));
+        assertEquals("23.1", KNXValueEncoder.encode(new QuantityType<>("23.1 °C"), "9.001"));
     }
 
     @Test
@@ -63,17 +62,11 @@ public class KNXCoreTypeMapperTest {
         int b = Integer.parseInt(value.split(" ")[2].split(":")[1]);
         HSBType expected = HSBType.fromRGB(r, g, b);
 
-        assertEquals(expected, KNXCoreTypeMapper.convertRawDataToType("232.600", data, HSBType.class));
-    }
-
-    @Test
-    public void unitFix() {
-        Assertions.assertEquals("m/s²", KNXCoreTypeMapper.fixUnit("ms⁻²"));
-        Assertions.assertEquals("Ah", KNXCoreTypeMapper.fixUnit("A h"));
+        assertEquals(expected, KNXValueDecoder.decode("232.600", data, HSBType.class));
     }
 
     private static Stream<String> unitProvider() {
-        return DPT_UNIT_MAP.values().stream();
+        return KNXUnits.getAllUnitStrings();
     }
 
     @ParameterizedTest

@@ -34,7 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.knx.internal.client.InboundSpec;
 import org.smarthomej.binding.knx.internal.client.OutboundSpec;
-import org.smarthomej.binding.knx.internal.dpt.KNXCoreTypeMapper;
+import org.smarthomej.binding.knx.internal.dpt.DPTUtil;
 
 import tuwien.auto.calimero.GroupAddress;
 
@@ -79,7 +79,7 @@ public abstract class KNXChannel {
                 // check DPT configuration (if set) is compatible with item
                 String dpt = groupAddressConfiguration.getDPT();
                 if (dpt != null) {
-                    Set<Class<? extends Type>> types = KNXCoreTypeMapper.getAllowedTypes(dpt);
+                    Set<Class<? extends Type>> types = DPTUtil.getAllowedTypes(dpt);
                     if (acceptedTypes.stream().noneMatch(types::contains)) {
                         logger.warn("Configured DPT '{}' is incompatible with accepted types '{}' for channel '{}'",
                                 dpt, acceptedTypes, channelUID);
@@ -121,7 +121,7 @@ public abstract class KNXChannel {
         logger.trace("getCommandSpec checking keys '{}' for command '{}' ({})", gaKeys, command, command.getClass());
         for (Map.Entry<String, GroupAddressConfiguration> entry : groupAddressConfigurations.entrySet()) {
             String dpt = Objects.requireNonNullElse(entry.getValue().getDPT(), getDefaultDPT(entry.getKey()));
-            Set<Class<? extends Type>> expectedTypeClass = KNXCoreTypeMapper.getAllowedTypes(dpt);
+            Set<Class<? extends Type>> expectedTypeClass = DPTUtil.getAllowedTypes(dpt);
             if (expectedTypeClass.contains(command.getClass())) {
                 logger.trace("getCommandSpec key '{}' has expectedTypeClass '{}', matching command '{}' and dpt '{}'",
                         entry.getKey(), expectedTypeClass, command, dpt);

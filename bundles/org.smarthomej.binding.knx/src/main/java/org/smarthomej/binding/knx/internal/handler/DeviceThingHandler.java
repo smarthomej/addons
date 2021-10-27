@@ -44,7 +44,8 @@ import org.smarthomej.binding.knx.internal.client.AbstractKNXClient;
 import org.smarthomej.binding.knx.internal.client.InboundSpec;
 import org.smarthomej.binding.knx.internal.client.OutboundSpec;
 import org.smarthomej.binding.knx.internal.config.DeviceConfig;
-import org.smarthomej.binding.knx.internal.dpt.KNXCoreTypeMapper;
+import org.smarthomej.binding.knx.internal.dpt.DPTUtil;
+import org.smarthomej.binding.knx.internal.dpt.KNXValueDecoder;
 
 import tuwien.auto.calimero.GroupAddress;
 import tuwien.auto.calimero.IndividualAddress;
@@ -299,8 +300,7 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
                  */
                 if (knxChannel.isControl()) {
                     logger.trace("onGroupWrite isControl");
-                    Type value = KNXCoreTypeMapper.convertRawDataToType(listenSpec.getDPT(), asdu,
-                            knxChannel.preferredType());
+                    Type value = KNXValueDecoder.decode(listenSpec.getDPT(), asdu, knxChannel.preferredType());
                     if (value != null) {
                         OutboundSpec commandSpec = knxChannel.getCommandSpec(value);
                         if (commandSpec != null) {
@@ -321,7 +321,7 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
             return;
         }
 
-        Type value = KNXCoreTypeMapper.convertRawDataToType(listenSpec.getDPT(), asdu, knxChannel.preferredType());
+        Type value = KNXValueDecoder.decode(listenSpec.getDPT(), asdu, knxChannel.preferredType());
         if (value != null) {
             if (knxChannel.isControl()) {
                 ChannelUID channelUID = knxChannel.getChannelUID();
@@ -370,6 +370,6 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
     }
 
     private boolean isDPTSupported(String dpt) {
-        return !KNXCoreTypeMapper.getAllowedTypes(dpt).isEmpty();
+        return !DPTUtil.getAllowedTypes(dpt).isEmpty();
     }
 }
