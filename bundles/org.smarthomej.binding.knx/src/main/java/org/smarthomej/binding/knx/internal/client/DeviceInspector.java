@@ -43,7 +43,6 @@ import tuwien.auto.calimero.mgmt.PropertyAccess.PID;
  */
 @NonNullByDefault
 public class DeviceInspector {
-
     private static final long OPERATION_TIMEOUT = 5000;
     private static final long OPERATION_INTERVAL = 2000;
 

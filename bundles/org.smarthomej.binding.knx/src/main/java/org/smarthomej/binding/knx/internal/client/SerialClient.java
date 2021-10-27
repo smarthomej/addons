@@ -72,7 +72,7 @@ public class SerialClient extends AbstractKNXClient {
                     }
                 }
                 sb.deleteCharAt(sb.length() - 1);
-                throw new KNXException("Serial port '" + serialPort + "' could not be opened. " + sb.toString());
+                throw new KNXException("Serial port '" + serialPort + "' could not be opened. " + sb);
             } else {
                 throw e;
             }
