@@ -25,8 +25,6 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthomej.binding.knx.internal.handler.Firmware;
-import org.smarthomej.binding.knx.internal.handler.Manufacturer;
 
 import tuwien.auto.calimero.DataUnitBuilder;
 import tuwien.auto.calimero.DeviceDescriptor;
@@ -100,8 +98,9 @@ public class DeviceInspector {
                     OPERATION_TIMEOUT);
             if ((elements == null ? 0 : toUnsigned(elements)) == 1) {
                 Thread.sleep(OPERATION_INTERVAL);
-                String manufacturerId = Manufacturer.getName(toUnsigned(getClient().readDeviceProperties(address,
-                        DEVICE_OBJECT, PID.MANUFACTURER_ID, 1, 1, false, OPERATION_TIMEOUT)));
+                String manufacturerId = MANUFACTURER_MAP
+                        .getOrDefault(toUnsigned(getClient().readDeviceProperties(address, DEVICE_OBJECT,
+                                PID.MANUFACTURER_ID, 1, 1, false, OPERATION_TIMEOUT)), "Unknown");
                 Thread.sleep(OPERATION_INTERVAL);
                 String serialNo = toHex(getClient().readDeviceProperties(address, DEVICE_OBJECT, PID.SERIAL_NUMBER, 1,
                         1, false, OPERATION_TIMEOUT), "");
@@ -142,15 +141,15 @@ public class DeviceInspector {
         if (data != null) {
             final DD0 dd = DeviceDescriptor.DD0.from(data);
 
-            String type = Firmware.getName(dd.firmwareType());
+            String type = FIRMWARE_MAP.get(dd.firmwareType());
             if (type != null) {
                 ret.put(FIRMWARE_TYPE, type);
             }
-            String version = Firmware.getName(dd.firmwareVersion());
+            String version = FIRMWARE_MAP.get(dd.firmwareVersion());
             if (version != null) {
                 ret.put(FIRMWARE_VERSION, version);
             }
-            String subVersion = Firmware.getName(dd.firmwareSubcode());
+            String subVersion = FIRMWARE_MAP.get(dd.firmwareSubcode());
             if (subVersion != null) {
                 ret.put(FIRMWARE_SUBVERSION, subVersion);
             }
