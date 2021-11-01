@@ -180,9 +180,6 @@ public class Connection {
 
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonWithNullSerialization = gsonBuilder.create();
-
-        replaceTimer(TimerType.DEVICES,
-                scheduler.scheduleWithFixedDelay(this::handleExecuteSequenceNode, 0, 500, TimeUnit.MILLISECONDS));
     }
 
     public LoginData getLoginData() {
@@ -569,6 +566,9 @@ public class Connection {
                 this.loginData.deviceName = Objects.requireNonNullElse(deviceInfo.deviceName, "Unknown");
             }
         }
+
+        replaceTimer(TimerType.DEVICES,
+                scheduler.scheduleWithFixedDelay(this::handleExecuteSequenceNode, 0, 500, TimeUnit.MILLISECONDS));
     }
 
     private void exchangeToken() throws ConnectionException {
