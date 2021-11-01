@@ -163,7 +163,7 @@ public class FlashBriefingProfileHandler extends BaseThingHandler {
         if (updatePlayOnDevice) {
             updateState(CHANNEL_PLAY_ON_DEVICE, new StringType(""));
         }
-        if (this.accountHandler != handler) {
+        if (!handler.equals(this.accountHandler)) {
             this.accountHandler = handler;
             String configurationJson = this.stateStorage.get("configurationJson");
             if (configurationJson == null || configurationJson.isEmpty()) {
