@@ -420,6 +420,7 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
         this.connection = connection;
         if (connection != null) {
             LoginData loginData = connection.getLoginData();
+            loginData.syncCookies();
             this.stateStorage.put("session", gson.toJson(loginData));
         } else {
             this.stateStorage.put("session", null);

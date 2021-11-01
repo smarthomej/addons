@@ -153,6 +153,12 @@ public class LoginData {
         cookies.forEach(cookie -> cookieStore.add(null, cookie.toHttpCookie()));
     }
 
+    public void syncCookies() {
+        CookieStore cookieStore = cookieManager.getCookieStore();
+        cookies.clear();
+        cookieStore.getCookies().stream().map(Cookie::fromHttpCookie).forEach(cookies::add);
+    }
+
     public static class Cookie {
         private final String name;
         private final String value;
