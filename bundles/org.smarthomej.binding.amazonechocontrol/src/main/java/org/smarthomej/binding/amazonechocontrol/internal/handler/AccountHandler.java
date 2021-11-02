@@ -418,14 +418,6 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
     // used to set a valid connection from the web proxy login
     public void setConnection(@Nullable Connection connection) {
         this.connection = connection;
-        if (connection != null) {
-            LoginData loginData = connection.getLoginData();
-            loginData.syncCookies();
-            this.stateStorage.put("session", gson.toJson(loginData));
-        } else {
-            this.stateStorage.put("session", null);
-            updateStatus(ThingStatus.OFFLINE);
-        }
         closeWebSocketConnection();
         if (connection != null) {
             updateDeviceList();
@@ -434,6 +426,12 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
             updateStatus(ThingStatus.ONLINE);
             scheduleUpdate();
             checkData();
+
+            LoginData loginData = connection.getLoginData();
+            this.stateStorage.put("session", gson.toJson(loginData));
+        } else {
+            this.stateStorage.put("session", null);
+            updateStatus(ThingStatus.OFFLINE);
         }
     }
 

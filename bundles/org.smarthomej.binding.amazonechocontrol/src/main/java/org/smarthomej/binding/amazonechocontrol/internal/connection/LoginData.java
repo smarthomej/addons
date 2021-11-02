@@ -54,6 +54,9 @@ public class LoginData {
 
     public LoginData(CookieManager cookieManager, LoginData loginData) {
         this.cookieManager = cookieManager;
+        this.cookies = loginData.cookies;
+        initializeCookies();
+
         this.frc = loginData.frc;
         this.serial = loginData.serial;
         this.deviceId = loginData.deviceId;
@@ -65,7 +68,6 @@ public class LoginData {
         this.deviceName = loginData.deviceName;
         this.accountCustomerId = loginData.accountCustomerId;
         this.loginTime = loginData.loginTime;
-        this.cookies = loginData.cookies;
     }
 
     public LoginData(CookieManager cookieManager) {

@@ -435,6 +435,7 @@ public class Connection {
                                     }
                                 }
                             }
+                            loginData.syncCookies();
                         }
                         if ("Location".equalsIgnoreCase(key)) {
                             // get redirect location
