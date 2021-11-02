@@ -84,7 +84,7 @@
     <commons.net.version>3.7.2</commons.net.version>
     <eea.version>2.4.0</eea.version>
     <karaf.version>4.2.7</karaf.version>
-    <sat.version>0.11.1</sat.version>
+    <sat.version>0.12.0</sat.version>
     <slf4j.version>1.7.21</slf4j.version>
     <spotless.version>2.0.3</spotless.version>
 
