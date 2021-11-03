@@ -15,6 +15,7 @@ package org.smarthomej.binding.knx.internal.dpt;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -51,7 +52,7 @@ public class DPTTest {
     }
 
     @Test
-    public void rgbValue() {
+    public void dpt232RgbValue() {
         // input data
         byte[] data = new byte[] { 123, 45, 67 };
 
@@ -63,6 +64,20 @@ public class DPTTest {
         HSBType expected = HSBType.fromRGB(r, g, b);
 
         assertEquals(expected, ValueDecoder.decode("232.600", data, HSBType.class));
+    }
+
+    @Test
+    public void dpt232HsbValue() {
+        // input data
+        byte[] data = new byte[] { 123, 45, 67 };
+
+        HSBType hsbType = (HSBType) ValueDecoder.decode("232.60000", data, HSBType.class);
+
+        Assertions.assertNotNull(hsbType);
+        Objects.requireNonNull(hsbType);
+        assertEquals(173.6, hsbType.getHue().doubleValue(), 0.1);
+        assertEquals(17.6, hsbType.getSaturation().doubleValue(), 0.1);
+        assertEquals(26.3, hsbType.getBrightness().doubleValue(), 0.1);
     }
 
     @SuppressWarnings("unused")

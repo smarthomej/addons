@@ -17,6 +17,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -73,6 +74,10 @@ public class ValueDecoder {
     private static final Pattern XYY_PATTERN = Pattern
             .compile("(?:\\((?<x>\\d+(?:,\\d+)?) (?<y>\\d+(?:,\\d+)?)\\))?\\s*(?:(?<Y>\\d+(?:,\\d+)?)\\s%)?");
 
+    // used to map vendor-specific data to standard DPT
+    private static final Map<String, String> NORMALIZED_DPT = Map.of(//
+            "232.60000", "232.600");
+
     /**
      * convert the raw value received to the corresponding openHAB value
      *
@@ -83,21 +88,28 @@ public class ValueDecoder {
      */
     public static @Nullable Type decode(String dptId, byte[] data, Class<? extends Type> preferredType) {
         try {
-            DPTXlator translator = TranslatorTypes.createTranslator(0, dptId);
+            DPTXlator translator = TranslatorTypes.createTranslator(0, NORMALIZED_DPT.getOrDefault(dptId, dptId));
             translator.setData(data);
             String value = translator.getValue();
 
-            String id = translator.getType().getID();
-            LOGGER.trace("using datapoint DPT = {}", id);
+            String id = dptId; // prefer using the user-supplied DPT
 
             Matcher m = DPTUtil.DPT_PATTERN.matcher(id);
             if (!m.matches() || m.groupCount() != 2) {
-                LOGGER.warn("couldn't identify main/sub number in dptID '{}'", id);
-                return null;
+                LOGGER.trace("User-Supplied DPT '{}' did not match for sub-type, using DPT returned from Translator",
+                        id);
+                id = translator.getType().getID();
+                m = DPTUtil.DPT_PATTERN.matcher(id);
+                if (!m.matches() || m.groupCount() != 2) {
+                    LOGGER.warn("couldn't identify main/sub number in dptID '{}'", id);
+                    return null;
+                }
             }
+            LOGGER.trace("Finally using datapoint DPT = {}", id);
 
             String mainType = m.group("main");
             String subType = m.group("sub");
+
             switch (mainType) {
                 case "1":
                     return handleDpt1(subType, translator);
@@ -129,7 +141,7 @@ public class ValueDecoder {
                 case "28":
                     return StringType.valueOf(value);
                 case "232":
-                    return handleDpt232(value);
+                    return handleDpt232(value, subType);
                 case "242":
                     return handleDpt242(value);
                 case "251":
@@ -254,14 +266,24 @@ public class ValueDecoder {
         }
     }
 
-    private static @Nullable Type handleDpt232(String value) {
+    private static @Nullable Type handleDpt232(String value, String subType) {
         Matcher rgb = RGB_PATTERN.matcher(value);
         if (rgb.matches()) {
             int r = Integer.parseInt(rgb.group("r"));
             int g = Integer.parseInt(rgb.group("g"));
             int b = Integer.parseInt(rgb.group("b"));
 
-            return HSBType.fromRGB(r, g, b);
+            switch (subType) {
+                case "600":
+                    return HSBType.fromRGB(r, g, b);
+                case "60000":
+                    // MDT specific: mis-use 232.600 for hsv instead of rgb
+                    return new HSBType(new DecimalType(r * 360.0 / 255.0), new PercentType(new BigDecimal(g / 2.55)),
+                            new PercentType(new BigDecimal(b / 2.55)));
+                default:
+                    LOGGER.warn("Unknown subtype '232.{}', no conversion possible.", subType);
+                    return null;
+            }
         }
         LOGGER.warn("Failed to convert '{}' (DPT 232): Pattern does not match", value);
         return null;

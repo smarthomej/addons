@@ -76,14 +76,18 @@ Different kinds of channels are defined and can be used to group together Group 
 All channel types share two configuration parameters: *read*, an optional parameter to indicate if the 'readable' group addresses of that Channel should be read at startup (default: false), and *interval*, an optional parameter that defines an interval between attempts to read the status group address on the bus, in seconds.
 When defined and set to 0, the interval is ignored (default: 0)
 
-#### Standard Channel Types
+#### Channel Types
 
 Standard channels are used most of the time.
-They are used in the common case where the physical state is owned by a decive within the KNX bus, e.g. by a switch actuator who "knows" whether the light is turned on or of or by a temperature sensor which reports the room temperature regularly.
+They are used in the common case where the physical state is owned by a device within the KNX bus, e.g. by a switch actuator who "knows" whether the light is turned on or of or by a temperature sensor which reports the room temperature regularly.
+
+Control channel types (suffix `-control`) are used for cases where the KNX bus does not own the physical state of a device.
+This could be the case if e.g. a lamp from another binding should be controlled by a KNX wall switch.
+If from the KNX bus a `GroupValueRead` telegram is sent to a *-control Channel, the bridge responds with a `GroupValueResponse` telegram to the KNX bus.
 
 Note: After changing the DPT of already existing Channels, openHAB needs to be restarted for the changes to become effective.
 
-##### Channel Type `color`
+##### Channel Type `color`, `color-control`
 
 | Parameter        | Description                            | Default DPT |
 |------------------|----------------------------------------|-------------|
@@ -92,9 +96,12 @@ Note: After changing the DPT of already existing Channels, openHAB needs to be r
 | position         | Group address brightness               | 5.001       |
 | increaseDecrease | Group address for relative brightness  | 3.007       |
 
-`hsb` also supports DPT 242.600 and 251.600.
+The `hsb` address supports DPT 242.600 and 251.600.
 
-##### Channel Type `contact`
+Some RGB/RGBW products (e.g. MDT) support HSB values for DPT 232.600 instead of RGB.
+This is supported as "vendor-specific DPT" with a value of 232.60000.
+
+##### Channel Type `contact`, `contact-control`
 
 | Parameter | Description   | Default DPT |
 |-----------|---------------|-------------|
@@ -103,13 +110,13 @@ Note: After changing the DPT of already existing Channels, openHAB needs to be r
 *Attention:* Due to a bug in the original implementation the states for DPT 1.009 are inverted (i.e. `1` is mapped to `OPEN` instead of `CLOSE`).
 A change would break all existing installations and is therefore not implemented.
 
-##### Channel Type `datetime`
+##### Channel Type `datetime`, `datetime-control`
 
 | Parameter | Description   | Default DPT |
 |-----------|---------------|-------------|
 | ga        | Group address | 19.001      |
 
-##### Channel Type `dimmer`
+##### Channel Type `dimmer`, `dimmer-control`
 
 | Parameter        | Description                            | Default DPT |
 |------------------|----------------------------------------|-------------|
@@ -117,7 +124,7 @@ A change would break all existing installations and is therefore not implemented
 | position         | Group address of the brightness        | 5.001       |
 | increaseDecrease | Group address for relative brightness  | 3.007       |
 
-##### Channel Type `number`
+##### Channel Type `number`, `number-control`
 
 | Parameter | Description   | Default DPT |
 |-----------|---------------|-------------|
@@ -132,7 +139,7 @@ The unit is stripped if the channel is linked to a plain number item (type `Numb
 Outgoing values with unit are first converted to the unit associated with the DPT (e.g. a value of `10 °F` is converted to `-8.33 °C` if the channel has DPT 9.001).
 Values from plain number channels are sent as-is (without any conversion).
 
-##### Channel Type `rollershutter`
+##### Channel Type `rollershutter`, `rollershutter-control`
 
 | Parameter | Description                             | Default DPT |
 |-----------|-----------------------------------------|-------------|
@@ -140,82 +147,13 @@ Values from plain number channels are sent as-is (without any conversion).
 | stopMove  | Group address for stopping              | 1.010       |
 | position  | Group address for the absolute position | 5.001       |
 
-##### Channel Type `string`
+##### Channel Type `string`, `string-control`
 
 | Parameter | Description   | Default DPT |
 |-----------|---------------|-------------|
 | ga        | Group address | 16.001      |
 
-##### Channel Type `switch`
-
-| Parameter | Description                         | Default DPT |
-|-----------|-------------------------------------|-------------|
-| ga        | Group address for the binary switch | 1.001       |
-
-#### Control Channel Types
-
-In contrast to the standard channels above, the control channel types are used for cases where the KNX bus does not own the physical state of a device.
-This could be the case if e.g. a lamp from another binding should be controlled by a KNX wall switch.
-If from the KNX bus a `GroupValueRead` telegram is sent to a *-control Channel, the bridge responds with a `GroupValueResponse` telegram to the KNX bus.
-
-##### Channel Type `color-control`
-
-| Parameter        | Description                            | Default DPT |
-|------------------|----------------------------------------|-------------|
-| hsb              | Group address for the color            | 232.600     |
-| switch           | Group address for the binary switch    | 1.001       |
-| position         | Group address brightness               | 5.001       |
-| increaseDecrease | Group address for relative brightness  | 3.007       |
-
-`hsb` also supports DPT 242.600 and 251.600.
-
-##### Channel Type `contact-control`
-
-| Parameter | Description   | Default DPT |
-|-----------|---------------|-------------|
-| ga        | Group address | 1.009       |
-
-*Attention:* Due to a bug in the original implementation the states for DPT 1.009 are inverted (i.e. `1` is mapped to `OPEN` instead of `CLOSE`).
-A change would break all existing installations and is therefore not implemented.
-
-##### Channel Type `datetime-control`
-
-| Parameter | Description   | Default DPT |
-|-----------|---------------|-------------|
-| ga        | Group address | 19.001      |
-
-##### Channel Type `dimmer-control`
-
-| Parameter        | Description                                                                                                                                   | Default DPT |
-|------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|-------------|
-| switch           | Group address for the binary switch                                                                                                           | 1.001       |
-| position         | Group address of the absolute position                                                                                                        | 5.001       |
-| increaseDecrease | Group address for relative movement                                                                                                           | 3.007       |
-| frequency        | Increase/Decrease frequency in milliseconds in case the binding should handle that (0 if the KNX device sends the commands repeatedly itself) | 0           |
-
-##### Channel Type `number-control`
-
-| Parameter | Description   | Default DPT |
-|-----------|---------------|-------------|
-| ga        | Group address | 9.001       |
-
-For UoM support see the explanations of the `number` channel.
-
-##### Channel Type `rollershutter-control`
-
-| Parameter | Description                             | Default DPT |
-|-----------|-----------------------------------------|-------------|
-| upDown    | Group address for relative movement     | 1.008       |
-| stopMove  | Group address for stopping              | 1.010       |
-| position  | Group address for the absolute position | 5.001       |
-
-##### Channel Type `string-control`
-
-| Parameter | Description   | Default DPT |
-|-----------|---------------|-------------|
-| ga        | Group address | 16.001      |
-
-##### Channel Type `switch-control`
+##### Channel Type `switch`, `switch-control`
 
 | Parameter | Description                         | Default DPT |
 |-----------|-------------------------------------|-------------|

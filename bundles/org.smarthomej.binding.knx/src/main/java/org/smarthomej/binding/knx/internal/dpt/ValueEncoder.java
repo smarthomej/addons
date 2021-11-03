@@ -121,7 +121,7 @@ public class ValueEncoder {
      * Formats the given internal <code>dateType</code> to a knx readable String
      * according to the target datapoint type <code>dpt</code>.
      *
-     * @param value
+     * @param value the input value
      * @param dptId the target datapoint type
      *
      * @return a String which contains either an ISO8601 formatted date (yyyy-mm-dd),
@@ -145,6 +145,12 @@ public class ValueEncoder {
             case "232.600":
                 return "r:" + convertPercentToByte(hsb.getRed()) + " g:" + convertPercentToByte(hsb.getGreen()) + " b:"
                         + convertPercentToByte(hsb.getBlue());
+            case "232.60000":
+                // MDT specific: mis-use 232.600 for hsv instead of rgb
+                int hue = hsb.getHue().toBigDecimal().multiply(BigDecimal.valueOf(255))
+                        .divide(BigDecimal.valueOf(360), 2, RoundingMode.HALF_UP).intValue();
+                return "r:" + hue + " g:" + convertPercentToByte(hsb.getSaturation()) + " b:"
+                        + convertPercentToByte(hsb.getBrightness());
             case "242.600":
                 double[] xyY = ColorUtil.hsbToXY(hsb);
                 return String.format("(%,.4f %,.4f) %,.1f %%", xyY[0], xyY[1], xyY[2] * 100.0);

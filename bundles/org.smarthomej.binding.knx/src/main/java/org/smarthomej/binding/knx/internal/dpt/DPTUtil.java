@@ -51,7 +51,7 @@ public class DPTUtil {
     private static final Logger LOGGER = LoggerFactory.getLogger(DPTUtil.class);
 
     // DPT: "123.001", 1-3 digits main type (no leading zero), optional sub-type 3-4 digits (leading zeros allowed)
-    public static final Pattern DPT_PATTERN = Pattern.compile("^(?<main>[1-9][0-9]{0,2})(?:\\.(?<sub>\\d{3,4}))?$");
+    public static final Pattern DPT_PATTERN = Pattern.compile("^(?<main>[1-9][0-9]{0,2})(?:\\.(?<sub>\\d{3,5}))?$");
 
     // fall back if no specific type is defined in DPT_TYPE_MAP
     private static final Map<String, Set<Class<? extends Type>>> DPT_MAIN_TYPE_MAP = Map.ofEntries( //
