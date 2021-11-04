@@ -17,7 +17,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -74,10 +73,6 @@ public class ValueDecoder {
     private static final Pattern XYY_PATTERN = Pattern
             .compile("(?:\\((?<x>\\d+(?:,\\d+)?) (?<y>\\d+(?:,\\d+)?)\\))?\\s*(?:(?<Y>\\d+(?:,\\d+)?)\\s%)?");
 
-    // used to map vendor-specific data to standard DPT
-    private static final Map<String, String> NORMALIZED_DPT = Map.of(//
-            "232.60000", "232.600");
-
     /**
      * convert the raw value received to the corresponding openHAB value
      *
@@ -88,7 +83,8 @@ public class ValueDecoder {
      */
     public static @Nullable Type decode(String dptId, byte[] data, Class<? extends Type> preferredType) {
         try {
-            DPTXlator translator = TranslatorTypes.createTranslator(0, NORMALIZED_DPT.getOrDefault(dptId, dptId));
+            DPTXlator translator = TranslatorTypes.createTranslator(0,
+                    DPTUtil.NORMALIZED_DPT.getOrDefault(dptId, dptId));
             translator.setData(data);
             String value = translator.getValue();
 

@@ -53,6 +53,10 @@ public class DPTUtil {
     // DPT: "123.001", 1-3 digits main type (no leading zero), optional sub-type 3-4 digits (leading zeros allowed)
     public static final Pattern DPT_PATTERN = Pattern.compile("^(?<main>[1-9][0-9]{0,2})(?:\\.(?<sub>\\d{3,5}))?$");
 
+    // used to map vendor-specific data to standard DPT
+    public static final Map<String, String> NORMALIZED_DPT = Map.of(//
+            "232.60000", "232.600");
+
     // fall back if no specific type is defined in DPT_TYPE_MAP
     private static final Map<String, Set<Class<? extends Type>>> DPT_MAIN_TYPE_MAP = Map.ofEntries( //
             Map.entry("1", Set.of(OnOffType.class)), //

@@ -13,6 +13,8 @@
  */
 package org.smarthomej.binding.knx.internal.client;
 
+import static org.smarthomej.binding.knx.internal.dpt.DPTUtil.NORMALIZED_DPT;
+
 import java.time.Duration;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -134,17 +136,12 @@ public abstract class AbstractKNXClient implements NetworkLinkListener, KNXClien
     }
 
     public void initialize() {
-        if (!scheduleReconnectJob()) {
-            connect();
-        }
+        connect();
     }
 
-    private boolean scheduleReconnectJob() {
+    private void scheduleReconnectJob() {
         if (autoReconnectPeriod > 0) {
             connectJob = knxScheduler.schedule(this::connect, autoReconnectPeriod, TimeUnit.SECONDS);
-            return true;
-        } else {
-            return false;
         }
     }
 
@@ -426,7 +423,8 @@ public abstract class AbstractKNXClient implements NetworkLinkListener, KNXClien
             return;
         }
 
-        Datapoint datapoint = new CommandDP(groupAddress, thingUID.toString(), 0, dpt);
+        Datapoint datapoint = new CommandDP(groupAddress, thingUID.toString(), 0,
+                NORMALIZED_DPT.getOrDefault(dpt, dpt));
         String mappedValue = ValueEncoder.encode(type, dpt);
         if (mappedValue == null) {
             logger.debug("Value '{}' of type '{}' cannot be mapped to datapoint '{}'", type, type.getClass(),

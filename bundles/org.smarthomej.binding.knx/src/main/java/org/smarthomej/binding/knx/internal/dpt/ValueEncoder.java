@@ -12,6 +12,8 @@
  */
 package org.smarthomej.binding.knx.internal.dpt;
 
+import static org.smarthomej.binding.knx.internal.dpt.DPTUtil.NORMALIZED_DPT;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Locale;
@@ -77,7 +79,8 @@ public class ValueEncoder {
         String mainNumber = m.group("main");
 
         try {
-            DPTXlator translator = TranslatorTypes.createTranslator(Integer.parseInt(mainNumber), dptId);
+            DPTXlator translator = TranslatorTypes.createTranslator(Integer.parseInt(mainNumber),
+                    NORMALIZED_DPT.getOrDefault(dptId, dptId));
             DPT dpt = translator.getType();
 
             // check for HSBType first, because it extends PercentType as well
