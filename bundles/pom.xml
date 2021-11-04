@@ -359,7 +359,10 @@
                 </goals>
                 <configuration>
                   <classifier>javadoc</classifier>
-                  <classesDirectory>${basedir}/javadoc</classesDirectory>
+                  <classesDirectory>src</classesDirectory>
+                  <excludes>
+                    <exclude>**</exclude>
+                  </excludes>
                   <skipIfEmpty>false</skipIfEmpty>
                 </configuration>
               </execution>
