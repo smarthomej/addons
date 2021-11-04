@@ -31,4 +31,5 @@ public class BridgeConfiguration {
     public int apiTimeout = 120;
     public int apiCallLimit = 1450;
     public int bufferApiCommands = 450;
+    public int pollingInterval = 0;
 }

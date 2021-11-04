@@ -69,6 +69,7 @@ public class ViessmannBridgeHandler extends BaseBridgeHandler {
     private @NonNullByDefault({}) String gatewaySerial;
     private @NonNullByDefault({}) int apiCallLimit;
     private @NonNullByDefault({}) int bufferApiCommands;
+    private @NonNullByDefault({}) int pollingInterval;
 
     protected @Nullable ViessmannDiscoveryService discoveryService;
 
@@ -153,6 +154,7 @@ public class ViessmannBridgeHandler extends BaseBridgeHandler {
         gatewaySerial = config.gatewaySerial;
         apiCallLimit = config.apiCallLimit;
         bufferApiCommands = config.bufferApiCommands;
+        pollingInterval = config.pollingInterval;
         apiCalls = 0;
         newInstallationId = "";
         newGatewaySerial = "";
@@ -200,8 +202,12 @@ public class ViessmannBridgeHandler extends BaseBridgeHandler {
     }
 
     private Integer getPollingInterval() {
-        Integer interval = (86400 / (apiCallLimit - bufferApiCommands) * devicesList.size()) + 1;
-        return interval;
+        if (pollingInterval > 0) {
+            return pollingInterval;
+        } else {
+            Integer interval = (86400 / (apiCallLimit - bufferApiCommands) * devicesList.size()) + 1;
+            return interval;
+        }
     }
 
     private void countApiCalls() {
