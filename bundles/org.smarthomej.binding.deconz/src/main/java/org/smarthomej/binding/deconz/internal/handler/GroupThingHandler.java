@@ -39,7 +39,6 @@ import org.openhab.core.types.State;
 import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthomej.binding.deconz.internal.ColorUtil;
 import org.smarthomej.binding.deconz.internal.DeconzDynamicCommandDescriptionProvider;
 import org.smarthomej.binding.deconz.internal.Util;
 import org.smarthomej.binding.deconz.internal.action.GroupActions;
@@ -49,6 +48,7 @@ import org.smarthomej.binding.deconz.internal.dto.GroupMessage;
 import org.smarthomej.binding.deconz.internal.dto.GroupState;
 import org.smarthomej.binding.deconz.internal.dto.Scene;
 import org.smarthomej.binding.deconz.internal.types.ResourceType;
+import org.smarthomej.commons.util.ColorUtil;
 
 import com.google.gson.Gson;
 

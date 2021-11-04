@@ -10,11 +10,10 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.smarthomej.binding.deconz;
+package org.smarthomej.commons.util;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.List;
 import java.util.stream.Stream;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -22,7 +21,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.openhab.core.library.types.HSBType;
-import org.smarthomej.binding.deconz.internal.ColorUtil;
 
 /**
  * The {@link ColorUtilTest} is a test class for the color conversion
@@ -32,8 +30,8 @@ import org.smarthomej.binding.deconz.internal.ColorUtil;
 @NonNullByDefault
 public class ColorUtilTest {
     private static Stream<Arguments> colors() {
-        return List.of(HSBType.BLACK, HSBType.BLUE, HSBType.GREEN, HSBType.RED, HSBType.WHITE,
-                HSBType.fromRGB(127, 94, 19)).stream().map(Arguments::of);
+        return Stream.of(HSBType.BLACK, HSBType.BLUE, HSBType.GREEN, HSBType.RED, HSBType.WHITE,
+                HSBType.fromRGB(127, 94, 19)).map(Arguments::of);
     }
 
     @ParameterizedTest
