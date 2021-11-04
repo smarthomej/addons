@@ -49,7 +49,6 @@ import org.openhab.core.types.StateDescriptionFragment;
 import org.openhab.core.types.StateDescriptionFragmentBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthomej.binding.deconz.internal.ColorUtil;
 import org.smarthomej.binding.deconz.internal.DeconzDynamicCommandDescriptionProvider;
 import org.smarthomej.binding.deconz.internal.DeconzDynamicStateDescriptionProvider;
 import org.smarthomej.binding.deconz.internal.Util;
@@ -57,6 +56,7 @@ import org.smarthomej.binding.deconz.internal.dto.DeconzBaseMessage;
 import org.smarthomej.binding.deconz.internal.dto.LightMessage;
 import org.smarthomej.binding.deconz.internal.dto.LightState;
 import org.smarthomej.binding.deconz.internal.types.ResourceType;
+import org.smarthomej.commons.util.ColorUtil;
 
 import com.google.gson.Gson;
 
