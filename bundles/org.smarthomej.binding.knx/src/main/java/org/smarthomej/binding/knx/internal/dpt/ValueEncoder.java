@@ -35,7 +35,7 @@ import org.openhab.core.library.types.UpDownType;
 import org.openhab.core.types.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthomej.binding.knx.internal.ColorUtil;
+import org.smarthomej.commons.util.ColorUtil;
 
 import tuwien.auto.calimero.KNXException;
 import tuwien.auto.calimero.dptxlator.DPT;
