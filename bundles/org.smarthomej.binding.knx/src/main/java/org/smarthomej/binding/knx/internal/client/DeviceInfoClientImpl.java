@@ -35,7 +35,6 @@ import tuwien.auto.calimero.mgmt.ManagementClient;
  */
 @NonNullByDefault
 public class DeviceInfoClientImpl implements DeviceInfoClient {
-
     private final Logger logger = LoggerFactory.getLogger(DeviceInfoClientImpl.class);
     private final ManagementClient managementClient;
 

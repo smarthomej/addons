@@ -36,5 +36,5 @@ public interface DeviceInfoClient {
     byte @Nullable [] readDeviceProperties(IndividualAddress address, final int interfaceObjectIndex,
             final int propertyId, final int start, final int elements, boolean authenticate, long timeout);
 
-    public boolean isConnected();
+    boolean isConnected();
 }

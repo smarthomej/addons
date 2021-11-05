@@ -15,6 +15,7 @@ package org.smarthomej.binding.knx.internal.channel;
 
 import static org.smarthomej.binding.knx.internal.KNXBindingConstants.*;
 
+import java.util.List;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -34,7 +35,7 @@ class TypeSwitch extends KNXChannel {
     public static final Set<String> SUPPORTED_CHANNEL_TYPES = Set.of(CHANNEL_SWITCH, CHANNEL_SWITCH_CONTROL);
 
     TypeSwitch(Channel channel) {
-        super(Set.of(OnOffType.class), channel);
+        super(List.of(OnOffType.class), channel);
     }
 
     @Override

@@ -49,7 +49,7 @@ public class KNXHandlerFactory extends BaseThingHandlerFactory {
     public static final Collection<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Set.of(THING_TYPE_DEVICE,
             THING_TYPE_IP_BRIDGE, THING_TYPE_SERIAL_BRIDGE);
 
-    private NetworkAddressService networkAddressService;
+    private final NetworkAddressService networkAddressService;
 
     @Activate
     public KNXHandlerFactory(@Reference NetworkAddressService networkAddressService) {

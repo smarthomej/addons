@@ -27,7 +27,6 @@ import java.util.Set;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.config.core.Configuration;
-import org.openhab.core.library.types.PercentType;
 import org.openhab.core.thing.Channel;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.types.Type;
@@ -35,7 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.knx.internal.client.InboundSpec;
 import org.smarthomej.binding.knx.internal.client.OutboundSpec;
-import org.smarthomej.binding.knx.internal.dpt.KNXCoreTypeMapper;
+import org.smarthomej.binding.knx.internal.dpt.DPTUtil;
 
 import tuwien.auto.calimero.GroupAddress;
 
@@ -56,15 +55,15 @@ public abstract class KNXChannel {
     private final String channelType;
     private final ChannelUID channelUID;
     private final boolean isControl;
-    private final boolean supportsPercentType;
+    private final Class<? extends Type> preferredType;
 
-    KNXChannel(Set<Class<? extends Type>> acceptedTypes, Channel channel) {
+    KNXChannel(List<Class<? extends Type>> acceptedTypes, Channel channel) {
         this(Set.of(GA), acceptedTypes, channel);
     }
 
-    KNXChannel(Set<String> gaKeys, Set<Class<? extends Type>> acceptedTypes, Channel channel) {
+    KNXChannel(Set<String> gaKeys, List<Class<? extends Type>> acceptedTypes, Channel channel) {
         this.gaKeys = gaKeys;
-        this.supportsPercentType = acceptedTypes.contains(PercentType.class);
+        this.preferredType = acceptedTypes.get(0);
 
         // this is safe because we already checked the presence of the ChannelTypeUID before
         this.channelType = Objects.requireNonNull(channel.getChannelTypeUID()).getId();
@@ -80,7 +79,7 @@ public abstract class KNXChannel {
                 // check DPT configuration (if set) is compatible with item
                 String dpt = groupAddressConfiguration.getDPT();
                 if (dpt != null) {
-                    Set<Class<? extends Type>> types = KNXCoreTypeMapper.getAllowedTypes(dpt);
+                    Set<Class<? extends Type>> types = DPTUtil.getAllowedTypes(dpt);
                     if (acceptedTypes.stream().noneMatch(types::contains)) {
                         logger.warn("Configured DPT '{}' is incompatible with accepted types '{}' for channel '{}'",
                                 dpt, acceptedTypes, channelUID);
@@ -106,8 +105,8 @@ public abstract class KNXChannel {
         return isControl;
     }
 
-    public boolean supportsPercentType() {
-        return supportsPercentType;
+    public Class<? extends Type> preferredType() {
+        return preferredType;
     }
 
     public final Set<GroupAddress> getAllGroupAddresses() {
@@ -122,7 +121,7 @@ public abstract class KNXChannel {
         logger.trace("getCommandSpec checking keys '{}' for command '{}' ({})", gaKeys, command, command.getClass());
         for (Map.Entry<String, GroupAddressConfiguration> entry : groupAddressConfigurations.entrySet()) {
             String dpt = Objects.requireNonNullElse(entry.getValue().getDPT(), getDefaultDPT(entry.getKey()));
-            Set<Class<? extends Type>> expectedTypeClass = KNXCoreTypeMapper.getAllowedTypes(dpt);
+            Set<Class<? extends Type>> expectedTypeClass = DPTUtil.getAllowedTypes(dpt);
             if (expectedTypeClass.contains(command.getClass())) {
                 logger.trace("getCommandSpec key '{}' has expectedTypeClass '{}', matching command '{}' and dpt '{}'",
                         entry.getKey(), expectedTypeClass, command, dpt);
