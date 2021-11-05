@@ -146,7 +146,12 @@ public class AndroidDebugBridgeDevice {
 
     private void startPackageWithMonkey(String packageName)
             throws InterruptedException, AndroidDebugBridgeDeviceException, TimeoutException, ExecutionException {
-        runAdbShell("monkey", "--pct-syskeys", "0", "-p", packageName, "-v", "1");
+        String result = runAdbShell("monkey", "--pct-syskeys", "0", "-p", packageName, "-v", "1");
+        if (result.contains("monkey aborted")) {
+            // use LEANBACK launcher if not successfull - see https://stackoverflow.com/a/54929232
+            runAdbShell("monkey", "--pct-syskeys", "0", "-p", packageName, "-c",
+                    "android.intent.category.LEANBACK_LAUNCHER", "1");
+        }
     }
 
     public void stopPackage(String packageName)
@@ -174,7 +179,7 @@ public class AndroidDebugBridgeDevice {
 
     public String getCurrentPackage() throws AndroidDebugBridgeDeviceException, InterruptedException,
             AndroidDebugBridgeDeviceReadException, TimeoutException, ExecutionException {
-        String result = runAdbShell("dumpsys", "window", "windows", "|", "grep", "mFocusedApp");
+        String result = runAdbShell("dumpsys window windows", "|", "grep mFocusedApp");
         String targetLine = Objects.requireNonNull(Arrays.stream(result.split("\n")).findFirst().orElse(""));
         String[] lineParts = targetLine.split(" ");
         if (lineParts.length >= 2) {
@@ -182,6 +187,12 @@ public class AndroidDebugBridgeDevice {
             if (packageActivityName.contains("/")) {
                 return packageActivityName.split("/")[0];
             }
+        }
+        // try another method if we failed, see https://stackoverflow.com/a/28573364
+        result = runAdbShell("adb shell dumpsys activity recents", "|", "grep 'Recent #0'", "|", "cut -d= -f2", "|",
+                "sed 's/ .*//'", "|", "cut -d '/' -f1");
+        if (!result.isEmpty()) {
+            return result;
         }
         throw new AndroidDebugBridgeDeviceReadException(CURRENT_PACKAGE_CHANNEL, result);
     }
