@@ -26,6 +26,7 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.i18n.LocalizedKey;
 import org.openhab.core.library.CoreItemFactory;
 import org.openhab.core.thing.Channel;
+import org.openhab.core.thing.DefaultSystemChannelTypeProvider;
 import org.openhab.core.thing.profiles.Profile;
 import org.openhab.core.thing.profiles.ProfileAdvisor;
 import org.openhab.core.thing.profiles.ProfileCallback;
@@ -47,6 +48,7 @@ import org.smarthomej.transform.basicprofiles.internal.profiles.DebounceTimeStat
 import org.smarthomej.transform.basicprofiles.internal.profiles.GenericCommandTriggerProfile;
 import org.smarthomej.transform.basicprofiles.internal.profiles.GenericToggleSwitchTriggerProfile;
 import org.smarthomej.transform.basicprofiles.internal.profiles.InvertStateProfile;
+import org.smarthomej.transform.basicprofiles.internal.profiles.MotionSensorProfile;
 import org.smarthomej.transform.basicprofiles.internal.profiles.RoundStateProfile;
 import org.smarthomej.transform.basicprofiles.internal.profiles.ThresholdStateProfile;
 
@@ -66,6 +68,7 @@ public class BasicProfilesFactory implements ProfileFactory, ProfileTypeProvider
     public static final ProfileTypeUID INVERT_UID = new ProfileTypeUID(SCOPE, "invert");
     public static final ProfileTypeUID ROUND_UID = new ProfileTypeUID(SCOPE, "round");
     public static final ProfileTypeUID THRESHOLD_UID = new ProfileTypeUID(SCOPE, "threshold");
+    public static final ProfileTypeUID MOTION_SENSOR_UID = new ProfileTypeUID(SCOPE, "motion-sensor");
 
     private static final ProfileType PROFILE_TYPE_GENERIC_COMMAND = ProfileTypeBuilder
             .newTrigger(GENERIC_COMMAND_UID, "Generic Command") //
@@ -94,12 +97,18 @@ public class BasicProfilesFactory implements ProfileFactory, ProfileTypeProvider
             .withSupportedItemTypesOfChannel(CoreItemFactory.DIMMER, CoreItemFactory.NUMBER) //
             .withSupportedItemTypes(CoreItemFactory.SWITCH) //
             .build();
+    private static final ProfileType PROFILE_TYPE_MOTION_SENSOR = ProfileTypeBuilder
+            .newState(MOTION_SENSOR_UID, "Motion Sensor") //
+            .withSupportedItemTypes(CoreItemFactory.SWITCH) //
+            .withSupportedChannelTypeUIDs(DefaultSystemChannelTypeProvider.SYSTEM_CHANNEL_TYPE_UID_MOTION) //
+            .build();
 
     private static final Set<ProfileTypeUID> SUPPORTED_PROFILE_TYPE_UIDS = Set.of(GENERIC_COMMAND_UID,
-            GENERIC_TOGGLE_SWITCH_UID, DEBOUNCE_COUNTING_UID, DEBOUNCE_TIME_UID, INVERT_UID, ROUND_UID, THRESHOLD_UID);
+            GENERIC_TOGGLE_SWITCH_UID, DEBOUNCE_COUNTING_UID, DEBOUNCE_TIME_UID, INVERT_UID, ROUND_UID, THRESHOLD_UID,
+            MOTION_SENSOR_UID);
     private static final Set<ProfileType> SUPPORTED_PROFILE_TYPES = Set.of(PROFILE_TYPE_GENERIC_COMMAND,
             PROFILE_TYPE_GENERIC_TOGGLE_SWITCH, PROFILE_TYPE_DEBOUNCE_COUNTING, PROFILE_TYPE_DEBOUNCE_TIME,
-            PROFILE_TYPE_INVERT, PROFILE_TYPE_ROUND, PROFILE_TYPE_THRESHOLD);
+            PROFILE_TYPE_INVERT, PROFILE_TYPE_ROUND, PROFILE_TYPE_THRESHOLD, PROFILE_TYPE_MOTION_SENSOR);
 
     private final Map<LocalizedKey, ProfileType> localizedProfileTypeCache = new ConcurrentHashMap<>();
 
@@ -130,6 +139,8 @@ public class BasicProfilesFactory implements ProfileFactory, ProfileTypeProvider
             return new RoundStateProfile(callback, context);
         } else if (THRESHOLD_UID.equals(profileTypeUID)) {
             return new ThresholdStateProfile(callback, context);
+        } else if (MOTION_SENSOR_UID.equals(profileTypeUID)) {
+            return new MotionSensorProfile(callback, context);
         }
         return null;
     }

@@ -37,6 +37,7 @@ import org.openhab.core.thing.profiles.ProfileTypeUID;
 import org.openhab.core.thing.profiles.i18n.ProfileTypeI18nLocalizationService;
 import org.openhab.core.util.BundleResolver;
 import org.smarthomej.transform.basicprofiles.internal.profiles.GenericCommandTriggerProfile;
+import org.smarthomej.transform.basicprofiles.internal.profiles.MotionSensorProfile;
 import org.smarthomej.transform.basicprofiles.internal.profiles.RoundStateProfile;
 import org.smarthomej.transform.basicprofiles.internal.profiles.ThresholdStateProfile;
 
@@ -50,11 +51,12 @@ import org.smarthomej.transform.basicprofiles.internal.profiles.ThresholdStatePr
 @NonNullByDefault
 public class BasicProfilesFactoryTest {
 
-    private static final int NUMBER_OF_PROFILES = 7;
+    private static final int NUMBER_OF_PROFILES = 8;
 
     private static final Map<String, Object> PROPERTIES = Map.of(ThresholdStateProfile.PARAM_THRESHOLD, 15,
             RoundStateProfile.PARAM_SCALE, 2, GenericCommandTriggerProfile.PARAM_EVENTS, "1002,1003",
-            GenericCommandTriggerProfile.PARAM_COMMAND, OnOffType.ON.toString());
+            GenericCommandTriggerProfile.PARAM_COMMAND, OnOffType.ON.toString(), MotionSensorProfile.PARAM_START,
+            "08:00", MotionSensorProfile.PARAM_END, "23:00");
     private static final Configuration CONFIG = new Configuration(PROPERTIES);
 
     private @Mock @NonNullByDefault({}) ProfileTypeI18nLocalizationService mockLocalizationService;
