@@ -98,6 +98,23 @@
     <feature.directory>src/main/feature/feature.xml</feature.directory>
   </properties>
 
+  <repositories>
+    <!-- other repositories are inherited from the super-POM -->
+    <repository>
+      <id>ossrh-snapshot</id>
+      <name>OSSRH Snapshot</name>
+      <layout>default</layout>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>daily</updatePolicy>
+      </snapshots>
+    </repository>
+  </repositories>
+
   <dependencyManagement>
     <dependencies>
       <dependency>
