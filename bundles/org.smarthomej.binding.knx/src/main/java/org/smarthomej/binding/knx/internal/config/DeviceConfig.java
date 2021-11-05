@@ -24,7 +24,6 @@ import org.eclipse.jdt.annotation.Nullable;
  */
 @NonNullByDefault
 public class DeviceConfig {
-
     private @Nullable String address;
     private boolean fetch = false;
     private int pingInterval = 600;

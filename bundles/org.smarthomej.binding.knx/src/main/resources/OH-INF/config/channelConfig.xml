@@ -14,7 +14,7 @@
 		</parameter>
 		<parameter name="position" type="text">
 			<label>Address</label>
-			<description>The group address(es) in Group Address Notation to set the absolute position of the dimmer</description>
+			<description>The group address(es) in Group Address Notation to set the absolute brightness</description>
 			<required>false</required>
 		</parameter>
 		<parameter name="increaseDecrease" type="text">
@@ -31,7 +31,7 @@
 		</parameter>
 		<parameter name="position" type="text">
 			<label>Address</label>
-			<description>The group address(es) in Group Address Notation to set the absolute position of the dimmer</description>
+			<description>The group address(es) in Group Address Notation to set the brightness</description>
 			<required>false</required>
 		</parameter>
 		<parameter name="increaseDecrease" type="text">
@@ -61,12 +61,12 @@
 		</parameter>
 		<parameter name="position" type="text">
 			<label>Address</label>
-			<description>The group address(es) in Group Address Notation to set the absolute position of the color</description>
+			<description>The group address(es) in Group Address Notation to set the absolute brightness</description>
 			<required>false</required>
 		</parameter>
 		<parameter name="increaseDecrease" type="text">
 			<label>Address</label>
-			<description>The group address(es) in Group Address Notation to increase or decrease the color</description>
+			<description>The group address(es) in Group Address Notation to increase or decrease the brightness</description>
 			<required>false</required>
 		</parameter>
 	</config-description>
@@ -83,12 +83,12 @@
 		</parameter>
 		<parameter name="position" type="text">
 			<label>Address</label>
-			<description>The group address(es) in Group Address Notation to set the absolute position of the color</description>
+			<description>The group address(es) in Group Address Notation to set the absolute brightness</description>
 			<required>false</required>
 		</parameter>
 		<parameter name="increaseDecrease" type="text">
 			<label>Address</label>
-			<description>The group address(es) in Group Address Notation to increase or decrease the color</description>
+			<description>The group address(es) in Group Address Notation to increase or decrease the brightness</description>
 			<required>false</required>
 		</parameter>
 		<parameter name="frequency" type="integer">

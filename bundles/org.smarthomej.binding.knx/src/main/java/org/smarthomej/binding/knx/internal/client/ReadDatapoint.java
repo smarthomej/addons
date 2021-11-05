@@ -72,9 +72,7 @@ public class ReadDatapoint {
             return false;
         }
         ReadDatapoint other = (ReadDatapoint) obj;
-        if (!datapoint.getMainAddress().equals(other.datapoint.getMainAddress())) {
-            return false;
-        }
-        return true;
+
+        return datapoint.getMainAddress().equals(other.datapoint.getMainAddress());
     }
 }
