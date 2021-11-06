@@ -25,11 +25,9 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -133,12 +131,17 @@ public class AndroidDebugBridgeDevice {
             LOGGER.warn("{} is not a valid package name", packageName);
             return;
         }
+        if (channelFallbackMap.get(START_PACKAGE_CHANNEL) == FallbackModes.MONKEY_LEANBACK_LAUNCHER) {
+            startPackageWithMonkeyLeanbackLauncher(packageName);
+            return;
+        }
         if (channelFallbackMap.get(START_PACKAGE_CHANNEL) == FallbackModes.MONKEY) {
             startPackageWithMonkey(packageName);
             return;
         }
         String output = runAdbShell("am", "start", "-n", packageName);
         if (output.contains("usage: am") || output.contains("Exception")) {
+            LOGGER.debug("set fallback {} for {}", FallbackModes.MONKEY, START_PACKAGE_CHANNEL);
             channelFallbackMap.put(START_PACKAGE_CHANNEL, FallbackModes.MONKEY);
             startPackageWithMonkey(packageName);
         }
@@ -146,7 +149,23 @@ public class AndroidDebugBridgeDevice {
 
     private void startPackageWithMonkey(String packageName)
             throws InterruptedException, AndroidDebugBridgeDeviceException, TimeoutException, ExecutionException {
-        runAdbShell("monkey", "--pct-syskeys", "0", "-p", packageName, "-v", "1");
+        String result = runAdbShell("monkey", "--pct-syskeys", "0", "-p", packageName, "-v", "1");
+        if (result.contains("monkey aborted")) {
+            // use LEANBACK launcher if not successfull - see https://stackoverflow.com/a/54929232
+            LOGGER.debug("set fallback {} for {}", FallbackModes.MONKEY_LEANBACK_LAUNCHER, START_PACKAGE_CHANNEL);
+            channelFallbackMap.put(START_PACKAGE_CHANNEL, FallbackModes.MONKEY_LEANBACK_LAUNCHER);
+            startPackageWithMonkeyLeanbackLauncher(packageName);
+        }
+    }
+
+    private void startPackageWithMonkeyLeanbackLauncher(String packageName)
+            throws InterruptedException, AndroidDebugBridgeDeviceException, TimeoutException, ExecutionException {
+        String result = runAdbShell("monkey", "--pct-syskeys", "0", "-p", packageName, "-c",
+                "android.intent.category.LEANBACK_LAUNCHER", "1");
+        if (result.contains("monkey aborted")) {
+            LOGGER.debug("removed fallback {}", START_PACKAGE_CHANNEL);
+            channelFallbackMap.remove(START_PACKAGE_CHANNEL);
+        }
     }
 
     public void stopPackage(String packageName)
@@ -174,15 +193,30 @@ public class AndroidDebugBridgeDevice {
 
     public String getCurrentPackage() throws AndroidDebugBridgeDeviceException, InterruptedException,
             AndroidDebugBridgeDeviceReadException, TimeoutException, ExecutionException {
-        String result = runAdbShell("dumpsys", "window", "windows", "|", "grep", "mFocusedApp");
-        String targetLine = Objects.requireNonNull(Arrays.stream(result.split("\n")).findFirst().orElse(""));
-        String[] lineParts = targetLine.split(" ");
-        if (lineParts.length >= 2) {
-            String packageActivityName = lineParts[lineParts.length - 2];
-            if (packageActivityName.contains("/")) {
-                return packageActivityName.split("/")[0];
-            }
+        if (channelFallbackMap.get(CURRENT_PACKAGE_CHANNEL) == FallbackModes.DUMPSYS_ACTIVITY_RECENTS) {
+            return getCurrentPackageWithDumpsysActivityRecents();
         }
+        String result = runAdbShell("dumpsys window windows", "|", "grep 'mFocusedApp'", "|", "cut -d '/' -f1", "|",
+                "sed 's/.* //g'");
+        if (!result.isEmpty()) {
+            return result;
+        } else {
+            LOGGER.debug("set fallback {} for {}", FallbackModes.DUMPSYS_ACTIVITY_RECENTS, CURRENT_PACKAGE_CHANNEL);
+            channelFallbackMap.put(CURRENT_PACKAGE_CHANNEL, FallbackModes.DUMPSYS_ACTIVITY_RECENTS);
+            return getCurrentPackageWithDumpsysActivityRecents();
+        }
+    }
+
+    public String getCurrentPackageWithDumpsysActivityRecents() throws AndroidDebugBridgeDeviceException,
+            InterruptedException, AndroidDebugBridgeDeviceReadException, TimeoutException, ExecutionException {
+        // try another method if we failed, see https://stackoverflow.com/a/28573364
+        String result = runAdbShell("dumpsys activity recents", "|", "grep 'Recent #0'", "|", "cut -d= -f2", "|",
+                "sed 's/ .*//'", "|", "cut -d '/' -f1");
+        if (!result.isEmpty()) {
+            return result;
+        }
+        LOGGER.debug("removed fallback {}", HDMI_STATE_CHANNEL);
+        channelFallbackMap.remove(HDMI_STATE_CHANNEL);
         throw new AndroidDebugBridgeDeviceReadException(CURRENT_PACKAGE_CHANNEL, result);
     }
 
@@ -232,6 +266,7 @@ public class AndroidDebugBridgeDevice {
         if ("0".equals(result) || "1".equals(result)) {
             return Optional.of("1".equals(result));
         } else {
+            LOGGER.debug("set fallback {} for {}", FallbackModes.LOGCAT, HDMI_STATE_CHANNEL);
             channelFallbackMap.put(HDMI_STATE_CHANNEL, FallbackModes.LOGCAT);
             return isHDMIOnWithLogcat();
         }
@@ -248,6 +283,7 @@ public class AndroidDebugBridgeDevice {
             // FIND A BETTER SOLUTION
             return Optional.empty();
         }
+        LOGGER.debug("removed fallback {}", HDMI_STATE_CHANNEL);
         channelFallbackMap.remove(HDMI_STATE_CHANNEL);
         throw new AndroidDebugBridgeDeviceReadException(HDMI_STATE_CHANNEL, result);
     }
@@ -495,6 +531,8 @@ public class AndroidDebugBridgeDevice {
 
     private enum FallbackModes {
         MONKEY,
+        MONKEY_LEANBACK_LAUNCHER,
+        DUMPSYS_ACTIVITY_RECENTS,
         LOGCAT,
     }
 }

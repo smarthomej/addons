@@ -86,9 +86,6 @@ public class AndroidDebugBridgeHandler extends UpdatingBaseThingHandler {
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
         AndroidDebugBridgeConfiguration currentConfig = config;
-        if (currentConfig == null) {
-            return;
-        }
         try {
             if (!adbConnection.isConnected()) {
                 // try reconnect
@@ -350,12 +347,8 @@ public class AndroidDebugBridgeHandler extends UpdatingBaseThingHandler {
     }
 
     public void checkConnection() {
-        AndroidDebugBridgeConfiguration currentConfig = config;
-        if (currentConfig == null) {
-            return;
-        }
         try {
-            logger.debug("Refresh device {} status", currentConfig.ip);
+            logger.debug("Refresh device {} status", config.ip);
             if (adbConnection.isConnected()) {
                 updateStatus(ThingStatus.ONLINE);
                 refreshStatus();
