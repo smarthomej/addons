@@ -274,7 +274,7 @@ public class ValueDecoder {
                     return HSBType.fromRGB(r, g, b);
                 case "60000":
                     // MDT specific: mis-use 232.600 for hsv instead of rgb
-                    DecimalType hue = new DecimalType(coerceToRange(r * 360.0 / 255.0, 0.0, 360.0));
+                    DecimalType hue = new DecimalType(coerceToRange(r * 360.0 / 255.0, 0.0, 359.9999));
                     PercentType sat = new PercentType(BigDecimal.valueOf(coerceToRange(g / 2.55, 0.0, 100.0)));
                     PercentType bright = new PercentType(BigDecimal.valueOf(coerceToRange(b / 2.55, 0.0, 100.0)));
                     return new HSBType(hue, sat, bright);
