@@ -81,6 +81,12 @@ public class FeatureProperties {
     @SerializedName("unit")
     @Expose
     public FeatureString unit;
+    @SerializedName("hours")
+    @Expose
+    public FeatureDouble hours;
+    @SerializedName("starts")
+    @Expose
+    public FeatureInteger starts;
 
     public ArrayList<String> getUsedEntries() {
         ArrayList<String> list = new ArrayList<String>();
@@ -141,6 +147,12 @@ public class FeatureProperties {
         }
         if (unit != null) {
             list.add("unit");
+        }
+        if (hours != null) {
+            list.add("hours");
+        }
+        if (starts != null) {
+            list.add("starts");
         }
 
         return list;

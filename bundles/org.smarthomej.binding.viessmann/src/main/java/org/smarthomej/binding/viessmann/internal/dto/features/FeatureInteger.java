@@ -28,4 +28,7 @@ public class FeatureInteger {
     @SerializedName("value")
     @Expose
     public Integer value;
+    @SerializedName("unit")
+    @Expose
+    public String unit;
 }

@@ -28,4 +28,7 @@ public class FeatureDouble {
     @SerializedName("value")
     @Expose
     public Double value;
+    @SerializedName("unit")
+    @Expose
+    public String unit;
 }

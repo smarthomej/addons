@@ -339,6 +339,18 @@ public class DeviceHandler extends ViessmannThingHandler {
                             typeEntry = prop.unit.type;
                             valueEntry = prop.unit.value;
                             break;
+                        case "starts":
+                            msg.setFeatureName(featureName + " Starts");
+                            msg.setFeature(featureDataDTO.feature + "#starts");
+                            typeEntry = prop.starts.type;
+                            valueEntry = prop.starts.value.toString();
+                            break;
+                        case "hours":
+                            msg.setFeatureName(featureName + " Hours");
+                            msg.setFeature(featureDataDTO.feature + "#hours");
+                            typeEntry = prop.hours.type;
+                            valueEntry = prop.hours.value.toString();
+                            break;
                         default:
                             break;
                     }
