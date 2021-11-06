@@ -196,8 +196,8 @@ public class AndroidDebugBridgeDevice {
         if (channelFallbackMap.get(CURRENT_PACKAGE_CHANNEL) == FallbackModes.DUMPSYS_ACTIVITY_RECENTS) {
             return getCurrentPackageWithDumpsysActivityRecents();
         }
-        String result = runAdbShell("dumpsys window windows", "|", "grep -E 'mCurrentFocus'", "|", "cut -d '/' -f1",
-                "|", "sed 's/.* //g'");
+        String result = runAdbShell("dumpsys window windows", "|", "grep 'mFocusedApp'", "|", "cut -d '/' -f1", "|",
+                "sed 's/.* //g'");
         if (!result.isEmpty()) {
             return result;
         } else {
