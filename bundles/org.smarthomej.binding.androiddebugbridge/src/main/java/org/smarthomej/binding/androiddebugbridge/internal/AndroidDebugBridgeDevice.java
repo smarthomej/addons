@@ -159,7 +159,6 @@ public class AndroidDebugBridgeDevice {
 
     private void startPackageWithMonkeyLeanbackLauncher(String packageName)
             throws InterruptedException, AndroidDebugBridgeDeviceException, TimeoutException, ExecutionException {
-        // use LEANBACK launcher if not successfull - see https://stackoverflow.com/a/54929232
         String result = runAdbShell("monkey", "--pct-syskeys", "0", "-p", packageName, "-c",
                 "android.intent.category.LEANBACK_LAUNCHER", "1");
         if (result.contains("monkey aborted")) {
