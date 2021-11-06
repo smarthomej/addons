@@ -15,6 +15,7 @@ package org.smarthomej.binding.knx.internal.dpt;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -91,5 +92,15 @@ public class DPTTest {
         String valueStr = "1 " + unit;
         QuantityType<?> value = new QuantityType<>(valueStr);
         Assertions.assertNotNull(value);
+    }
+
+    private static Stream<String> rgbValueProvider() {
+        return Stream.of("r:0 g:0 b:0", "r:255 g:255 b:255");
+    }
+
+    @ParameterizedTest
+    @MethodSource("rgbValueProvider")
+    public void rgbTest(String value) {
+        Assertions.assertNotNull(ValueDecoder.decode("232.600", value.getBytes(StandardCharsets.UTF_8), HSBType.class));
     }
 }
