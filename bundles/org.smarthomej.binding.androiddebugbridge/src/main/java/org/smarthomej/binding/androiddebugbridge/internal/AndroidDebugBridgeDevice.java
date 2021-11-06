@@ -151,6 +151,7 @@ public class AndroidDebugBridgeDevice {
             throws InterruptedException, AndroidDebugBridgeDeviceException, TimeoutException, ExecutionException {
         String result = runAdbShell("monkey", "--pct-syskeys", "0", "-p", packageName, "-v", "1");
         if (result.contains("monkey aborted")) {
+            // use LEANBACK launcher if not successfull - see https://stackoverflow.com/a/54929232
             LOGGER.debug("set fallback {} for {}", FallbackModes.MONKEY_LEANBACK_LAUNCHER, START_PACKAGE_CHANNEL);
             channelFallbackMap.put(START_PACKAGE_CHANNEL, FallbackModes.MONKEY_LEANBACK_LAUNCHER);
             startPackageWithMonkeyLeanbackLauncher(packageName);
@@ -159,7 +160,6 @@ public class AndroidDebugBridgeDevice {
 
     private void startPackageWithMonkeyLeanbackLauncher(String packageName)
             throws InterruptedException, AndroidDebugBridgeDeviceException, TimeoutException, ExecutionException {
-        // use LEANBACK launcher if not successfull - see https://stackoverflow.com/a/54929232
         String result = runAdbShell("monkey", "--pct-syskeys", "0", "-p", packageName, "-c",
                 "android.intent.category.LEANBACK_LAUNCHER", "1");
         if (result.contains("monkey aborted")) {
