@@ -211,6 +211,13 @@ public class WatchQueueReader implements Runnable {
                 WatchService watchService = this.watchService;
                 if (watchService != null) {
                     watchService.close();
+
+                    Thread qr = this.qr;
+                    if (qr != null) {
+                        qr.interrupt();
+                        this.qr = null;
+                    }
+
                     this.watchService = null;
                 }
             } catch (IOException e) {
@@ -233,8 +240,8 @@ public class WatchQueueReader implements Runnable {
 
     @Override
     public void run() {
-        try {
-            for (;;) {
+        for (;;) {
+            try {
                 WatchKey key = null;
                 try {
                     WatchService watchService = this.watchService;
@@ -242,7 +249,7 @@ public class WatchQueueReader implements Runnable {
                         key = watchService.take();
                     }
                 } catch (InterruptedException exc) {
-                    logger.info("Caught InterruptedException: {}", exc.getLocalizedMessage());
+                    logger.info("Caught InterruptedException, shutting down.");
                     return;
                 }
 
@@ -313,9 +320,9 @@ public class WatchQueueReader implements Runnable {
                 }
 
                 key.reset();
+            } catch (Exception e) {
+                logger.debug("Unexpected Exception in runMethod, restarting.", e);
             }
-        } catch (Exception e) {
-            logger.debug("Unexpected Exception in runMethod", e);
         }
     }
 
