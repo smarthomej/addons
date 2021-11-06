@@ -340,7 +340,8 @@ public class ValueDecoder {
         Set<Class<? extends Type>> allowedTypes = DPTUtil.getAllowedTypes(id);
 
         double value = translator.getNumericValue();
-        if (allowedTypes.contains(PercentType.class) && PercentType.class.equals(preferredType)) {
+        if (allowedTypes.contains(PercentType.class)
+                && (HSBType.class.equals(preferredType) || PercentType.class.equals(preferredType))) {
             return new PercentType(BigDecimal.valueOf(Math.round(value)));
         } else if (allowedTypes.contains(QuantityType.class)) {
             String unit = DPTUnits.getUnitForDpt(id);
