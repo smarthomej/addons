@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<features name="org.openhab.io.smarthomej-${project.version}" xmlns="http://karaf.apache.org/xmlns/features/v1.4.0">
+	<repository>mvn:org.openhab.core.features.karaf/org.openhab.core.features.karaf.openhab-core/3.2.0-SNAPSHOT/xml/features</repository>
+
+	<feature name="smarthomej-io-marketplace" description="SmartHome/J Marketplace Extension" version="${project.version}">
+		<feature>openhab-runtime-base</feature>
+		<bundle start-level="80">mvn:org.smarthomej.addons.bundles/org.smarthomej.io.marketplace/${project.version}</bundle>
+	</feature>
+</features>

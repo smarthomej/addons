@@ -46,6 +46,7 @@
     <module>org.smarthomej.transform.math</module>
     <!-- manager -->
     <module>org.smarthomej.io.repomanager</module>
+    <module>org.smarthomej.io.marketplace</module>
   </modules>
 
   <properties>
