@@ -159,9 +159,9 @@ The value of the percent type can be different between a specific time of the da
 | `nightValue`            | integer | The value which will be send when motion is detected during the night (default: 30, min: 0, max: 100). |
 | `start`                 | text    | The start time of the day (hh:mm).                                                                     |
 | `end`                   | text    | The end time of the day (hh:mm).                                                                       |
-| `returnValue`           | text    | Select what should happen when there is no motion anymore (default: OFF).                              |
+| `restoreValue`          | text    | Select what should happen when there is no motion anymore (default: OFF).                              |
 
-Possible values for parameter `returnValue`:
+Possible values for parameter `restoreValue`:
 
 - `OFF` - Turn the light off
 - `NOTHING` - Do nothing
@@ -173,6 +173,6 @@ Possible values for parameter `returnValue`:
 ```Java
 Switch motionSensorFirstFloor {
     channel="deconz:presencesensor:XXX:YYY:presence",
-    channel="deconz:colortemperaturelight:AAA:BBB:brightness" [profile="basic-profiles:motion-sensor", dayValue=100, nightValue=15, start="08:00", end="23:00, returnValue="PREVIOUS"]
+    channel="deconz:colortemperaturelight:AAA:BBB:brightness" [profile="basic-profiles:motion-sensor", dayValue=100, nightValue=15, start="08:00", end="23:00, restoreValue="PREVIOUS"]
 }
 ```
