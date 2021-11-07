@@ -12,8 +12,8 @@ Some parts of this repository are forked from [openHAB Addons](https://github.co
 The easiest way to use the bindings in this repository is to install the SmartHome/J repository manager.
 The documentation can be found [here](https://github.com/smarthomej/addons/tree/main/bundles/org.smarthomej.io.repomanager).
 
-Starting with openHAB 3.2.0.M3 a community marketplace which is accessible from the Main UI has been added. 
-The SmartHome/J addons are available there and the repository manager has been deprecated for these openHAB versions.
+***Attention:*** Due to a breaking change related to the Community Marketplace in openHAB 3.2.0.M3 and later the Repomanager is no longer compatible.
+A replacement will be added as soon as possible.
 
 ### Compatibility
 
