@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
     <groupId>org.smarthomej.addons</groupId>
     <artifactId>org.smarthomej.addons.reactor</artifactId>
-    <version>3.1.7-SNAPSHOT</version>
+    <version>3.1.7</version>
   </parent>
 
   <artifactId>org.smarthomej.addons.site</artifactId>
@@ -42,33 +41,33 @@
                 <!-- copy bundle documentation -->
                 <copy todir="${project.build.directory}/markdown">
                   <fileset dir="${basedirRoot}/bundles">
-                    <include name="*/README.md"/>
-                    <exclude name="**/org.smarthomej.commons/*"/>
+                    <include name="*/README.md" />
+                    <exclude name="**/org.smarthomej.commons/*" />
                   </fileset>
-                  <regexpmapper from="^(.*)[\\/]README\.md$$" to="\1.md"/>
+                  <regexpmapper from="^(.*)[\\/]README\.md$$" to="\1.md" />
                 </copy>
                 <!-- add TOC to all files -->
                 <replaceregexp>
                   <fileset dir="${project.build.directory}/markdown">
-                    <include name="*.md"/>
+                    <include name="*.md" />
                   </fileset>
-                  <regexp pattern="##"/>
-                  <substitution expression="\[TOC levels=2\] ${line.separator}${line.separator}##"/>
+                  <regexp pattern="##" />
+                  <substitution expression="\[TOC levels=2\] ${line.separator}${line.separator}##" />
                 </replaceregexp>
                 <!-- generate list of all markdown files for index -->
                 <pathconvert property="alldocs.list" pathsep="${line.separator}">
-                  <fileset dir="${project.build.directory}/markdown"/>
-                  <map from="${project.build.directory}/markdown/" to=""/>
+                  <fileset dir="${project.build.directory}/markdown" />
+                  <map from="${project.build.directory}/markdown/" to="" />
                 </pathconvert>
-                <echo file="${project.build.directory}/alldocs.list" message="${alldocs.list}"/>
+                <echo file="${project.build.directory}/alldocs.list" message="${alldocs.list}" />
                 <!-- generate index -->
                 <replaceregexp byline="true" file="${project.build.directory}/alldocs.list">
-                  <regexp pattern="(.*)\.md"/>
-                  <substitution expression="- \[\1\]\(\1\.html\)${line.separator}"/>
+                  <regexp pattern="(.*)\.md" />
+                  <substitution expression="- \[\1\]\(\1\.html\)${line.separator}" />
                 </replaceregexp>
                 <concat destfile="${project.build.directory}/markdown/index.md">
-                  <header file="src/main/resources/index-header.md" filtering="no"/>
-                  <filelist dir="${project.build.directory}" files="alldocs.list"/>
+                  <header file="src/main/resources/index-header.md" filtering="no" />
+                  <filelist dir="${project.build.directory}" files="alldocs.list" />
                 </concat>
               </target>
             </configuration>
