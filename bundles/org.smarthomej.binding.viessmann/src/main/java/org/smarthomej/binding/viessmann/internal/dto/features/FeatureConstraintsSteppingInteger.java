@@ -12,9 +12,6 @@
  */
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
 /**
  * The {@link FeatureConstraintsSteppingInteger} is responsible for
  *
@@ -22,13 +19,9 @@ import com.google.gson.annotations.SerializedName;
  */
 public class FeatureConstraintsSteppingInteger {
 
-    @SerializedName("min")
-    @Expose
     public Integer min;
-    @SerializedName("max")
-    @Expose
+
     public Integer max;
-    @SerializedName("stepping")
-    @Expose
+
     public Integer stepping;
 }

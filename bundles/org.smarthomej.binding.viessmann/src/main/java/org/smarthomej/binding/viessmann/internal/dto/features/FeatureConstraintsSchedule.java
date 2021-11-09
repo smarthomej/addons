@@ -14,9 +14,6 @@ package org.smarthomej.binding.viessmann.internal.dto.features;
 
 import java.util.List;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
 /**
  * The {@link FeatureConstraintsSchedule} is responsible for
  *
@@ -24,16 +21,11 @@ import com.google.gson.annotations.SerializedName;
  */
 public class FeatureConstraintsSchedule {
 
-    @SerializedName("maxEntries")
-    @Expose
     public Integer maxEntries;
-    @SerializedName("resolution")
-    @Expose
+
     public Integer resolution;
-    @SerializedName("modes")
-    @Expose
+
     public List<String> modes = null;
-    @SerializedName("defaultMode")
-    @Expose
+
     public String defaultMode;
 }

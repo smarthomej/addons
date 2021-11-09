@@ -14,9 +14,6 @@ package org.smarthomej.binding.viessmann.internal.dto.features;
 
 import java.util.ArrayList;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
 /**
  * The {@link FeatureCommands} is responsible for
  *
@@ -24,38 +21,26 @@ import com.google.gson.annotations.SerializedName;
  */
 public class FeatureCommands {
 
-    @SerializedName("setName")
-    @Expose
     public FeatureSetName setName;
-    @SerializedName("setCurve")
-    @Expose
+
     public FeatureSetCurve setCurve;
-    @SerializedName("setSchedule")
-    @Expose
+
     public FeatureSetSchedule setSchedule;
-    @SerializedName("setMode")
-    @Expose
+
     public FeatureSetMode setMode;
-    @SerializedName("setTemperature")
-    @Expose
+
     public FeatureSetTemperature setTemperature;
-    @SerializedName("activate")
-    @Expose
+
     public FeatureDefaultCommands activate;
-    @SerializedName("deactivate")
-    @Expose
+
     public FeatureDefaultCommands deactivate;
-    @SerializedName("changeEndDate")
-    @Expose
+
     public FeatureChangeEndDate changeEndDate;
-    @SerializedName("schedule")
-    @Expose
+
     public FeatureSchedule schedule;
-    @SerializedName("unschedule")
-    @Expose
+
     public FeatureDefaultCommands unschedule;
-    @SerializedName("setTargetTemperature")
-    @Expose
+
     public FeatureSetTargetTemperature setTargetTemperature;
 
     public ArrayList<String> getUsedCommands() {

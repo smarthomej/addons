@@ -12,9 +12,6 @@
  */
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
 /**
  * The {@link FeatureConstraintsLength} is responsible for
  *
@@ -22,10 +19,7 @@ import com.google.gson.annotations.SerializedName;
  */
 public class FeatureConstraintsLength {
 
-    @SerializedName("minLength")
-    @Expose
     public Integer minLength;
-    @SerializedName("maxLength")
-    @Expose
+
     public Integer maxLength;
 }

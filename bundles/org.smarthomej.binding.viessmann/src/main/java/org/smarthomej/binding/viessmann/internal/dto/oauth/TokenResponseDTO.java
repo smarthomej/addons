@@ -48,6 +48,5 @@ public class TokenResponseDTO extends AbstractAuthResponseDTO {
     /*
      * Matches the scope included in the token request.
      */
-    @SerializedName("scope")
     public String scope;
 }

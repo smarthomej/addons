@@ -12,9 +12,6 @@
  */
 package org.smarthomej.binding.viessmann.internal.dto.installation;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
 /**
  * The {@link Address} is responsible for
  *
@@ -22,31 +19,21 @@ import com.google.gson.annotations.SerializedName;
  */
 public class Address {
 
-    @SerializedName("street")
-    @Expose
     public String street;
-    @SerializedName("houseNumber")
-    @Expose
+
     public String houseNumber;
-    @SerializedName("zip")
-    @Expose
+
     public String zip;
-    @SerializedName("city")
-    @Expose
+
     public String city;
-    @SerializedName("region")
-    @Expose
+
     public Object region;
-    @SerializedName("country")
-    @Expose
+
     public String country;
-    @SerializedName("phoneNumber")
-    @Expose
+
     public Object phoneNumber;
-    @SerializedName("faxNumber")
-    @Expose
+
     public Object faxNumber;
-    @SerializedName("geolocation")
-    @Expose
+
     public Geolocation geolocation;
 }

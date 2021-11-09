@@ -17,9 +17,9 @@
 		<config-description>
 			<parameter name="apiKey" type="text" required="true">
 				<label>API Key</label>
-				<description>The API Key is required to communication with the Viessmann Api. It can be obtained by
-					registering an
-					Application on the Viessmann Developer Website."</description>
+				<description>The API Key (can be obtained by registering an
+					Application on the Viessmann Developer Website)."
+				</description>
 			</parameter>
 			<parameter name="user" type="text" required="true">
 				<label>User(E-Mail address)</label>
@@ -37,27 +37,23 @@
 				<label>GatewaySerial ID</label>
 				<description>The gatewaySerial</description>
 			</parameter>
-			<parameter name="apiTimeout" type="integer" min="2" required="false" unit="s">
-				<label>API Timeout</label>
-				<description>Time in seconds to allow API request to complete</description>
-				<default>22</default>
-			</parameter>
 			<parameter name="apiCallLimit" type="integer" required="false">
 				<label>API call limit</label>
-				<description>The limit how often call the API. It is used for calcutating the time how often the data is queried in
+				<description>The limit how often call the API. For calcutating the time how often the data is queried in
 					seconds</description>
 				<default>1450</default>
 			</parameter>
 			<parameter name="bufferApiCommands" type="integer" required="false">
 				<label>Buffer for API commands</label>
-				<description>The buffer for commands. It is used for calcutating the time how often the data is queried in seconds</description>
+				<description>The buffer for commands. For calcutating the time how often the data is queried in seconds</description>
 				<default>450</default>
 			</parameter>
 			<parameter name="pollingInterval" type="integer" required="false" unit="s">
 				<label>Polling Interval</label>
 				<default>0</default>
-				<description>How often the available heating should be queried in seconds (If it's set to 0, then the interval will
-					be calculated by the binding)</description>
+				<description>How often the heating should be queried in seconds (If it's set to 0, then the interval will
+					be
+					calculated by the binding)</description>
 			</parameter>
 		</config-description>
 	</bridge-type>
@@ -81,13 +77,7 @@
 		</config-description>
 	</thing-type>
 
-	<!-- Sample Channel Type -->
-	<channel-type id="sample-channel">
-		<item-type>Number:Temperature</item-type>
-		<label>Example Temperature</label><!-- Use uppercase words, except prepositions. 2-3 words, max 25 chars -->
-		<description>Sample channel for Viessmann Binding</description>
-	</channel-type>
-
+	<!-- Channel Types -->
 	<channel-type id="type-temperature">
 		<item-type>Number:Temperature</item-type>
 		<label>Temperature</label>

@@ -12,9 +12,6 @@
  */
 package org.smarthomej.binding.viessmann.internal.dto.installation;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
 /**
  * The {@link Cursor} is responsible for
  *
@@ -22,7 +19,5 @@ import com.google.gson.annotations.SerializedName;
  */
 public class Cursor {
 
-    @SerializedName("next")
-    @Expose
     public String next;
 }

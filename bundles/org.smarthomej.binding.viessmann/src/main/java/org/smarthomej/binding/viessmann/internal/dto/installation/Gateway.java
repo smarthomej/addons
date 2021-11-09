@@ -14,9 +14,6 @@ package org.smarthomej.binding.viessmann.internal.dto.installation;
 
 import java.util.List;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
 /**
  * The {@link Gateway} is responsible for
  *
@@ -24,46 +21,31 @@ import com.google.gson.annotations.SerializedName;
  */
 public class Gateway {
 
-    @SerializedName("serial")
-    @Expose
     public String serial;
-    @SerializedName("version")
-    @Expose
+
     public String version;
-    @SerializedName("firmwareUpdateFailureCounter")
-    @Expose
+
     public Integer firmwareUpdateFailureCounter;
-    @SerializedName("autoUpdate")
-    @Expose
+
     public Boolean autoUpdate;
-    @SerializedName("createdAt")
-    @Expose
+
     public String createdAt;
-    @SerializedName("producedAt")
-    @Expose
+
     public String producedAt;
-    @SerializedName("lastStatusChangedAt")
-    @Expose
+
     public String lastStatusChangedAt;
-    @SerializedName("aggregatedStatus")
-    @Expose
+
     public String aggregatedStatus;
-    @SerializedName("targetRealm")
-    @Expose
+
     public String targetRealm;
-    @SerializedName("devices")
-    @Expose
+
     public List<Device> devices = null;
-    @SerializedName("gatewayType")
-    @Expose
+
     public String gatewayType;
-    @SerializedName("installationId")
-    @Expose
+
     public Integer installationId;
-    @SerializedName("registeredAt")
-    @Expose
+
     public String registeredAt;
-    @SerializedName("description")
-    @Expose
+
     public Object description;
 }

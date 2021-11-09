@@ -14,9 +14,6 @@ package org.smarthomej.binding.viessmann.internal.dto.features;
 
 import java.util.List;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
 /**
  * The {@link FeatureWeekDays} is responsible for
  *
@@ -24,25 +21,17 @@ import com.google.gson.annotations.SerializedName;
  */
 public class FeatureWeekDays {
 
-    @SerializedName("mon")
-    @Expose
     public List<FeatureDay> mon = null;
-    @SerializedName("tue")
-    @Expose
+
     public List<FeatureDay> tue = null;
-    @SerializedName("wed")
-    @Expose
+
     public List<FeatureDay> wed = null;
-    @SerializedName("thu")
-    @Expose
+
     public List<FeatureDay> thu = null;
-    @SerializedName("fri")
-    @Expose
+
     public List<FeatureDay> fri = null;
-    @SerializedName("sat")
-    @Expose
+
     public List<FeatureDay> sat = null;
-    @SerializedName("sun")
-    @Expose
+
     public List<FeatureDay> sun = null;
 }

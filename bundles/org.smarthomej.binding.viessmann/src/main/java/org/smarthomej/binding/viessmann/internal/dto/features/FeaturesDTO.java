@@ -14,9 +14,6 @@ package org.smarthomej.binding.viessmann.internal.dto.features;
 
 import java.util.List;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
 /**
  * The {@link FeaturesDTO} is responsible for
  *
@@ -24,7 +21,5 @@ import com.google.gson.annotations.SerializedName;
  */
 public class FeaturesDTO {
 
-    @SerializedName("data")
-    @Expose
     public List<FeatureDataDTO> data = null;
 }

@@ -13,7 +13,6 @@
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
 import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
 
 /**
  * The {@link FeatureDefalutSetterParams} is responsible for
@@ -22,13 +21,10 @@ import com.google.gson.annotations.SerializedName;
  */
 public class FeatureDefalutSetterParams {
 
-    @SerializedName("required")
     @Expose
-    public Boolean required;
-    @SerializedName("type")
+    Boolean required;
     @Expose
-    public String type;
-    @SerializedName("constraints")
+    String type;
     @Expose
     public FeatureConstraintsSteppingInteger constraints;
 }

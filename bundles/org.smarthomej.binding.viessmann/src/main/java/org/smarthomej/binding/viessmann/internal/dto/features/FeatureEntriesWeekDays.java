@@ -12,9 +12,6 @@
  */
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
 /**
  * The {@link FeatureEntriesWeekDays} is responsible for
  *
@@ -22,10 +19,7 @@ import com.google.gson.annotations.SerializedName;
  */
 public class FeatureEntriesWeekDays {
 
-    @SerializedName("type")
-    @Expose
     public String type;
-    @SerializedName("value")
-    @Expose
+
     public FeatureWeekDays value;
 }

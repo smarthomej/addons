@@ -12,9 +12,6 @@
  */
 package org.smarthomej.binding.viessmann.internal.dto.installation;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
 /**
  * The {@link Geolocation} is responsible for
  *
@@ -22,13 +19,9 @@ import com.google.gson.annotations.SerializedName;
  */
 public class Geolocation {
 
-    @SerializedName("latitude")
-    @Expose
     public Double latitude;
-    @SerializedName("longitude")
-    @Expose
+
     public Double longitude;
-    @SerializedName("timeZone")
-    @Expose
+
     public String timeZone;
 }

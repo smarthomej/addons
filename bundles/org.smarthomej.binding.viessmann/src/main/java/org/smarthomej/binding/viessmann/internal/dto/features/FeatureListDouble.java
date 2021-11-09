@@ -14,9 +14,6 @@ package org.smarthomej.binding.viessmann.internal.dto.features;
 
 import java.util.List;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
 /**
  * The {@link FeatureListDouble} is responsible for
  *
@@ -24,10 +21,7 @@ import com.google.gson.annotations.SerializedName;
  */
 public class FeatureListDouble {
 
-    @SerializedName("type")
-    @Expose
     public String type;
-    @SerializedName("value")
-    @Expose
+
     public List<Double> value = null;
 }

@@ -13,7 +13,6 @@
 package org.smarthomej.binding.viessmann.internal.config;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.eclipse.jdt.annotation.Nullable;
 
 /**
  * The {@link BridgeConfiguration} class contains fields mapping thing configuration parameters.
@@ -23,12 +22,11 @@ import org.eclipse.jdt.annotation.Nullable;
 @NonNullByDefault
 public class BridgeConfiguration {
 
-    public @Nullable String user;
-    public @Nullable String password;
-    public @Nullable String apiKey;
-    public @Nullable String installationId;
-    public @Nullable String gatewaySerial;
-    public int apiTimeout = 120;
+    public String user = "";
+    public String password = "";
+    public String apiKey = "";
+    public String installationId = "";
+    public String gatewaySerial = "";
     public int apiCallLimit = 1450;
     public int bufferApiCommands = 450;
     public int pollingInterval = 0;

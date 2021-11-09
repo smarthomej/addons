@@ -12,9 +12,6 @@
  */
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
 /**
  * The {@link FeatureSetTargetTemperature} is responsible for
  *
@@ -22,16 +19,11 @@ import com.google.gson.annotations.SerializedName;
  */
 public class FeatureSetTargetTemperature {
 
-    @SerializedName("uri")
-    @Expose
     public String uri;
-    @SerializedName("name")
-    @Expose
+
     public String name;
-    @SerializedName("isExecutable")
-    @Expose
+
     public Boolean isExecutable;
-    @SerializedName("params")
-    @Expose
+
     public FeatureSetTargetTemperatureParams params;
 }

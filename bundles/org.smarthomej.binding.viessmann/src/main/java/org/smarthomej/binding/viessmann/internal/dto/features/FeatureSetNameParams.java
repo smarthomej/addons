@@ -13,7 +13,6 @@
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
 import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
 
 /**
  * The {@link FeatureSetNameParams} is responsible for
@@ -22,7 +21,6 @@ import com.google.gson.annotations.SerializedName;
  */
 public class FeatureSetNameParams {
 
-    @SerializedName("name")
     @Expose
-    public FeatureParamsName name;
+    FeatureParamsName name;
 }

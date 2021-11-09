@@ -12,10 +12,17 @@
  */
 package org.smarthomej.binding.viessmann.internal;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.thing.ThingTypeUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The {@link ViessmannBindingConstants} class defines common constants, which are
@@ -25,6 +32,7 @@ import org.openhab.core.thing.ThingTypeUID;
  */
 @NonNullByDefault
 public class ViessmannBindingConstants {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ViessmannBindingConstants.class);
 
     public static final String BINDING_ID = "viessmann";
     public static final String BINDING_NAME = "Viessmann API";
@@ -45,5 +53,31 @@ public class ViessmannBindingConstants {
     public static final String VIESSMANN_TOKEN_URL = IAM_BASE_URL + "idp/v2/token";
     public static final String VIESSMANN_SCOPE = "IoT%20User%20offline_access";
 
+    public static final int API_TIMEOUT_MS = 20000;
     public static final String PROPERTY_ID = "deviceId";
+
+    public static final Map<String, String> FEATURES_MAP = readPropertiesFile("features.properties").entrySet().stream()
+            .collect(Collectors.toMap(e -> e.getKey(), Map.Entry::getValue));
+
+    public static final Map<String, String> FEATURE_DESCRIPTION_MAP = readPropertiesFile(
+            "featuresDescription.properties").entrySet().stream()
+                    .collect(Collectors.toMap(e -> e.getKey(), Map.Entry::getValue));
+
+    public static Map<String, String> readPropertiesFile(String filename) {
+        InputStream resource = Thread.currentThread().getContextClassLoader().getResourceAsStream(filename);
+        if (resource == null) {
+            LOGGER.warn("Could not read resource file '{}', binding will probably fail: resource is null", filename);
+            return Map.of();
+        }
+
+        try {
+            Properties properties = new Properties();
+            properties.load(resource);
+            return properties.entrySet().stream()
+                    .collect(Collectors.toMap(e -> (String) e.getKey(), e -> (String) e.getValue()));
+        } catch (IOException e) {
+            LOGGER.warn("Could not read resource file '{}', binding will probably fail: {}", filename, e.getMessage());
+            return Map.of();
+        }
+    }
 }

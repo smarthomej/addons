@@ -12,9 +12,6 @@
  */
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
 /**
  * The {@link FeatureSetHeatingCurve} is responsible for
  *
@@ -22,10 +19,7 @@ import com.google.gson.annotations.SerializedName;
  */
 public class FeatureSetHeatingCurve {
 
-    @SerializedName("slope")
-    @Expose
     public FeatureSlope slope;
-    @SerializedName("shift")
-    @Expose
+
     public FeatureShift shift;
 }

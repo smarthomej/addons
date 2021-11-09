@@ -12,9 +12,6 @@
  */
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
 /**
  * The {@link FeatureModeParams} is responsible for
  *
@@ -22,7 +19,5 @@ import com.google.gson.annotations.SerializedName;
  */
 public class FeatureModeParams {
 
-    @SerializedName("mode")
-    @Expose
     public FeatureMode mode;
 }

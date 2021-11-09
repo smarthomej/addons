@@ -12,9 +12,6 @@
  */
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
 /**
  * The {@link FeatureShift} is responsible for
  *
@@ -22,13 +19,9 @@ import com.google.gson.annotations.SerializedName;
  */
 public class FeatureShift {
 
-    @SerializedName("required")
-    @Expose
     public Boolean required;
-    @SerializedName("type")
-    @Expose
+
     public String type;
-    @SerializedName("constraints")
-    @Expose
+
     public FeatureConstraintsSteppingInteger constraints;
 }

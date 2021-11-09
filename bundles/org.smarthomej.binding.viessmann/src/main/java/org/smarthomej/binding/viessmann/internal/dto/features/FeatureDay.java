@@ -12,9 +12,6 @@
  */
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
 /**
  * The {@link FeatureDay} is responsible for
  *
@@ -22,16 +19,11 @@ import com.google.gson.annotations.SerializedName;
  */
 public class FeatureDay {
 
-    @SerializedName("start")
-    @Expose
     public String start;
-    @SerializedName("end")
-    @Expose
+
     public String end;
-    @SerializedName("mode")
-    @Expose
+
     public String mode;
-    @SerializedName("position")
-    @Expose
+
     public Integer position;
 }

@@ -55,30 +55,21 @@ import com.google.gson.JsonSyntaxException;
  */
 @NonNullByDefault
 public class ViessmannBridgeHandler extends BaseBridgeHandler {
-    private static final int DEFAULT_API_TIMEOUT_SECONDS = 20;
+    // private static final int DEFAULT_API_TIMEOUT_SECONDS = 20;
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final HttpClient httpClient;
 
     private @NonNullByDefault({}) ViessmannApi api;
-    private @NonNullByDefault({}) String apiKey;
-    private @NonNullByDefault({}) String user;
-    private @NonNullByDefault({}) String password;
-    private @NonNullByDefault({}) String installationId;
-    private @NonNullByDefault({}) String gatewaySerial;
-    private @NonNullByDefault({}) int apiCallLimit;
-    private @NonNullByDefault({}) int bufferApiCommands;
-    private @NonNullByDefault({}) int pollingInterval;
 
     protected @Nullable ViessmannDiscoveryService discoveryService;
 
-    private int apiTimeout;
     private int apiCalls;
     private boolean countReset = true;
 
-    private @Nullable static String newInstallationId;
-    private @Nullable static String newGatewaySerial;
+    private @Nullable String newInstallationId;
+    private @Nullable String newGatewaySerial;
 
     private @Nullable ScheduledFuture<?> viessmannBridgePollingJob;
     private @Nullable ScheduledFuture<?> viessmannBridgeLimitJob;
@@ -87,7 +78,14 @@ public class ViessmannBridgeHandler extends BaseBridgeHandler {
     protected volatile List<String> devicesList = new ArrayList<>();
     protected volatile List<String> pollingDevicesList = new ArrayList<>();
 
-    public static void setInstallationGatewayId(String newInstallation, String newGateway) {
+    private BridgeConfiguration config = new BridgeConfiguration();
+
+    public ViessmannBridgeHandler(Bridge bridge, HttpClient httpClient) {
+        super(bridge);
+        this.httpClient = httpClient;
+    }
+
+    public void setInstallationGatewayId(String newInstallation, String newGateway) {
         newInstallationId = newInstallation;
         newGatewaySerial = newGateway;
     }
@@ -121,11 +119,6 @@ public class ViessmannBridgeHandler extends BaseBridgeHandler {
         updateConfiguration(conf);
     }
 
-    public ViessmannBridgeHandler(Bridge bridge, HttpClient httpClient) {
-        super(bridge);
-        this.httpClient = httpClient;
-    }
-
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
         // Nothing to handle here currently
@@ -147,22 +140,13 @@ public class ViessmannBridgeHandler extends BaseBridgeHandler {
         logger.debug("Initialize Viessmann Accountservice");
 
         BridgeConfiguration config = getConfigAs(BridgeConfiguration.class);
-        user = config.user;
-        password = config.password;
-        apiKey = config.apiKey;
-        installationId = config.installationId;
-        gatewaySerial = config.gatewaySerial;
-        apiCallLimit = config.apiCallLimit;
-        bufferApiCommands = config.bufferApiCommands;
-        pollingInterval = config.pollingInterval;
+        this.config = config;
         apiCalls = 0;
         newInstallationId = "";
         newGatewaySerial = "";
-        Integer value;
-        value = config.apiTimeout;
-        apiTimeout = (value == null ? DEFAULT_API_TIMEOUT_SECONDS : value) * 1000;
-        api = new ViessmannApi(this, apiKey, apiTimeout, httpClient, user, password, installationId, gatewaySerial);
-        if (config.installationId == null || config.gatewaySerial == null) {
+        api = new ViessmannApi(this, this.config.apiKey, httpClient, this.config.user, this.config.password,
+                this.config.installationId, this.config.gatewaySerial);
+        if (this.config.installationId.isEmpty() || this.config.gatewaySerial.isEmpty()) {
             setConfigInstallationGatewayId();
         }
         getAllDevices();
@@ -202,10 +186,11 @@ public class ViessmannBridgeHandler extends BaseBridgeHandler {
     }
 
     private Integer getPollingInterval() {
-        if (pollingInterval > 0) {
-            return pollingInterval;
+        if (this.config.pollingInterval > 0) {
+            return this.config.pollingInterval;
         } else {
-            Integer interval = (86400 / (apiCallLimit - bufferApiCommands) * devicesList.size()) + 1;
+            Integer interval = (86400 / (this.config.apiCallLimit - this.config.bufferApiCommands) * devicesList.size())
+                    + 1;
             return interval;
         }
     }
@@ -315,16 +300,11 @@ public class ViessmannBridgeHandler extends BaseBridgeHandler {
         for (Thing thing : getThing().getThings()) {
             ViessmannThingHandler handler = (ViessmannThingHandler) thing.getHandler();
             //@formatter:off
-            if (handler != null && (handler instanceof DeviceHandler && msg instanceof FeatureDataDTO)) {
+            if (handler instanceof DeviceHandler && msg instanceof FeatureDataDTO) {
                 handler.handleUpdate(msg);
             }
             //@formatter:on
         }
-    }
-
-    @Override
-    public void updateStatus(ThingStatus status) {
-        super.updateStatus(status);
     }
 
     public void updateBridgeStatus(ThingStatus status) {

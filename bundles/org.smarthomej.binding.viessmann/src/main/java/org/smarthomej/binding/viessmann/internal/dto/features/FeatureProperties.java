@@ -14,9 +14,6 @@ package org.smarthomej.binding.viessmann.internal.dto.features;
 
 import java.util.ArrayList;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
 /**
  * The {@link FeatureProperties} is responsible for
  *
@@ -24,68 +21,46 @@ import com.google.gson.annotations.SerializedName;
  */
 public class FeatureProperties {
 
-    @SerializedName("value")
-    @Expose
     public FeatureString value;
-    @SerializedName("status")
-    @Expose
+
     public FeatureString status;
-    @SerializedName("active")
-    @Expose
+
     public FeatureBoolean active;
-    @SerializedName("name")
-    @Expose
+
     public FeatureString name;
-    @SerializedName("shift")
-    @Expose
+
     public FeatureInteger shift;
-    @SerializedName("slope")
-    @Expose
+
     public FeatureDouble slope;
-    @SerializedName("entries")
-    @Expose
+
     public FeatureEntriesWeekDays entries;
-    @SerializedName("overlapAllowed")
-    @Expose
+
     public FeatureBoolean overlapAllowed;
-    @SerializedName("temperature")
-    @Expose
+
     public FeatureInteger temperature;
-    @SerializedName("start")
-    @Expose
+
     public FeatureString start;
-    @SerializedName("end")
-    @Expose
+
     public FeatureString end;
-    @SerializedName("top")
-    @Expose
+
     public FeatureInteger top;
-    @SerializedName("middle")
-    @Expose
+
     public FeatureInteger middle;
-    @SerializedName("bottom")
-    @Expose
+
     public FeatureInteger bottom;
-    @SerializedName("day")
-    @Expose
+
     public FeatureListDouble day;
-    @SerializedName("week")
-    @Expose
+
     public FeatureListDouble week;
-    @SerializedName("month")
-    @Expose
+
     public FeatureListDouble month;
-    @SerializedName("year")
-    @Expose
+
     public FeatureListDouble year;
-    @SerializedName("unit")
-    @Expose
+
     public FeatureString unit;
-    @SerializedName("hours")
-    @Expose
+
     public FeatureDouble hours;
-    @SerializedName("starts")
-    @Expose
+
     public FeatureInteger starts;
 
     public ArrayList<String> getUsedEntries() {

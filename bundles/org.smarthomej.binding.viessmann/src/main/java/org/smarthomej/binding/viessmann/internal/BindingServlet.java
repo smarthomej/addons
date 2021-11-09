@@ -48,7 +48,7 @@ public class BindingServlet extends HttpServlet {
 
     public BindingServlet(HttpService httpService) {
         this.httpService = httpService;
-        servletUrlWithoutRoot = "viessmann-api/authcode";
+        servletUrlWithoutRoot = "viessmann/authcode";
         servletUrl = "/" + servletUrlWithoutRoot;
         try {
             httpService.registerServlet(servletUrl, this, null, httpService.createDefaultHttpContext());

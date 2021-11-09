@@ -14,9 +14,6 @@ package org.smarthomej.binding.viessmann.internal.dto.features;
 
 import java.util.List;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
 /**
  * The {@link FeatureDataDTO} is responsible for
  *
@@ -24,37 +21,25 @@ import com.google.gson.annotations.SerializedName;
  */
 public class FeatureDataDTO {
 
-    @SerializedName("apiVersion")
-    @Expose
     public Integer apiVersion;
-    @SerializedName("isEnabled")
-    @Expose
+
     public Boolean isEnabled;
-    @SerializedName("isReady")
-    @Expose
+
     public Boolean isReady;
-    @SerializedName("gatewayId")
-    @Expose
+
     public String gatewayId;
-    @SerializedName("feature")
-    @Expose
+
     public String feature;
-    @SerializedName("uri")
-    @Expose
+
     public String uri;
-    @SerializedName("deviceId")
-    @Expose
+
     public String deviceId;
-    @SerializedName("timestamp")
-    @Expose
+
     public String timestamp;
-    @SerializedName("properties")
-    @Expose
+
     public FeatureProperties properties;
-    @SerializedName("commands")
-    @Expose
+
     public FeatureCommands commands;
-    @SerializedName("components")
-    @Expose
+
     public List<String> components = null;
 }

@@ -22,27 +22,18 @@ import com.google.gson.annotations.SerializedName;
 public class AuthorizeResponseDTO extends AbstractAuthResponseDTO {
 
     /*
-     * The PIN a user enters in the web portal.
-     */
-    @SerializedName("ecobeePin")
-    public String pin;
-
-    /*
      * The error message when authorization fails.
      */
-    @SerializedName("errorMsg")
     public String errorMsg;
 
     /*
      * The authorization token needed to request the access and refresh tokens.
      */
-    @SerializedName("code")
     public String code;
 
     /*
      * The requested Scope from the original request. This must match the original request.
      */
-    @SerializedName("scope")
     public String scope;
 
     /*
@@ -54,6 +45,5 @@ public class AuthorizeResponseDTO extends AbstractAuthResponseDTO {
     /*
      * The minimum amount of seconds which must pass between polling attempts for a token.
      */
-    @SerializedName("interval")
     public Integer interval;
 }

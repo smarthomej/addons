@@ -14,9 +14,6 @@ package org.smarthomej.binding.viessmann.internal.dto.installation;
 
 import java.util.List;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
 /**
  * The {@link InstallationDTO} is responsible for
  *
@@ -24,10 +21,7 @@ import com.google.gson.annotations.SerializedName;
  */
 public class InstallationDTO {
 
-    @SerializedName("data")
-    @Expose
     public List<Data> data = null;
-    @SerializedName("cursor")
-    @Expose
+
     public Cursor cursor;
 }

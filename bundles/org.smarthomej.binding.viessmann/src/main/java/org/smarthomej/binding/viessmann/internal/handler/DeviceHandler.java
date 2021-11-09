@@ -14,9 +14,11 @@ package org.smarthomej.binding.viessmann.internal.handler;
 
 import static org.smarthomej.binding.viessmann.internal.ViessmannBindingConstants.*;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -41,7 +43,6 @@ import org.smarthomej.binding.viessmann.internal.dto.ViessmannMessage;
 import org.smarthomej.binding.viessmann.internal.dto.features.FeatureCommands;
 import org.smarthomej.binding.viessmann.internal.dto.features.FeatureDataDTO;
 import org.smarthomej.binding.viessmann.internal.dto.features.FeatureProperties;
-import org.smarthomej.binding.viessmann.internal.dto.features.ViessmannFeatureMap;
 
 import com.google.gson.Gson;
 
@@ -67,13 +68,12 @@ public class DeviceHandler extends ViessmannThingHandler {
     @Override
     public void initialize() {
         config = getConfigAs(ThingsConfig.class);
-        int l = config.deviceId.length();
-        if (l == 0) {
+        if (config.deviceId.isEmpty()) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "Invalid device id setting");
             return;
         }
-        updateProperty(PROPERTY_ID, String.valueOf(config.deviceId)); // set representation property used by discovery
-        devId = String.valueOf(config.deviceId);
+        updateProperty(PROPERTY_ID, config.deviceId); // set representation property used by discovery
+        devId = config.deviceId;
 
         setPollingDevice();
 
@@ -174,14 +174,6 @@ public class DeviceHandler extends ViessmannThingHandler {
     }
 
     @Override
-    public void channelLinked(ChannelUID channelUID) {
-        // can be overridden by subclasses
-        // standard behavior is to refresh the linked channel,
-        // so the newly linked items will receive a state update.
-        // handleCommand(channelUID, RefreshType.REFRESH);
-    }
-
-    @Override
     public void handleUpdateChannel(ViessmannMessage msg) {
         logger.trace("handleUpdateChannel: {}", msg);
     }
@@ -190,24 +182,24 @@ public class DeviceHandler extends ViessmannThingHandler {
     public void handleUpdate(FeatureDataDTO featureDataDTO) {
         logger.trace("Device handler received update: {}", featureDataDTO);
         ThingMessageDTO msg = new ThingMessageDTO();
-        ViessmannFeatureMap map = new ViessmannFeatureMap();
+        // ViessmannFeatureMap map = new ViessmannFeatureMap();
         if (featureDataDTO.properties != null) {
             devId = featureDataDTO.deviceId;
             msg.setDeviceId(featureDataDTO.deviceId);
             msg.setFeatureClear(featureDataDTO.feature);
-            msg.setFeatureDescription(map.getDescription(featureDataDTO.feature));
+            msg.setFeatureDescription(getFeatureDescription(featureDataDTO.feature));
             FeatureCommands commands = featureDataDTO.commands;
             if (commands != null) {
                 msg.setCommands(commands);
             }
             FeatureProperties prop = featureDataDTO.properties;
-            ArrayList<String> entr = prop.getUsedEntries();
+            List<String> entr = prop.getUsedEntries();
             if (!entr.isEmpty()) {
                 for (String entry : entr) {
                     String valueEntry = "";
                     String typeEntry = "";
                     Boolean bool = false;
-                    String featureName = map.getName(featureDataDTO.feature);
+                    String featureName = getFeatureName(featureDataDTO.feature);
                     switch (entry) {
                         case "value":
                             msg.setFeatureName(featureName);
@@ -403,7 +395,7 @@ public class DeviceHandler extends ViessmannThingHandler {
 
         FeatureCommands commands = msg.getCommands();
         if (commands != null) {
-            ArrayList<String> com = commands.getUsedCommands();
+            List<String> com = commands.getUsedCommands();
             if (!com.isEmpty()) {
                 for (String command : com) {
                     switch (command) {
@@ -490,5 +482,22 @@ public class DeviceHandler extends ViessmannThingHandler {
         Channel channel = callback.createChannelBuilder(channelUID, channelTypeUID).withLabel(msg.getFeatureName())
                 .withDescription(msg.getFeatureDescription()).withProperties(prop).build();
         updateThing(editThing().withoutChannel(channelUID).withChannel(channel).build());
+    }
+
+    private String getFeatureName(String feature) {
+        Pattern pattern = Pattern.compile("(\\.[0-3])");
+        Matcher matcher = pattern.matcher(feature);
+        if (matcher.find()) {
+            String circuit = matcher.group(0);
+            feature = matcher.replaceAll(".N");
+            String name = FEATURES_MAP.get(feature) + " (Circuit: " + circuit.replace(".", "") + ")";
+            return name;
+        }
+        return FEATURES_MAP.getOrDefault(feature, feature);
+    }
+
+    private @Nullable String getFeatureDescription(String feature) {
+        feature.replaceAll("\\.[0-3]", ".N");
+        return FEATURE_DESCRIPTION_MAP.get(feature);
     }
 }

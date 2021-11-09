@@ -1,16 +1,15 @@
 # Viessmann Binding
 
-_This binding connects Viessmann Heatings via the new Viessmann API._
-
-_It provides features like the ViCare-App._
+This binding connects Viessmann Heatings via the new Viessmann API.
+It provides features like the ViCare-App.
 
 ## Note / Important
 
-You have to register your ViCare Account at the Viessmann developer portal and create a API Key (Client ID).
+You have to register your ViCare Account at the Viessmann developer portal and create an API Key (Client ID).
 
 * `name` - `i.e. openhab`
 * `Google reCAPTCHA` - `off`
-* `Redicect URI` - `http://localhost:8080/viessmann-api/authcode/`
+* `Redicect URI` - `http://localhost:8080/viessmann/authcode/`
 
 ## Supported Things
 
@@ -21,7 +20,7 @@ The binding supports the following thing types:
 
 ## Discovery
 
-_It discover all devices wich are connected through your account._
+Discovery is supported for all devices connected in your account.
 
 ## Binding Configuration
 
@@ -32,11 +31,13 @@ The `bridge` thing supports the connection to the Viessmann API.
 * `password` (required) The password which is registered for the ViCare App
 * `installationId` (optional / it will be discovered) The installation Id which belongs to your installation 
 * `gatewaySerial` (optional / it will be discovered) The gateway serial which belongs to your installation
-* `apiTimeout` (default = 22) Time in seconds to allow API request to complete
 * `apiCallLimit` (default = 1450) The limit how often call the API (*) 
 * `bufferApiCommands` (default = 450) The buffer for commands (*)
+* `pollingInterval` (default = 0) How often the available devices should be queried in seconds (**) 
 
-(*) It is used for calcutating the time how often the data is queried in seconds.
+
+(*) Used to calcutate refresh time in seconds.
+(**) If it's set to 0, then the interval will be calculated by the binding
 
 ## Thing Configuration
 
@@ -52,8 +53,5 @@ _All configurations are made in the UI_
 
 ### `device`
 
-_There are many different channels. The channels are automaticaly generaten for all available fetaures_
-
-## Full Example
-
-_TODO_
+There are many different channels.
+The channels are automatically generaten for all available features.

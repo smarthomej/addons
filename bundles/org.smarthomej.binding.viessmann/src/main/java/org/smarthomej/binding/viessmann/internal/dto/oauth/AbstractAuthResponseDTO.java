@@ -24,7 +24,6 @@ public abstract class AbstractAuthResponseDTO {
     /*
      * Error code.
      */
-    @SerializedName("error")
     public String error;
 
     /*

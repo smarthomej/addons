@@ -52,29 +52,29 @@ public class ViessmannApi {
 
     private static final int TOKEN_MIN_DIFF_MS = (int) TimeUnit.DAYS.toMillis(2);
 
-    public static final Properties HTTP_HEADERS;
-    static {
+    public final Properties HTTP_HEADERS;
+    {
         HTTP_HEADERS = new Properties();
         HTTP_HEADERS.put("User-Agent", "openhab-viessmann-api/2.0");
     }
 
-    public static Gson getGson() {
+    public Gson getGson() {
         return GSON;
     }
 
-    private @Nullable static TokenResponseDTO tokenResponse;
+    private @Nullable TokenResponseDTO tokenResponse;
 
-    public static void setTokenResponseDTO(TokenResponseDTO newTokenResponse) {
+    public void setTokenResponseDTO(TokenResponseDTO newTokenResponse) {
         tokenResponse = newTokenResponse;
     }
 
-    public static @Nullable TokenResponseDTO getTokenResponseDTO() throws ViessmannAuthException {
+    public @Nullable TokenResponseDTO getTokenResponseDTO() throws ViessmannAuthException {
         return tokenResponse;
     }
 
-    private static long tokenExpiryDate;
+    private long tokenExpiryDate;
 
-    static void setTokenExpiryDate(long expiresIn) {
+    public void setTokenExpiryDate(long expiresIn) {
         tokenExpiryDate = System.nanoTime() + expiresIn;
     }
 
@@ -92,16 +92,14 @@ public class ViessmannApi {
     private String installationId;
     private String gatewaySerial;
 
-    private int apiTimeout;
     private final HttpClient httpClient;
 
     private @NonNullByDefault({}) ViessmannAuth viessmannAuth;
 
-    public ViessmannApi(final ViessmannBridgeHandler bridgeHandler, final String apiKey, final int apiTimeout,
-            HttpClient httpClient, String user, String password, String installationId, String gatewaySerial) {
+    public ViessmannApi(final ViessmannBridgeHandler bridgeHandler, final String apiKey, HttpClient httpClient,
+            String user, String password, String installationId, String gatewaySerial) {
         this.bridgeHandler = bridgeHandler;
         this.apiKey = apiKey;
-        this.apiTimeout = apiTimeout;
         this.httpClient = httpClient;
         this.user = user;
         this.password = password;
@@ -110,7 +108,7 @@ public class ViessmannApi {
         tokenResponse = null;
         createOAuthClientService();
         isAuthorized();
-        if (installationId == null || gatewaySerial == null) {
+        if (installationId.isEmpty() || gatewaySerial.isEmpty()) {
             setInstallationAndGatewayId();
         }
     }
@@ -118,7 +116,7 @@ public class ViessmannApi {
     public void createOAuthClientService() {
         String bridgeUID = bridgeHandler.getThing().getUID().getAsString();
         logger.debug("API: Creating OAuth Client Service for {}", bridgeUID);
-        viessmannAuth = new ViessmannAuth(bridgeHandler, apiKey, apiTimeout, httpClient, user, password);
+        viessmannAuth = new ViessmannAuth(this, bridgeHandler, apiKey, httpClient, user, password);
     }
 
     /**
@@ -135,22 +133,16 @@ public class ViessmannApi {
                 if (localAccessTokenResponseDTO.accessToken != null) {
                     logger.trace("API: Got AccessTokenResponse from OAuth service: {}", localAccessTokenResponseDTO);
                     logger.debug("Checking if new access token is needed...");
-                    try {
-                        long difference = getTokenExpiryDate() - System.nanoTime();
-                        if (difference <= TOKEN_MIN_DIFF_MS) {
-                            viessmannAuth.setState(ViessmannAuthState.NEED_REFRESH_TOKEN);
-                            viessmannAuth.setRefreshToken(localAccessTokenResponseDTO.refreshToken);
-                        } else {
-                            viessmannAuth.setState(ViessmannAuthState.COMPLETE);
-                        }
-                    } catch (RuntimeException r) {
-                        logger.debug("Could not check token expiry date for Thing {}: {}",
-                                bridgeHandler.getThing().getUID().getAsString(), r.getMessage(), r);
+                    long difference = getTokenExpiryDate() - System.nanoTime();
+                    if (difference <= TOKEN_MIN_DIFF_MS) {
+                        viessmannAuth.setState(ViessmannAuthState.NEED_REFRESH_TOKEN);
+                        viessmannAuth.setRefreshToken(localAccessTokenResponseDTO.refreshToken);
+                    } else {
+                        viessmannAuth.setState(ViessmannAuthState.COMPLETE);
                     }
                     isAuthorized = true;
                 } else {
-                    logger.debug(
-                            "API: Didn't get an AccessTokenResponse from OAuth service - doEcobeeAuthorization!!!");
+                    logger.debug("API: Didn't get an AccessTokenResponse from OAuth service");
                     if (viessmannAuth.isComplete()) {
                         viessmannAuth.setState(ViessmannAuthState.NEED_AUTH);
                     }
@@ -158,13 +150,6 @@ public class ViessmannApi {
             }
             viessmannAuth.doAuthorization();
             isAuthorized = true;
-        } catch (RuntimeException e) {
-            if (logger.isDebugEnabled()) {
-                logger.info("API: Got exception trying to get access token from OAuth service", e);
-            } else {
-                logger.info("API: Got {} trying to get access token from OAuth service: {}",
-                        e.getClass().getSimpleName(), e.getMessage());
-            }
         } catch (ViessmannAuthException e) {
             if (logger.isDebugEnabled()) {
                 logger.info("API: The Viessmann authorization process threw an exception", e);
@@ -182,18 +167,13 @@ public class ViessmannApi {
         try {
             localAccessTokenResponseDTO = getTokenResponseDTO();
             if (localAccessTokenResponseDTO != null) {
-                try {
-                    long difference = getTokenExpiryDate() - System.nanoTime();
-                    if (difference <= TOKEN_MIN_DIFF_MS) {
-                        viessmannAuth.setState(ViessmannAuthState.NEED_REFRESH_TOKEN);
-                        viessmannAuth.setRefreshToken(localAccessTokenResponseDTO.refreshToken);
-                        viessmannAuth.doAuthorization();
-                    } else {
-                        viessmannAuth.setState(ViessmannAuthState.COMPLETE);
-                    }
-                } catch (RuntimeException r) {
-                    logger.debug("Could not check token expiry date for Thing {}: {}",
-                            bridgeHandler.getThing().getUID().getAsString(), r.getMessage(), r);
+                long difference = getTokenExpiryDate() - System.nanoTime();
+                if (difference <= TOKEN_MIN_DIFF_MS) {
+                    viessmannAuth.setState(ViessmannAuthState.NEED_REFRESH_TOKEN);
+                    viessmannAuth.setRefreshToken(localAccessTokenResponseDTO.refreshToken);
+                    viessmannAuth.doAuthorization();
+                } else {
+                    viessmannAuth.setState(ViessmannAuthState.COMPLETE);
                 }
             }
         } catch (ViessmannAuthException e) {
@@ -207,17 +187,15 @@ public class ViessmannApi {
     }
 
     public @Nullable DeviceDTO getAllDevices() {
-        String response = "";
-        response = executeGet(VIESSMANN_BASE_URL + "iot/v1/equipment/installations/" + installationId + "/gateways/"
-                + gatewaySerial + "/devices");
+        String response = executeGet(VIESSMANN_BASE_URL + "iot/v1/equipment/installations/" + installationId
+                + "/gateways/" + gatewaySerial + "/devices");
         DeviceDTO devices = GSON.fromJson(response, DeviceDTO.class);
         return devices;
     }
 
     public @Nullable FeaturesDTO getAllFeatures(String deviceId) {
-        String response = "";
-        response = executeGet(VIESSMANN_BASE_URL + "iot/v1/equipment/installations/" + installationId + "/gateways/"
-                + gatewaySerial + "/devices/" + deviceId + "/features/");
+        String response = executeGet(VIESSMANN_BASE_URL + "iot/v1/equipment/installations/" + installationId
+                + "/gateways/" + gatewaySerial + "/devices/" + deviceId + "/features/");
         if (response != null) {
             FeaturesDTO features = GSON.fromJson(response, FeaturesDTO.class);
             return features;
@@ -239,7 +217,7 @@ public class ViessmannApi {
 
             this.installationId = data.id.toString();
             this.gatewaySerial = gateway.serial;
-            ViessmannBridgeHandler.setInstallationGatewayId(data.id.toString(), gateway.serial);
+            bridgeHandler.setInstallationGatewayId(data.id.toString(), gateway.serial);
         }
     }
 
@@ -252,7 +230,7 @@ public class ViessmannApi {
         try {
             long startTime = System.currentTimeMillis();
             logger.trace("API: Get Request URL is '{}'", url);
-            response = HttpUtil.executeUrl("GET", url, setHeaders(), null, null, apiTimeout);
+            response = HttpUtil.executeUrl("GET", url, setHeaders(), null, null, API_TIMEOUT_MS);
             logger.trace("API: Response took {} msec: {}", System.currentTimeMillis() - startTime, response);
             if (response.indexOf("viErrorId") >= 0) {
                 ViErrorDTO viError = GSON.fromJson(response, ViErrorDTO.class);
@@ -284,7 +262,7 @@ public class ViessmannApi {
             logger.trace("API: Post request json is '{}'", json);
             long startTime = System.currentTimeMillis();
             String response = HttpUtil.executeUrl("POST", url, setHeaders(), new ByteArrayInputStream(json.getBytes()),
-                    "application/json", apiTimeout);
+                    "application/json", API_TIMEOUT_MS);
             logger.trace("API: Response took {} msec: {}", System.currentTimeMillis() - startTime, response);
             if (response.indexOf("viErrorId") >= 0) {
                 ViErrorDTO viError = GSON.fromJson(response, ViErrorDTO.class);

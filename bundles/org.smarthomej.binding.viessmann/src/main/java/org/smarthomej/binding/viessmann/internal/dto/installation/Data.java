@@ -14,9 +14,6 @@ package org.smarthomej.binding.viessmann.internal.dto.installation;
 
 import java.util.List;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
 /**
  * The {@link Data} is responsible for
  *
@@ -24,43 +21,29 @@ import com.google.gson.annotations.SerializedName;
  */
 public class Data {
 
-    @SerializedName("id")
-    @Expose
     public Integer id;
-    @SerializedName("description")
-    @Expose
+
     public String description;
-    @SerializedName("address")
-    @Expose
+
     public Address address;
-    @SerializedName("gateways")
-    @Expose
+
     public List<Gateway> gateways = null;
-    @SerializedName("registeredAt")
-    @Expose
+
     public String registeredAt;
-    @SerializedName("updatedAt")
-    @Expose
+
     public String updatedAt;
-    @SerializedName("aggregatedStatus")
-    @Expose
+
     public String aggregatedStatus;
-    @SerializedName("servicedBy")
-    @Expose
+
     public Object servicedBy;
-    @SerializedName("heatingType")
-    @Expose
+
     public Object heatingType;
-    @SerializedName("ownedByMaintainer")
-    @Expose
+
     public Boolean ownedByMaintainer;
-    @SerializedName("endUserWlanCommissioned")
-    @Expose
+
     public Boolean endUserWlanCommissioned;
-    @SerializedName("withoutViCareUser")
-    @Expose
+
     public Boolean withoutViCareUser;
-    @SerializedName("installationType")
-    @Expose
+
     public String installationType;
 }

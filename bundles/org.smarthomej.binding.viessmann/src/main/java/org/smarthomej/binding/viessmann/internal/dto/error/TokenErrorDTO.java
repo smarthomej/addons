@@ -12,9 +12,6 @@
  */
 package org.smarthomej.binding.viessmann.internal.dto.error;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
 /**
  * The {@link TokenErrorDTO} is responsible for
  *
@@ -22,7 +19,5 @@ import com.google.gson.annotations.SerializedName;
  */
 public class TokenErrorDTO {
 
-    @SerializedName("error")
-    @Expose
     public String error;
 }

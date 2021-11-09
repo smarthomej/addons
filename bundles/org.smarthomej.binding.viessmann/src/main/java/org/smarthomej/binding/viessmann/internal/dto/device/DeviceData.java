@@ -14,9 +14,6 @@ package org.smarthomej.binding.viessmann.internal.dto.device;
 
 import java.util.List;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
 /**
  * The {@link DeviceData} is responsible for
  *
@@ -24,40 +21,27 @@ import com.google.gson.annotations.SerializedName;
  */
 public class DeviceData {
 
-    @SerializedName("gatewaySerial")
-    @Expose
     public String gatewaySerial;
-    @SerializedName("id")
-    @Expose
+
     public String id;
-    @SerializedName("boilerSerial")
-    @Expose
+
     public String boilerSerial;
-    @SerializedName("boilerSerialEditor")
-    @Expose
+
     public String boilerSerialEditor;
-    @SerializedName("bmuSerial")
-    @Expose
+
     public String bmuSerial;
-    @SerializedName("bmuSerialEditor")
-    @Expose
+
     public String bmuSerialEditor;
-    @SerializedName("createdAt")
-    @Expose
+
     public String createdAt;
-    @SerializedName("editedAt")
-    @Expose
+
     public String editedAt;
-    @SerializedName("modelId")
-    @Expose
+
     public String modelId;
-    @SerializedName("status")
-    @Expose
+
     public String status;
-    @SerializedName("deviceType")
-    @Expose
+
     public String deviceType;
-    @SerializedName("roles")
-    @Expose
+
     public List<String> roles = null;
 }
