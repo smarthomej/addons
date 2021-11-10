@@ -80,6 +80,14 @@ public class MotionSensorProfile implements StateProfile {
 
         startTimeInMinutes = parseTimeConfigValue(config.start, PARAM_START);
         endTimeInMinutes = parseTimeConfigValue(config.end, PARAM_END);
+        // We have to do this here, otherwise the comparison in getOnValue() does not work. A range beyond midnight
+        // (e.g. start="23:00", end="01:00") are not yet supported.
+        if (endTimeInMinutes <= startTimeInMinutes) {
+            String message = String.format("Parameter '%s' (%s) is earlier than or equal to parameter '%s' (%s).",
+                    PARAM_END, config.end, PARAM_START, config.start);
+            logger.warn(message);
+            throw new IllegalArgumentException(message);
+        }
 
         restoreValue = config.restoreValue;
     }
@@ -140,7 +148,7 @@ public class MotionSensorProfile implements StateProfile {
             return;
         }
 
-        PercentType newCommand = state == OnOffType.OFF ? getOffValue() : getOnValue();
+        PercentType newCommand = OnOffType.OFF.equals(state) ? getOffValue() : getOnValue();
         if (newCommand != null) {
             logger.debug("Forward new command '{}' to the respective thing handler.", newCommand);
             if (CONFIG_RESTORE_VALUE_PREVIOUS.equals(restoreValue)) {
@@ -158,7 +166,7 @@ public class MotionSensorProfile implements StateProfile {
             return;
         }
 
-        PercentType newCommand = command == OnOffType.OFF ? getOffValue() : getOnValue();
+        PercentType newCommand = OnOffType.OFF.equals(command) ? getOffValue() : getOnValue();
         if (newCommand != null) {
             logger.debug("Send new command '{}' to the framework.", newCommand);
             if (CONFIG_RESTORE_VALUE_PREVIOUS.equals(restoreValue)) {
