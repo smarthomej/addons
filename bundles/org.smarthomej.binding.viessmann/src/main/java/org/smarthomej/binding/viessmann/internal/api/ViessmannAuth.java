@@ -257,8 +257,8 @@ public class ViessmannAuth {
         request.method(method);
         String authorization = new String(Base64.getEncoder().encode((user + ":" + password).getBytes()),
                 StandardCharsets.UTF_8);
-        api.HTTP_HEADERS.put("Authorization", "Basic " + authorization);
-        api.HTTP_HEADERS.forEach((k, v) -> request.header((String) k, (String) v));
+        api.httpHeaders.put("Authorization", "Basic " + authorization);
+        api.httpHeaders.forEach((k, v) -> request.header((String) k, (String) v));
         try {
             ContentResponse contentResponse = request.send();
             switch (contentResponse.getStatus()) {

@@ -52,10 +52,10 @@ public class ViessmannApi {
 
     private static final int TOKEN_MIN_DIFF_MS = (int) TimeUnit.DAYS.toMillis(2);
 
-    public final Properties HTTP_HEADERS;
+    public final Properties httpHeaders;
     {
-        HTTP_HEADERS = new Properties();
-        HTTP_HEADERS.put("User-Agent", "openhab-viessmann-api/2.0");
+        httpHeaders = new Properties();
+        httpHeaders.put("User-Agent", "openhab-viessmann-api/2.0");
     }
 
     public Gson getGson() {
@@ -299,7 +299,7 @@ public class ViessmannApi {
             throw new ViessmannAuthException("Can not set auth header because access token is null");
         }
         Properties headers = new Properties();
-        headers.putAll(HTTP_HEADERS);
+        headers.putAll(httpHeaders);
         headers.put("Authorization", "Bearer " + atr.accessToken);
         return headers;
     }
