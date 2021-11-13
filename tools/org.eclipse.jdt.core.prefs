@@ -21,5 +21,5 @@ org.eclipse.jdt.core.compiler.problem.redundantNullAnnotation=warning
 org.eclipse.jdt.core.compiler.problem.redundantNullCheck=warning
 org.eclipse.jdt.core.compiler.problem.suppressOptionalErrors=disabled
 org.eclipse.jdt.core.compiler.problem.suppressWarnings=enabled
-org.eclipse.jdt.core.compiler.problem.suppressWarningsNotFullyAnalysed=info
+org.eclipse.jdt.core.compiler.problem.suppressWarningsNotFullyAnalysed=ignore
 org.eclipse.jdt.core.compiler.problem.syntacticNullAnalysisForFields=disabled
