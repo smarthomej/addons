@@ -62,10 +62,9 @@ Switch debouncedSwitch { channel="xxx" [profile="basic-profiles:debounce-countin
 ## Debounce (Time) Profile
 
 In `LAST` mode this profile delays commands or state updates for a configured number of milliseconds and only send the value if no other value is received with that timespan.
-In `FIRST` mode this profile discards values for the configured time after a value is send. 
+In `FIRST` mode this profile discards values for the configured time after a value is send.
 
 It can be used to debounce Item States/Commands or prevent excessive load on networks.
-
 
 ### Configuration
 
@@ -144,4 +143,37 @@ This profile is a shortcut for the System Hysteresis Profile.
 
 ```java
 Switch thresholdItem { channel="xxx" [profile="basic-profiles:threshold", threshold=15] }
+```
+
+## Time Range Command Profile
+
+This is an enhanced implementation of a follow profile which converts `OnOffType` to a `PercentType`.
+The value of the percent type can be different between a specific time of the day.
+A possible use-case is switching lights (using a presence detector) with different intensities at day and at night.
+Be aware: a range beyond midnight (e.g. start="23:00", end="01:00") is not yet supported.
+
+### Configuration
+
+| Configuration Parameter | Type    | Description                                                                                                                                       |
+|-------------------------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+| `inRangeValue`          | integer | The value which will be send when the profile detects ON and current time is between start time and end time (default: 100, min: 0, max: 100).    |
+| `outOfRangeValue`       | integer | The value which will be send when the profile detects ON and current time is NOT between start time and end time (default: 30, min: 0, max: 100). |
+| `start`                 | text    | The start time of the day (hh:mm).                                                                                                                |
+| `end`                   | text    | The end time of the day (hh:mm).                                                                                                                  |
+| `restoreValue`          | text    | Select what should happen when the profile detects OFF again (default: OFF).                                                                      |
+
+Possible values for parameter `restoreValue`:
+
+- `OFF` - Turn the light off
+- `NOTHING` - Do nothing
+- `PREVIOUS` - Return to previous value
+- `0` - `100` - Set a user-defined percent value
+
+### Full Example
+
+```Java
+Switch motionSensorFirstFloor {
+    channel="deconz:presencesensor:XXX:YYY:presence",
+    channel="deconz:colortemperaturelight:AAA:BBB:brightness" [profile="basic-profiles:time-range-command", inRangeValue=100, outOfRangeValue=15, start="08:00", end="23:00", restoreValue="PREVIOUS"]
+}
 ```
