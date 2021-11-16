@@ -146,20 +146,22 @@ This profile is a shortcut for the System Hysteresis Profile.
 Switch thresholdItem { channel="xxx" [profile="basic-profiles:threshold", threshold=15] }
 ```
 
-## Motion Sensor Profile
+## Time Range Command Profile
 
 This is an enhanced implementation of a follow profile which converts `OnOffType` to a `PercentType`.
-The value of the percent type can be different between a specific time of the day (e.g. night).
+The value of the percent type can be different between a specific time of the day.
+A possible use-case is switching lights (using a presence detector) with different intensities at day and at night.
+Be aware: a range beyond midnight (e.g. start="23:00", end="01:00") is not yet supported.
 
 ### Configuration
 
-| Configuration Parameter | Type    | Description                                                                                            |
-|-------------------------|---------|--------------------------------------------------------------------------------------------------------|
-| `dayValue`              | integer | The value which will be send when motion is detected during the day (default: 100, min: 0, max: 100).  |
-| `nightValue`            | integer | The value which will be send when motion is detected during the night (default: 30, min: 0, max: 100). |
-| `start`                 | text    | The start time of the day (hh:mm).                                                                     |
-| `end`                   | text    | The end time of the day (hh:mm).                                                                       |
-| `restoreValue`          | text    | Select what should happen when there is no motion anymore (default: OFF).                              |
+| Configuration Parameter | Type    | Description                                                                                                                                       |
+|-------------------------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+| `inRangeValue`          | integer | The value which will be send when the profile detects ON and current time is between start time and end time (default: 100, min: 0, max: 100).    |
+| `outOfRangeValue`       | integer | The value which will be send when the profile detects ON and current time is NOT between start time and end time (default: 30, min: 0, max: 100). |
+| `start`                 | text    | The start time of the day (hh:mm).                                                                                                                |
+| `end`                   | text    | The end time of the day (hh:mm).                                                                                                                  |
+| `restoreValue`          | text    | Select what should happen when the profile detects OFF again (default: OFF).                                                                      |
 
 Possible values for parameter `restoreValue`:
 
@@ -173,6 +175,6 @@ Possible values for parameter `restoreValue`:
 ```Java
 Switch motionSensorFirstFloor {
     channel="deconz:presencesensor:XXX:YYY:presence",
-    channel="deconz:colortemperaturelight:AAA:BBB:brightness" [profile="basic-profiles:motion-sensor", dayValue=100, nightValue=15, start="08:00", end="23:00, restoreValue="PREVIOUS"]
+    channel="deconz:colortemperaturelight:AAA:BBB:brightness" [profile="basic-profiles:time-range-command", inRangeValue=100, outOfRangeValue=15, start="08:00", end="23:00", restoreValue="PREVIOUS"]
 }
 ```

@@ -12,7 +12,7 @@
  */
 package org.smarthomej.transform.basicprofiles.internal.profiles;
 
-import static org.smarthomej.transform.basicprofiles.internal.factory.BasicProfilesFactory.MOTION_SENSOR_UID;
+import static org.smarthomej.transform.basicprofiles.internal.factory.BasicProfilesFactory.TIME_RANGE_COMMAND_UID;
 
 import java.time.Duration;
 import java.time.ZoneId;
@@ -33,22 +33,22 @@ import org.openhab.core.types.Command;
 import org.openhab.core.types.State;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthomej.transform.basicprofiles.internal.config.MotionSensorProfileConfig;
+import org.smarthomej.transform.basicprofiles.internal.config.TimeRangeCommandProfileConfig;
 
 /**
  * This is an enhanced implementation of a follow profile which converts {@link OnOffType} to a {@link PercentType}.
- * The value of the percent type can be different between a specific time of the day (e.g. night).
+ * The value of the percent type can be different between a specific time of the day.
  *
  * @author Christoph Weitkamp - Initial contribution
  */
 @NonNullByDefault
-public class MotionSensorProfile implements StateProfile {
+public class TimeRangeCommandProfile implements StateProfile {
 
     private static final Pattern HHMM_PATTERN = Pattern.compile("^([0-1][0-9]|2[0-3])(:[0-5][0-9])$");
     private static final String TIME_SEPARATOR = ":";
 
-    private static final String PARAM_DAY_VALUE = "dayValue";
-    private static final String PARAM_NIGHT_VALUE = "nightValue";
+    private static final String PARAM_IN_RANGE_VALUE = "inRangeValue";
+    private static final String PARAM_OUT_OF_RANGE_VALUE = "outOfRangeValue";
     public static final String PARAM_START = "start";
     public static final String PARAM_END = "end";
 
@@ -56,11 +56,11 @@ public class MotionSensorProfile implements StateProfile {
     private static final String CONFIG_RESTORE_VALUE_PREVIOUS = "PREVIOUS";
     private static final String CONFIG_RESTORE_VALUE_NOTHING = "NOTHING";
 
-    private final Logger logger = LoggerFactory.getLogger(MotionSensorProfile.class);
+    private final Logger logger = LoggerFactory.getLogger(TimeRangeCommandProfile.class);
     private final ProfileCallback callback;
 
-    private final PercentType dayValue;
-    private final PercentType nightValue;
+    private final PercentType inRangeValue;
+    private final PercentType outOfRangeValue;
     private final long startTimeInMinutes;
     private final long endTimeInMinutes;
     private final String restoreValue;
@@ -68,20 +68,20 @@ public class MotionSensorProfile implements StateProfile {
     private @Nullable PercentType previousState;
     private @Nullable PercentType restoreState;
 
-    public MotionSensorProfile(ProfileCallback callback, ProfileContext context) {
+    public TimeRangeCommandProfile(ProfileCallback callback, ProfileContext context) {
         this.callback = callback;
-        MotionSensorProfileConfig config = context.getConfiguration().as(MotionSensorProfileConfig.class);
+        TimeRangeCommandProfileConfig config = context.getConfiguration().as(TimeRangeCommandProfileConfig.class);
         logger.debug(
-                "Configuring profile with parameters: [{dayValue='{}', nightValue='{}', start='{}', end='{}', restoreValue='{}']",
-                config.dayValue, config.nightValue, config.start, config.end, config.restoreValue);
+                "Configuring profile with parameters: [{inRangeValue='{}', outOfRangeValue='{}', start='{}', end='{}', restoreValue='{}']",
+                config.inRangeValue, config.outOfRangeValue, config.start, config.end, config.restoreValue);
 
-        dayValue = parsePercentTypeConfigValue(config.dayValue, PARAM_DAY_VALUE);
-        nightValue = parsePercentTypeConfigValue(config.nightValue, PARAM_NIGHT_VALUE);
+        inRangeValue = parsePercentTypeConfigValue(config.inRangeValue, PARAM_IN_RANGE_VALUE);
+        outOfRangeValue = parsePercentTypeConfigValue(config.outOfRangeValue, PARAM_OUT_OF_RANGE_VALUE);
 
         startTimeInMinutes = parseTimeConfigValue(config.start, PARAM_START);
         endTimeInMinutes = parseTimeConfigValue(config.end, PARAM_END);
         // We have to do this here, otherwise the comparison in getOnValue() does not work. A range beyond midnight
-        // (e.g. start="23:00", end="01:00") are not yet supported.
+        // (e.g. start="23:00", end="01:00") is not yet supported.
         if (endTimeInMinutes <= startTimeInMinutes) {
             String message = String.format("Parameter '%s' (%s) is earlier than or equal to parameter '%s' (%s).",
                     PARAM_END, config.end, PARAM_START, config.start);
@@ -138,7 +138,7 @@ public class MotionSensorProfile implements StateProfile {
 
     @Override
     public ProfileTypeUID getProfileTypeUID() {
-        return MOTION_SENSOR_UID;
+        return TIME_RANGE_COMMAND_UID;
     }
 
     @Override
@@ -202,8 +202,8 @@ public class MotionSensorProfile implements StateProfile {
         ZonedDateTime now = ZonedDateTime.now().withZoneSameInstant(ZoneId.systemDefault());
         ZonedDateTime today = now.truncatedTo(ChronoUnit.DAYS);
         return now.isAfter(today.plusMinutes(startTimeInMinutes)) && now.isBefore(today.plusMinutes(endTimeInMinutes))
-                ? dayValue
-                : nightValue;
+                ? inRangeValue
+                : outOfRangeValue;
     }
 
     @Override

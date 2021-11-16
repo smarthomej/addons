@@ -13,18 +13,18 @@
 package org.smarthomej.transform.basicprofiles.internal.config;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.smarthomej.transform.basicprofiles.internal.profiles.MotionSensorProfile;
+import org.smarthomej.transform.basicprofiles.internal.profiles.TimeRangeCommandProfile;
 
 /**
- * Configuration for {@link MotionSensorProfile}.
+ * Configuration for {@link TimeRangeCommandProfile}.
  *
  * @author Christoph Weitkamp - Initial contribution
  */
 @NonNullByDefault
-public class MotionSensorProfileConfig {
-    public int dayValue = 100;
-    public int nightValue = 30;
+public class TimeRangeCommandProfileConfig {
+    public int inRangeValue = 100;
+    public int outOfRangeValue = 30;
     public @NonNullByDefault({}) String start;
     public @NonNullByDefault({}) String end;
-    public String restoreValue = MotionSensorProfile.CONFIG_RESTORE_VALUE_OFF;
+    public String restoreValue = TimeRangeCommandProfile.CONFIG_RESTORE_VALUE_OFF;
 }
