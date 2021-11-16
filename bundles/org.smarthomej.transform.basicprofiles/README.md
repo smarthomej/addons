@@ -62,10 +62,9 @@ Switch debouncedSwitch { channel="xxx" [profile="basic-profiles:debounce-countin
 ## Debounce (Time) Profile
 
 In `LAST` mode this profile delays commands or state updates for a configured number of milliseconds and only send the value if no other value is received with that timespan.
-In `FIRST` mode this profile discards values for the configured time after a value is send. 
+In `FIRST` mode this profile discards values for the configured time after a value is send.
 
 It can be used to debounce Item States/Commands or prevent excessive load on networks.
-
 
 ### Configuration
 

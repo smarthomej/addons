@@ -37,9 +37,9 @@ import org.openhab.core.thing.profiles.ProfileTypeUID;
 import org.openhab.core.thing.profiles.i18n.ProfileTypeI18nLocalizationService;
 import org.openhab.core.util.BundleResolver;
 import org.smarthomej.transform.basicprofiles.internal.profiles.GenericCommandTriggerProfile;
-import org.smarthomej.transform.basicprofiles.internal.profiles.TimeRangeCommandProfile;
 import org.smarthomej.transform.basicprofiles.internal.profiles.RoundStateProfile;
 import org.smarthomej.transform.basicprofiles.internal.profiles.ThresholdStateProfile;
+import org.smarthomej.transform.basicprofiles.internal.profiles.TimeRangeCommandProfile;
 
 /**
  * Basic unit tests for {@link BasicProfilesFactory}.
