@@ -297,11 +297,9 @@ public class ViessmannBridgeHandler extends BaseBridgeHandler {
     private void notifyChildHandlers(FeatureDataDTO msg) {
         for (Thing thing : getThing().getThings()) {
             ViessmannThingHandler handler = (ViessmannThingHandler) thing.getHandler();
-            //@formatter:off
             if (handler instanceof DeviceHandler && msg instanceof FeatureDataDTO) {
                 handler.handleUpdate(msg);
             }
-            //@formatter:on
         }
     }
 
