@@ -18,22 +18,13 @@ package org.smarthomej.binding.viessmann.internal.dto.installation;
  * @author Ronny Grun - Initial contribution
  */
 public class Address {
-
     public String street;
-
     public String houseNumber;
-
     public String zip;
-
     public String city;
-
     public Object region;
-
     public String country;
-
     public Object phoneNumber;
-
     public Object faxNumber;
-
     public Geolocation geolocation;
 }

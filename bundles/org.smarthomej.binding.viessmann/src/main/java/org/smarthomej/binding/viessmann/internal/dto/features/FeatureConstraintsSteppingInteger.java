@@ -18,10 +18,7 @@ package org.smarthomej.binding.viessmann.internal.dto.features;
  * @author Ronny Grun - Initial contribution
  */
 public class FeatureConstraintsSteppingInteger {
-
     public Integer min;
-
     public Integer max;
-
     public Integer stepping;
 }

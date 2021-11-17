@@ -20,6 +20,5 @@ import java.util.List;
  * @author Ronny Grun - Initial contribution
  */
 public class FeaturesDTO {
-
     public List<FeatureDataDTO> data = null;
 }

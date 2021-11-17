@@ -20,32 +20,20 @@ import java.util.ArrayList;
  * @author Ronny Grun - Initial contribution
  */
 public class FeatureCommands {
-
     public FeatureSetName setName;
-
     public FeatureSetCurve setCurve;
-
     public FeatureSetSchedule setSchedule;
-
     public FeatureSetMode setMode;
-
     public FeatureSetTemperature setTemperature;
-
     public FeatureDefaultCommands activate;
-
     public FeatureDefaultCommands deactivate;
-
     public FeatureChangeEndDate changeEndDate;
-
     public FeatureSchedule schedule;
-
     public FeatureDefaultCommands unschedule;
-
     public FeatureSetTargetTemperature setTargetTemperature;
 
     public ArrayList<String> getUsedCommands() {
         ArrayList<String> list = new ArrayList<String>();
-
         if (setName != null) {
             list.add("setName");
         }

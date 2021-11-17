@@ -22,17 +22,11 @@ import java.time.ZonedDateTime;
  * @author Ronny Grun - Initial contribution
  */
 public class ExtendedPayload {
-
     private String reason;
-
     private String name;
-
     private Integer requestCountLimit;
-
     private String clientId;
-
     private String userId;
-
     private Long limitReset;
 
     public String getReason() {

@@ -18,12 +18,8 @@ package org.smarthomej.binding.viessmann.internal.dto.features;
  * @author Ronny Grun - Initial contribution
  */
 public class FeatureSetSchedule {
-
     public String uri;
-
     public String name;
-
     public Boolean isExecutable;
-
     public FeatureSetScheduleParams params;
 }

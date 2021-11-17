@@ -18,12 +18,8 @@ package org.smarthomej.binding.viessmann.internal.dto.features;
  * @author Ronny Grun - Initial contribution
  */
 public class FeatureSetTargetTemperature {
-
     public String uri;
-
     public String name;
-
     public Boolean isExecutable;
-
     public FeatureSetTargetTemperatureParams params;
 }

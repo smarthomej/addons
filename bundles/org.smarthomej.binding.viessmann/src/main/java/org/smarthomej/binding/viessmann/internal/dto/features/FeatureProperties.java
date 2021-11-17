@@ -20,47 +20,26 @@ import java.util.ArrayList;
  * @author Ronny Grun - Initial contribution
  */
 public class FeatureProperties {
-
     public FeatureString value;
-
     public FeatureString status;
-
     public FeatureBoolean active;
-
     public FeatureString name;
-
     public FeatureInteger shift;
-
     public FeatureDouble slope;
-
     public FeatureEntriesWeekDays entries;
-
     public FeatureBoolean overlapAllowed;
-
     public FeatureInteger temperature;
-
     public FeatureString start;
-
     public FeatureString end;
-
     public FeatureInteger top;
-
     public FeatureInteger middle;
-
     public FeatureInteger bottom;
-
     public FeatureListDouble day;
-
     public FeatureListDouble week;
-
     public FeatureListDouble month;
-
     public FeatureListDouble year;
-
     public FeatureString unit;
-
     public FeatureDouble hours;
-
     public FeatureInteger starts;
 
     public ArrayList<String> getUsedEntries() {

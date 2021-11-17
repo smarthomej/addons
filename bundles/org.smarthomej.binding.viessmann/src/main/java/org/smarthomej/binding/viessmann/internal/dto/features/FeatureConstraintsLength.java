@@ -18,8 +18,6 @@ package org.smarthomej.binding.viessmann.internal.dto.features;
  * @author Ronny Grun - Initial contribution
  */
 public class FeatureConstraintsLength {
-
     public Integer minLength;
-
     public Integer maxLength;
 }

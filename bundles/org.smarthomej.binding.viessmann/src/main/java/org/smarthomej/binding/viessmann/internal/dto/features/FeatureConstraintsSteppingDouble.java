@@ -18,10 +18,7 @@ package org.smarthomej.binding.viessmann.internal.dto.features;
  * @author Ronny Grun - Initial contribution
  */
 public class FeatureConstraintsSteppingDouble {
-
     public Double min;
-
     public Double max;
-
     public Double stepping;
 }

@@ -20,26 +20,15 @@ import java.util.List;
  * @author Ronny Grun - Initial contribution
  */
 public class FeatureDataDTO {
-
     public Integer apiVersion;
-
     public Boolean isEnabled;
-
     public Boolean isReady;
-
     public String gatewayId;
-
     public String feature;
-
     public String uri;
-
     public String deviceId;
-
     public String timestamp;
-
     public FeatureProperties properties;
-
     public FeatureCommands commands;
-
     public List<String> components = null;
 }

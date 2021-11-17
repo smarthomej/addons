@@ -18,10 +18,7 @@ package org.smarthomej.binding.viessmann.internal.dto.installation;
  * @author Ronny Grun - Initial contribution
  */
 public class Geolocation {
-
     public Double latitude;
-
     public Double longitude;
-
     public String timeZone;
 }

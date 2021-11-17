@@ -20,12 +20,8 @@ import java.util.List;
  * @author Ronny Grun - Initial contribution
  */
 public class FeatureConstraintsSchedule {
-
     public Integer maxEntries;
-
     public Integer resolution;
-
     public List<String> modes = null;
-
     public String defaultMode;
 }

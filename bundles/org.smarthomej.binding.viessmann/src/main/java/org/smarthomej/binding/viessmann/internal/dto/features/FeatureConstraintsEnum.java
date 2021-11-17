@@ -20,6 +20,5 @@ import java.util.List;
  * @author Ronny Grun - Initial contribution
  */
 public class FeatureConstraintsEnum {
-
     public List<String> enum1 = null;
 }

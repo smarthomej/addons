@@ -18,10 +18,7 @@ package org.smarthomej.binding.viessmann.internal.dto.features;
  * @author Ronny Grun - Initial contribution
  */
 public class FeatureDouble {
-
     public String type;
-
     public Double value;
-
     public String unit;
 }

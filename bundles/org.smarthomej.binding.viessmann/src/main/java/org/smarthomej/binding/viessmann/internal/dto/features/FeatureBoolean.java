@@ -18,8 +18,6 @@ package org.smarthomej.binding.viessmann.internal.dto.features;
  * @author Ronny Grun - Initial contribution
  */
 public class FeatureBoolean {
-
     public String type;
-
     public Boolean value;
 }

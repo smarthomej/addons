@@ -20,8 +20,6 @@ import java.util.List;
  * @author Ronny Grun - Initial contribution
  */
 public class InstallationDTO {
-
     public List<Data> data = null;
-
     public Cursor cursor;
 }

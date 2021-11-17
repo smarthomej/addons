@@ -20,25 +20,15 @@ import org.smarthomej.binding.viessmann.internal.dto.features.FeatureCommands;
  * @author Ronny Grun - Initial contribution
  */
 public class ThingMessageDTO {
-
     private String type;
-
     private String channelType;
-
     private String uom;
-
     private String value;
-
     private String feature;
-
     private String featureClear;
-
     private String featureName;
-
     private String featureDescription;
-
     private String deviceId;
-
     private FeatureCommands commands;
 
     public String getType() {

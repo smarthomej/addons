@@ -12,15 +12,11 @@
  */
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
-import com.google.gson.annotations.Expose;
-
 /**
  * The {@link FeatureSetNameParams} is responsible for
  *
  * @author Ronny Grun - Initial contribution
  */
 public class FeatureSetNameParams {
-
-    @Expose
     FeatureParamsName name;
 }

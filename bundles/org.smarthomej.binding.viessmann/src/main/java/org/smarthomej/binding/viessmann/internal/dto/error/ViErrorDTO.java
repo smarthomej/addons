@@ -18,15 +18,10 @@ package org.smarthomej.binding.viessmann.internal.dto.error;
  * @author Ronny Grun - Initial contribution
  */
 public class ViErrorDTO {
-
     private String viErrorId;
-
     private Integer statusCode;
-
     private String errorType;
-
     private String message;
-
     private ExtendedPayload extendedPayload;
 
     public String getViErrorId() {

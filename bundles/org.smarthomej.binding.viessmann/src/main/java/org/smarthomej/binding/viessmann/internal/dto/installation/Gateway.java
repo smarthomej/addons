@@ -20,32 +20,18 @@ import java.util.List;
  * @author Ronny Grun - Initial contribution
  */
 public class Gateway {
-
     public String serial;
-
     public String version;
-
     public Integer firmwareUpdateFailureCounter;
-
     public Boolean autoUpdate;
-
     public String createdAt;
-
     public String producedAt;
-
     public String lastStatusChangedAt;
-
     public String aggregatedStatus;
-
     public String targetRealm;
-
     public List<Device> devices = null;
-
     public String gatewayType;
-
     public Integer installationId;
-
     public String registeredAt;
-
     public Object description;
 }

@@ -18,6 +18,5 @@ package org.smarthomej.binding.viessmann.internal.dto.error;
  * @author Ronny Grun - Initial contribution
  */
 public class TokenErrorDTO {
-
     public String error;
 }

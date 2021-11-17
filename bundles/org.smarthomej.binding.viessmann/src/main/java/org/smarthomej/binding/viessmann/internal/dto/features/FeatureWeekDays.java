@@ -20,18 +20,11 @@ import java.util.List;
  * @author Ronny Grun - Initial contribution
  */
 public class FeatureWeekDays {
-
     public List<FeatureDay> mon = null;
-
     public List<FeatureDay> tue = null;
-
     public List<FeatureDay> wed = null;
-
     public List<FeatureDay> thu = null;
-
     public List<FeatureDay> fri = null;
-
     public List<FeatureDay> sat = null;
-
     public List<FeatureDay> sun = null;
 }

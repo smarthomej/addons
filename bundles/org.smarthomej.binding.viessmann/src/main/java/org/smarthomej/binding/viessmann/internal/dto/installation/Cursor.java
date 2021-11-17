@@ -18,6 +18,5 @@ package org.smarthomej.binding.viessmann.internal.dto.installation;
  * @author Ronny Grun - Initial contribution
  */
 public class Cursor {
-
     public String next;
 }

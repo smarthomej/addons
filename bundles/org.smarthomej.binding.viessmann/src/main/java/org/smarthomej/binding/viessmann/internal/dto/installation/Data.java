@@ -15,35 +15,22 @@ package org.smarthomej.binding.viessmann.internal.dto.installation;
 import java.util.List;
 
 /**
- * The {@link Data} is responsible for
+ * * The {@link Data} is responsible for
  *
  * @author Ronny Grun - Initial contribution
  */
 public class Data {
-
     public Integer id;
-
     public String description;
-
     public Address address;
-
     public List<Gateway> gateways = null;
-
     public String registeredAt;
-
     public String updatedAt;
-
     public String aggregatedStatus;
-
     public Object servicedBy;
-
     public Object heatingType;
-
     public Boolean ownedByMaintainer;
-
     public Boolean endUserWlanCommissioned;
-
     public Boolean withoutViCareUser;
-
     public String installationType;
 }

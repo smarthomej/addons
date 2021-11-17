@@ -18,10 +18,7 @@ package org.smarthomej.binding.viessmann.internal.dto.features;
  * @author Ronny Grun - Initial contribution
  */
 public class FeatureMode {
-
     public Boolean required;
-
     public String type;
-
     public FeatureConstraintsEnum constraints;
 }

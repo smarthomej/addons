@@ -20,8 +20,6 @@ import java.util.List;
  * @author Ronny Grun - Initial contribution
  */
 public class FeatureListDouble {
-
     public String type;
-
     public List<Double> value = null;
 }

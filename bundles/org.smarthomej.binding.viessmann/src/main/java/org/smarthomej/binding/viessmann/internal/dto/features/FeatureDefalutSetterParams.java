@@ -12,19 +12,13 @@
  */
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
-import com.google.gson.annotations.Expose;
-
 /**
  * The {@link FeatureDefalutSetterParams} is responsible for
  *
  * @author Ronny Grun - Initial contribution
  */
 public class FeatureDefalutSetterParams {
-
-    @Expose
     Boolean required;
-    @Expose
     String type;
-    @Expose
     public FeatureConstraintsSteppingInteger constraints;
 }

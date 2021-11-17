@@ -18,8 +18,6 @@ package org.smarthomej.binding.viessmann.internal.dto.features;
  * @author Ronny Grun - Initial contribution
  */
 public class FeatureEntriesWeekDays {
-
     public String type;
-
     public FeatureWeekDays value;
 }

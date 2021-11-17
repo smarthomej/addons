@@ -20,28 +20,16 @@ import java.util.List;
  * @author Ronny Grun - Initial contribution
  */
 public class DeviceData {
-
     public String gatewaySerial;
-
     public String id;
-
     public String boilerSerial;
-
     public String boilerSerialEditor;
-
     public String bmuSerial;
-
     public String bmuSerialEditor;
-
     public String createdAt;
-
     public String editedAt;
-
     public String modelId;
-
     public String status;
-
     public String deviceType;
-
     public List<String> roles = null;
 }

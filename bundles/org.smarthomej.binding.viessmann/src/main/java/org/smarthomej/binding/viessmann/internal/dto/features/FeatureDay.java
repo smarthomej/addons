@@ -18,12 +18,8 @@ package org.smarthomej.binding.viessmann.internal.dto.features;
  * @author Ronny Grun - Initial contribution
  */
 public class FeatureDay {
-
     public String start;
-
     public String end;
-
     public String mode;
-
     public Integer position;
 }
