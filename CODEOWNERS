@@ -20,6 +20,7 @@
 /bundles/org.smarthomej.binding.tcpudp/ @J-N-K
 /bundles/org.smarthomej.binding.telenot/ @rogrun
 /bundles/org.smarthomej.binding.tr064/ @J-N-K
+/bundles/org.smarthomej.binding.viessmann/ @rogrun
 /bundles/org.smarthomej.commons/ @J-N-K
 /bundles/org.smarthomej.io.repomanager/ @J-N-K
 /bundles/org.smarthomej.persistence.influxdb/ @J-N-K
