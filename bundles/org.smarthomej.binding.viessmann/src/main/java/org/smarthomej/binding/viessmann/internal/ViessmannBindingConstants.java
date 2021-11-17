@@ -56,12 +56,10 @@ public class ViessmannBindingConstants {
     public static final int API_TIMEOUT_MS = 20000;
     public static final String PROPERTY_ID = "deviceId";
 
-    public static final Map<String, String> FEATURES_MAP = readPropertiesFile("features.properties").entrySet().stream()
-            .collect(Collectors.toMap(e -> e.getKey(), Map.Entry::getValue));
+    public static final Map<String, String> FEATURES_MAP = readPropertiesFile("features.properties");
 
     public static final Map<String, String> FEATURE_DESCRIPTION_MAP = readPropertiesFile(
-            "featuresDescription.properties").entrySet().stream()
-                    .collect(Collectors.toMap(e -> e.getKey(), Map.Entry::getValue));
+            "featuresDescription.properties");
 
     public static Map<String, String> readPropertiesFile(String filename) {
         InputStream resource = Thread.currentThread().getContextClassLoader().getResourceAsStream(filename);

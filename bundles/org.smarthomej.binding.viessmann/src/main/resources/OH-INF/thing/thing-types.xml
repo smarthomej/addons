@@ -65,7 +65,6 @@
 		</supported-bridge-type-refs>
 
 		<label>Viessmann Device</label>
-		<description>Viessmann Device</description>
 
 		<representation-property>deviceId</representation-property>
 
@@ -81,23 +80,20 @@
 	<channel-type id="type-temperature">
 		<item-type>Number:Temperature</item-type>
 		<label>Temperature</label>
-		<description>Current temperature</description>
 		<category>Temperature</category>
 		<state pattern="%.1f %unit%" readOnly="true"/>
 	</channel-type>
 
 	<channel-type id="type-settemperature">
 		<item-type>Number:Temperature</item-type>
-		<label>Temperature</label>
-		<description>Current temperature</description>
+		<label>Set temperature</label>
 		<category>Temperature</category>
 		<state min="4" max="37" step="1" pattern="%d %unit%" readOnly="false"/>
 	</channel-type>
 
 	<channel-type id="type-setTargetTemperature">
 		<item-type>Number:Temperature</item-type>
-		<label>Temperature</label>
-		<description>Current temperature</description>
+		<label>Set terget temperature</label>
 		<category>Temperature</category>
 		<state min="10" max="60" step="1" pattern="%d %unit%" readOnly="false"/>
 	</channel-type>
@@ -105,7 +101,6 @@
 	<channel-type id="type-energy">
 		<item-type>Number:Energy</item-type>
 		<label>Energy</label>
-		<description>Energy</description>
 		<state pattern="%.1f %unit%" readOnly="true">
 		</state>
 	</channel-type>
@@ -113,7 +108,6 @@
 	<channel-type id="type-number">
 		<item-type>Number</item-type>
 		<label>Number</label>
-		<description>Number</description>
 		<category>Number</category>
 		<state pattern="%.1f" readOnly="true">
 		</state>
@@ -122,7 +116,6 @@
 	<channel-type id="number">
 		<item-type>Number</item-type>
 		<label>Number</label>
-		<description>Number</description>
 		<category>Number</category>
 		<state pattern="%d" readOnly="true">
 		</state>
@@ -131,7 +124,6 @@
 	<channel-type id="type-string">
 		<item-type>String</item-type>
 		<label>String</label>
-		<description>String</description>
 		<category>Text</category>
 		<state readOnly="false">
 		</state>
@@ -140,21 +132,18 @@
 	<channel-type id="type-Schedule">
 		<item-type>String</item-type>
 		<label>Schedule</label>
-		<description>Schedule</description>
 		<category>Time</category>
 	</channel-type>
 
 	<channel-type id="type-array">
 		<item-type>String</item-type>
 		<label>Array</label>
-		<description>Array</description>
 		<category>Text</category>
 	</channel-type>
 
 	<channel-type id="type-boolean">
 		<item-type>Switch</item-type>
 		<label>Switch</label>
-		<description>Switch</description>
 		<category>Switch</category>
 	</channel-type>
 

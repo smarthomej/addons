@@ -58,8 +58,6 @@ public class DeviceHandler extends ViessmannThingHandler {
     private final Logger logger = LoggerFactory.getLogger(DeviceHandler.class);
 
     private ThingsConfig config = new ThingsConfig();
-    private String devId = "";
-    private @Nullable Bridge br;
 
     public DeviceHandler(Thing thing) {
         super(thing);
@@ -67,13 +65,13 @@ public class DeviceHandler extends ViessmannThingHandler {
 
     @Override
     public void initialize() {
-        config = getConfigAs(ThingsConfig.class);
+        ThingsConfig config = getConfigAs(ThingsConfig.class);
+        this.config = config;
         if (config.deviceId.isEmpty()) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "Invalid device id setting");
             return;
         }
         updateProperty(PROPERTY_ID, config.deviceId); // set representation property used by discovery
-        devId = config.deviceId;
 
         setPollingDevice();
 
@@ -91,24 +89,23 @@ public class DeviceHandler extends ViessmannThingHandler {
         Bridge bridge = getBridge();
         ViessmannBridgeHandler bridgeHandler = bridge == null ? null : (ViessmannBridgeHandler) bridge.getHandler();
         if (bridgeHandler != null) {
-            bridgeHandler.getAllFeaturesByDeviceId(devId);
+            bridgeHandler.getAllFeaturesByDeviceId(config.deviceId);
         }
     }
 
     private void setPollingDevice() {
         Bridge bridge = getBridge();
-        br = bridge;
         ViessmannBridgeHandler bridgeHandler = bridge == null ? null : (ViessmannBridgeHandler) bridge.getHandler();
         if (bridgeHandler != null) {
-            bridgeHandler.setPollingDevice(devId);
+            bridgeHandler.setPollingDevice(config.deviceId);
         }
     }
 
     private void unsetPollingDevice() {
-        Bridge bridge = br;
+        Bridge bridge = getBridge();
         ViessmannBridgeHandler bridgeHandler = bridge == null ? null : (ViessmannBridgeHandler) bridge.getHandler();
         if (bridgeHandler != null) {
-            bridgeHandler.unsetPollingDevice(devId);
+            bridgeHandler.unsetPollingDevice(config.deviceId);
         }
     }
 
@@ -182,9 +179,7 @@ public class DeviceHandler extends ViessmannThingHandler {
     public void handleUpdate(FeatureDataDTO featureDataDTO) {
         logger.trace("Device handler received update: {}", featureDataDTO);
         ThingMessageDTO msg = new ThingMessageDTO();
-        // ViessmannFeatureMap map = new ViessmannFeatureMap();
         if (featureDataDTO.properties != null) {
-            devId = featureDataDTO.deviceId;
             msg.setDeviceId(featureDataDTO.deviceId);
             msg.setFeatureClear(featureDataDTO.feature);
             msg.setFeatureDescription(getFeatureDescription(featureDataDTO.feature));

@@ -36,8 +36,8 @@ The `bridge` thing supports the connection to the Viessmann API.
 * `pollingInterval` (default = 0) How often the available devices should be queried in seconds (**) 
 
 
-(*) Used to calcutate refresh time in seconds.
-(**) If it's set to 0, then the interval will be calculated by the binding
+(*) Used to calcuate refresh time in seconds.
+(**) If set to 0, then the interval will be calculated by the binding.
 
 ## Thing Configuration
 
@@ -54,4 +54,4 @@ _All configurations are made in the UI_
 ### `device`
 
 There are many different channels.
-The channels are automatically generaten for all available features.
+The channels are automatically generated for all available features.

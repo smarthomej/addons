@@ -145,12 +145,12 @@ public class ViessmannAuth {
         logger.trace("ViessmannAuth: Auth response: {}", response);
         if (response != null) {
             if (response.indexOf("<!DOCTYPE html>") >= 0) {
-                logger.error("ViessmannAuth: Login failed. Please check user and passowrd.");
+                logger.warn("ViessmannAuth: Login failed. Please check user and passowrd.");
                 updateBridgeStatusLogin();
                 return;
             }
             if (response.indexOf("error") >= 0) {
-                logger.error("ViessmannAuth: Login failed. Wrong code response.");
+                logger.warn("ViessmannAuth: Login failed. Wrong code response.");
                 return;
             }
         }
@@ -208,7 +208,7 @@ public class ViessmannAuth {
         }
         api.setTokenResponseDTO(tokenResponse);
         refreshToken = tokenResponse.refreshToken;
-        api.setTokenExpiryDate(TimeUnit.SECONDS.toNanos(tokenResponse.expiresIn));
+        api.setTokenExpiryDate(TimeUnit.SECONDS.toMillis(tokenResponse.expiresIn));
         setState(ViessmannAuthState.COMPLETE);
     }
 
@@ -237,7 +237,8 @@ public class ViessmannAuth {
             return;
         }
         api.setTokenResponseDTO(tokenResponse);
-        api.setTokenExpiryDate(TimeUnit.SECONDS.toNanos(tokenResponse.expiresIn));
+        api.setTokenExpiryDate(TimeUnit.SECONDS.toMillis(tokenResponse.expiresIn));
+
         setState(ViessmannAuthState.COMPLETE);
     }
 
@@ -257,8 +258,7 @@ public class ViessmannAuth {
         request.method(method);
         String authorization = new String(Base64.getEncoder().encode((user + ":" + password).getBytes()),
                 StandardCharsets.UTF_8);
-        api.httpHeaders.put("Authorization", "Basic " + authorization);
-        api.httpHeaders.forEach((k, v) -> request.header((String) k, (String) v));
+        request.header("Authorization", "Basic " + authorization);
         try {
             ContentResponse contentResponse = request.send();
             switch (contentResponse.getStatus()) {

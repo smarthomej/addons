@@ -69,12 +69,10 @@ public class ViessmannDiscoveryService extends AbstractDiscoveryService implemen
         return bridgeHandler;
     }
 
-    @Override
     public void activate() {
         super.activate(null);
     }
 
-    @Override
     public void deactivate() {
         super.deactivate();
     }

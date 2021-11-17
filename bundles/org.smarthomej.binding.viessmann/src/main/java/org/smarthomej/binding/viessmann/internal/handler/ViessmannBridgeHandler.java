@@ -55,8 +55,6 @@ import com.google.gson.JsonSyntaxException;
  */
 @NonNullByDefault
 public class ViessmannBridgeHandler extends BaseBridgeHandler {
-    // private static final int DEFAULT_API_TIMEOUT_SECONDS = 20;
-
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final HttpClient httpClient;
@@ -163,7 +161,7 @@ public class ViessmannBridgeHandler extends BaseBridgeHandler {
         if (allDevices != null) {
             devicesData = allDevices.data;
             if (devicesData == null) {
-                logger.error("Device list is empty.");
+                logger.warn("Device list is empty.");
             } else {
                 for (DeviceData deviceData : allDevices.data) {
                     String deviceId = deviceData.id;
@@ -204,7 +202,7 @@ public class ViessmannBridgeHandler extends BaseBridgeHandler {
         LocalTime time = LocalTime.now();
         if (time.isAfter(LocalTime.of(00, 00, 01)) && (time.isBefore(LocalTime.of(01, 00, 00)))) {
             if (countReset) {
-                logger.debug("Resettig API Call counts");
+                logger.debug("Resettig API call counts");
                 apiCalls = 0;
                 countReset = false;
             }
@@ -217,7 +215,7 @@ public class ViessmannBridgeHandler extends BaseBridgeHandler {
         List<String> devices = pollingDevicesList;
         if (devices != null) {
             for (String deviceId : devices) {
-                logger.debug("Loading Featueres from Device ID: {}", deviceId);
+                logger.debug("Loading featueres from Device ID: {}", deviceId);
                 getAllFeaturesByDeviceId(deviceId);
             }
         }
@@ -247,7 +245,7 @@ public class ViessmannBridgeHandler extends BaseBridgeHandler {
                 api.checkExpiringToken();
                 checkResetApiCalls();
                 pollingFeatures();
-            }, 1, TimeUnit.SECONDS.toSeconds(pollingIntervalS), TimeUnit.SECONDS);
+            }, 1, pollingIntervalS, TimeUnit.SECONDS);
         }
     }
 
@@ -255,7 +253,7 @@ public class ViessmannBridgeHandler extends BaseBridgeHandler {
         ScheduledFuture<?> currentPollingJob = viessmannBridgeLimitJob;
         if (currentPollingJob == null) {
             viessmannBridgeLimitJob = scheduler.scheduleWithFixedDelay(() -> {
-                logger.debug("Resetting Limit and reconnect for '{}'", getThing().getUID());
+                logger.debug("Resetting limit and reconnect for '{}'", getThing().getUID());
                 api.checkExpiringToken();
                 checkResetApiCalls();
                 getAllDevices();
@@ -264,7 +262,7 @@ public class ViessmannBridgeHandler extends BaseBridgeHandler {
                     startViessmannBridgePolling(getPollingInterval());
                     stopViessmannBridgeLimitReset();
                 }
-            }, delay, TimeUnit.SECONDS.toSeconds(120), TimeUnit.SECONDS);
+            }, delay, 120, TimeUnit.SECONDS);
         }
     }
 
