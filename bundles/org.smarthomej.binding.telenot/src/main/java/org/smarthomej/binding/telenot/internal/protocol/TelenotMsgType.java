@@ -38,6 +38,7 @@ public enum TelenotMsgType {
     OPTICAL_FLASHER_MALFUNCTION,
     HORN_1_MALFUNCTION,
     HORN_2_MALFUNCTION,
+    COM_FAULT,
     RESTART,
     USED_INPUTS,
     USED_OUTPUTS,
@@ -52,7 +53,8 @@ public enum TelenotMsgType {
             TelenotMsgType.INTRUSION, "681A1A687302050200001401", TelenotMsgType.BATTERY_MALFUNCTION,
             "681A1A687302050200001501", TelenotMsgType.POWER_OUTAGE, "681A1A687302050200001301",
             TelenotMsgType.OPTICAL_FLASHER_MALFUNCTION, "681A1A687302050200001101", TelenotMsgType.HORN_1_MALFUNCTION,
-            "681A1A687302050200001201", TelenotMsgType.HORN_2_MALFUNCTION);
+            "681A1A687302050200001201", TelenotMsgType.HORN_2_MALFUNCTION, "681A1A687302050200001701",
+            TelenotMsgType.COM_FAULT);
 
     /**
      * Extract message type from message. Relies on static map startToMsgType.

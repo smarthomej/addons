@@ -84,6 +84,7 @@ public class TelenotBindingConstants {
     public static final String CHANNEL_OPTICAL_FLASHER_MALFUNCTION_DATETIME = "flasherMalfunctionDatetime";
     public static final String CHANNEL_HORN_1_MALFUNCTION_DATETIME = "horn1MalfunctionDatetime";
     public static final String CHANNEL_HORN_2_MALFUNCTION_DATETIME = "horn2MalfunctionDatetime";
+    public static final String CHANNEL_COM_FAULT_DATETIME = "comFaultDatetime";
 
     public static final String CHANNEL_INT_ARMED_CONTACT = "intArmedContact";
     public static final String CHANNEL_EXT_ARMED_CONTACT = "extArmedContact";
@@ -95,6 +96,7 @@ public class TelenotBindingConstants {
     public static final String CHANNEL_OPTICAL_FLASHER_MALFUNCTION_CONTACT = "flasherMalfunctionContact";
     public static final String CHANNEL_HORN_1_MALFUNCTION_CONTACT = "horn1MalfunctionContact";
     public static final String CHANNEL_HORN_2_MALFUNCTION_CONTACT = "horn2MalfunctionContact";
+    public static final String CHANNEL_COM_FAULT_CONTACT = "comFaultContact";
 
     public static final String CHANNEL_ALARM_SET_CLEAR = "alarmSetClear";
     public static final String CHANNEL_INTRUSION_SET_CLEAR = "intrusionSetClear";
@@ -103,4 +105,5 @@ public class TelenotBindingConstants {
     public static final String CHANNEL_OPTICAL_FLASHER_MALFUNCTION_SET_CLEAR = "flasherMalfunctionSetClear";
     public static final String CHANNEL_HORN_1_MALFUNCTION_SET_CLEAR = "horn1MalfunctionSetClear";
     public static final String CHANNEL_HORN_2_MALFUNCTION_SET_CLEAR = "horn2MalfunctionSetClear";
+    public static final String CHANNEL_COM_FAULT_SET_CLEAR = "comFaultSetClear";
 }
