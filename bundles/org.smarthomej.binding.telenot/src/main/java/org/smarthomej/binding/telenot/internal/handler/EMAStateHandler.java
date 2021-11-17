@@ -100,6 +100,11 @@ public class EMAStateHandler extends TelenotThingHandler {
                 updateState(CHANNEL_HORN_2_MALFUNCTION_CONTACT, new StringType(emaMsg.contact));
                 updateState(CHANNEL_HORN_2_MALFUNCTION_SET_CLEAR, OnOffType.from(emaMsg.alarmSetClear));
                 break;
+            case "COM_FAULT":
+                updateState(CHANNEL_COM_FAULT_DATETIME, emaMsg.date);
+                updateState(CHANNEL_COM_FAULT_CONTACT, new StringType(emaMsg.contact));
+                updateState(CHANNEL_COM_FAULT_SET_CLEAR, OnOffType.from(emaMsg.alarmSetClear));
+                break;
             default:
                 break;
         }

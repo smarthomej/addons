@@ -243,13 +243,25 @@
 				<label>Horn 1 malfunc. SetClear</label>
 			</channel>
 			<channel id="horn2MalfunctionDatetime" typeId="datetime-channel">
-				<label>Horn 2 malfunc DateTime</label>
+				<label>Horn 2 malfunc. DateTime</label>
 			</channel>
 			<channel id="horn2MalfunctionContact" typeId="text-channel">
 				<label>Horn 2 malfunc. Contact</label>
 			</channel>
 			<channel id="horn2MalfunctionSetClear" typeId="indicator-channel">
 				<label>Horn 2 malfunc. SetClear</label>
+			</channel>
+			<channel id="comFaultDatetime" typeId="datetime-channel">
+				<label>Com. fault DateTime</label>
+				<description>Date and Time of the fault in the transmission path</description>
+			</channel>
+			<channel id="comFaultContact" typeId="text-channel">
+				<label>Com. fault Contact</label>
+				<description>Contact of the fault in the transmission path</description>
+			</channel>
+			<channel id="comFaultSetClear" typeId="indicator-channel">
+				<label>Com. fault SetClear</label>
+				<description>Fault of the transmission path is set or cleared</description>
 			</channel>
 		</channels>
 
