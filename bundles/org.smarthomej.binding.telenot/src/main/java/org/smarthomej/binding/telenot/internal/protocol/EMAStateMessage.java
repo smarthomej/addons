@@ -100,7 +100,8 @@ public class EMAStateMessage extends TelenotMessage {
 
         boolean bool = false;
         if ("22".equals(msg.substring(24, 26)) || "30".equals(msg.substring(24, 26))
-                || "32".equals(msg.substring(24, 26)) || "33".equals(msg.substring(24, 26))) {
+                || "32".equals(msg.substring(24, 26)) || "33".equals(msg.substring(24, 26))
+                || "34".equals(msg.substring(24, 26))) {
             bool = true;
         }
 
