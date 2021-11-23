@@ -16,7 +16,7 @@
 
   <properties>
     <bnd.importpackage>gnu.io;version="[3.12,6)",javax.microedition.io.*;resolution:="optional",javax.usb.*;resolution:="optional",org.usb4java.*;resolution:="optional"</bnd.importpackage>
-    <calimero.version>2.5-M1</calimero.version>
+    <calimero.version>2.5</calimero.version>
   </properties>
 
   <dependencies>
