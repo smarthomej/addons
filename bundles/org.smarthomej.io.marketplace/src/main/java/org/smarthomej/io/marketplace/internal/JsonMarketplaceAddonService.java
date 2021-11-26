@@ -72,10 +72,13 @@ public class JsonMarketplaceAddonService implements AddonService {
     private final Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").create();
     private final Set<MarketplaceAddonHandler> addonHandlers = new HashSet<>();
 
+    private List<AddonEntryDTO> cachedAddons = List.of();
+
     private EventPublisher eventPublisher;
 
     @Activate
     public void activate() {
+        refreshSource();
     }
 
     @Reference(cardinality = ReferenceCardinality.AT_LEAST_ONE, policy = ReferencePolicy.DYNAMIC)
@@ -108,17 +111,32 @@ public class JsonMarketplaceAddonService implements AddonService {
 
     @Override
     public void refreshSource() {
+        try {
+            URL url = new URL(MARKETPLACE_URL);
+            URLConnection connection = url.openConnection();
+            connection.addRequestProperty("Accept", "application/json");
+
+            try (Reader reader = new InputStreamReader(connection.getInputStream())) {
+                Type type = TypeToken.getParameterized(List.class, AddonEntryDTO.class).getType();
+                cachedAddons = Objects.requireNonNull(gson.fromJson(reader, type));
+            }
+        } catch (IOException e) {
+
+            cachedAddons = List.of();
+        }
     }
 
     @Override
     public List<Addon> getAddons(Locale locale) {
-        return getRemoteAddonList().stream().map(this::fromAddonEntry).collect(Collectors.toList());
+        // TODO: fix that we need to refresh every time
+        refreshSource();
+        return cachedAddons.stream().map(this::fromAddonEntry).collect(Collectors.toList());
     }
 
     @Override
     public Addon getAddon(String id, Locale locale) {
         String remoteId = id.replace(ADDON_ID_PREFIX, "");
-        return getRemoteAddonList().stream().filter(e -> remoteId.equals(e.id)).map(this::fromAddonEntry).findAny()
+        return cachedAddons.stream().filter(e -> remoteId.equals(e.id)).map(this::fromAddonEntry).findAny()
                 .orElse(null);
     }
 
@@ -172,21 +190,6 @@ public class JsonMarketplaceAddonService implements AddonService {
     @Override
     public String getAddonId(URI addonURI) {
         return null;
-    }
-
-    private List<AddonEntryDTO> getRemoteAddonList() {
-        try {
-            URL url = new URL(MARKETPLACE_URL);
-            URLConnection connection = url.openConnection();
-            connection.addRequestProperty("Accept", "application/json");
-
-            try (Reader reader = new InputStreamReader(connection.getInputStream())) {
-                Type type = TypeToken.getParameterized(List.class, AddonEntryDTO.class).getType();
-                return Objects.requireNonNull(gson.fromJson(reader, type));
-            }
-        } catch (IOException e) {
-            return List.of();
-        }
     }
 
     private Addon fromAddonEntry(AddonEntryDTO addonEntry) {
