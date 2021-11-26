@@ -169,11 +169,11 @@ public class ViessmannApi {
                 if (difference <= TOKEN_MIN_DIFF_MS) {
                     viessmannAuth.setState(ViessmannAuthState.NEED_REFRESH_TOKEN);
                     viessmannAuth.setRefreshToken(localAccessTokenResponseDTO.refreshToken);
-                    viessmannAuth.doAuthorization();
                 } else {
                     viessmannAuth.setState(ViessmannAuthState.COMPLETE);
                 }
             }
+            viessmannAuth.doAuthorization();
         } catch (ViessmannAuthException e) {
             if (logger.isDebugEnabled()) {
                 logger.info("API: The Viessmann authorization process threw an exception", e);
@@ -247,9 +247,9 @@ public class ViessmannApi {
                 }
             }
         } catch (IOException e) {
-            logger.info("API: Unable to execute GET: {}", e.getMessage());
+            logger.info("API IOException: Unable to execute GET: {}", e.getMessage());
         } catch (ViessmannAuthException e) {
-            logger.info("API: Unable to execute GET: {}", e.getMessage());
+            logger.info("API AuthException: Unable to execute GET: {}", e.getMessage());
             isAuthorized();
         }
         return response;
@@ -280,9 +280,10 @@ public class ViessmannApi {
             }
             return true;
         } catch (IOException e) {
-            logger.info("API: Unable to execute POST: {}", e.getMessage());
+            logger.info("API IOException: Unable to execute POST: {}", e.getMessage());
         } catch (ViessmannAuthException e) {
-            logger.info("API: Unable to execute POST: {}", e.getMessage());
+            logger.info("API AuthException: Unable to execute POST: {}", e.getMessage());
+            isAuthorized();
         }
         return false;
     }
