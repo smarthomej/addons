@@ -16,6 +16,7 @@ package org.smarthomej.binding.knx.internal.factory;
 import static org.smarthomej.binding.knx.internal.KNXBindingConstants.*;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -31,6 +32,7 @@ import org.openhab.core.thing.binding.ThingHandler;
 import org.openhab.core.thing.binding.ThingHandlerFactory;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 import org.smarthomej.binding.knx.internal.handler.DeviceThingHandler;
 import org.smarthomej.binding.knx.internal.handler.IPBridgeThingHandler;
@@ -42,8 +44,8 @@ import org.smarthomej.binding.knx.internal.handler.SerialBridgeThingHandler;
  *
  * @author Simon Kaufmann - Initial contribution and API
  */
-@Component(service = ThingHandlerFactory.class, configurationPid = "binding.knx")
 @NonNullByDefault
+@Component(service = ThingHandlerFactory.class, configurationPid = "binding.knx")
 public class KNXHandlerFactory extends BaseThingHandlerFactory {
 
     public static final Collection<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Set.of(THING_TYPE_DEVICE,
@@ -52,8 +54,14 @@ public class KNXHandlerFactory extends BaseThingHandlerFactory {
     private final NetworkAddressService networkAddressService;
 
     @Activate
-    public KNXHandlerFactory(@Reference NetworkAddressService networkAddressService) {
+    public KNXHandlerFactory(@Reference NetworkAddressService networkAddressService, Map<String, Object> config) {
         this.networkAddressService = networkAddressService;
+        modified(config);
+    }
+
+    @Modified
+    protected void modified(Map<String, Object> config) {
+        DISABLE_UOM = (boolean) config.getOrDefault(CONFIG_DISABLE_UOM, false);
     }
 
     @Override
