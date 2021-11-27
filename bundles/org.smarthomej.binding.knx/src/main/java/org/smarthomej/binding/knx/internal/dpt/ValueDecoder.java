@@ -12,6 +12,8 @@
  */
 package org.smarthomej.binding.knx.internal.dpt;
 
+import static org.smarthomej.binding.knx.internal.KNXBindingConstants.DISABLE_UOM;
+
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -343,7 +345,7 @@ public class ValueDecoder {
         if (allowedTypes.contains(PercentType.class)
                 && (HSBType.class.equals(preferredType) || PercentType.class.equals(preferredType))) {
             return new PercentType(BigDecimal.valueOf(Math.round(value)));
-        } else if (allowedTypes.contains(QuantityType.class)) {
+        } else if (allowedTypes.contains(QuantityType.class) && !DISABLE_UOM) {
             String unit = DPTUnits.getUnitForDpt(id);
             if (unit != null) {
                 return new QuantityType<>(value + " " + unit);
