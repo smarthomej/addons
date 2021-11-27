@@ -27,7 +27,6 @@
     <module>org.smarthomej.binding.deconz</module>
     <module>org.smarthomej.binding.dmx</module>
     <module>org.smarthomej.binding.http</module>
-    <module>org.smarthomej.binding.irobot</module>
     <module>org.smarthomej.binding.knx</module>
     <module>org.smarthomej.binding.mail</module>
     <module>org.smarthomej.binding.mpd</module>
