@@ -7,21 +7,21 @@
 	<config-description uri="profile:transform:ADD">
 		<parameter name="addend" type="decimal" required="true">
 			<label>Addend</label>
-			<description>Value to be added to the item state.</description>
+			<description>Value to be added to the Item State.</description>
 		</parameter>
 	</config-description>
 
 	<config-description uri="profile:transform:MULTIPLY">
 		<parameter name="multiplicand" type="decimal" required="true">
 			<label>Multiplicand</label>
-			<description>Value to be multiplied by the item state.</description>
+			<description>Value to be multiplied by the Item State.</description>
 		</parameter>
 	</config-description>
 
 	<config-description uri="profile:transform:DIVIDE">
 		<parameter name="divisor" type="decimal" required="true">
 			<label>Divisor</label>
-			<description>Value by which the item state is divided.</description>
+			<description>Value by which the Item State is divided.</description>
 		</parameter>
 	</config-description>
 </config-description:config-descriptions>

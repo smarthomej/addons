@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.smarthomej.binding.math.internal.profiles;
+package org.smarthomej.transform.math.internal.profiles;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -20,7 +20,7 @@ import org.openhab.core.thing.profiles.ProfileTypeUID;
 import org.openhab.core.transform.TransformationService;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.State;
-import org.smarthomej.binding.math.internal.MultiplyTransformationService;
+import org.smarthomej.transform.math.internal.MultiplyTransformationService;
 
 /**
  * Profile to offer the {@link MultiplyTransformationService} on a ItemChannelLink.
@@ -33,7 +33,7 @@ public class MultiplyTransformationProfile extends AbstractMathTransformationPro
     public static final ProfileTypeUID PROFILE_TYPE_UID = new ProfileTypeUID(
             TransformationService.TRANSFORM_PROFILE_SCOPE, "MULTIPLY");
 
-    private static final String MUTLIPLICAND_PARAM = "multiplicand";
+    static final String MUTLIPLICAND_PARAM = "multiplicand";
 
     private final @Nullable String multiplicand;
 

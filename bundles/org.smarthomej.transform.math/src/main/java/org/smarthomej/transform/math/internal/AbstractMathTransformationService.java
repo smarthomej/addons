@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.smarthomej.binding.math.internal;
+package org.smarthomej.transform.math.internal;
 
 import java.math.BigDecimal;
 import java.util.regex.Matcher;

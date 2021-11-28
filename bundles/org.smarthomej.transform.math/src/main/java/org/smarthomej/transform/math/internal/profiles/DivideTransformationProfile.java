@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.smarthomej.binding.math.internal.profiles;
+package org.smarthomej.transform.math.internal.profiles;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -20,7 +20,7 @@ import org.openhab.core.thing.profiles.ProfileTypeUID;
 import org.openhab.core.transform.TransformationService;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.State;
-import org.smarthomej.binding.math.internal.DivideTransformationService;
+import org.smarthomej.transform.math.internal.DivideTransformationService;
 
 /**
  * Profile to offer the {@link DivideTransformationService} on a ItemChannelLink.
@@ -33,7 +33,7 @@ public class DivideTransformationProfile extends AbstractMathTransformationProfi
     public static final ProfileTypeUID PROFILE_TYPE_UID = new ProfileTypeUID(
             TransformationService.TRANSFORM_PROFILE_SCOPE, "DIVIDE");
 
-    private static final String DIVISOR_PARAM = "divisor";
+    static final String DIVISOR_PARAM = "divisor";
 
     private final @Nullable String divisor;
 

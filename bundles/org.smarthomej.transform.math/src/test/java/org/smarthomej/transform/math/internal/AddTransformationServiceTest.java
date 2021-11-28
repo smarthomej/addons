@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.smarthomej.binding.math.internal;
+package org.smarthomej.transform.math.internal;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -20,26 +20,26 @@ import org.openhab.core.transform.TransformationException;
 import org.openhab.core.transform.TransformationService;
 
 /**
- * Unit test for {@link MultiplyTransformationService}.
+ * Unit test for {@link AddTransformationService}.
  *
  * @author Christoph Weitkamp - Initial contribution
  */
 @NonNullByDefault
-class MultiplyTransformationServiceTest {
-    private final TransformationService subject = new MultiplyTransformationService();
+class AddTransformationServiceTest {
+    private final TransformationService subject = new AddTransformationService();
 
     @Test
     public void testTransform() throws TransformationException {
         String result = subject.transform("20", "100");
 
-        assertEquals("2000", result);
+        assertEquals("120", result);
     }
 
     @Test
     public void testTransformInsideString() throws TransformationException {
-        String result = subject.transform("-20", "-0.5 watt");
+        String result = subject.transform("20", "100 watt");
 
-        assertEquals("10.0 watt", result);
+        assertEquals("120 watt", result);
     }
 
     @Test
@@ -47,7 +47,6 @@ class MultiplyTransformationServiceTest {
         assertThrows(TransformationException.class, () -> subject.transform("20", "*"));
     }
 
-    @Test
     public void testTransformInvalidFunction() {
         assertThrows(TransformationException.class, () -> subject.transform("*", "90"));
     }

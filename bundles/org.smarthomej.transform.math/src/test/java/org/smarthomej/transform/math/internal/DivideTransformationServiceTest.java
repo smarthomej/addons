@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.smarthomej.binding.math.internal;
+package org.smarthomej.transform.math.internal;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -20,26 +20,27 @@ import org.openhab.core.transform.TransformationException;
 import org.openhab.core.transform.TransformationService;
 
 /**
- * Unit test for {@link AddTransformationService}.
+ * Unit test for {@link DivideTransformationService}.
  *
  * @author Christoph Weitkamp - Initial contribution
+ * @author Jan N. Klug - adapted to DivideTransformation
  */
 @NonNullByDefault
-class AddTransformationServiceTest {
-    private final TransformationService subject = new AddTransformationService();
+class DivideTransformationServiceTest {
+    private final TransformationService subject = new DivideTransformationService();
 
     @Test
     public void testTransform() throws TransformationException {
-        String result = subject.transform("20", "100");
+        String result = subject.transform("-20", "-2000");
 
-        assertEquals("120", result);
+        assertEquals("100", result);
     }
 
     @Test
     public void testTransformInsideString() throws TransformationException {
-        String result = subject.transform("20", "100 watt");
+        String result = subject.transform("60", "90 watts");
 
-        assertEquals("120 watt", result);
+        assertEquals("1.5 watts", result);
     }
 
     @Test
@@ -47,7 +48,13 @@ class AddTransformationServiceTest {
         assertThrows(TransformationException.class, () -> subject.transform("20", "*"));
     }
 
+    @Test
     public void testTransformInvalidFunction() {
         assertThrows(TransformationException.class, () -> subject.transform("*", "90"));
+    }
+
+    @Test
+    public void testTransformDivideByZero() {
+        assertThrows(TransformationException.class, () -> subject.transform("0", "1"));
     }
 }

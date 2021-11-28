@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.smarthomej.binding.math.internal.profiles;
+package org.smarthomej.transform.math.internal.profiles;
 
 import java.math.BigDecimal;
 
@@ -86,14 +86,15 @@ public abstract class AbstractMathTransformationProfile implements StateProfile 
         try {
             result = TransformationHelper.transform(service, value, "%s", result);
         } catch (TransformationException e) {
-            logger.warn("Could not apply math transformation state '{}' with value '{}'.", state, value);
+            logger.warn("Could not apply '{}' transformation on state '{}' with value '{}'.", profileTypeUID.getId(),
+                    state, value);
         }
         Type resultType = state;
         if (result != null) {
             if (state instanceof DecimalType) {
                 resultType = DecimalType.valueOf(result);
             } else if (state instanceof QuantityType) {
-                resultType = new QuantityType<>(result);
+                resultType = QuantityType.valueOf(result);
             }
             logger.debug("Transformed '{}' into '{}'", state, resultType);
         }

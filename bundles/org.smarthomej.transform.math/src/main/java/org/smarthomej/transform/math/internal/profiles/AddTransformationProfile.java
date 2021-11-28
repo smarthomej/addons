@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.smarthomej.binding.math.internal.profiles;
+package org.smarthomej.transform.math.internal.profiles;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -20,7 +20,7 @@ import org.openhab.core.thing.profiles.ProfileTypeUID;
 import org.openhab.core.transform.TransformationService;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.State;
-import org.smarthomej.binding.math.internal.AddTransformationService;
+import org.smarthomej.transform.math.internal.AddTransformationService;
 
 /**
  * Profile to offer the {@link AddTransformationService} on a ItemChannelLink.
@@ -33,7 +33,7 @@ public class AddTransformationProfile extends AbstractMathTransformationProfile 
     public static final ProfileTypeUID PROFILE_TYPE_UID = new ProfileTypeUID(
             TransformationService.TRANSFORM_PROFILE_SCOPE, "ADD");
 
-    private static final String ADDEND_PARAM = "addend";
+    static final String ADDEND_PARAM = "addend";
 
     private final @Nullable String addend;
 
@@ -48,7 +48,7 @@ public class AddTransformationProfile extends AbstractMathTransformationProfile 
         String localAddend = addend;
         if (localAddend == null) {
             logger.warn(
-                    "Please specify a addend for this Profile in the '{}' parameter. Returning the original command now.",
+                    "Please specify an addend for this Profile in the '{}' parameter. Returning the original command now.",
                     ADDEND_PARAM);
             callback.sendCommand(command);
             return;
@@ -61,7 +61,7 @@ public class AddTransformationProfile extends AbstractMathTransformationProfile 
         String localAddend = addend;
         if (localAddend == null) {
             logger.warn(
-                    "Please specify a addend for this Profile in the '{}' parameter. Returning the original state now.",
+                    "Please specify an addend for this Profile in the '{}' parameter. Returning the original state now.",
                     ADDEND_PARAM);
             callback.sendUpdate(state);
             return;

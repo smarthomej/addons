@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.smarthomej.binding.math.internal.profiles;
+package org.smarthomej.transform.math.internal.profiles;
 
 import java.util.Collection;
 import java.util.Locale;
@@ -18,7 +18,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -63,22 +62,19 @@ public class MathTransformationProfileFactory implements ProfileFactory, Profile
     private static final Set<ProfileTypeUID> SUPPORTED_PROFILE_TYPE_UIDS = Set.of(
             AddTransformationProfile.PROFILE_TYPE_UID, MultiplyTransformationProfile.PROFILE_TYPE_UID,
             DivideTransformationProfile.PROFILE_TYPE_UID);
-    private static final Stream<ProfileType> SUPPORTED_PROFILE_TYPES = Stream.of(ADD_PROFILE_TYPE,
-            MULTIPLY_PROFILE_TYPE, DIVIDE_PROFILE_TYPE);
+    private static final Set<ProfileType> SUPPORTED_PROFILE_TYPES = Set.of(ADD_PROFILE_TYPE, MULTIPLY_PROFILE_TYPE,
+            DIVIDE_PROFILE_TYPE);
 
     private final Map<LocalizedKey, ProfileType> localizedProfileTypeCache = new ConcurrentHashMap<>();
 
     private final ProfileTypeI18nLocalizationService profileTypeI18nLocalizationService;
     private final Bundle bundle;
 
-    @NonNullByDefault({})
-    private TransformationService addTransformationService;
+    private @NonNullByDefault({}) TransformationService addTransformationService;
 
-    @NonNullByDefault({})
-    private TransformationService multiplyTransformationService;
+    private @NonNullByDefault({}) TransformationService multiplyTransformationService;
 
-    @NonNullByDefault({})
-    private TransformationService divideTransformationService;
+    private @NonNullByDefault({}) TransformationService divideTransformationService;
 
     @Activate
     public MathTransformationProfileFactory(
@@ -90,7 +86,7 @@ public class MathTransformationProfileFactory implements ProfileFactory, Profile
 
     @Override
     public Collection<ProfileType> getProfileTypes(@Nullable Locale locale) {
-        return SUPPORTED_PROFILE_TYPES.map(p -> createLocalizedProfileType(p, locale))
+        return SUPPORTED_PROFILE_TYPES.stream().map(p -> createLocalizedProfileType(p, locale))
                 .collect(Collectors.toUnmodifiableSet());
     }
 

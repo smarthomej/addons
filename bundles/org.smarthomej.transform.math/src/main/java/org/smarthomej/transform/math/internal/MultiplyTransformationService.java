@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.smarthomej.binding.math.internal;
+package org.smarthomej.transform.math.internal;
 
 import java.math.BigDecimal;
 
@@ -19,16 +19,16 @@ import org.openhab.core.transform.TransformationService;
 import org.osgi.service.component.annotations.Component;
 
 /**
- * This {@link TransformationService} adds the given value to the input.
+ * This {@link TransformationService} multiplies the input by a given value.
  *
  * @author Christoph Weitkamp - Initial contribution
  */
 @NonNullByDefault
-@Component(service = { TransformationService.class }, property = { "openhab.transform=ADD" })
-public class AddTransformationService extends AbstractMathTransformationService {
+@Component(service = { TransformationService.class }, property = { "openhab.transform=MULTIPLY" })
+public class MultiplyTransformationService extends AbstractMathTransformationService {
 
     @Override
     BigDecimal performCalculation(BigDecimal source, BigDecimal value) {
-        return source.add(value);
+        return source.multiply(value);
     }
 }
