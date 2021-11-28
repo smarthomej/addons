@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<features name="org.smarthomej.binding.mpd-${project.version}" xmlns="http://karaf.apache.org/xmlns/features/v1.4.0">
-	<feature name="smarthomej-binding-mpd" description="MPD Binding" version="${project.version}">
-		<feature>openhab-runtime-base</feature>
-		<bundle start-level="80">mvn:org.smarthomej.addons.bundles/org.smarthomej.binding.mpd/${project.version}</bundle>
-	</feature>
-</features>

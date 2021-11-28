@@ -29,7 +29,6 @@
     <module>org.smarthomej.binding.http</module>
     <module>org.smarthomej.binding.knx</module>
     <module>org.smarthomej.binding.mail</module>
-    <module>org.smarthomej.binding.mpd</module>
     <module>org.smarthomej.binding.notificationsforfiretv</module>
     <module>org.smarthomej.binding.onewire</module>
     <module>org.smarthomej.binding.snmp</module>
