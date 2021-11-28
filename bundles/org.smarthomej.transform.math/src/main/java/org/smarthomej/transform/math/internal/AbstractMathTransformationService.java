@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.smarthomej.binding.math.internal;
+package org.smarthomej.transform.math.internal;
 
 import java.math.BigDecimal;
 import java.util.regex.Matcher;
@@ -30,7 +30,8 @@ import org.slf4j.LoggerFactory;
  */
 @NonNullByDefault
 abstract class AbstractMathTransformationService implements TransformationService {
-    private final Logger logger = LoggerFactory.getLogger(AbstractMathTransformationService.class);
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private static final Pattern NUMBER_PATTERN = Pattern.compile(".*?(-?((0)|([1-9][0-9]*))(\\.[0-9]*)?).*?");
 
