@@ -87,11 +87,12 @@ public class RollershutterItemConverter extends AbstractTransformingItemConverte
         try {
             BigDecimal value = new BigDecimal(string);
             if (value.compareTo(PercentType.HUNDRED.toBigDecimal()) > 0) {
-                newState = PercentType.HUNDRED;
+                value = PercentType.HUNDRED.toBigDecimal();
             }
             if (value.compareTo(PercentType.ZERO.toBigDecimal()) < 0) {
-                newState = PercentType.ZERO;
+                value = PercentType.ZERO.toBigDecimal();
             }
+            newState = new PercentType(value);
         } catch (NumberFormatException e) {
             // ignore
         }
