@@ -26,7 +26,8 @@ class AddonEntryDTO {
     public String title;
     public String link;
     public String version;
-    public String author;
+    public String author = "";
+    public String configDescriptionURI = "";
     public String maturity = "unstable";
     @SerializedName("content_type")
     public String contentType;

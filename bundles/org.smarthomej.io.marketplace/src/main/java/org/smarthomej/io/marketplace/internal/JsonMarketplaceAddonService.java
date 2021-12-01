@@ -21,6 +21,7 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -30,16 +31,20 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.addon.Addon;
 import org.openhab.core.addon.AddonEventFactory;
 import org.openhab.core.addon.AddonService;
 import org.openhab.core.addon.AddonType;
 import org.openhab.core.addon.marketplace.MarketplaceAddonHandler;
 import org.openhab.core.addon.marketplace.MarketplaceHandlerException;
+import org.openhab.core.config.core.ConfigurableService;
 import org.openhab.core.events.Event;
 import org.openhab.core.events.EventPublisher;
+import org.osgi.framework.Constants;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
@@ -53,12 +58,13 @@ import com.google.gson.reflect.TypeToken;
  *
  * @author Yannick Schaus - Initial contribution
  * @author Jan N. Klug - Refactored for JSON marketplaces
- *
  */
-@Component(immediate = true)
+@Component(immediate = true, configurationPid = "org.smarthomej.io.marketplace", //
+        property = Constants.SERVICE_PID + "=org.smarthomej.io.marketplace")
+@ConfigurableService(category = "system", label = "JSON 3rd Party Marketplace", description_uri = JsonMarketplaceAddonService.CONFIG_URI)
 public class JsonMarketplaceAddonService implements AddonService {
+    static final String CONFIG_URI = "system:jsonmarketplace";
     private static final String ADDON_ID_PREFIX = "jsonmarketplace:";
-    private static final String MARKETPLACE_URL = "https://download.smarthomej.org/addons.json";
 
     private static final Map<String, AddonType> TAG_ADDON_TYPE_MAP = Map.of( //
             "automation", new AddonType("automation", "Automation"), //
@@ -72,12 +78,20 @@ public class JsonMarketplaceAddonService implements AddonService {
     private final Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").create();
     private final Set<MarketplaceAddonHandler> addonHandlers = new HashSet<>();
 
+    private List<String> marketplaceUrls = List.of();
     private List<AddonEntryDTO> cachedAddons = List.of();
 
-    private EventPublisher eventPublisher;
+    private @NonNullByDefault({}) EventPublisher eventPublisher;
 
     @Activate
-    public void activate() {
+    public void activate(Map<String, Object> config) {
+        modified(config);
+    }
+
+    @Modified
+    public void modified(Map<String, Object> config) {
+        String urls = (String) config.getOrDefault("urls", "");
+        marketplaceUrls = Arrays.asList(urls.split(","));
         refreshSource();
     }
 
@@ -110,20 +124,21 @@ public class JsonMarketplaceAddonService implements AddonService {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void refreshSource() {
-        try {
-            URL url = new URL(MARKETPLACE_URL);
-            URLConnection connection = url.openConnection();
-            connection.addRequestProperty("Accept", "application/json");
-
-            try (Reader reader = new InputStreamReader(connection.getInputStream())) {
-                Type type = TypeToken.getParameterized(List.class, AddonEntryDTO.class).getType();
-                cachedAddons = Objects.requireNonNull(gson.fromJson(reader, type));
+        cachedAddons = (List<AddonEntryDTO>) marketplaceUrls.stream().map(urlString -> {
+            try {
+                URL url = new URL(urlString);
+                URLConnection connection = url.openConnection();
+                connection.addRequestProperty("Accept", "application/json");
+                try (Reader reader = new InputStreamReader(connection.getInputStream())) {
+                    Type type = TypeToken.getParameterized(List.class, AddonEntryDTO.class).getType();
+                    return (List<AddonEntryDTO>) Objects.requireNonNull(gson.fromJson(reader, type));
+                }
+            } catch (IOException e) {
+                return List.of();
             }
-        } catch (IOException e) {
-
-            cachedAddons = List.of();
-        }
+        }).flatMap(List::stream).collect(Collectors.toList());
     }
 
     @Override
@@ -214,7 +229,8 @@ public class JsonMarketplaceAddonService implements AddonService {
         return Addon.create(fullId).withType(addonEntry.type).withInstalled(installed)
                 .withDetailedDescription(addonEntry.description).withContentType(addonEntry.contentType)
                 .withAuthor(addonEntry.author).withVersion(addonEntry.version).withLabel(addonEntry.title)
-                .withMaturity(addonEntry.maturity).withProperties(properties).withLink(addonEntry.link).build();
+                .withMaturity(addonEntry.maturity).withProperties(properties).withLink(addonEntry.link)
+                .withConfigDescriptionURI(addonEntry.configDescriptionURI).build();
     }
 
     private void postInstalledEvent(String extensionId) {
