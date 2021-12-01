@@ -72,6 +72,7 @@ import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCommandPayloa
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCommandPayloadPushDevice;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCommandPayloadPushDevice.DopplerId;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCommandPayloadPushNotificationChange;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCustomerHistoryRecords.CustomerHistoryRecord;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDeviceNotificationState.DeviceNotificationState;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDevices.Device;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonFeed;
@@ -785,12 +786,35 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
         }
 
         String search = key.registeredUserId + "#" + key.entryId;
-        connection.getActivities(10, pushActivity.timestamp).stream().filter(activity -> search.equals(activity.id))
-                .findFirst()
-                .ifPresent(currentActivity -> currentActivity.getSourceDeviceIds().stream()
-                        .map(sourceDeviceId -> findEchoHandlerBySerialNumber(sourceDeviceId.serialNumber))
-                        .filter(Objects::nonNull).forEach(echoHandler -> Objects.requireNonNull(echoHandler)
-                                .handlePushActivity(currentActivity)));
+
+        /*
+         * DEPRECATED
+         * connection.getActivities(10, pushActivity.timestamp).stream().filter(activity -> search.equals(activity.id))
+         * .findFirst()
+         * .ifPresent(currentActivity -> currentActivity.getSourceDeviceIds().stream()
+         * .map(sourceDeviceId -> findEchoHandlerBySerialNumber(sourceDeviceId.serialNumber))
+         * .filter(Objects::nonNull).forEach(echoHandler -> Objects.requireNonNull(echoHandler)
+         * .handlePushActivity(currentActivity)));
+         */
+
+        Long timestamp = pushActivity.timestamp;
+        if (timestamp != null) {
+            Long startTimestamp = timestamp - 30000;
+            Long endTimestamp = timestamp + 30000;
+            List<CustomerHistoryRecord> customerHistoryRecords = connection.getActivities(startTimestamp, endTimestamp);
+            for (CustomerHistoryRecord customerHistoryRecord : customerHistoryRecords) {
+                if (customerHistoryRecord != null) {
+                    String recordKey = customerHistoryRecord.recordKey;
+                    if (recordKey != null && search.equals(recordKey)) {
+                        EchoHandler echoHandler = findEchoHandlerBySerialNumber(recordKey.split("#")[3]);
+                        if (echoHandler != null) {
+                            echoHandler.handlePushActivity(customerHistoryRecord);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     void refreshAfterCommand() {
