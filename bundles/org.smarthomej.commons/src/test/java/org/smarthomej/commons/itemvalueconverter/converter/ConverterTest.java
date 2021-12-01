@@ -29,6 +29,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.HSBType;
+import org.openhab.core.library.types.PercentType;
 import org.openhab.core.library.types.PlayPauseType;
 import org.openhab.core.library.types.PointType;
 import org.openhab.core.library.types.QuantityType;
@@ -160,6 +161,34 @@ public class ConverterTest {
 
         converter.process(content);
         Mockito.verify(updateState).accept(new HSBType("123,34,47"));
+    }
+
+    @Test
+    public void rollerSHutterConverter() {
+        ItemValueConverterChannelConfig cfg = new ItemValueConverterChannelConfig();
+        RollershutterItemConverter converter = new RollershutterItemConverter(updateState, postCommand, sendHttpValue,
+                NoOpValueTransformation.getInstance(), NoOpValueTransformation.getInstance(), cfg);
+
+        // test 0 and 100
+        ContentWrapper content = new ContentWrapper("0".getBytes(StandardCharsets.UTF_8), "UTF-8", null);
+        converter.process(content);
+        Mockito.verify(updateState).accept(PercentType.ZERO);
+        content = new ContentWrapper("100".getBytes(StandardCharsets.UTF_8), "UTF-8", null);
+        converter.process(content);
+        Mockito.verify(updateState).accept(PercentType.HUNDRED);
+
+        // test under/over-range (expect two times total for zero/100
+        content = new ContentWrapper("-1".getBytes(StandardCharsets.UTF_8), "UTF-8", null);
+        converter.process(content);
+        Mockito.verify(updateState, Mockito.times(2)).accept(PercentType.ZERO);
+        content = new ContentWrapper("105".getBytes(StandardCharsets.UTF_8), "UTF-8", null);
+        converter.process(content);
+        Mockito.verify(updateState, Mockito.times(2)).accept(PercentType.HUNDRED);
+
+        // test value
+        content = new ContentWrapper("67".getBytes(StandardCharsets.UTF_8), "UTF-8", null);
+        converter.process(content);
+        Mockito.verify(updateState).accept(new PercentType(67));
     }
 
     public GenericItemConverter createConverter(Function<String, State> fcn) {
