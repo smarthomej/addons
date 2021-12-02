@@ -785,31 +785,23 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
             return;
         }
 
-        String search = key.registeredUserId + "#" + key.entryId;
-
-        /*
-         * DEPRECATED
-         * connection.getActivities(10, pushActivity.timestamp).stream().filter(activity -> search.equals(activity.id))
-         * .findFirst()
-         * .ifPresent(currentActivity -> currentActivity.getSourceDeviceIds().stream()
-         * .map(sourceDeviceId -> findEchoHandlerBySerialNumber(sourceDeviceId.serialNumber))
-         * .filter(Objects::nonNull).forEach(echoHandler -> Objects.requireNonNull(echoHandler)
-         * .handlePushActivity(currentActivity)));
-         */
-
         Long timestamp = pushActivity.timestamp;
         if (timestamp != null) {
-            Long startTimestamp = timestamp - 30000;
-            Long endTimestamp = timestamp + 30000;
+            long startTimestamp = timestamp - 30000;
+            long endTimestamp = timestamp + 30000;
             List<CustomerHistoryRecord> customerHistoryRecords = connection.getActivities(startTimestamp, endTimestamp);
             for (CustomerHistoryRecord customerHistoryRecord : customerHistoryRecords) {
                 if (customerHistoryRecord != null) {
                     String recordKey = customerHistoryRecord.recordKey;
+                    String search = key.registeredUserId + "#" + key.entryId;
                     if (recordKey != null && search.equals(recordKey)) {
-                        EchoHandler echoHandler = findEchoHandlerBySerialNumber(recordKey.split("#")[3]);
-                        if (echoHandler != null) {
-                            echoHandler.handlePushActivity(customerHistoryRecord);
-                            break;
+                        String[] splitRecordKey = recordKey.split("#");
+                        if (splitRecordKey.length >= 2) {
+                            EchoHandler echoHandler = findEchoHandlerBySerialNumber(splitRecordKey[3]);
+                            if (echoHandler != null) {
+                                echoHandler.handlePushActivity(customerHistoryRecord);
+                                break;
+                            }
                         }
                     }
                 }

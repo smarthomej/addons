@@ -1158,7 +1158,6 @@ public class Connection {
             String json = makeRequestAndReturnString(
                     "https://" + amazonSite + "/alexa-privacy/apd/rvh/customer-history-records?startTime="
                             + (startTime != null ? startTime : "") + "&endTime=" + (endTime != null ? endTime : "")
-                            // + "&recordType=VOICE_HISTORY"
                             + "&maxRecordSize=1");
             JsonCustomerHistoryRecords customerHistoryRecords = parseJson(json, JsonCustomerHistoryRecords.class);
             return Objects.requireNonNullElse(customerHistoryRecords.customerHistoryRecords, List.of());

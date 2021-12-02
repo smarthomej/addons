@@ -61,8 +61,6 @@ import org.smarthomej.binding.amazonechocontrol.internal.HttpException;
 import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.ChannelHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.ChannelHandlerAnnouncement;
 import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.IEchoThingHandler;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonActivities.Activity;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonActivities.Activity.Description;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonAscendingAlarm.AscendingAlarmModel;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates.BluetoothState;
@@ -1210,40 +1208,6 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
                     updateState(CHANNEL_MEDIA_LENGTH, UnDefType.UNDEF);
                 }
             }
-        }
-    }
-
-    @Deprecated
-    public void handlePushActivity(Activity pushActivity) {
-        if ("DISCARDED_NON_DEVICE_DIRECTED_INTENT".equals(pushActivity.activityStatus)) {
-            return;
-        }
-        Description description = pushActivity.parseDescription();
-        String firstUtteranceId = description.firstUtteranceId;
-        if (firstUtteranceId == null || firstUtteranceId.isEmpty()
-                || firstUtteranceId.toLowerCase().startsWith("textclient:")) {
-            return;
-        }
-        String firstStreamId = description.firstStreamId;
-        if (firstStreamId == null || firstStreamId.isEmpty()) {
-            return;
-        }
-        String summary = description.summary;
-        if (summary != null && !summary.isEmpty()) {
-            // remove wake word
-            String wakeWordPrefix = this.wakeWord;
-            if (wakeWordPrefix != null) {
-                wakeWordPrefix += " ";
-                if (summary.toLowerCase().startsWith(wakeWordPrefix.toLowerCase())) {
-                    summary = summary.substring(wakeWordPrefix.length());
-                }
-            }
-
-            if (lastSummary.isEmpty() || lastSummary.equals(summary)) {
-                updateState(CHANNEL_LAST_VOICE_COMMAND, StringType.EMPTY);
-            }
-            lastSummary = summary;
-            updateState(CHANNEL_LAST_VOICE_COMMAND, new StringType(lastSummary));
         }
     }
 

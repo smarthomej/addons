@@ -121,44 +121,82 @@ public class AmazonEchoControlBindingConstants {
 
     // DeviceTypeIds to human readable description
     // originally found here: https://github.com/Apollon77/ioBroker.alexa2/blob/master/main.js
-    public static final Map<String, String> DEVICE_TYPES = Map.<String, String> ofEntries(
-            Map.entry("A10A33FOX2NUBK", "Echo Spot"), Map.entry("A10L5JEZTKKCZ8", "Vobot-Clock"),
-            Map.entry("A12GXV8XMS007S", "FireTV"), Map.entry("A15ERDAKK5HQQG", "Sonos"),
-            Map.entry("A17LGWINFBUTZZ", "Anker Roav Viva Alexa"), Map.entry("A18O6U1UQFJ0XK", "Echo Plus 2nd Gen"),
-            Map.entry("A1C66CX2XD756O", "Fire HD 8"), Map.entry("A1DL2DVDQVK3Q", "Apps"),
-            Map.entry("A1ETW4IXK2PYBP", "Echo Auto"), Map.entry("A1H0CMF1XM0ZP4", "Echo Dot/Bose"),
-            Map.entry("A1J16TEDOYCZTN", "Fire Tab"), Map.entry("A1JJ0KFC4ZPNJ3", "Echo Input"),
-            Map.entry("A1NL4BVLQ4L3N3", "Echo Show"), Map.entry("A1P31Q3MOWSHOD", "Anker Zalo Halo Speaker"),
-            Map.entry("A1Q7QCGNMXAKYW", "Fire Tab 7"), Map.entry("A1QKZ9D0IJY332", "Samsung QLED"),
-            Map.entry("A1RABVCI4QCIKC", "Echo Dot 3rd Gen"), Map.entry("A1RTAM01W29CUP", "Windows App"),
-            Map.entry("A1X7HJX9QL16M5", "Bespoken.io"), Map.entry("A1Z88NGR2BK6A2", "Echo Show 8"),
-            Map.entry("A1ZB65LA390I4K", "Fire HD 10"), Map.entry("A21Z3CGI8UIP0F", "Apps"),
-            Map.entry("A265XOI9586NML", "FireTV Stick v3"), Map.entry("A2825NDLA7WDZV", "Apps"),
-            Map.entry("A2E0SNTXJVT7WK", "FireTV V1"), Map.entry("A2GFL5ZMWNE0PX", "FireTV"),
-            Map.entry("A2H4LV5GIZ1JFT", "Echo 4 Clock"), Map.entry("A2IVLV5VM2W81", "Apps"),
-            Map.entry("A2J0R2SD7G9LPA", "Tablet"), Map.entry("A2JKHJ0PX4J3L3", "FireTV Cube"),
-            Map.entry("A2L8KG0CT86ADW", "RaspPi"), Map.entry("A2LWARUGJLBYEW", "FireTV Stick V2"),
-            Map.entry("A2M35JJZWCQOMZ", "Echo Plus"), Map.entry("A2M4YX06LWP8WI", "Fire Tab"),
-            Map.entry("A2OSP3UA4VC85F", "Sonos"), Map.entry("A2T0P32DY3F7VB", "echosim.io"),
-            Map.entry("A2TF17PFR55MTB", "Apps"), Map.entry("A2U21SRK4QGSE1", "Echo Dot 4th Gen"),
-            Map.entry("A2Z8O30CD35N8F", "Sonos Arc"), Map.entry("A303PJF6ISQ7IC", "Echo Auto"),
-            Map.entry("A30YDR2MK8HMRV", "Echo Dot 3rd Gen Clock"),
-            Map.entry("A31DTMEEVDDOIV", "FireTV Stick Lite 2020"), Map.entry("A32DOYMUN6DTXA", "Echo Dot 3rd Gen"),
-            Map.entry("A378ND93PD0NC4", "VR Radio"), Map.entry("A37SHHQ3NUL7B5", "Bose Homespeaker"),
-            Map.entry("A38BPK7OW001EX", "Raspberry Alexa"), Map.entry("A38EHHIB10L47V", "Echo Dot"),
-            Map.entry("A39Y3UG1XLEJLZ", "Fitbit Sense"), Map.entry("A3C9PE6TNYLTCH", "Multiroom"),
-            Map.entry("A3FX4UWTP28V1P", "Echo 3"), Map.entry("A3GZUE7F9MEB4U", "FireTV Cube"),
-            Map.entry("A3H674413M2EKB", "echosim.io"), Map.entry("A3HF4YRA2L7XGC", "FireTV Cube"),
-            Map.entry("A3NPD82ABCPIDP", "Sonos Beam"), Map.entry("A3R8XIAIU4HJAX", "Echo Show"),
-            Map.entry("A3R9S4ZZECZ6YL", "Fire Tab HD 10"), Map.entry("A3RBAYBE7VM004", "Echo Studio"),
-            Map.entry("A3RMGO6LYLH7YN", "Echo 4 Bridge"), Map.entry("A3S5BH2HU6VAYF", "Echo Dot 2nd Gen"),
-            Map.entry("A3SSG6GR8UU7SN", "Echo Sub"), Map.entry("A3TCJ8RTT3NVI7", "Listens for Alexa"),
-            Map.entry("A3V3VA38K169FO", "Fire Tab"), Map.entry("A3VRME03NAXFUB", "Echo Flex"),
-            Map.entry("A4ZP7ZC4PI6TO", "Echo Show 5th Gen"), Map.entry("A7WXQPH584YP", "Echo 2nd Gen"),
-            Map.entry("A8DM4FYR6D3HT", "LG WebOS TV"), Map.entry("AB72C64C86AW2", "Echo"),
-            Map.entry("ADVBD696BHNV5", "FireTV Stick V1"), Map.entry("AILBSA2LNTOYL", "reverb App"),
-            Map.entry("AINRG27IL8AS0", "Megablast Speaker"), Map.entry("AKOAGQTKAS9YB", "Echo Connect"),
-            Map.entry("AKPGW064GI9HE", "FireTV Stick 4K"), Map.entry("AP1F6KUH00XPV", "Stereo/Subwoofer Pair"),
-            Map.entry("AVD3HM0HOJAAL", "Sonos One 2nd Gen"), Map.entry("AVE5HX13UR5NO", "Logitech Zero Touch"),
-            Map.entry("AVU7CPPF2ZRAS", "Fire HD 8"), Map.entry("AWZZ5CVHX2CD", "Echo Show 2nd Gen"));
+    public static final Map<String, String> DEVICE_TYPES = Map.<String, String> ofEntries( //
+            Map.entry("A10A33FOX2NUBK", "Echo Spot"), //
+            Map.entry("A10L5JEZTKKCZ8", "Vobot-Clock"), //
+            Map.entry("A12GXV8XMS007S", "FireTV"), //
+            Map.entry("A15ERDAKK5HQQG", "Sonos"), //
+            Map.entry("A17LGWINFBUTZZ", "Anker Roav Viva Alexa"), //
+            Map.entry("A18O6U1UQFJ0XK", "Echo Plus 2nd Gen"), //
+            Map.entry("A1C66CX2XD756O", "Fire HD 8"), //
+            Map.entry("A1DL2DVDQVK3Q", "Apps"), //
+            Map.entry("A1ETW4IXK2PYBP", "Echo Auto"), //
+            Map.entry("A1H0CMF1XM0ZP4", "Echo Dot/Bose"), //
+            Map.entry("A1J16TEDOYCZTN", "Fire Tab"), //
+            Map.entry("A1JJ0KFC4ZPNJ3", "Echo Input"), //
+            Map.entry("A1NL4BVLQ4L3N3", "Echo Show"), //
+            Map.entry("A1P31Q3MOWSHOD", "Anker Zalo Halo Speaker"), //
+            Map.entry("A1Q7QCGNMXAKYW", "Fire Tab 7"), //
+            Map.entry("A1QKZ9D0IJY332", "Samsung QLED"), //
+            Map.entry("A1RABVCI4QCIKC", "Echo Dot 3rd Gen"), //
+            Map.entry("A1RTAM01W29CUP", "Windows App"), //
+            Map.entry("A1X7HJX9QL16M5", "Bespoken.io"), //
+            Map.entry("A1Z88NGR2BK6A2", "Echo Show 8"), //
+            Map.entry("A1ZB65LA390I4K", "Fire HD 10"), //
+            Map.entry("A21Z3CGI8UIP0F", "Apps"), //
+            Map.entry("A265XOI9586NML", "FireTV Stick v3"), //
+            Map.entry("A2825NDLA7WDZV", "Apps"), //
+            Map.entry("A2E0SNTXJVT7WK", "FireTV V1"), //
+            Map.entry("A2GFL5ZMWNE0PX", "FireTV"), //
+            Map.entry("A2H4LV5GIZ1JFT", "Echo 4 Clock"), //
+            Map.entry("A2IVLV5VM2W81", "Apps"), //
+            Map.entry("A2J0R2SD7G9LPA", "Tablet"), //
+            Map.entry("A2JKHJ0PX4J3L3", "FireTV Cube"), //
+            Map.entry("A2L8KG0CT86ADW", "RaspPi"), //
+            Map.entry("A2LWARUGJLBYEW", "FireTV Stick V2"), //
+            Map.entry("A2M35JJZWCQOMZ", "Echo Plus"), //
+            Map.entry("A2M4YX06LWP8WI", "Fire Tab"), //
+            Map.entry("A2OSP3UA4VC85F", "Sonos"), //
+            Map.entry("A2T0P32DY3F7VB", "echosim.io"), //
+            Map.entry("A2TF17PFR55MTB", "Apps"), //
+            Map.entry("A2U21SRK4QGSE1", "Echo Dot 4th Gen"), //
+            Map.entry("A2Z8O30CD35N8F", "Sonos Arc"), //
+            Map.entry("A303PJF6ISQ7IC", "Echo Auto"), //
+            Map.entry("A30YDR2MK8HMRV", "Echo Dot 3rd Gen Clock"), //
+            Map.entry("A31DTMEEVDDOIV", "FireTV Stick Lite 2020"), //
+            Map.entry("A32DOYMUN6DTXA", "Echo Dot 3rd Gen"), //
+            Map.entry("A378ND93PD0NC4", "VR Radio"), //
+            Map.entry("A37SHHQ3NUL7B5", "Bose Homespeaker"), //
+            Map.entry("A38BPK7OW001EX", "Raspberry Alexa"), //
+            Map.entry("A38EHHIB10L47V", "Echo Dot"), //
+            Map.entry("A39Y3UG1XLEJLZ", "Fitbit Sense"), //
+            Map.entry("A3C9PE6TNYLTCH", "Multiroom"), //
+            Map.entry("A3FX4UWTP28V1P", "Echo 3"), //
+            Map.entry("A3GZUE7F9MEB4U", "FireTV Cube"), //
+            Map.entry("A3H674413M2EKB", "echosim.io"), //
+            Map.entry("A3HF4YRA2L7XGC", "FireTV Cube"), //
+            Map.entry("A3NPD82ABCPIDP", "Sonos Beam"), //
+            Map.entry("A3R8XIAIU4HJAX", "Echo Show"), //
+            Map.entry("A3R9S4ZZECZ6YL", "Fire Tab HD 10"), //
+            Map.entry("A3RBAYBE7VM004", "Echo Studio"), //
+            Map.entry("A3RMGO6LYLH7YN", "Echo 4 Bridge"), //
+            Map.entry("A3S5BH2HU6VAYF", "Echo Dot 2nd Gen"), //
+            Map.entry("A3SSG6GR8UU7SN", "Echo Sub"), //
+            Map.entry("A3TCJ8RTT3NVI7", "Listens for Alexa"), //
+            Map.entry("A3V3VA38K169FO", "Fire Tab"), //
+            Map.entry("A3VRME03NAXFUB", "Echo Flex"), //
+            Map.entry("A4ZP7ZC4PI6TO", "Echo Show 5th Gen"), //
+            Map.entry("A7WXQPH584YP", "Echo 2nd Gen"), //
+            Map.entry("A8DM4FYR6D3HT", "LG WebOS TV"), //
+            Map.entry("AB72C64C86AW2", "Echo"), //
+            Map.entry("ADVBD696BHNV5", "FireTV Stick V1"), //
+            Map.entry("AILBSA2LNTOYL", "reverb App"), //
+            Map.entry("AINRG27IL8AS0", "Megablast Speaker"), //
+            Map.entry("AKOAGQTKAS9YB", "Echo Connect"), //
+            Map.entry("AKPGW064GI9HE", "FireTV Stick 4K"), //
+            Map.entry("AP1F6KUH00XPV", "Stereo/Subwoofer Pair"), //
+            Map.entry("AVD3HM0HOJAAL", "Sonos One 2nd Gen"), //
+            Map.entry("AVE5HX13UR5NO", "Logitech Zero Touch"), //
+            Map.entry("AVU7CPPF2ZRAS", "Fire HD 8"), //
+            Map.entry("AWZZ5CVHX2CD", "Echo Show 2nd Gen"));
 }
