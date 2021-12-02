@@ -227,74 +227,74 @@ Take a look in the channel description above to know, which channels are support
 
 ```
 // Account
-String Echo_Living_Room_SendMessage            "SendMessage"							{channel="amazonechocontrol:account:account1:sendMessage"}
+String Echo_Living_Room_SendMessage             "SendMessage"                           {channel="amazonechocontrol:account:account1:sendMessage"}
 
 Group Alexa_Living_Room <player>
 
 // Player control
-Player Echo_Living_Room_Player					"Player"								(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:player"}
-Dimmer Echo_Living_Room_Volume					"Volume [%.0f %%]" <soundvolume>		(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:volume"}
-Number Echo_Living_Room_Treble					"Treble"								(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:equalizerTreble"}
-Number Echo_Living_Room_Midrange				"Midrange"								(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:equalizerMidrange"}
-Number Echo_Living_Room_Bass					"Bass"									(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:equalizerBass"}
-Switch Echo_Living_Room_Shuffle					"Shuffle"								(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:shuffle"}
+Player Echo_Living_Room_Player                  "Player"                                (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:player"}
+Dimmer Echo_Living_Room_Volume                  "Volume [%.0f %%]" <soundvolume>        (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:volume"}
+Number Echo_Living_Room_Treble                  "Treble"                                (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:equalizerTreble"}
+Number Echo_Living_Room_Midrange                "Midrange"                              (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:equalizerMidrange"}
+Number Echo_Living_Room_Bass                    "Bass"                                  (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:equalizerBass"}
+Switch Echo_Living_Room_Shuffle                 "Shuffle"                               (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:shuffle"}
 
 // Media channels
-Dimmer Echo_Living_Room_MediaProgress			"Media progress"						(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:mediaProgress"}
-Number:Time Echo_Living_Room_MediaProgressTime	"Media progress time [%d %unit%]"		(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:mediaProgressTime"}
-Number:Time Echo_Living_Room_MediaLength		"Media length [%d %unit%]"				(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:mediaLength"}
+Dimmer Echo_Living_Room_MediaProgress           "Media progress"                        (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:mediaProgress"}
+Number:Time Echo_Living_Room_MediaProgressTime  "Media progress time [%d %unit%]"       (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:mediaProgressTime"}
+Number:Time Echo_Living_Room_MediaLength        "Media length [%d %unit%]"              (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:mediaLength"}
 
 // Player Information
-String Echo_Living_Room_ImageUrl				"Image URL"								(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:imageUrl"}
-String Echo_Living_Room_Title					"Title"									(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:title"}
-String Echo_Living_Room_Subtitle1				"Subtitle 1"							(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:subtitle1"}
-String Echo_Living_Room_Subtitle2				"Subtitle 2"							(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:subtitle2"}
-String Echo_Living_Room_ProviderDisplayName		"Provider"								(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:providerDisplayName"}
+String Echo_Living_Room_ImageUrl                "Image URL"                             (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:imageUrl"}
+String Echo_Living_Room_Title                   "Title"                                 (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:title"}
+String Echo_Living_Room_Subtitle1               "Subtitle 1"                            (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:subtitle1"}
+String Echo_Living_Room_Subtitle2               "Subtitle 2"                            (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:subtitle2"}
+String Echo_Living_Room_ProviderDisplayName     "Provider"                              (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:providerDisplayName"}
 
 // Music provider and start command
-String Echo_Living_Room_MusicProviderId			"Music Provider Id"						(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:musicProviderId"}
-String Echo_Living_Room_PlayMusicCommand		"Play music voice command (Write Only)"	(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:playMusicVoiceCommand"}
-String Echo_Living_Room_StartCommand			"Start Information"						(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:startCommand"}
+String Echo_Living_Room_MusicProviderId         "Music Provider Id"                     (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:musicProviderId"}
+String Echo_Living_Room_PlayMusicCommand        "Play music voice command (Write Only)" (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:playMusicVoiceCommand"}
+String Echo_Living_Room_StartCommand            "Start Information"                     (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:startCommand"}
 
 // Bluetooth
-String Echo_Living_Room_BluetoothMAC			"Bluetooth MAC Address"	<bluetooth>		(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:bluetoothMAC"}
-Switch Echo_Living_Room_Bluetooth				"Bluetooth"				<bluetooth>		(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:bluetooth"}
-String Echo_Living_Room_BluetoothDeviceName		"Bluetooth Device"		<bluetooth>		(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:bluetoothDeviceName"}
+String Echo_Living_Room_BluetoothMAC            "Bluetooth MAC Address" <bluetooth>     (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:bluetoothMAC"}
+Switch Echo_Living_Room_Bluetooth               "Bluetooth"             <bluetooth>     (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:bluetooth"}
+String Echo_Living_Room_BluetoothDeviceName     "Bluetooth Device"      <bluetooth>     (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:bluetoothDeviceName"}
 
 // Commands
-String Echo_Living_Room_Announcement			"Announcement"							(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:announcement"}
-String Echo_Living_Room_TTS						"Text to Speech"						(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:textToSpeech"}
-Dimmer Echo_Living_Room_TTS_Volume				"Text to Speech Volume"					(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:textToSpeechVolume"}
-String Echo_Living_Room_Remind					"Remind"								(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:remind"}
-String Echo_Living_Room_PlayAlarmSound			"Play Alarm Sound"						(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:playAlarmSound"}
-String Echo_Living_Room_StartRoutine			"Start Routine"							(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:startRoutine"}
-Dimmer Echo_Living_Room_NotificationVolume		"Notification volume"					(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:notificationVolume"}
-Switch Echo_Living_Room_AscendingAlarm			"Ascending alarm"						(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:ascendingAlarm"}
+String Echo_Living_Room_Announcement            "Announcement"                          (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:announcement"}
+String Echo_Living_Room_TTS                     "Text to Speech"                        (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:textToSpeech"}
+Dimmer Echo_Living_Room_TTS_Volume              "Text to Speech Volume"                 (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:textToSpeechVolume"}
+String Echo_Living_Room_Remind                  "Remind"                                (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:remind"}
+String Echo_Living_Room_PlayAlarmSound          "Play Alarm Sound"                      (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:playAlarmSound"}
+String Echo_Living_Room_StartRoutine            "Start Routine"                         (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:startRoutine"}
+Dimmer Echo_Living_Room_NotificationVolume      "Notification volume"                   (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:notificationVolume"}
+Switch Echo_Living_Room_AscendingAlarm          "Ascending alarm"                       (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:ascendingAlarm"}
 
 // Feedbacks
-String Echo_Living_Room_LastVoiceCommand		"Last voice command"					(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:lastVoiceCommand"}
-String Echo_Living_Room_LastSpokenText			"Last spoken text"						(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:lastSpokenText"}
-DateTime Echo_Living_Room_NextReminder			"Next reminder"							(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:nextReminder"}
-DateTime Echo_Living_Room_NextAlarm				"Next alarm"							(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:nextAlarm"}
-DateTime Echo_Living_Room_NextMusicAlarm		"Next music alarm"						(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:nextMusicAlarm"}
-DateTime Echo_Living_Room_NextTimer				"Next timer"							(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:nextTimer"}
-String Echo_Living_Room_Announcement			"Announcement"							(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:announcement"}
-String Echo_Living_Room_TTS						"Text to Speech"						(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:textToSpeech"}
-Dimmer Echo_Living_Room_TTS_Volume				"Text to Speech Volume"					(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:textToSpeechVolume"}
-String Echo_Living_Room_Remind					"Remind"								(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:remind"}
-String Echo_Living_Room_PlayAlarmSound			"Play Alarm Sound"						(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:playAlarmSound"}
-String Echo_Living_Room_StartRoutine			"Start Routine"							(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:startRoutine"}
-Dimmer Echo_Living_Room_NotificationVolume		"Notification volume"					(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:notificationVolume"}
-Switch Echo_Living_Room_AscendingAlarm			"Ascending alarm"						(Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:ascendingAlarm"}
+String Echo_Living_Room_LastVoiceCommand        "Last voice command"                    (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:lastVoiceCommand"}
+String Echo_Living_Room_LastSpokenText          "Last spoken text"                      (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:lastSpokenText"}
+DateTime Echo_Living_Room_NextReminder          "Next reminder"                         (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:nextReminder"}
+DateTime Echo_Living_Room_NextAlarm             "Next alarm"                            (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:nextAlarm"}
+DateTime Echo_Living_Room_NextMusicAlarm        "Next music alarm"                      (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:nextMusicAlarm"}
+DateTime Echo_Living_Room_NextTimer             "Next timer"                            (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:nextTimer"}
+String Echo_Living_Room_Announcement            "Announcement"                          (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:announcement"}
+String Echo_Living_Room_TTS                     "Text to Speech"                        (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:textToSpeech"}
+Dimmer Echo_Living_Room_TTS_Volume              "Text to Speech Volume"                 (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:textToSpeechVolume"}
+String Echo_Living_Room_Remind                  "Remind"                                (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:remind"}
+String Echo_Living_Room_PlayAlarmSound          "Play Alarm Sound"                      (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:playAlarmSound"}
+String Echo_Living_Room_StartRoutine            "Start Routine"                         (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:startRoutine"}
+Dimmer Echo_Living_Room_NotificationVolume      "Notification volume"                   (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:notificationVolume"}
+Switch Echo_Living_Room_AscendingAlarm          "Ascending alarm"                       (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:ascendingAlarm"}
 
 // Flashbriefings
-Switch FlashBriefing_Technical_Save				"Save (Write only)"						{ channel="amazonechocontrol:flashbriefingprofile:account1:flashbriefing1:save"} 
-Switch FlashBriefing_Technical_Active			"Active"								{ channel="amazonechocontrol:flashbriefingprofile:account1:flashbriefing1:active"}
-String FlashBriefing_Technical_Play				"Play (Write only)"						{ channel="amazonechocontrol:flashbriefingprofile:account1:flashbriefing1:playOnDevice"}
+Switch FlashBriefing_Technical_Save             "Save (Write only)"                     { channel="amazonechocontrol:flashbriefingprofile:account1:flashbriefing1:save"} 
+Switch FlashBriefing_Technical_Active           "Active"                                { channel="amazonechocontrol:flashbriefingprofile:account1:flashbriefing1:active"}
+String FlashBriefing_Technical_Play             "Play (Write only)"                     { channel="amazonechocontrol:flashbriefingprofile:account1:flashbriefing1:playOnDevice"}
 
-Switch FlashBriefing_LifeStyle_Save				"Save (Write only)"						{ channel="amazonechocontrol:flashbriefingprofile:account1:flashbriefing2:save"} 
-Switch FlashBriefing_LifeStyle_Active			"Active"								{ channel="amazonechocontrol:flashbriefingprofile:account1:flashbriefing2:active"}
-String FlashBriefing_LifeStyle_Play				"Play (Write only)"						{ channel="amazonechocontrol:flashbriefingprofile:account1:flashbriefing2:playOnDevice"}
+Switch FlashBriefing_LifeStyle_Save             "Save (Write only)"                     { channel="amazonechocontrol:flashbriefingprofile:account1:flashbriefing2:save"} 
+Switch FlashBriefing_LifeStyle_Active           "Active"                                { channel="amazonechocontrol:flashbriefingprofile:account1:flashbriefing2:active"}
+String FlashBriefing_LifeStyle_Play             "Play (Write only)"                     { channel="amazonechocontrol:flashbriefingprofile:account1:flashbriefing2:playOnDevice"}
 ```
 
 #### echo.sitemap:
