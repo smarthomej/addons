@@ -49,7 +49,6 @@ import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingUID;
-import org.openhab.core.thing.binding.BaseThingHandler;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.RefreshType;
 import org.openhab.core.types.State;
@@ -62,14 +61,14 @@ import org.smarthomej.binding.amazonechocontrol.internal.HttpException;
 import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.ChannelHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.ChannelHandlerAnnouncement;
 import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.IEchoThingHandler;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonActivities.Activity;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonActivities.Activity.Description;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonAscendingAlarm.AscendingAlarmModel;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates.BluetoothState;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates.PairedDevice;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCommandPayloadPushNotificationChange;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCommandPayloadPushVolumeChange;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCustomerHistoryRecords.CustomerHistoryRecord;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCustomerHistoryRecords.CustomerHistoryRecord.VoiceHistoryRecordItem;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDeviceNotificationState.DeviceNotificationState;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDevices.Device;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonEqualizer;
@@ -86,6 +85,7 @@ import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonPlayerState.P
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonPlayerState.PlayerInfo.Provider;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonPlayerState.PlayerInfo.Volume;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonPlaylists;
+import org.smarthomej.commons.UpdatingBaseThingHandler;
 
 import com.google.gson.Gson;
 
@@ -95,7 +95,7 @@ import com.google.gson.Gson;
  * @author Michael Geramb - Initial contribution
  */
 @NonNullByDefault
-public class EchoHandler extends BaseThingHandler implements IEchoThingHandler {
+public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingHandler {
     private final Logger logger = LoggerFactory.getLogger(EchoHandler.class);
     private Gson gson;
     private @Nullable Device device;
@@ -135,7 +135,9 @@ public class EchoHandler extends BaseThingHandler implements IEchoThingHandler {
     long mediaLengthMs;
     long mediaProgressMs;
     long mediaStartMs;
-    String lastSpokenText = "";
+    String lastSummary = "";
+    String lastCustomerTranscript = "";
+    String lastAlexaResponse = "";
 
     public EchoHandler(Thing thing, Gson gson) {
         super(thing);
@@ -1209,36 +1211,43 @@ public class EchoHandler extends BaseThingHandler implements IEchoThingHandler {
         }
     }
 
-    public void handlePushActivity(Activity pushActivity) {
-        if ("DISCARDED_NON_DEVICE_DIRECTED_INTENT".equals(pushActivity.activityStatus)) {
-            return;
-        }
-        Description description = pushActivity.parseDescription();
-        String firstUtteranceId = description.firstUtteranceId;
-        if (firstUtteranceId == null || firstUtteranceId.isEmpty()
-                || firstUtteranceId.toLowerCase().startsWith("textclient:")) {
-            return;
-        }
-        String firstStreamId = description.firstStreamId;
-        if (firstStreamId == null || firstStreamId.isEmpty()) {
-            return;
-        }
-        String spokenText = description.summary;
-        if (spokenText != null && !spokenText.isEmpty()) {
-            // remove wake word
-            String wakeWordPrefix = this.wakeWord;
-            if (wakeWordPrefix != null) {
-                wakeWordPrefix += " ";
-                if (spokenText.toLowerCase().startsWith(wakeWordPrefix.toLowerCase())) {
-                    spokenText = spokenText.substring(wakeWordPrefix.length());
+    public void handlePushActivity(CustomerHistoryRecord customerHistoryRecord) {
+        List<VoiceHistoryRecordItem> voiceHistoryRecordItems = customerHistoryRecord.voiceHistoryRecordItems;
+        if (voiceHistoryRecordItems != null) {
+            for (VoiceHistoryRecordItem voiceHistoryRecordItem : voiceHistoryRecordItems) {
+                if (voiceHistoryRecordItem != null) {
+                    String recordItemType = voiceHistoryRecordItem.recordItemType;
+                    if ("CUSTOMER_TRANSCRIPT".equals(recordItemType) || "ASR_REPLACEMENT_TEXT".equals(recordItemType)) {
+                        String customerTranscript = voiceHistoryRecordItem.transcriptText;
+                        if (customerTranscript != null && !customerTranscript.isEmpty()) {
+                            // remove wake word
+                            String wakeWordPrefix = this.wakeWord;
+                            if (wakeWordPrefix != null) {
+                                wakeWordPrefix += " ";
+                                if (customerTranscript.toLowerCase().startsWith(wakeWordPrefix.toLowerCase())) {
+                                    customerTranscript = customerTranscript.substring(wakeWordPrefix.length());
+                                }
+                            }
+
+                            if (lastCustomerTranscript.isEmpty() || lastCustomerTranscript.equals(customerTranscript)) {
+                                updateState(CHANNEL_LAST_VOICE_COMMAND, StringType.EMPTY);
+                            }
+                            lastCustomerTranscript = customerTranscript;
+                            updateState(CHANNEL_LAST_VOICE_COMMAND, new StringType(customerTranscript));
+                        }
+                    } else if ("ALEXA_RESPONSE".equals(recordItemType)
+                            || "TTS_REPLACEMENT_TEXT".equals(recordItemType)) {
+                        String alexaResponse = voiceHistoryRecordItem.transcriptText;
+                        if (alexaResponse != null && !alexaResponse.isEmpty()) {
+                            if (lastAlexaResponse.isEmpty() || lastAlexaResponse.equals(alexaResponse)) {
+                                updateState(CHANNEL_LAST_SPOKEN_TEXT, StringType.EMPTY);
+                            }
+                            lastAlexaResponse = alexaResponse;
+                            updateState(CHANNEL_LAST_SPOKEN_TEXT, new StringType(alexaResponse));
+                        }
+                    }
                 }
             }
-
-            if (lastSpokenText.isEmpty() || lastSpokenText.equals(spokenText)) {
-                updateState(CHANNEL_LAST_VOICE_COMMAND, StringType.EMPTY);
-            }
-            lastSpokenText = spokenText;
-            updateState(CHANNEL_LAST_VOICE_COMMAND, new StringType(spokenText));
         }
     }
 
