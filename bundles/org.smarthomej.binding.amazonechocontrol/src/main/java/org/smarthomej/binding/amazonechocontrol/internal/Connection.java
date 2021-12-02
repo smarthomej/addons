@@ -77,6 +77,8 @@ import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonAutomation.Pa
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBootstrapResult;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBootstrapResult.Authentication;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCustomerHistoryRecords;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCustomerHistoryRecords.CustomerHistoryRecord;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDeviceNotificationState;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDeviceNotificationState.DeviceNotificationState;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDevices;
@@ -682,7 +684,7 @@ public class Connection {
                 if (code == 200) {
                     logger.debug("Call to {} succeeded", url);
                     return connection;
-                } else if (code == 302 && location != null) {
+                } else if (code == 301 || code == 302 && location != null) {
                     logger.debug("Redirected to {}", location);
                     redirectCounter++;
                     if (redirectCounter > 30) {
@@ -1138,12 +1140,27 @@ public class Connection {
         return mediaState;
     }
 
+    @Deprecated
     public List<Activity> getActivities(int number, @Nullable Long startTime) {
         try {
             String json = makeRequestAndReturnString(alexaServer + "/api/activities?startTime="
                     + (startTime != null ? startTime : "") + "&size=" + number + "&offset=1");
             JsonActivities activities = parseJson(json, JsonActivities.class);
             return Objects.requireNonNullElse(activities.activities, List.of());
+        } catch (IOException | URISyntaxException | InterruptedException e) {
+            logger.info("getting activities failed", e);
+        }
+        return List.of();
+    }
+
+    public List<CustomerHistoryRecord> getActivities(@Nullable Long startTime, @Nullable Long endTime) {
+        try {
+            String json = makeRequestAndReturnString(
+                    "https://" + amazonSite + "/alexa-privacy/apd/rvh/customer-history-records?startTime="
+                            + (startTime != null ? startTime : "") + "&endTime=" + (endTime != null ? endTime : "")
+                            + "&maxRecordSize=1");
+            JsonCustomerHistoryRecords customerHistoryRecords = parseJson(json, JsonCustomerHistoryRecords.class);
+            return Objects.requireNonNullElse(customerHistoryRecords.customerHistoryRecords, List.of());
         } catch (IOException | URISyntaxException | InterruptedException e) {
             logger.info("getting activities failed", e);
         }

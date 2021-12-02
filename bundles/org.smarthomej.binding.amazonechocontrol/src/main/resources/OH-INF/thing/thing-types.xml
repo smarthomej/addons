@@ -85,9 +85,13 @@
 			<channel id="bluetooth" typeId="bluetooth"/>
 			<channel id="bluetoothDeviceName" typeId="bluetoothDeviceName"/>
 			<channel id="lastVoiceCommand" typeId="lastVoiceCommand"/>
+			<channel id="lastSpokenText" typeId="lastSpokenText"/>
 			<channel id="notificationVolume" typeId="notificationVolume"/>
 			<channel id="ascendingAlarm" typeId="ascendingAlarm"/>
 		</channels>
+		<properties>
+			<property name="thingTypeVersion">1</property>
+		</properties>
 		<representation-property>serialNumber</representation-property>
 		<config-description>
 			<parameter name="serialNumber" type="text" required="true">
@@ -140,9 +144,13 @@
 			<channel id="bluetooth" typeId="bluetooth"/>
 			<channel id="bluetoothDeviceName" typeId="bluetoothDeviceName"/>
 			<channel id="lastVoiceCommand" typeId="lastVoiceCommand"/>
+			<channel id="lastSpokenText" typeId="lastSpokenText"/>
 			<channel id="notificationVolume" typeId="notificationVolume"/>
 			<channel id="ascendingAlarm" typeId="ascendingAlarm"/>
 		</channels>
+		<properties>
+			<property name="thingTypeVersion">1</property>
+		</properties>
 		<representation-property>serialNumber</representation-property>
 		<config-description>
 			<parameter name="serialNumber" type="text" required="true">
@@ -195,9 +203,13 @@
 			<channel id="bluetooth" typeId="bluetooth"/>
 			<channel id="bluetoothDeviceName" typeId="bluetoothDeviceName"/>
 			<channel id="lastVoiceCommand" typeId="lastVoiceCommand"/>
+			<channel id="lastSpokenText" typeId="lastSpokenText"/>
 			<channel id="notificationVolume" typeId="notificationVolume"/>
 			<channel id="ascendingAlarm" typeId="ascendingAlarm"/>
 		</channels>
+		<properties>
+			<property name="thingTypeVersion">1</property>
+		</properties>
 		<representation-property>serialNumber</representation-property>
 		<config-description>
 			<parameter name="serialNumber" type="text" required="true">
@@ -460,6 +472,12 @@
 		<label>Last Voice Command</label>
 		<description>Last voice command spoken to the device. Writing to the channel starts voice output.</description>
 		<state readOnly="false"/>
+	</channel-type>
+	<channel-type id="lastSpokenText" advanced="true">
+		<item-type>String</item-type>
+		<label>Last Spoken Text</label>
+		<description>Last spoken text of the device.</description>
+		<state readOnly="true"/>
 	</channel-type>
 	<channel-type id="mediaProgress" advanced="false">
 		<item-type>Dimmer</item-type>
