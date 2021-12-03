@@ -58,8 +58,6 @@ import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.ChannelH
 import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.IEchoThingHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.ConnectionException;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonActivities.Activity;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonActivities.Activity.Description;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonAscendingAlarm.AscendingAlarmModel;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates.BluetoothState;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates.PairedDevice;

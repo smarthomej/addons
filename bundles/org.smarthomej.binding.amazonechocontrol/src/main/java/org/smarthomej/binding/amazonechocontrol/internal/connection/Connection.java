@@ -62,8 +62,6 @@ import org.openhab.core.library.types.StringType;
 import org.openhab.core.library.unit.SIUnits;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonActivities;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonActivities.Activity;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonAnnouncementContent;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonAnnouncementTarget;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonAscendingAlarm;
@@ -869,28 +867,15 @@ public class Connection {
         return parseJson(json, JsonMediaState.class);
     }
 
-    @Deprecated
-    public List<Activity> getActivities(int number, @Nullable Long startTime) {
-        try {
-            String json = makeRequestAndReturnString(loginData.alexaServer + "/api/activities?startTime="
-                    + (startTime != null ? startTime : "") + "&size=" + number + "&offset=1");
-            JsonActivities activities = parseJson(json, JsonActivities.class);
-            return Objects.requireNonNullElse(activities.activities, List.of());
-        } catch (ConnectionException e) {
-            logger.info("getting activities failed", e);
-        }
-        return List.of();
-    }
-
     public List<CustomerHistoryRecord> getActivities(@Nullable Long startTime, @Nullable Long endTime) {
         try {
             String json = makeRequestAndReturnString(
-                    "https://" + amazonSite + "/alexa-privacy/apd/rvh/customer-history-records?startTime="
+                    loginData.alexaServer + "/alexa-privacy/apd/rvh/customer-history-records?startTime="
                             + (startTime != null ? startTime : "") + "&endTime=" + (endTime != null ? endTime : "")
                             + "&maxRecordSize=1");
             JsonCustomerHistoryRecords customerHistoryRecords = parseJson(json, JsonCustomerHistoryRecords.class);
             return Objects.requireNonNullElse(customerHistoryRecords.customerHistoryRecords, List.of());
-        } catch (IOException | URISyntaxException | InterruptedException e) {
+        } catch (ConnectionException e) {
             logger.info("getting activities failed", e);
         }
         return List.of();

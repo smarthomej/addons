@@ -737,9 +737,12 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
         String command = pushCommand.command;
         if (command != null) {
             ScheduledFuture<?> refreshDataDelayed = this.refreshAfterCommandJob;
+            String payload = pushCommand.payload;
             switch (command) {
                 case "PUSH_ACTIVITY":
-                    handlePushActivity(pushCommand.payload);
+                    if (payload != null) {
+                        handlePushActivity(payload);
+                    }
                     break;
                 case "PUSH_DOPPLER_CONNECTION_CHANGE":
                 case "PUSH_BLUETOOTH_STATE_CHANGE":
@@ -755,7 +758,6 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
                     refreshNotifications(pushPayload);
                     break;
                 default:
-                    String payload = pushCommand.payload;
                     if (payload != null && payload.startsWith("{") && payload.endsWith("}")) {
                         JsonCommandPayloadPushDevice devicePayload = Objects
                                 .requireNonNull(gson.fromJson(payload, JsonCommandPayloadPushDevice.class));
@@ -776,10 +778,7 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
         }
     }
 
-    private void handlePushActivity(@Nullable String payload) {
-        if (payload == null) {
-            return;
-        }
+    private void handlePushActivity(String payload) {
         JsonCommandPayloadPushActivity pushActivity = Objects
                 .requireNonNull(gson.fromJson(payload, JsonCommandPayloadPushActivity.class));
 
