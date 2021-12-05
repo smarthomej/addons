@@ -135,9 +135,6 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
     long mediaLengthMs;
     long mediaProgressMs;
     long mediaStartMs;
-    String lastSummary = "";
-    String lastCustomerTranscript = "";
-    String lastAlexaResponse = "";
 
     public EchoHandler(Thing thing, Gson gson) {
         super(thing);
@@ -1220,29 +1217,22 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
                     if ("CUSTOMER_TRANSCRIPT".equals(recordItemType) || "ASR_REPLACEMENT_TEXT".equals(recordItemType)) {
                         String customerTranscript = voiceHistoryRecordItem.transcriptText;
                         if (customerTranscript != null && !customerTranscript.isEmpty()) {
-                            // remove wake word
+                            // REMOVE WAKEWORD
                             String wakeWordPrefix = this.wakeWord;
-                            if (wakeWordPrefix != null) {
-                                wakeWordPrefix += " ";
-                                if (customerTranscript.toLowerCase().startsWith(wakeWordPrefix.toLowerCase())) {
-                                    customerTranscript = customerTranscript.substring(wakeWordPrefix.length());
+                            if (wakeWordPrefix != null
+                                    && customerTranscript.toLowerCase().startsWith(wakeWordPrefix.toLowerCase())) {
+                                customerTranscript = customerTranscript.substring(wakeWordPrefix.length()).trim();
+                                // STOP IF WAKEWORD ONLY
+                                if (customerTranscript.isEmpty()) {
+                                    return;
                                 }
                             }
-
-                            if (lastCustomerTranscript.isEmpty() || lastCustomerTranscript.equals(customerTranscript)) {
-                                updateState(CHANNEL_LAST_VOICE_COMMAND, StringType.EMPTY);
-                            }
-                            lastCustomerTranscript = customerTranscript;
                             updateState(CHANNEL_LAST_VOICE_COMMAND, new StringType(customerTranscript));
                         }
                     } else if ("ALEXA_RESPONSE".equals(recordItemType)
                             || "TTS_REPLACEMENT_TEXT".equals(recordItemType)) {
                         String alexaResponse = voiceHistoryRecordItem.transcriptText;
                         if (alexaResponse != null && !alexaResponse.isEmpty()) {
-                            if (lastAlexaResponse.isEmpty() || lastAlexaResponse.equals(alexaResponse)) {
-                                updateState(CHANNEL_LAST_SPOKEN_TEXT, StringType.EMPTY);
-                            }
-                            lastAlexaResponse = alexaResponse;
                             updateState(CHANNEL_LAST_SPOKEN_TEXT, new StringType(alexaResponse));
                         }
                     }
