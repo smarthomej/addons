@@ -126,12 +126,12 @@ Please note that incompatible units (e.g. `°C` for a `Number:Density` item) wil
 
 | parameter               | optional | default     | description |
 |-------------------------|----------|-------------|-------------|
-| `play`                  | yes      |      -      | A special value that represents `PLAY` |
-| `pause`                 | yes      |      -      | A special value that represents `PAUSE` |
-| `next`                  | yes      |      -      | A special value that represents `NEXT` |
-| `previous`              | yes      |      -      | A special value that represents `PREVIOUS` |
-| `fastforward`           | yes      |      -      | A special value that represents `FASTFORWARD` |
-| `rewind`                | yes      |      -      | A special value that represents `REWIND` |
+| `playValue`             | yes      |      -      | A special value that represents `PLAY` |
+| `pauseValue`            | yes      |      -      | A special value that represents `PAUSE` |
+| `nextValue`             | yes      |      -      | A special value that represents `NEXT` |
+| `previousValue`         | yes      |      -      | A special value that represents `PREVIOUS` |
+| `fastforwardValue`      | yes      |      -      | A special value that represents `FASTFORWARD` |
+| `rewindValue`           | yes      |      -      | A special value that represents `REWIND` |
 
 ### `rollershutter`
 
