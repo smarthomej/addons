@@ -38,6 +38,7 @@ import org.openhab.core.thing.ThingUID;
 import org.openhab.core.thing.binding.ThingHandlerCallback;
 import org.openhab.core.thing.binding.builder.ChannelBuilder;
 import org.openhab.core.thing.binding.builder.ThingBuilder;
+import org.openhab.core.types.UnDefType;
 import org.smarthomej.binding.deconz.internal.dto.SensorMessage;
 import org.smarthomej.binding.deconz.internal.handler.SensorThermostatThingHandler;
 import org.smarthomej.binding.deconz.internal.handler.SensorThingHandler;
@@ -88,9 +89,6 @@ public class SensorsTest {
 
     @Test
     public void thermostatSensorUpdateTest() throws IOException {
-        SensorMessage sensorMessage = DeconzTest.getObjectFromJson("thermostat.json", SensorMessage.class, gson);
-        assertNotNull(sensorMessage);
-
         ThingUID thingUID = new ThingUID("deconz", "sensor");
         ChannelUID channelValveUID = new ChannelUID(thingUID, "valve");
         ChannelUID channelHeatSetPointUID = new ChannelUID(thingUID, "heatsetpoint");
@@ -104,15 +102,23 @@ public class SensorsTest {
         SensorThermostatThingHandler sensorThingHandler = new SensorThermostatThingHandler(sensor, gson);
         sensorThingHandler.setCallback(thingHandlerCallback);
 
+        SensorMessage sensorMessage = DeconzTest.getObjectFromJson("thermostat-undef.json", SensorMessage.class, gson);
+        assertNotNull(sensorMessage);
         sensorThingHandler.messageReceived(sensorMessage);
-        Mockito.verify(thingHandlerCallback).stateUpdated(eq(channelValveUID),
-                eq(new QuantityType<>(100.0, Units.PERCENT)));
+
+        Mockito.verify(thingHandlerCallback).stateUpdated(eq(channelValveUID), eq(UnDefType.UNDEF));
         Mockito.verify(thingHandlerCallback).stateUpdated(eq(channelHeatSetPointUID),
                 eq(new QuantityType<>(25, SIUnits.CELSIUS)));
         Mockito.verify(thingHandlerCallback).stateUpdated(eq(channelModeUID),
                 eq(new StringType(ThermostatMode.AUTO.name())));
         Mockito.verify(thingHandlerCallback).stateUpdated(eq(channelTemperatureUID),
                 eq(new QuantityType<>(16.5, SIUnits.CELSIUS)));
+
+        sensorMessage = DeconzTest.getObjectFromJson("thermostat.json", SensorMessage.class, gson);
+        assertNotNull(sensorMessage);
+        sensorThingHandler.messageReceived(sensorMessage);
+        Mockito.verify(thingHandlerCallback).stateUpdated(eq(channelValveUID),
+                eq(new QuantityType<>(99, Units.PERCENT)));
     }
 
     @Test
