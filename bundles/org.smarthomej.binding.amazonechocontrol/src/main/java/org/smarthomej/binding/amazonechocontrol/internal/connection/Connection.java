@@ -64,8 +64,6 @@ import org.openhab.core.library.unit.SIUnits;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.amazonechocontrol.internal.ConnectionException;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonActivities;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonActivities.Activity;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonAnnouncementContent;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonAnnouncementTarget;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonAscendingAlarm;
@@ -803,7 +801,7 @@ public class Connection {
 
     private void searchSmartHomeDevicesRecursive(@Nullable Object jsonNode, List<SmartHomeBaseDevice> devices) {
         if (jsonNode instanceof Map) {
-            @SuppressWarnings({"rawtypes", "unchecked"})
+            @SuppressWarnings({ "rawtypes", "unchecked" })
             Map<String, Object> map = (Map) jsonNode;
             if (map.containsKey("entityId") && map.containsKey("friendlyName") && map.containsKey("actions")) {
                 // device node found, create type element and add it to the results
