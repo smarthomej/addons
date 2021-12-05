@@ -11,7 +11,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.smarthomej.binding.amazonechocontrol.internal;
+package org.smarthomej.binding.amazonechocontrol.internal.connection;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -63,9 +63,7 @@ import org.openhab.core.library.types.StringType;
 import org.openhab.core.library.unit.SIUnits;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthomej.binding.amazonechocontrol.internal.connection.AnnouncementWrapper;
-import org.smarthomej.binding.amazonechocontrol.internal.connection.LoginData;
-import org.smarthomej.binding.amazonechocontrol.internal.connection.TextWrapper;
+import org.smarthomej.binding.amazonechocontrol.internal.ConnectionException;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonActivities;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonActivities.Activity;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonAnnouncementContent;
@@ -275,11 +273,8 @@ public class Connection {
     }
 
     private @Nullable Date tryRestoreSessionData(@Nullable String data, @Nullable String overloadedDomain) {
-        // verify store data
-        if (data == null || data.isEmpty()) {
-            return null;
-        }
-        if (!loginData.deserialize(data)) {
+        // verify stored data
+        if (data == null || data.isEmpty() || !loginData.deserialize(data)) {
             return null;
         }
 
@@ -808,7 +803,7 @@ public class Connection {
 
     private void searchSmartHomeDevicesRecursive(@Nullable Object jsonNode, List<SmartHomeBaseDevice> devices) {
         if (jsonNode instanceof Map) {
-            @SuppressWarnings("rawtypes")
+            @SuppressWarnings({"rawtypes", "unchecked"})
             Map<String, Object> map = (Map) jsonNode;
             if (map.containsKey("entityId") && map.containsKey("friendlyName") && map.containsKey("actions")) {
                 // device node found, create type element and add it to the results
@@ -911,28 +906,15 @@ public class Connection {
         return parseJson(json, JsonMediaState.class);
     }
 
-    @Deprecated
-    public List<Activity> getActivities(int number, @Nullable Long startTime) {
-        try {
-            String json = makeRequestAndReturnString(alexaServer + "/api/activities?startTime="
-                    + (startTime != null ? startTime : "") + "&size=" + number + "&offset=1");
-            JsonActivities activities = parseJson(json, JsonActivities.class);
-            return Objects.requireNonNullElse(activities.activities, List.of());
-        } catch (ConnectionException e) {
-            logger.info("getting activities failed", e);
-        }
-        return List.of();
-    }
-
     public List<CustomerHistoryRecord> getActivities(@Nullable Long startTime, @Nullable Long endTime) {
         try {
             String json = makeRequestAndReturnString(
-                    "https://" + amazonSite + "/alexa-privacy/apd/rvh/customer-history-records?startTime="
+                    "https://" + getAmazonSite() + "/alexa-privacy/apd/rvh/customer-history-records?startTime="
                             + (startTime != null ? startTime : "") + "&endTime=" + (endTime != null ? endTime : "")
                             + "&maxRecordSize=1");
             JsonCustomerHistoryRecords customerHistoryRecords = parseJson(json, JsonCustomerHistoryRecords.class);
             return Objects.requireNonNullElse(customerHistoryRecords.customerHistoryRecords, List.of());
-        } catch (IOException | URISyntaxException | InterruptedException e) {
+        } catch (ConnectionException e) {
             logger.info("getting activities failed", e);
         }
         return List.of();

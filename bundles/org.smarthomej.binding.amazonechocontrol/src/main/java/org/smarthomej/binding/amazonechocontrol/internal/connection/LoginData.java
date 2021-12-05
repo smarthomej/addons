@@ -78,7 +78,6 @@ public class LoginData {
         this.deviceId = HexUtils.bytesToHex(hexStr.getBytes());
     }
 
-    @Deprecated
     public String serializeLoginData() {
         Date loginTime = this.loginTime;
         if (refreshToken == null || loginTime == null) {
@@ -101,7 +100,6 @@ public class LoginData {
         return builder.toString();
     }
 
-    @Deprecated
     public boolean deserialize(String data) {
         Scanner scanner = new Scanner(data);
         String version = scanner.nextLine();
