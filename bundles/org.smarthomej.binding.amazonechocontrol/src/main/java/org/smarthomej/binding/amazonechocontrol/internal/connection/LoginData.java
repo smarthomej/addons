@@ -132,7 +132,7 @@ public class LoginData {
         return true;
     }
 
-    public static class Cookie {
+    private static class Cookie {
         private final String name;
         private final String value;
         private final String comment;
@@ -175,7 +175,6 @@ public class LoginData {
             }
         }
 
-        @Deprecated
         public static Cookie fromScanner(Scanner scanner) {
             return new Cookie(readValue(scanner), readValue(scanner), readValue(scanner), readValue(scanner),
                     readValue(scanner), Long.parseLong(readValue(scanner)), readValue(scanner), readValue(scanner),
@@ -183,7 +182,6 @@ public class LoginData {
                     Boolean.parseBoolean(readValue(scanner)));
         }
 
-        @Deprecated
         public String serialize() {
             StringBuilder builder = new StringBuilder();
             writeValue(builder, name);
