@@ -81,6 +81,8 @@ public class JsonMarketplaceAddonService implements AddonService {
     private List<String> marketplaceUrls = List.of();
     private List<AddonEntryDTO> cachedAddons = List.of();
 
+    private boolean showUnstable = false;
+
     private @NonNullByDefault({}) EventPublisher eventPublisher;
 
     @Activate
@@ -90,8 +92,9 @@ public class JsonMarketplaceAddonService implements AddonService {
 
     @Modified
     public void modified(Map<String, Object> config) {
-        String urls = (String) config.getOrDefault("urls", "");
+        String urls = (String) config.getOrDefault("urls", "https://download.smarthomej.org/addons.json");
         marketplaceUrls = Arrays.asList(urls.split(","));
+        showUnstable = (Boolean) config.getOrDefault("showUnstable", false);
         refreshSource();
     }
 
@@ -138,7 +141,8 @@ public class JsonMarketplaceAddonService implements AddonService {
             } catch (IOException e) {
                 return List.of();
             }
-        }).flatMap(List::stream).collect(Collectors.toList());
+        }).flatMap(List::stream).filter(e -> showUnstable || "stable".equals(((AddonEntryDTO) e).maturity))
+                .collect(Collectors.toList());
     }
 
     @Override

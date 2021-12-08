@@ -7,7 +7,14 @@
 	<config-description uri="system:jsonmarketplace">
 		<parameter name="urls" type="text">
 			<label>JSON Marketplace URLs</label>
+			<default>https://download.smarthomej.org/addons.json</default>
 			<description>Specify additional URLs for marketplaces that publish their content via JSONs.</description>
+		</parameter>
+		<parameter name="stableOnly" type="boolean">
+			<label>Show Non-Stable Bundles</label>
+			<default>false</default>
+			<description>Include entries which have not been tagged as "stable". These bundles should be used for testing
+				purposes only and are not considered production-system ready.</description>
 		</parameter>
 	</config-description>
 
