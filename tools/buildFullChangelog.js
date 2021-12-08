@@ -2,15 +2,14 @@ const fs = require('fs');
 const got = require('got');
 
 const bundles = ['automation.javarule', 'binding.amazonechocontrol', 'binding.androiddebugbridge',
-    'binding.deconz', 'binding.dmx', 'binding.http', 'binding.knx', 'binding.mail', 'binding.mpd',
+    'binding.deconz', 'binding.dmx', 'binding.http', 'binding.knx', 'binding.mail',
     'binding.notificationsforfiretv', 'binding.onewire', 'binding.snmp', 'binding.tcpudp', 'binding.telenot',
-    'binding.tr064', 'persistence.influxdb', 'transform.basicprofiles', 'transform.chain', 'transform.format',
-    'transform.math'];
+    'binding.tr064', 'binding.viessmann', 'persistence.influxdb', 'transform.basicprofiles', 'transform.chain',
+    'transform.format', 'transform.math'];
 
 // add changes that were introduced with the initial contribution of the repository
 const initialChanges = {
     "binding.deconz" : "* enhancement: add last_seen support for lights\n* enhancement: add scene management support\n",
-    "binding.mpd" : "* bug: fix volume channel out of range\n",
     "binding.snmp" : "* enhancement: add opaque value handling\n",
     "binding.tr064" : "* bug: fix wrong parsing of calllist date time\n",
     "persistence.influxdb" : "* enhancement: add support for reconnection after connection loss\n"
@@ -43,7 +42,8 @@ async function get() {
     }
 }
 
-get().then(() =>
+get().then(() => {
+    let output = '# Changelog\n\n';
     bundles.forEach(bundle => {
         let bundleName = bundle.substr(bundle.lastIndexOf(".") + 1, bundle.length);
         console.log("total PR " + allPr.length);
@@ -81,9 +81,8 @@ get().then(() =>
             let fullBundleName = "org.smarthomej." + bundle;
 
             // output the table
-            let output = "[Documentation](https://docs.smarthomej.org/" + releaseTag + "/" + fullBundleName + ".html)\n\n"
 
-            output += '## Changelog\n';
+            output += '## Bundle: ' + fullBundleName + '\n';
 
             let lastMilestone = '';
             releasePr.forEach(pr => {
@@ -99,27 +98,24 @@ get().then(() =>
                 output += initial;
             }
 
-            // documentation and link
-            output += "\n## Resources\n\n";
-
-            output += "[" + fullBundleName + "-" + releaseTag + ".kar](https://repo1.maven.org/maven2/org/smarthomej/addons/bundles/"
-                + fullBundleName + "/" + releaseTag + "/" + fullBundleName + "-" + releaseTag + ".kar)\n";
-
-            // check if target directory exists (using target prevents locally generated release notes from being checked in)
-            if (!fs.existsSync('target')) {
-                fs.mkdir('target', (err) => {
-                    if (err) {
-                        console.error(err)
-                    }
-                });
-            }
-
-            fs.writeFile('target/marketplace-' + bundleName + '.md', output, (err) => {
-                if (err) {
-                    console.error(err);
-                }
-            });
+            output += '\n';
         } catch (error) {
             console.error(error.message);
         }
-    }));
+    });
+
+    // check if target directory exists (using target prevents locally generated release notes from being checked in)
+    if (!fs.existsSync('target')) {
+        fs.mkdir('target', (err) => {
+            if (err) {
+                console.error(err)
+            }
+        });
+    }
+
+    fs.writeFile('target/Changelog.md', output, (err) => {
+        if (err) {
+            console.error(err);
+        }
+    })
+});
