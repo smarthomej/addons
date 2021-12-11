@@ -39,6 +39,7 @@ import org.openhab.core.thing.binding.builder.ThingBuilder;
 import org.openhab.core.thing.type.ChannelKind;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.RefreshType;
+import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.deconz.internal.dto.DeconzBaseMessage;
@@ -162,7 +163,12 @@ public class SensorThermostatThingHandler extends SensorBaseThingHandler {
                 updateQuantityTypeChannel(channelUID, newState.temperature, CELSIUS, 1.0 / 100);
                 break;
             case CHANNEL_VALVE_POSITION:
-                updateQuantityTypeChannel(channelUID, newState.valve, PERCENT, 100.0 / 255);
+                Integer valve = newState.valve;
+                if (valve == null || valve < 0 || valve > 100) {
+                    updateState(channelUID, UnDefType.UNDEF);
+                } else {
+                    updateQuantityTypeChannel(channelUID, valve, PERCENT, 1.0);
+                }
                 break;
             case CHANNEL_WINDOWOPEN:
                 String open = newState.windowopen;
