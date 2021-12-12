@@ -196,7 +196,6 @@ public class ViessmannAuth {
 
         logger.trace("ViessmannAuth: Posting token URL={}", url);
         String response = executeUrlToken("POST", url.toString());
-        logger.trace("ViessmannAuth: Got a valid token response: {}", response);
 
         TokenResponseDTO tokenResponse = api.getGson().fromJson(response, TokenResponseDTO.class);
         if (tokenResponse == null) {
@@ -206,6 +205,7 @@ public class ViessmannAuth {
             setState(ViessmannAuthState.NEED_AUTH);
             return;
         }
+        logger.trace("ViessmannAuth: Got a valid token response: {}", response);
         api.setTokenResponseDTO(tokenResponse);
         refreshToken = tokenResponse.refreshToken;
         api.setTokenExpiryDate(TimeUnit.SECONDS.toMillis(tokenResponse.expiresIn));
@@ -226,7 +226,6 @@ public class ViessmannAuth {
 
         logger.trace("ViessmannAuth: Posting token URL={}", url);
         String response = executeUrlToken("POST", url.toString());
-        logger.trace("ViessmannAuth: Got a valid token response: {}", response);
 
         TokenResponseDTO tokenResponse = api.getGson().fromJson(response, TokenResponseDTO.class);
         if (tokenResponse == null) {
@@ -236,6 +235,8 @@ public class ViessmannAuth {
             setState(ViessmannAuthState.NEED_AUTH);
             return;
         }
+        logger.trace("ViessmannAuth: Got a valid token response: {}", response);
+        bridgeHandler.updateBridgeStatus(ThingStatus.ONLINE);
         api.setTokenResponseDTO(tokenResponse);
         api.setTokenExpiryDate(TimeUnit.SECONDS.toMillis(tokenResponse.expiresIn));
 
