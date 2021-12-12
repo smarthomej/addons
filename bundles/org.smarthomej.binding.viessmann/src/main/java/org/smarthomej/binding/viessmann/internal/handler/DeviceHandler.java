@@ -14,6 +14,9 @@ package org.smarthomej.binding.viessmann.internal.handler;
 
 import static org.smarthomej.binding.viessmann.internal.ViessmannBindingConstants.*;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,8 +46,11 @@ import org.smarthomej.binding.viessmann.internal.dto.ViessmannMessage;
 import org.smarthomej.binding.viessmann.internal.dto.features.FeatureCommands;
 import org.smarthomej.binding.viessmann.internal.dto.features.FeatureDataDTO;
 import org.smarthomej.binding.viessmann.internal.dto.features.FeatureProperties;
+import org.smarthomej.binding.viessmann.internal.dto.schedule.DaySchedule;
+import org.smarthomej.binding.viessmann.internal.dto.schedule.ScheduleDTO;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 /**
  * The {@link DeviceHandler} is responsible for handling DeviceHandler
@@ -56,6 +62,8 @@ import com.google.gson.Gson;
 public class DeviceHandler extends ViessmannThingHandler {
 
     private final Logger logger = LoggerFactory.getLogger(DeviceHandler.class);
+
+    private static final Gson GSON = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
 
     private ThingsConfig config = new ThingsConfig();
 
@@ -227,6 +235,8 @@ public class DeviceHandler extends ViessmannThingHandler {
                             bool = prop.active.value;
                             break;
                         case "name":
+                            msg.setFeatureName(featureName);
+                            msg.setFeature(featureDataDTO.feature);
                             typeEntry = prop.name.type;
                             valueEntry = prop.name.value;
                             break;
@@ -351,6 +361,17 @@ public class DeviceHandler extends ViessmannThingHandler {
                         if (thing.getChannel(msg.getChannelId()) == null && !"unit".equals(entry)) {
                             createChannel(msg);
                         }
+                        if (msg.getFeature().indexOf("#schedule") != -1) {
+                            ThingMessageDTO subMsg = msg;
+                            subMsg.setChannelType("type-boolean");
+                            subMsg.setFeature(msg.getFeature().replace("#schedule", "#produced"));
+                            subMsg.setFeatureName(getFeatureName(featureDataDTO.feature) + " produced");
+
+                            if (thing.getChannel(subMsg.getChannelId()) == null && !"unit".equals(entry)) {
+                                createSubChannel(subMsg);
+                            }
+                        }
+
                         if ("temperature".equals(typeEntry)) {
                             DecimalType state = DecimalType.valueOf(msg.getValue());
                             updateState(msg.getChannelId(), state);
@@ -360,10 +381,14 @@ public class DeviceHandler extends ViessmannThingHandler {
                         } else if ("boolean".equals(typeEntry)) {
                             OnOffType state = bool ? OnOffType.ON : OnOffType.OFF;
                             updateState(msg.getChannelId(), state);
-                        } else if ("string".equals(typeEntry) || "Schedule".equals(typeEntry)
-                                || "array".equals(typeEntry)) {
+                        } else if ("string".equals(typeEntry) || "array".equals(typeEntry)) {
                             StringType state = StringType.valueOf(msg.getValue());
                             updateState(msg.getChannelId(), state);
+                        } else if ("Schedule".equals(typeEntry)) {
+                            StringType state = StringType.valueOf(msg.getValue());
+                            updateState(msg.getChannelId(), state);
+                            String channelId = msg.getChannelId().replace("#schedule", "#produced");
+                            updateState(channelId, parseSchedule(msg.getValue()));
                         }
                     }
                 }
@@ -479,13 +504,39 @@ public class DeviceHandler extends ViessmannThingHandler {
         updateThing(editThing().withoutChannel(channelUID).withChannel(channel).build());
     }
 
+    /**
+     * Creates new sub channels for the thing.
+     *
+     * @param msg contains everything is needed of the channel to be created.
+     */
+    private void createSubChannel(ThingMessageDTO msg) {
+        ChannelUID channelUID = new ChannelUID(thing.getUID(), msg.getChannelId());
+        ThingHandlerCallback callback = getCallback();
+        if (callback == null) {
+            logger.warn("Thing '{}'not initialized, could not get callback.", thing.getUID());
+            return;
+        }
+
+        Map<String, String> prop = new HashMap<>();
+        prop.put("feature", msg.getFeatureClear());
+        String channelType = msg.getChannelType();
+
+        ChannelTypeUID channelTypeUID = new ChannelTypeUID(BINDING_ID, channelType);
+        if (msg.getFeatureName().indexOf("active") != -1) {
+            logger.trace("Feature: {} ChannelType: {}", msg.getFeatureClear(), channelType);
+        }
+        Channel channel = callback.createChannelBuilder(channelUID, channelTypeUID).withLabel(msg.getFeatureName())
+                .withDescription(msg.getFeatureDescription()).withProperties(prop).build();
+        updateThing(editThing().withoutChannel(channelUID).withChannel(channel).build());
+    }
+
     private String getFeatureName(String feature) {
         Pattern pattern = Pattern.compile("(\\.[0-3])");
         Matcher matcher = pattern.matcher(feature);
         if (matcher.find()) {
             String circuit = matcher.group(0);
             feature = matcher.replaceAll(".N");
-            String name = FEATURES_MAP.get(feature) + " (Circuit: " + circuit.replace(".", "") + ")";
+            String name = FEATURES_MAP.getOrDefault(feature, feature) + " (Circuit: " + circuit.replace(".", "") + ")";
             return name;
         }
         return FEATURES_MAP.getOrDefault(feature, feature);
@@ -494,5 +545,68 @@ public class DeviceHandler extends ViessmannThingHandler {
     private @Nullable String getFeatureDescription(String feature) {
         feature.replaceAll("\\.[0-3]", ".N");
         return FEATURE_DESCRIPTION_MAP.get(feature);
+    }
+
+    private OnOffType parseSchedule(String scheduleJson) {
+        Calendar now = Calendar.getInstance();
+
+        int hour = now.get(Calendar.HOUR_OF_DAY); // Get hour in 24 hour format
+        int minute = now.get(Calendar.MINUTE);
+
+        Date currTime = parseTime(hour + ":" + minute);
+
+        Date date = new Date();
+        Calendar c = Calendar.getInstance();
+        c.setTime(date);
+        int dayOfWeek = c.get(Calendar.DAY_OF_WEEK);
+
+        ScheduleDTO schedule = GSON.fromJson(scheduleJson, ScheduleDTO.class);
+        if (schedule != null) {
+            List<DaySchedule> day = schedule.getMon();
+            switch (dayOfWeek) {
+                case 2:
+                    day = schedule.getMon();
+                    break;
+                case 3:
+                    day = schedule.getTue();
+                    break;
+                case 4:
+                    day = schedule.getWed();
+                    break;
+                case 5:
+                    day = schedule.getThu();
+                    break;
+                case 6:
+                    day = schedule.getFri();
+                    break;
+                case 7:
+                    day = schedule.getSat();
+                    break;
+                case 1:
+                    day = schedule.getSun();
+                    break;
+                default:
+                    break;
+            }
+            for (DaySchedule daySchedule : day) {
+                Date startTime = parseTime(daySchedule.getStart());
+                Date endTime = parseTime(daySchedule.getEnd());
+
+                if (startTime.before(currTime) && endTime.after(currTime)) {
+                    return OnOffType.ON;
+                }
+            }
+        }
+        return OnOffType.OFF;
+    }
+
+    private Date parseTime(String time) {
+        final String inputFormat = "HH:mm";
+        SimpleDateFormat inputParser = new SimpleDateFormat(inputFormat);
+        try {
+            return inputParser.parse(time);
+        } catch (java.text.ParseException e) {
+            return new Date(0);
+        }
     }
 }

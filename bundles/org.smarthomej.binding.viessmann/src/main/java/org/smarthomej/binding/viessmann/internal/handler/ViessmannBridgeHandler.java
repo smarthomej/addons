@@ -232,7 +232,7 @@ public class ViessmannBridgeHandler extends BaseBridgeHandler {
                 }
             }
         } catch (JsonSyntaxException | IllegalStateException e) {
-            logger.warn("Parsing Viessmann response fails: {}", e);
+            logger.warn("Parsing Viessmann response fails: {}", e.getMessage());
         }
     }
 
