@@ -517,7 +517,7 @@ public class Connection {
                 if (connection != null) {
                     connection.disconnect();
                 }
-                logger.warn("Request to url '{}' fails: {} - {}", url, e.getClass(), e.getMessage());
+                logger.debug("Request to url '{}' fails:", url, e);
                 throw new ConnectionException("Request failed", e);
             }
         }

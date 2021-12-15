@@ -663,7 +663,7 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
                 this.updateStateJob = scheduler.schedule(doRefresh, waitForUpdate, TimeUnit.MILLISECONDS);
             }
         } catch (ConnectionException e) {
-            logger.info("handleCommand fails", e);
+            logger.info("Failed to handle command '{}' to '{}'", command, channelUID);
         }
     }
 
@@ -692,7 +692,7 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
                     connection.setEqualizer(device, newEqualizerSetting);
                     return true;
                 } catch (ConnectionException e) {
-                    logger.debug("Update equalizer failed", e);
+                    logger.debug("Failed to update equalizer");
                     this.lastKnownEqualizer = null;
                 }
             }
@@ -740,7 +740,7 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
                 try {
                     currentConnection.stopNotification(currentNotification);
                 } catch (ConnectionException e) {
-                    logger.warn("Stop notification failed", e);
+                    logger.warn("Failed to stop notification");
                 }
             }
         }
@@ -760,7 +760,7 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
                 }
             }
         } catch (ConnectionException e) {
-            logger.warn("update notification state fails", e);
+            logger.warn("Failed to update notification state");
         }
         if (stopCurrentNotification) {
             if (currentNotification != null) {
@@ -864,7 +864,7 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
                     progress = playerInfo.progress;
                 }
             } catch (ConnectionException e) {
-                logger.info("getPlayer fails", e);
+                logger.info("Failed to get player queue");
             }
             // check playing
             isPlaying = (playerInfo != null && "PLAYING".equals(playerInfo.state));
@@ -1128,7 +1128,7 @@ public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingH
             }
             this.lastKnownEqualizer = equalizer;
         } catch (ConnectionException e) {
-            logger.debug("Get equalizer failes", e);
+            logger.debug("Failed to get equalizer");
             return;
         }
         if (bass != null) {
