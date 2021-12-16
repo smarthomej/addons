@@ -25,7 +25,21 @@
 		</parameter>
 	</config-description>
 
-	<config-description uri="profile:transform:BITWISE">
+	<config-description uri="profile:transform:BITAND">
+		<parameter name="mask" type="text" required="true">
+			<label>Mask</label>
+			<description>Value used to mask the Item State.</description>
+		</parameter>
+	</config-description>
+
+	<config-description uri="profile:transform:BITOR">
+		<parameter name="mask" type="text" required="true">
+			<label>Mask</label>
+			<description>Value used to mask the Item State.</description>
+		</parameter>
+	</config-description>
+
+	<config-description uri="profile:transform:BITXOR">
 		<parameter name="mask" type="text" required="true">
 			<label>Mask</label>
 			<description>Value used to mask the Item State.</description>
