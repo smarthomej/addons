@@ -13,15 +13,13 @@
  */
 package org.smarthomej.binding.amazonechocontrol.internal.channelhandler;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.types.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthomej.binding.amazonechocontrol.internal.Connection;
+import org.smarthomej.binding.amazonechocontrol.internal.ConnectionException;
+import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDevices.Device;
 
 import com.google.gson.Gson;
@@ -36,7 +34,7 @@ import com.google.gson.JsonSyntaxException;
 public abstract class ChannelHandler {
 
     public abstract boolean tryHandleCommand(Device device, Connection connection, String channelId, Command command)
-            throws IOException, URISyntaxException, InterruptedException;
+            throws ConnectionException;
 
     protected final IAmazonThingHandler thingHandler;
     protected final Gson gson;

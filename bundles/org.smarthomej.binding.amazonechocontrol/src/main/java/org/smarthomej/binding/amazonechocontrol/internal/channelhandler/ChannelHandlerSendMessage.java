@@ -13,15 +13,15 @@
  */
 package org.smarthomej.binding.amazonechocontrol.internal.channelhandler;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.types.Command;
-import org.smarthomej.binding.amazonechocontrol.internal.Connection;
+import org.smarthomej.binding.amazonechocontrol.internal.ConnectionException;
+import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDevices.Device;
 
 import com.google.gson.Gson;
@@ -45,7 +45,7 @@ public class ChannelHandlerSendMessage extends ChannelHandler {
 
     @Override
     public boolean tryHandleCommand(Device device, Connection connection, String channelId, Command command)
-            throws IOException, URISyntaxException, InterruptedException {
+            throws ConnectionException {
         if (channelId.equals(CHANNEL_NAME)) {
             if (command instanceof StringType) {
                 String commandValue = ((StringType) command).toFullString();
@@ -88,7 +88,7 @@ public class ChannelHandlerSendMessage extends ChannelHandler {
                 String sendConversationBody = this.gson.toJson(new SendConversationJson[] { conversationJson });
                 String sendUrl = baseUrl + "/users/" + senderCommsId + "/conversations/" + receiverCommsId
                         + "/messages";
-                connection.makeRequestAndReturnString("POST", sendUrl, sendConversationBody, true, null);
+                connection.makeRequestAndReturnString("POST", sendUrl, sendConversationBody, true, Map.of());
             }
             refreshChannel();
         }

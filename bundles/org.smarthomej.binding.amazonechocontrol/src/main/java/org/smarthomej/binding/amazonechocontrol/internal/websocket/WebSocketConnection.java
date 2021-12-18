@@ -32,7 +32,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Timer;
@@ -46,7 +45,7 @@ import org.eclipse.jetty.websocket.client.ClientUpgradeRequest;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthomej.binding.amazonechocontrol.internal.Connection;
+import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonRegisterAppResponse.MacDms;
 
 import com.google.gson.Gson;
@@ -77,7 +76,7 @@ public class WebSocketConnection {
     public WebSocketConnection(Connection connection, WebSocketCommandHandler webSocketCommandHandler, Gson gson,
             HttpClient httpClient) throws WebsocketException {
         String amazonSite = connection.getAmazonSite();
-        List<HttpCookie> sessionCookies = connection.getSessionCookies();
+        List<HttpCookie> sessionCookies = connection.getSessionCookies(connection.getAlexaServer());
         MacDms macDms = connection.getMacDms();
         if (macDms == null) {
             throw new WebsocketException("Web socket failed: Could not get macDMS.");
@@ -105,19 +104,14 @@ public class WebSocketConnection {
                 host = "dp-gw-na." + amazonSite;
             }
 
-            String deviceSerial = "";
             List<HttpCookie> cookiesForWs = new ArrayList<>();
             for (HttpCookie cookie : sessionCookies) {
-                if (cookie.getName().equals("ubid-acbde")) {
-                    deviceSerial = cookie.getValue();
-                }
                 // Clone the cookie without the security attribute, because the web socket implementation ignore secure
                 // cookies
                 String value = cookie.getValue().replaceAll("^\"|\"$", "");
                 HttpCookie cookieForWs = new HttpCookie(cookie.getName(), value);
                 cookiesForWs.add(cookieForWs);
             }
-            deviceSerial += "-" + new Date().getTime();
             URI uri;
 
             uri = new URI("wss://" + host + "/tcomm/");

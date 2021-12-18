@@ -45,7 +45,7 @@ public class JsonBluetoothStates {
         return null;
     }
 
-    public @Nullable BluetoothState @Nullable [] bluetoothStates;
+    public BluetoothState @Nullable [] bluetoothStates;
 
     public static class PairedDevice {
         public @Nullable String address;

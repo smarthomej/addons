@@ -41,8 +41,6 @@ import com.google.gson.Gson;
 @WebSocket(maxTextMessageSize = 64 * 1024, maxBinaryMessageSize = 64 * 1024)
 @NonNullByDefault
 public class AlexaWebSocket {
-    private static final long MAX_UNSIGNED_INT32 = 4294967295L;
-
     private final Logger logger = LoggerFactory.getLogger(AlexaWebSocket.class);
 
     private final Gson gson;

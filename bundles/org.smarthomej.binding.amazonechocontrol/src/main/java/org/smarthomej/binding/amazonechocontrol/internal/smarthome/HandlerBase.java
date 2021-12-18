@@ -30,7 +30,7 @@ import org.openhab.core.types.State;
 import org.openhab.core.types.StateDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthomej.binding.amazonechocontrol.internal.Connection;
+import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDeviceHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapabilities;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapabilities.Properties;
