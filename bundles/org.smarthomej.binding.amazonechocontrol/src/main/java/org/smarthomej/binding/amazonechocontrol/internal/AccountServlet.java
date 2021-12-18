@@ -39,6 +39,7 @@ import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.AccountHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates.BluetoothState;
@@ -155,7 +156,7 @@ public class AccountServlet extends HttpServlet {
                 return;
             }
             String domain = domainArray[0];
-            String loginData = connection.serializeLoginData();
+            String loginData = connection.getLoginData().serializeLoginData();
             Connection newConnection = new Connection(null, this.gson);
             if (newConnection.tryRestoreLogin(loginData, domain)) {
                 account.setConnection(newConnection);
@@ -328,7 +329,7 @@ public class AccountServlet extends HttpServlet {
 
             String html = connection.getLoginPage();
             returnHtml(connection, resp, html, "amazon.com");
-        } catch (URISyntaxException | InterruptedException e) {
+        } catch (URISyntaxException | ConnectionException e) {
             logger.warn("get failed with uri syntax error", e);
         }
     }
@@ -436,8 +437,7 @@ public class AccountServlet extends HttpServlet {
         createPageEndAndSent(resp, html);
     }
 
-    private void handleDevices(HttpServletResponse resp, Connection connection)
-            throws IOException, URISyntaxException, InterruptedException {
+    private void handleDevices(HttpServletResponse resp, Connection connection) throws ConnectionException {
         returnHtml(connection, resp, "<html>" + HtmlEscape.escapeHtml4(connection.getDeviceListJson()) + "</html>");
     }
 
@@ -532,8 +532,7 @@ public class AccountServlet extends HttpServlet {
         String errorMessage = "No notifications sounds found";
         try {
             notificationSounds = connection.getNotificationSounds(device);
-        } catch (IOException | HttpException | URISyntaxException | JsonSyntaxException | ConnectionException
-                | InterruptedException e) {
+        } catch (ConnectionException | JsonSyntaxException e) {
             errorMessage = e.getLocalizedMessage();
         }
         if (!notificationSounds.isEmpty()) {
@@ -564,8 +563,7 @@ public class AccountServlet extends HttpServlet {
         String errorMessage = "No playlists found";
         try {
             playLists = connection.getPlaylists(device);
-        } catch (IOException | HttpException | URISyntaxException | JsonSyntaxException | ConnectionException
-                | InterruptedException e) {
+        } catch (ConnectionException | JsonSyntaxException e) {
             errorMessage = e.getLocalizedMessage();
         }
 
@@ -578,7 +576,7 @@ public class AccountServlet extends HttpServlet {
                     {
                         if (innerLists != null && innerLists.length > 0) {
                             PlayList playList = innerLists[0];
-                            if (playList != null && playList.playlistId != null && playList.title != null) {
+                            if (playList.playlistId != null && playList.title != null) {
                                 html.append("<tr><td>");
                                 html.append(HtmlEscape.escapeHtml4(nullReplacement(playList.title)));
                                 html.append("</td><td>");
@@ -598,9 +596,6 @@ public class AccountServlet extends HttpServlet {
     private void renderBluetoothMacChannel(Connection connection, Device device, StringBuilder html) {
         html.append("<h2>").append(HtmlEscape.escapeHtml4("Channel " + CHANNEL_BLUETOOTH_MAC)).append("</h2>");
         JsonBluetoothStates bluetoothStates = connection.getBluetoothConnectionStates();
-        if (bluetoothStates == null) {
-            return;
-        }
         BluetoothState[] innerStates = bluetoothStates.bluetoothStates;
         if (innerStates == null) {
             return;
@@ -634,9 +629,8 @@ public class AccountServlet extends HttpServlet {
             @Nullable String referer, @Nullable String postData, boolean json, String site) throws IOException {
         HttpsURLConnection urlConnection;
         try {
-            Map<String, String> headers = null;
+            Map<String, String> headers = new HashMap<>();
             if (referer != null) {
-                headers = new HashMap<>();
                 headers.put("Referer", referer);
             }
 
@@ -681,12 +675,11 @@ public class AccountServlet extends HttpServlet {
                     return;
                 }
             }
-        } catch (URISyntaxException | ConnectionException | InterruptedException e) {
+            String response = connection.convertStream(urlConnection);
+            returnHtml(connection, resp, response, site);
+        } catch (ConnectionException | InterruptedException e) {
             returnError(resp, e.getLocalizedMessage());
-            return;
         }
-        String response = connection.convertStream(urlConnection);
-        returnHtml(connection, resp, response, site);
     }
 
     private void returnHtml(Connection connection, HttpServletResponse resp, String html) {

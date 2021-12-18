@@ -35,6 +35,7 @@ import org.openhab.core.types.StateOption;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
+import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.AccountHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.EchoHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.FlashBriefingProfileHandler;

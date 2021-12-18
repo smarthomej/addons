@@ -36,8 +36,6 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.http.HttpService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.AccountHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.EchoHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.FlashBriefingProfileHandler;
@@ -55,8 +53,6 @@ import com.google.gson.Gson;
         AmazonEchoControlHandlerFactory.class }, configurationPid = "binding.amazonechocontrol")
 @NonNullByDefault
 public class AmazonEchoControlHandlerFactory extends BaseThingHandlerFactory {
-    private final Logger logger = LoggerFactory.getLogger(AmazonEchoControlHandlerFactory.class);
-
     private final Set<AccountHandler> accountHandlers = new HashSet<>();
     private final HttpService httpService;
     private final StorageService storageService;
