@@ -17,9 +17,9 @@ import org.openhab.core.transform.TransformationService;
 import org.osgi.service.component.annotations.Component;
 
 /**
- * This {@link TransformationService} adds the given value to the input.
+ * This {@link TransformationService} performs an OR operation on the input
  *
- * @author Christoph Weitkamp - Initial contribution
+ * @author Jan N. Klug - Initial contribution
  */
 @NonNullByDefault
 @Component(service = { TransformationService.class }, property = { "openhab.transform=BITOR" })

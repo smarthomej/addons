@@ -6,7 +6,7 @@ The available transformations are
 
 - `MULTIPLY`: multiply the state by a value
 - `ADD`: add a value to the state
-- `DIVIDE`: dive the state by a value
+- `DIVIDE`: divide the state by a value
 - `BITAND`: perform a bit-wise AND of the state and a mask
 - `BITOR`: perform a bit-wise OR of the state and a mask
 - `BITXOR`: perform a bit-wise exclusive-OR of the state and a mask
@@ -23,7 +23,7 @@ Number multiply "Value multiplied by [MULTIPLY(1000):%s]" { channel="<channelUID
 Number add "Value added [ADD(5.1):%s]" { channel="<channelUID>" }
 Number secondsToMinutes "Time [DIVIDE(60):%s]" { channel="<channelUID>" }
 Number subtracted "Value subtracted [ADD(-1):%s]" { channel="<channelUID>" }
-Number bitand "Value OR [BITOR(0x27):%s]" { channel="<channelUID>" }
+Number bitand "Value bitor [BITOR(0x27):%s]" { channel="<channelUID>" }
 
 // Usage as a Profile
 Number multiply "Value multiplied by [%.1f]" { channel="<channelUID>" [profile="transform:MULTIPLY", multiplicand=1000] }
