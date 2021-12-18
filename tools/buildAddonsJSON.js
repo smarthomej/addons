@@ -18,12 +18,13 @@ let addons = [];
 bundles.forEach(bundle => {
     let fullBundleName = 'org.smarthomej.' + bundle;
     let addon = {};
-    addon['id'] = fullBundleName.replaceAll('\.', '-');
+    addon['id'] = 'org-smarthome-' + bundle.replaceAll('\.', '-');
     addon['type'] = bundle.substr(0, bundle.indexOf('.'));
     addon['version'] = releaseTag;
     addon['author'] = 'SmartHome/J';
     addon['maturity'] = 'stable';
     addon['content_type'] = 'application/vnd.openhab.feature;type=karfile';
+    addon['link'] = 'https://docs.smarthomej.org/' + releaseTag + '/' + fullBundleName + '.html';
     addon['url'] = 'https://repo1.maven.org/maven2/org/smarthomej/addons/bundles/' + fullBundleName + '/' + releaseTag + '/' + fullBundleName + '-' + releaseTag + '.kar';
 
     let readmePath = 'bundles/'+fullBundleName+'/README.md';
