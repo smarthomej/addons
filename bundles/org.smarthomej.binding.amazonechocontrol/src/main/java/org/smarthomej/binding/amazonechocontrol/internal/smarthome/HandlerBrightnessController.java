@@ -13,8 +13,6 @@
  */
 package org.smarthomej.binding.amazonechocontrol.internal.smarthome;
 
-import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Constants.ITEM_TYPE_DIMMER;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +35,7 @@ import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevi
 import com.google.gson.JsonObject;
 
 /**
- * The {@link HandlerBrightnessController} is responsible for the Alexa.PowerControllerInterface
+ * The {@link HandlerBrightnessController} is responsible for the Alexa.PowerController interface
  *
  * @author Lukas Knoeller - Initial contribution
  * @author Michael Geramb - Initial contribution
@@ -53,8 +51,7 @@ public class HandlerBrightnessController extends AbstractInterfaceHandler {
 
     // Channel definitions
     private static final ChannelInfo BRIGHTNESS = new ChannelInfo("brightness" /* propertyName */ ,
-            "brightness" /* ChannelId */, CHANNEL_TYPE_BRIGHTNESS /* Channel Type */ ,
-            ITEM_TYPE_DIMMER /* Item Type */);
+            "brightness" /* ChannelId */, CHANNEL_TYPE_BRIGHTNESS /* Channel Type */);
 
     private @Nullable Integer lastBrightness;
 
@@ -63,7 +60,7 @@ public class HandlerBrightnessController extends AbstractInterfaceHandler {
     }
 
     @Override
-    protected Set<ChannelInfo> findChannelInfos(SmartHomeCapability capability, String property) {
+    protected Set<ChannelInfo> findChannelInfos(SmartHomeCapability capability, @Nullable String property) {
         if (BRIGHTNESS.propertyName.equals(property)) {
             return Set.of(BRIGHTNESS);
         }
@@ -87,7 +84,8 @@ public class HandlerBrightnessController extends AbstractInterfaceHandler {
         if (brightnessValue != null) {
             lastBrightness = brightnessValue;
         }
-        updateState(BRIGHTNESS.channelId, brightnessValue == null ? UnDefType.UNDEF : new PercentType(brightnessValue));
+        smartHomeDeviceHandler.updateState(BRIGHTNESS.channelId,
+                brightnessValue == null ? UnDefType.UNDEF : new PercentType(brightnessValue));
     }
 
     @Override

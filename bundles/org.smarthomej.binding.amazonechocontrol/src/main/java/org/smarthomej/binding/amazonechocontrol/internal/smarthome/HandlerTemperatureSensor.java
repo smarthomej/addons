@@ -22,6 +22,7 @@ import java.util.Set;
 import javax.measure.quantity.Temperature;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.library.unit.ImperialUnits;
 import org.openhab.core.library.unit.SIUnits;
@@ -46,15 +47,14 @@ public class HandlerTemperatureSensor extends AbstractInterfaceHandler {
     public static final String INTERFACE = "Alexa.TemperatureSensor";
     // Channel definitions
     private static final ChannelInfo TEMPERATURE = new ChannelInfo("temperature" /* propertyName */ ,
-            "temperature" /* ChannelId */, CHANNEL_TYPE_TEMPERATURE /* Channel Type */ ,
-            ITEM_TYPE_NUMBER_TEMPERATURE /* Item Type */);
+            "temperature" /* ChannelId */, CHANNEL_TYPE_TEMPERATURE /* Channel Type */ );
 
     public HandlerTemperatureSensor(SmartHomeDeviceHandler smartHomeDeviceHandler) {
         super(smartHomeDeviceHandler, List.of(INTERFACE));
     }
 
     @Override
-    protected Set<ChannelInfo> findChannelInfos(SmartHomeCapability capability, String property) {
+    protected Set<ChannelInfo> findChannelInfos(SmartHomeCapability capability, @Nullable String property) {
         if (TEMPERATURE.propertyName.equals(property)) {
             return Set.of(TEMPERATURE);
         }
@@ -79,7 +79,8 @@ public class HandlerTemperatureSensor extends AbstractInterfaceHandler {
                 }
             }
         }
-        updateState(TEMPERATURE.channelId, temperatureValue == null ? UnDefType.UNDEF : temperatureValue);
+        smartHomeDeviceHandler.updateState(TEMPERATURE.channelId,
+                temperatureValue == null ? UnDefType.UNDEF : temperatureValue);
     }
 
     @Override

@@ -56,6 +56,7 @@ public class AmazonEchoControlHandlerFactory extends BaseThingHandlerFactory {
     private final Set<AccountHandler> accountHandlers = new HashSet<>();
     private final HttpService httpService;
     private final StorageService storageService;
+
     private final BindingServlet bindingServlet;
     private final Gson gson;
     private final HttpClient httpClient;

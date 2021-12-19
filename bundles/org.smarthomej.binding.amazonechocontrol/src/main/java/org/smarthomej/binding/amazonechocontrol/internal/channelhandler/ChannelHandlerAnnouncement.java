@@ -49,7 +49,7 @@ public class ChannelHandlerAnnouncement extends ChannelHandler {
         try {
             if (channelId.equals(CHANNEL_NAME)) {
                 if (command instanceof StringType) {
-                    String commandValue = ((StringType) command).toFullString();
+                    String commandValue = command.toFullString();
                     String body = commandValue;
                     String title = null;
                     String speak = commandValue;

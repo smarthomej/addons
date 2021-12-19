@@ -13,13 +13,12 @@
  */
 package org.smarthomej.binding.amazonechocontrol.internal.smarthome;
 
-import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Constants.ITEM_TYPE_SWITCH;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.thing.type.ChannelTypeUID;
 import org.openhab.core.types.Command;
@@ -53,15 +52,15 @@ public class HandlerPowerController extends AbstractInterfaceHandler {
 
     // Channel definitions
     private static final ChannelInfo POWER_STATE = new ChannelInfo("powerState" /* propertyName */ ,
-            "powerState" /* ChannelId */, CHANNEL_TYPE_POWER_STATE /* Channel Type */ ,
-            ITEM_TYPE_SWITCH /* Item Type */);
+            "powerState" /* ChannelId */, CHANNEL_TYPE_POWER_STATE /* Channel Type */
+    );
 
     public HandlerPowerController(SmartHomeDeviceHandler smartHomeDeviceHandler) {
         super(smartHomeDeviceHandler, List.of(INTERFACE));
     }
 
     @Override
-    protected Set<ChannelInfo> findChannelInfos(SmartHomeCapability capability, String property) {
+    protected Set<ChannelInfo> findChannelInfos(SmartHomeCapability capability, @Nullable String property) {
         if (POWER_STATE.propertyName.equals(property)) {
             return Set.of(POWER_STATE);
         }
@@ -70,7 +69,6 @@ public class HandlerPowerController extends AbstractInterfaceHandler {
 
     @Override
     public void updateChannels(String interfaceName, List<JsonObject> stateList, UpdateChannelResult result) {
-        logger.trace("{} received {}", this.smartHomeDeviceHandler.getId(), stateList);
         Boolean powerStateValue = null;
         for (JsonObject state : stateList) {
             if (POWER_STATE.propertyName.equals(state.get("name").getAsString())) {
@@ -79,8 +77,8 @@ public class HandlerPowerController extends AbstractInterfaceHandler {
                 powerStateValue = "ON".equals(value);
             }
         }
-        logger.trace("{} final state {}", this.smartHomeDeviceHandler.getId(), powerStateValue);
-        updateState(POWER_STATE.channelId, powerStateValue == null ? UnDefType.UNDEF : OnOffType.from(powerStateValue));
+        smartHomeDeviceHandler.updateState(POWER_STATE.channelId,
+                powerStateValue == null ? UnDefType.UNDEF : OnOffType.from(powerStateValue));
     }
 
     @Override

@@ -13,15 +13,13 @@
  */
 package org.smarthomej.binding.amazonechocontrol.internal.smarthome;
 
-import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Constants.ITEM_TYPE_CONTACT;
-import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Constants.ITEM_TYPE_STRING;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.OpenClosedType;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.thing.type.ChannelTypeUID;
@@ -64,23 +62,19 @@ public class HandlerSecurityPanelController extends AbstractInterfaceHandler {
 
     // Channel definitions
     private static final ChannelInfo ARM_STATE = new ChannelInfo("armState" /* propertyName */ ,
-            "armState" /* ChannelId */, CHANNEL_TYPE_ARM_STATE /* Channel Type */ , ITEM_TYPE_STRING /* Item Type */);
+            "armState" /* ChannelId */, CHANNEL_TYPE_ARM_STATE /* Channel Type */ );
 
     private static final ChannelInfo BURGLARY_ALARM = new ChannelInfo("burglaryAlarm" /* propertyName */ ,
-            "burglaryAlarm" /* ChannelId */, CHANNEL_TYPE_BURGLARY_ALARM /* Channel Type */ ,
-            ITEM_TYPE_CONTACT /* Item Type */);
+            "burglaryAlarm" /* ChannelId */, CHANNEL_TYPE_BURGLARY_ALARM /* Channel Type */ );
 
     private static final ChannelInfo CARBON_MONOXIDE_ALARM = new ChannelInfo("carbonMonoxideAlarm" /* propertyName */ ,
-            "carbonMonoxideAlarm" /* ChannelId */, CHANNEL_TYPE_CARBON_MONOXIDE_ALARM /* Channel Type */ ,
-            ITEM_TYPE_CONTACT /* Item Type */);
+            "carbonMonoxideAlarm" /* ChannelId */, CHANNEL_TYPE_CARBON_MONOXIDE_ALARM /* Channel Type */ );
 
     private static final ChannelInfo FIRE_ALARM = new ChannelInfo("fireAlarm" /* propertyName */ ,
-            "fireAlarm" /* ChannelId */, CHANNEL_TYPE_FIRE_ALARM /* Channel Type */ ,
-            ITEM_TYPE_CONTACT /* Item Type */);
+            "fireAlarm" /* ChannelId */, CHANNEL_TYPE_FIRE_ALARM /* Channel Type */ );
 
     private static final ChannelInfo WATER_ALARM = new ChannelInfo("waterAlarm" /* propertyName */ ,
-            "waterAlarm" /* ChannelId */, CHANNEL_TYPE_WATER_ALARM /* Channel Type */ ,
-            ITEM_TYPE_CONTACT /* Item Type */);
+            "waterAlarm" /* ChannelId */, CHANNEL_TYPE_WATER_ALARM /* Channel Type */ );
 
     private static final Set<ChannelInfo> ALARM_CHANNELS = Set.of(BURGLARY_ALARM, CARBON_MONOXIDE_ALARM, FIRE_ALARM,
             WATER_ALARM);
@@ -90,7 +84,7 @@ public class HandlerSecurityPanelController extends AbstractInterfaceHandler {
     }
 
     @Override
-    protected Set<ChannelInfo> findChannelInfos(SmartHomeCapability capability, String property) {
+    protected Set<ChannelInfo> findChannelInfos(SmartHomeCapability capability, @Nullable String property) {
         if (ARM_STATE.propertyName.equals(property)) {
             return Set.of(ARM_STATE);
         }
@@ -132,14 +126,16 @@ public class HandlerSecurityPanelController extends AbstractInterfaceHandler {
                 }
             }
         }
-        updateState(ARM_STATE.channelId, armStateValue == null ? UnDefType.UNDEF : new StringType(armStateValue));
-        updateState(BURGLARY_ALARM.channelId, burglaryAlarmValue == null ? UnDefType.UNDEF
+        smartHomeDeviceHandler.updateState(ARM_STATE.channelId,
+                armStateValue == null ? UnDefType.UNDEF : new StringType(armStateValue));
+        smartHomeDeviceHandler.updateState(BURGLARY_ALARM.channelId, burglaryAlarmValue == null ? UnDefType.UNDEF
                 : (burglaryAlarmValue ? OpenClosedType.CLOSED : OpenClosedType.OPEN));
-        updateState(CARBON_MONOXIDE_ALARM.channelId, carbonMonoxideAlarmValue == null ? UnDefType.UNDEF
-                : (carbonMonoxideAlarmValue ? OpenClosedType.CLOSED : OpenClosedType.OPEN));
-        updateState(FIRE_ALARM.channelId, fireAlarmValue == null ? UnDefType.UNDEF
+        smartHomeDeviceHandler.updateState(CARBON_MONOXIDE_ALARM.channelId,
+                carbonMonoxideAlarmValue == null ? UnDefType.UNDEF
+                        : (carbonMonoxideAlarmValue ? OpenClosedType.CLOSED : OpenClosedType.OPEN));
+        smartHomeDeviceHandler.updateState(FIRE_ALARM.channelId, fireAlarmValue == null ? UnDefType.UNDEF
                 : (fireAlarmValue ? OpenClosedType.CLOSED : OpenClosedType.OPEN));
-        updateState(WATER_ALARM.channelId, waterAlarmValue == null ? UnDefType.UNDEF
+        smartHomeDeviceHandler.updateState(WATER_ALARM.channelId, waterAlarmValue == null ? UnDefType.UNDEF
                 : (waterAlarmValue ? OpenClosedType.CLOSED : OpenClosedType.OPEN));
     }
 

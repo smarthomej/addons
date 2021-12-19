@@ -173,6 +173,13 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
 
     @Override
     public void dispose() {
+        Bridge bridge = this.getBridge();
+        if (bridge != null) {
+            AccountHandler account = (AccountHandler) bridge.getHandler();
+            if (account != null) {
+                account.removeEchoHandler(this);
+            }
+        }
         stopCurrentNotification();
         ScheduledFuture<?> updateStateJob = this.updateStateJob;
         this.updateStateJob = null;
@@ -181,7 +188,6 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
             updateStateJob.cancel(false);
         }
         stopProgressTimer();
-        super.dispose();
     }
 
     private void stopProgressTimer() {

@@ -543,16 +543,9 @@
 	</channel-type>
 	<!-- dynamic smart home device channels -->
 	<!-- Alexa.AcousticEventSensor -->
-	<channel-type id="glassBreakDetectionState">
+	<channel-type id="acousticEventDetectionState">
 		<item-type>Contact</item-type>
-		<label>Glass Break State</label>
-		<description>Glass Break Detection State</description>
-		<state readOnly="true"/>
-	</channel-type>
-	<channel-type id="smokeAlarmDetectionState">
-		<item-type>Contact</item-type>
-		<label>Smoke Alarm State</label>
-		<description>Smoke Alarm Detection State</description>
+		<label>Acoustic Event</label>
 		<state readOnly="true"/>
 	</channel-type>
 	<!-- Alexa.BrightnessController -->
@@ -656,4 +649,33 @@
 			</options>
 		</state>
 	</channel-type>
+	<!-- Alexa.RangeController -->
+	<channel-type id="indoorAirQuality">
+		<item-type>Number</item-type>
+		<label>Indoor Air Quality</label>
+		<state readOnly="true"/>
+	</channel-type>
+	<channel-type id="humidity">
+		<item-type>Number:Dimensionless</item-type>
+		<label>Humidity</label>
+		<state readOnly="true"/>
+	</channel-type>
+	<channel-type id="pm25">
+		<item-type>Number:Density</item-type>
+		<label>PM2.5</label>
+		<description>Particulate Matter PM2.5 density.</description>
+		<state readOnly="true"/>
+	</channel-type>
+	<channel-type id="carbonMonoxide">
+		<item-type>Number:Dimensionless</item-type>
+		<label>Carbon Monoxide</label>
+		<state readOnly="true"/>
+	</channel-type>
+	<channel-type id="voc">
+		<item-type>Number</item-type>
+		<label>VOC</label>
+		<state readOnly="true"/>
+	</channel-type>
+
+
 </thing:thing-descriptions>

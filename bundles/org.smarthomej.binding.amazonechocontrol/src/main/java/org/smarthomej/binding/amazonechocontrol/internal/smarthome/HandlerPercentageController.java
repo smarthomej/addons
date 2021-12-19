@@ -13,8 +13,6 @@
  */
 package org.smarthomej.binding.amazonechocontrol.internal.smarthome;
 
-import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Constants.ITEM_TYPE_DIMMER;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -53,8 +51,8 @@ public class HandlerPercentageController extends AbstractInterfaceHandler {
 
     // Channel definitions
     private static final ChannelInfo PERCENTAGE = new ChannelInfo("percentage" /* propertyName */ ,
-            "percentage" /* ChannelId */, CHANNEL_TYPE_PERCENTAGE /* Channel Type */ ,
-            ITEM_TYPE_DIMMER /* Item Type */);
+            "percentage" /* ChannelId */, CHANNEL_TYPE_PERCENTAGE /* Channel Type */
+    );
 
     private @Nullable Integer lastPercentage;
 
@@ -63,7 +61,7 @@ public class HandlerPercentageController extends AbstractInterfaceHandler {
     }
 
     @Override
-    protected Set<ChannelInfo> findChannelInfos(SmartHomeCapability capability, String property) {
+    protected Set<ChannelInfo> findChannelInfos(SmartHomeCapability capability, @Nullable String property) {
         if (PERCENTAGE.propertyName.equals(property)) {
             return Set.of(PERCENTAGE);
         }
@@ -87,7 +85,8 @@ public class HandlerPercentageController extends AbstractInterfaceHandler {
         if (percentageValue != null) {
             lastPercentage = percentageValue;
         }
-        updateState(PERCENTAGE.channelId, percentageValue == null ? UnDefType.UNDEF : new PercentType(percentageValue));
+        smartHomeDeviceHandler.updateState(PERCENTAGE.channelId,
+                percentageValue == null ? UnDefType.UNDEF : new PercentType(percentageValue));
     }
 
     @Override

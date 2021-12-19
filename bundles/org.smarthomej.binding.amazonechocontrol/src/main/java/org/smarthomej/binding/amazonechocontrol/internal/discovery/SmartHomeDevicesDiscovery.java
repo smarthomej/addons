@@ -194,7 +194,7 @@ public class SmartHomeDevicesDiscovery extends AbstractDiscoveryService implemen
                 Set<SmartHomeDevice> supportedChildren = SmartHomeDeviceHandler.getSupportedSmartHomeDevices(shg,
                         deviceList);
                 if (supportedChildren.isEmpty()) {
-                    // No children with an supported interface
+                    // No children with a supported interface
                     continue;
                 }
                 thingUID = new ThingUID(THING_TYPE_SMART_HOME_DEVICE_GROUP, bridgeThingUID, id.replace(".", "-"));

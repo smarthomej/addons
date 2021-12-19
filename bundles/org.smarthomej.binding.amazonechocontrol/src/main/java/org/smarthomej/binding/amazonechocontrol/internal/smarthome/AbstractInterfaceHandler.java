@@ -22,16 +22,13 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.openhab.core.thing.type.ChannelTypeUID;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.State;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDeviceHandler;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapabilities;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapabilities.Properties;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapabilities.Property;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapabilities.SmartHomeCapability;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevices.SmartHomeDevice;
 
@@ -80,9 +77,8 @@ public abstract class AbstractInterfaceHandler implements InterfaceHandler {
         for (SmartHomeCapability capability : capabilities) {
             Properties properties = capability.properties;
             if (properties != null) {
-                List<JsonSmartHomeCapabilities.Property> supported = Objects.requireNonNullElse(properties.supported,
-                        List.of());
-                for (Property property : supported) {
+                List<Properties.Property> supported = Objects.requireNonNullElse(properties.supported, List.of());
+                for (Properties.Property property : supported) {
                     String name = property.name;
                     if (name != null) {
                         findChannelInfos(capability, name).forEach(c -> channels.put(c.channelId, c));
@@ -100,8 +96,7 @@ public abstract class AbstractInterfaceHandler implements InterfaceHandler {
         for (SmartHomeCapability capability : capabilities) {
             Properties properties = capability.properties;
             if (properties != null) {
-                List<JsonSmartHomeCapabilities.Property> supported = Objects.requireNonNullElse(properties.supported,
-                        List.of());
+                List<Properties.Property> supported = Objects.requireNonNullElse(properties.supported, List.of());
                 if (supported.stream().anyMatch(p -> propertyName.equals(p.name))) {
                     return true;
                 }
@@ -112,33 +107,5 @@ public abstract class AbstractInterfaceHandler implements InterfaceHandler {
 
     public void updateState(String channelId, State state) {
         getSmartHomeDeviceHandler().updateState(channelId, state);
-    }
-
-    public static class ChannelInfo {
-        public final String propertyName;
-        public final String channelId;
-        public final String itemType;
-        public final String propertyNameSend;
-        public final ChannelTypeUID channelTypeUID;
-
-        public ChannelInfo(String propertyNameReceive, String propertyNameSend, String channelId,
-                ChannelTypeUID channelTypeUID, String itemType) {
-            this.propertyName = propertyNameReceive;
-            this.propertyNameSend = propertyNameSend;
-            this.channelId = channelId;
-            this.itemType = itemType;
-            this.channelTypeUID = channelTypeUID;
-        }
-
-        public ChannelInfo(String propertyName, String channelId, ChannelTypeUID channelTypeUID, String itemType) {
-            this(propertyName, propertyName, channelId, channelTypeUID, itemType);
-        }
-
-        @Override
-        public String toString() {
-            return "ChannelInfo{" + "propertyName='" + propertyName + "', channelId='" + channelId + "', itemType='"
-                    + itemType + "', propertyNameSend='" + propertyNameSend + "', channelTypeUID=" + channelTypeUID
-                    + "}";
-        }
     }
 }

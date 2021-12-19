@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.library.unit.ImperialUnits;
@@ -40,7 +41,7 @@ import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevi
 import com.google.gson.JsonObject;
 
 /**
- * The {@link HandlerThermostatController} is responsible for the Alexa.ThermostatControllerInterface
+ * The {@link HandlerThermostatController} is responsible for the Alexa.ThermostatController interface
  *
  * @author Sven Killig - Initial contribution
  */
@@ -51,15 +52,15 @@ public class HandlerThermostatController extends AbstractInterfaceHandler {
     // Channel definitions
     private static final ChannelInfo TARGET_SETPOINT = new ChannelInfo("targetSetpoint" /* propertyNameReceive */,
             "targetTemperature" /* propertyNameSend */, "targetSetpoint" /* ChannelId */,
-            CHANNEL_TYPE_TARGETSETPOINT /* Channel Type */ , ITEM_TYPE_NUMBER_TEMPERATURE /* Item Type */);
+            CHANNEL_TYPE_TARGETSETPOINT /* Channel Type */ );
     private static final ChannelInfo LOWER_SETPOINT = new ChannelInfo("lowerSetpoint" /* propertyName */ ,
             "lowerSetTemperature" /* propertyNameSend */, "lowerSetpoint" /* ChannelId */,
-            CHANNEL_TYPE_LOWERSETPOINT /* Channel Type */ , ITEM_TYPE_NUMBER_TEMPERATURE /* Item Type */);
+            CHANNEL_TYPE_LOWERSETPOINT /* Channel Type */ );
     private static final ChannelInfo UPPER_SETPOINT = new ChannelInfo("upperSetpoint" /* propertyName */ ,
             "upperSetTemperature" /* propertyNameSend */, "upperSetpoint" /* ChannelId */,
-            CHANNEL_TYPE_UPPERSETPOINT /* Channel Type */ , ITEM_TYPE_NUMBER_TEMPERATURE /* Item Type */);
+            CHANNEL_TYPE_UPPERSETPOINT /* Channel Type */ );
     private static final ChannelInfo MODE = new ChannelInfo("thermostatMode", "thermostatMode", "thermostatMode",
-            CHANNEL_TYPE_THERMOSTATMODE, "String");
+            CHANNEL_TYPE_THERMOSTATMODE);
 
     private static final Set<ChannelInfo> ALL_CHANNELS = Set.of(TARGET_SETPOINT, LOWER_SETPOINT, UPPER_SETPOINT, MODE);
 
@@ -70,7 +71,7 @@ public class HandlerThermostatController extends AbstractInterfaceHandler {
     }
 
     @Override
-    protected Set<ChannelInfo> findChannelInfos(SmartHomeCapability capability, String property) {
+    protected Set<ChannelInfo> findChannelInfos(SmartHomeCapability capability, @Nullable String property) {
         return ALL_CHANNELS.stream().filter(c -> c.propertyName.equals(property)).collect(Collectors.toSet());
     }
 
@@ -98,7 +99,8 @@ public class HandlerThermostatController extends AbstractInterfaceHandler {
                     }
                 }
             }
-            updateState(channel.channelId, Objects.requireNonNullElse(newState, UnDefType.UNDEF));
+            smartHomeDeviceHandler.updateState(channel.channelId,
+                    Objects.requireNonNullElse(newState, UnDefType.UNDEF));
         });
     }
 

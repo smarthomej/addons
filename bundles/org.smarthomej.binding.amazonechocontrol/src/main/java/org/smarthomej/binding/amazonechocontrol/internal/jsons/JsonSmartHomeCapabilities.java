@@ -18,11 +18,19 @@ import java.util.List;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * @author Lukas Knoeller - Initial contribution
  */
 @NonNullByDefault
 public class JsonSmartHomeCapabilities {
+    public @Nullable List<SmartHomeCapability> capabilites;
+
+    @Override
+    public String toString() {
+        return "JsonSmartHomeCapabilities{capabilites=" + capabilites + "}";
+    }
 
     public static class SmartHomeCapability {
         public @Nullable String capabilityType;
@@ -30,36 +38,92 @@ public class JsonSmartHomeCapabilities {
         public @Nullable String version;
         public @Nullable String interfaceName;
         public @Nullable Properties properties;
+        public @Nullable Configuration configuration;
+        public @Nullable Resources resources;
+        public @Nullable String instance;
 
         @Override
         public String toString() {
             return "SmartHomeCapability{capabilityType='" + capabilityType + "', type='" + type + "', version='"
-                    + version + "', interfaceName='" + interfaceName + "', properties=" + properties + "}";
+                    + version + "', interfaceName='" + interfaceName + "', properties=" + properties
+                    + "', configuration=" + configuration + "', resources=" + resources + "}";
         }
     }
 
     public static class Properties {
         public @Nullable List<Property> supported;
+        public boolean proactivelyReported = false;
+        public boolean retrievable = false;
+        public boolean readOnly = true;
 
         @Override
         public String toString() {
-            return "Properties{supported=" + supported + "}";
+            return "Properties{supported=" + supported + ", proactivelyReported=" + proactivelyReported
+                    + ", retrievable=" + retrievable + ", readOnly=" + readOnly + "}";
+        }
+
+        public static class Property {
+            public @Nullable String name;
+
+            @Override
+            public String toString() {
+                return "Property{name='" + name + "'}";
+            }
         }
     }
 
-    public static class Property {
-        public @Nullable String name;
+    public static class Configuration {
+        public @Nullable Range supportedRange;
+        public @Nullable String unitOfMeasure;
+        public @Nullable List<String> presets;
 
         @Override
         public String toString() {
-            return "Property{name='" + name + "'}";
+            return "Configuration{supportedRange=" + supportedRange + ", unitOfMeasure='" + unitOfMeasure + "'"
+                    + ", presets=" + presets + "}";
+        }
+
+        public static class Range {
+            public @Nullable Double minimumValue;
+            public @Nullable Double maximumValue;
+            public @Nullable Double precision;
+
+            @Override
+            public String toString() {
+                return "Range{minimumValue=" + minimumValue + ", maximumValue=" + maximumValue + ", precision="
+                        + precision + "}";
+            }
         }
     }
 
-    @Override
-    public String toString() {
-        return "JsonSmartHomeCapabilities{capabilites=" + capabilites + "}";
-    }
+    public static class Resources {
+        public @Nullable List<Names> friendlyNames;
 
-    public @Nullable List<SmartHomeCapability> capabilites;
+        @Override
+        public String toString() {
+            return "Resources{friendlyNames=" + friendlyNames + "}";
+        }
+
+        public static class Names {
+            public @Nullable Value value;
+            @SerializedName("@type")
+            public @Nullable String type;
+
+            @Override
+            public String toString() {
+                return "Names{value=" + value + ", type='" + type + "'}";
+            }
+
+            public static class Value {
+                public @Nullable String assetId;
+                public @Nullable String text;
+                public @Nullable String locale;
+
+                @Override
+                public String toString() {
+                    return "Value{assetId='" + assetId + "'" + ", text='" + text + "'" + ", locale='" + locale + "'}";
+                }
+            }
+        }
+    }
 }

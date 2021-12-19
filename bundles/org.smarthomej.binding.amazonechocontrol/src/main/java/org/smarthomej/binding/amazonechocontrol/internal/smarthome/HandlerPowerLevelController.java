@@ -13,8 +13,6 @@
  */
 package org.smarthomej.binding.amazonechocontrol.internal.smarthome;
 
-import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Constants.ITEM_TYPE_DIMMER;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -53,8 +51,7 @@ public class HandlerPowerLevelController extends AbstractInterfaceHandler {
 
     // Channel definitions
     private static final ChannelInfo POWER_LEVEL = new ChannelInfo("powerLevel" /* propertyName */ ,
-            "powerLevel" /* ChannelId */, CHANNEL_TYPE_POWER_LEVEL /* Channel Type */ ,
-            ITEM_TYPE_DIMMER /* Item Type */);
+            "powerLevel" /* ChannelId */, CHANNEL_TYPE_POWER_LEVEL /* Channel Type */ );
 
     private @Nullable Integer lastPowerLevel;
 
@@ -63,7 +60,7 @@ public class HandlerPowerLevelController extends AbstractInterfaceHandler {
     }
 
     @Override
-    protected Set<ChannelInfo> findChannelInfos(SmartHomeCapability capability, String property) {
+    protected Set<ChannelInfo> findChannelInfos(SmartHomeCapability capability, @Nullable String property) {
         if (POWER_LEVEL.propertyName.equals(property)) {
             return Set.of(POWER_LEVEL);
         }
@@ -87,7 +84,7 @@ public class HandlerPowerLevelController extends AbstractInterfaceHandler {
         if (powerLevelValue != null) {
             lastPowerLevel = powerLevelValue;
         }
-        updateState(POWER_LEVEL.channelId,
+        smartHomeDeviceHandler.updateState(POWER_LEVEL.channelId,
                 powerLevelValue == null ? UnDefType.UNDEF : new PercentType(powerLevelValue));
     }
 

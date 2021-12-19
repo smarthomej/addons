@@ -31,8 +31,7 @@ import com.google.gson.JsonObject;
  */
 @NonNullByDefault
 public interface InterfaceHandler {
-    Collection<AbstractInterfaceHandler.ChannelInfo> initialize(
-            List<JsonSmartHomeCapabilities.SmartHomeCapability> capabilities);
+    Collection<ChannelInfo> initialize(List<JsonSmartHomeCapabilities.SmartHomeCapability> capabilities);
 
     List<String> getSupportedInterface();
 

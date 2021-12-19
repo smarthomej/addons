@@ -233,10 +233,18 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
         }
     }
 
+    public void removeEchoHandler(EchoHandler echoHandler) {
+        echoHandlers.remove(echoHandler);
+    }
+
     public void addSmartHomeDeviceHandler(SmartHomeDeviceHandler smartHomeDeviceHandler) {
         if (smartHomeDeviceHandlers.add(smartHomeDeviceHandler)) {
             forceCheckData();
         }
+    }
+
+    public void removeSmartHomeDeviceHandler(SmartHomeDeviceHandler smartHomeDeviceHandler) {
+        smartHomeDeviceHandlers.remove(smartHomeDeviceHandler);
     }
 
     public void forceCheckData() {
@@ -805,7 +813,7 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
         refreshData();
     }
 
-    private @Nullable SmartHomeBaseDevice findSmartDeviceHomeJson(SmartHomeDeviceHandler handler) {
+    private @Nullable SmartHomeBaseDevice findSmartHomeDeviceJson(SmartHomeDeviceHandler handler) {
         String id = handler.getId();
         if (!id.isEmpty()) {
             return jsonIdSmartHomeDeviceMapping.get(id);
@@ -848,15 +856,12 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
         }
         // update handlers
         smartHomeDeviceHandlers
-                .forEach(child -> child.setDeviceAndUpdateThingState(this, findSmartDeviceHomeJson(child)));
+                .forEach(child -> child.setDeviceAndUpdateThingState(this, findSmartHomeDeviceJson(child)));
 
         return Objects.requireNonNullElse(smartHomeDevices, List.of());
     }
 
-    public void forceDelayedSmartHomeStateUpdate(@Nullable String deviceId) {
-        if (deviceId == null) {
-            return;
-        }
+    public void forceDelayedSmartHomeStateUpdate(String deviceId) {
         synchronized (synchronizeSmartHomeJobScheduler) {
             requestedDeviceUpdates.add(deviceId);
             ScheduledFuture<?> refreshSmartHomeAfterCommandJob = this.refreshSmartHomeAfterCommandJob;

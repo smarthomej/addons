@@ -13,9 +13,6 @@
  */
 package org.smarthomej.binding.amazonechocontrol.internal.smarthome;
 
-import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Constants.ITEM_TYPE_COLOR;
-import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Constants.ITEM_TYPE_STRING;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +36,7 @@ import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevi
 import com.google.gson.JsonObject;
 
 /**
- * The {@link HandlerColorController} is responsible for the Alexa.ColorTemperatureController
+ * The {@link HandlerColorController} is responsible for the Alexa.ColorTemperatureController interface
  *
  * @author Lukas Knoeller - Initial contribution
  * @author Michael Geramb - Initial contribution
@@ -59,10 +56,10 @@ public class HandlerColorController extends AbstractInterfaceHandler {
 
     // Channel and Properties
     private static final ChannelInfo COLOR = new ChannelInfo("color" /* propertyName */, "color" /* ChannelId */,
-            CHANNEL_TYPE_COLOR /* Channel Type */, ITEM_TYPE_COLOR /* Item Type */);
+            CHANNEL_TYPE_COLOR /* Channel Type */);
 
     private static final ChannelInfo COLOR_PROPERTIES = new ChannelInfo("colorProperties" /* propertyName */,
-            "colorName" /* ChannelId */, CHANNEL_TYPE_COLOR_NAME /* Channel Type */, ITEM_TYPE_STRING /* Item Type */);
+            "colorName" /* ChannelId */, CHANNEL_TYPE_COLOR_NAME /* Channel Type */);
 
     private @Nullable HSBType lastColor;
     private @Nullable String lastColorName;
@@ -72,8 +69,8 @@ public class HandlerColorController extends AbstractInterfaceHandler {
     }
 
     @Override
-    protected Set<ChannelInfo> findChannelInfos(SmartHomeCapability capability, String property) {
-        if (COLOR.propertyName.contentEquals(property)) {
+    protected Set<ChannelInfo> findChannelInfos(SmartHomeCapability capability, @Nullable String property) {
+        if (COLOR.propertyName.equals(property)) {
             return Set.of(COLOR, COLOR_PROPERTIES);
         }
         return Set.of();
@@ -101,7 +98,7 @@ public class HandlerColorController extends AbstractInterfaceHandler {
                     lastColor = colorValue;
                 }
             }
-            updateState(COLOR.channelId, colorValue == null ? UnDefType.UNDEF : colorValue);
+            smartHomeDeviceHandler.updateState(COLOR.channelId, colorValue == null ? UnDefType.UNDEF : colorValue);
         }
         if (INTERFACE_COLOR_PROPERTIES.equals(interfaceName)) {
             String colorNameValue = null;
@@ -117,7 +114,7 @@ public class HandlerColorController extends AbstractInterfaceHandler {
                 colorNameValue = lastColorName;
             }
             lastColorName = colorNameValue;
-            updateState(COLOR_PROPERTIES.channelId,
+            smartHomeDeviceHandler.updateState(COLOR_PROPERTIES.channelId,
                     lastColorName == null ? UnDefType.UNDEF : new StringType(lastColorName));
         }
     }
