@@ -59,11 +59,25 @@ public class MathTransformationProfileFactory implements ProfileFactory, Profile
             .newState(DivideTransformationProfile.PROFILE_TYPE_UID,
                     DivideTransformationProfile.PROFILE_TYPE_UID.getId())
             .withSupportedItemTypes(CoreItemFactory.NUMBER).build();
+    private static final ProfileType BITAND_PROFILE_TYPE = ProfileTypeBuilder
+            .newState(BitwiseAndTransformationProfile.PROFILE_TYPE_UID,
+                    BitwiseAndTransformationProfile.PROFILE_TYPE_UID.getId())
+            .withSupportedItemTypes(CoreItemFactory.NUMBER).build();
+    private static final ProfileType BITOR_PROFILE_TYPE = ProfileTypeBuilder
+            .newState(BitwiseOrTransformationProfile.PROFILE_TYPE_UID,
+                    BitwiseOrTransformationProfile.PROFILE_TYPE_UID.getId())
+            .withSupportedItemTypes(CoreItemFactory.NUMBER).build();
+    private static final ProfileType BITXOR_PROFILE_TYPE = ProfileTypeBuilder
+            .newState(BitwiseXorTransformationProfile.PROFILE_TYPE_UID,
+                    BitwiseXorTransformationProfile.PROFILE_TYPE_UID.getId())
+            .withSupportedItemTypes(CoreItemFactory.NUMBER).build();
+
     private static final Set<ProfileTypeUID> SUPPORTED_PROFILE_TYPE_UIDS = Set.of(
             AddTransformationProfile.PROFILE_TYPE_UID, MultiplyTransformationProfile.PROFILE_TYPE_UID,
-            DivideTransformationProfile.PROFILE_TYPE_UID);
+            DivideTransformationProfile.PROFILE_TYPE_UID, BitwiseAndTransformationProfile.PROFILE_TYPE_UID,
+            BitwiseOrTransformationProfile.PROFILE_TYPE_UID, BitwiseXorTransformationProfile.PROFILE_TYPE_UID);
     private static final Set<ProfileType> SUPPORTED_PROFILE_TYPES = Set.of(ADD_PROFILE_TYPE, MULTIPLY_PROFILE_TYPE,
-            DIVIDE_PROFILE_TYPE);
+            DIVIDE_PROFILE_TYPE, BITAND_PROFILE_TYPE, BITOR_PROFILE_TYPE, BITXOR_PROFILE_TYPE);
 
     private final Map<LocalizedKey, ProfileType> localizedProfileTypeCache = new ConcurrentHashMap<>();
 
@@ -71,10 +85,12 @@ public class MathTransformationProfileFactory implements ProfileFactory, Profile
     private final Bundle bundle;
 
     private @NonNullByDefault({}) TransformationService addTransformationService;
-
     private @NonNullByDefault({}) TransformationService multiplyTransformationService;
-
     private @NonNullByDefault({}) TransformationService divideTransformationService;
+
+    private @NonNullByDefault({}) TransformationService bitAndTransformationService;
+    private @NonNullByDefault({}) TransformationService bitOrTransformationService;
+    private @NonNullByDefault({}) TransformationService bitXorTransformationService;
 
     @Activate
     public MathTransformationProfileFactory(
@@ -104,6 +120,12 @@ public class MathTransformationProfileFactory implements ProfileFactory, Profile
             return new MultiplyTransformationProfile(callback, profileContext, multiplyTransformationService);
         } else if (DivideTransformationProfile.PROFILE_TYPE_UID.equals(profileTypeUID)) {
             return new DivideTransformationProfile(callback, profileContext, divideTransformationService);
+        } else if (BitwiseAndTransformationProfile.PROFILE_TYPE_UID.equals(profileTypeUID)) {
+            return new BitwiseAndTransformationProfile(callback, profileContext, bitAndTransformationService);
+        } else if (BitwiseOrTransformationProfile.PROFILE_TYPE_UID.equals(profileTypeUID)) {
+            return new BitwiseOrTransformationProfile(callback, profileContext, bitOrTransformationService);
+        } else if (BitwiseXorTransformationProfile.PROFILE_TYPE_UID.equals(profileTypeUID)) {
+            return new BitwiseXorTransformationProfile(callback, profileContext, bitXorTransformationService);
         }
         return null;
     }
@@ -152,5 +174,32 @@ public class MathTransformationProfileFactory implements ProfileFactory, Profile
 
     public void removeDivideTransformationService(TransformationService service) {
         this.divideTransformationService = null;
+    }
+
+    @Reference(target = "(openhab.transform=BITAND)")
+    public void addBitAndTransformationService(TransformationService service) {
+        this.bitAndTransformationService = service;
+    }
+
+    public void removeBitAndTransformationService(TransformationService service) {
+        this.bitAndTransformationService = null;
+    }
+
+    @Reference(target = "(openhab.transform=BITOR)")
+    public void addBitrOrTransformationService(TransformationService service) {
+        this.bitOrTransformationService = service;
+    }
+
+    public void removeBitOrTransformationService(TransformationService service) {
+        this.bitOrTransformationService = null;
+    }
+
+    @Reference(target = "(openhab.transform=BITXOR)")
+    public void addBitXorTransformationService(TransformationService service) {
+        this.bitXorTransformationService = service;
+    }
+
+    public void removeBitXorTransformationService(TransformationService service) {
+        this.bitXorTransformationService = null;
     }
 }
