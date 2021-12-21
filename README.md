@@ -9,11 +9,11 @@ Some parts of this repository are forked from [openHAB Addons](https://github.co
 
 ## Installation / Usage
 
-The easiest way to use the bindings in this repository is to install the SmartHome/J repository manager.
+The easiest way to use the bindings in this repository with openHAB 3.0.x/3.1.x is to install the SmartHome/J repository manager.
 The documentation can be found [here](https://github.com/smarthomej/addons/tree/main/bundles/org.smarthomej.io.repomanager).
 
-***Attention:*** Due to a breaking change related to the Community Marketplace in openHAB 3.2.0.M3 and later the Repomanager is no longer compatible.
-A replacement will be added as soon as possible.
+For openHAB 3.2.0 and later it is recommended to add `https://download.smarthomej.org/addons.json` as JSON 3rd Party Addon Service in the settings.
+Afterwards all addons can be installed from the UI.
 
 ### Compatibility
 
@@ -21,11 +21,11 @@ Due to a breaking changes in openHAB, older and newer versions of bundles are no
 We'll continue to support 3.0 compatible addons until the release of openHAB 3.2.0 (which is expected end of 2021) and provide the same set of addons for newer versions.
 Please check the table to see which versions of SmartHome/J are compatible with which openHAB version:
 
-| | openHAB 3.0.x (milestones, releases) |  openHAB 3.1.0 (milestones <= M3) | openHAB 3.1.0 (milestone M4) | openHAB 3.1.0 (milestone M5, release) | openHAB 3.2.0 (milestone <= M2)| openhab 3.2.0 (milestone M3) |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|
-| SmartHome/J 3.1.x (snapshots, releases) | yes | yes | no | no | no | no |
-| SmartHome/J 3.2.0 (snapshots, releases) | no | no | no | yes | yes | yes |
-| compatible RepoManager | [latest 3.1.x](https://download.smarthomej.org/repomanager-latest) | [latest 3.1.x](https://download.smarthomej.org/repomanager-latest) | - | [latest 3.2.x](https://download.smarthomej.org/repomanager-latest-3.2.x) | [latest 3.2.x](https://download.smarthomej.org/repomanager-latest-3.2.x) | - |
+| | openHAB 3.0.x (releases) | openHAB 3.1.x (releases) | openHAB 3.2.0 (release) | openHAB 3.3.0 (snapshots) |
+|---|:---:|:---:|:---:|:---:|
+| SmartHome/J 3.1.x (snapshots, releases) | yes | no | no | no |
+| SmartHome/J 3.2.x (snapshots, releases) | no | yes | yes| yes |
+| compatible RepoManager | [latest 3.1.x](https://download.smarthomej.org/repomanager-latest) | [latest 3.2.x](https://download.smarthomej.org/repomanager-latest-3.2.x) | JSON AddonService | JSON AddonService | 
 
 ## Development
 
@@ -38,5 +38,5 @@ The following differences apply:
 - null checks: annotations are required 
 
 Happy coding! 
-Pull requests always welcome and we'll try to review as soon as possible.
+Pull requests always welcome, and we'll try to review as soon as possible.
 In case you need assistance, feel free to ask.
