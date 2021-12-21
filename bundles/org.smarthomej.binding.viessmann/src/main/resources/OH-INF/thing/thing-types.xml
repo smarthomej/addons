@@ -28,6 +28,7 @@
 			<parameter name="password" type="text" required="true">
 				<context>Password</context>
 				<description>The password for the given user</description>
+				<context>password</context>
 			</parameter>
 			<parameter name="installationId" type="text" required="false">
 				<label>Installations ID</label>
