@@ -18,15 +18,22 @@ let addons = [];
 bundles.forEach(bundle => {
     let fullBundleName = 'org.smarthomej.' + bundle;
     let addon = {};
-    addon['id'] = fullBundleName.replaceAll('\.', '-');
-    addon['type'] = bundle.substr(0, bundle.indexOf('.'));
+    addon['id'] = 'org-smarthome-' + bundle.replaceAll('\.', '-');
+
+    let type = bundle.substr(0, bundle.indexOf('.'));
+    if (type === 'transform') { // for unknown reasons the type for transformations is transformation instead of the bundle name transform
+        type = 'transformation';
+    }
+    addon['type'] = type;
+
     addon['version'] = releaseTag;
     addon['author'] = 'SmartHome/J';
     addon['maturity'] = 'stable';
     addon['content_type'] = 'application/vnd.openhab.feature;type=karfile';
+    addon['link'] = 'https://docs.smarthomej.org/' + releaseTag + '/' + fullBundleName + '.html';
     addon['url'] = 'https://repo1.maven.org/maven2/org/smarthomej/addons/bundles/' + fullBundleName + '/' + releaseTag + '/' + fullBundleName + '-' + releaseTag + '.kar';
 
-    let readmePath = 'bundles/'+fullBundleName+'/README.md';
+    let readmePath = 'bundles/' + fullBundleName + '/README.md';
 
     let readme = [];
     try {
@@ -49,7 +56,7 @@ bundles.forEach(bundle => {
     addons.push(addon);
 });
 
-addons.sort((a, b) => a.id < b.id);
+addons.sort((a, b) => a.id - b.id);
 
 let output = JSON.stringify(addons, null, 2);
 
