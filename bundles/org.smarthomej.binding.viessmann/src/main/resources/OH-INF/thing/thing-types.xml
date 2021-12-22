@@ -16,37 +16,42 @@
 
 		<config-description>
 			<parameter name="apiKey" type="text" required="true">
-				<label>API Key</label>
-				<description>The API Key (can be obtained by registering an
-					Application on the Viessmann Developer Website)."
+				<label>Client ID</label>
+				<description>The Client ID (can be obtained by registering an
+					Application on the Viessmann Developer Website)
 				</description>
 			</parameter>
 			<parameter name="user" type="text" required="true">
-				<label>User(E-Mail address)</label>
-				<description>The user name for which the application key has been issued</description>
+				<label>E-Mail address</label>
+				<description>The E-Mail address for which the application key has been issued</description>
 			</parameter>
 			<parameter name="password" type="text" required="true">
-				<context>Password</context>
-				<description>The password for the given user</description>
+				<label>Password</label>
+				<description>The password for the given E-Mail address</description>
+				<context>password</context>
 			</parameter>
 			<parameter name="installationId" type="text" required="false">
 				<label>Installations ID</label>
 				<description>The Installations ID</description>
+				<advanced>true</advanced>
 			</parameter>
 			<parameter name="gatewaySerial" type="text" required="false">
 				<label>GatewaySerial ID</label>
 				<description>The gatewaySerial</description>
+				<advanced>true</advanced>
 			</parameter>
 			<parameter name="apiCallLimit" type="integer" required="false">
 				<label>API call limit</label>
 				<description>The limit how often call the API. For calcutating the time how often the data is queried in
 					seconds</description>
 				<default>1450</default>
+				<advanced>true</advanced>
 			</parameter>
 			<parameter name="bufferApiCommands" type="integer" required="false">
 				<label>Buffer for API commands</label>
 				<description>The buffer for commands. For calcutating the time how often the data is queried in seconds</description>
 				<default>450</default>
+				<advanced>true</advanced>
 			</parameter>
 			<parameter name="pollingInterval" type="integer" required="false" unit="s">
 				<label>Polling Interval</label>
@@ -54,6 +59,7 @@
 				<description>How often the heating should be queried in seconds (If it's set to 0, then the interval will
 					be
 					calculated by the binding)</description>
+				<advanced>true</advanced>
 			</parameter>
 		</config-description>
 	</bridge-type>
