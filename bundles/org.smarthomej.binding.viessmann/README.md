@@ -5,11 +5,15 @@ It provides features like the ViCare-App.
 
 ## Note / Important
 
-You have to register your ViCare Account at the Viessmann developer portal and create an API Key (Client ID).
+You have to register your ViCare Account at the Viessmann developer portal and create a Client ID.
 
 * `name` - `i.e. openhab`
 * `Google reCAPTCHA` - `off`
 * `Redicect URI` - `http://localhost:8080/viessmann/authcode/`
+
+### Hint: 
+
+On the Viessman developer portal you can add more than one RedirectURI by tapping the plus sign.
 
 ## Supported Things
 
@@ -26,7 +30,7 @@ Discovery is supported for all devices connected in your account.
 
 The `bridge` thing supports the connection to the Viessmann API.
 
-* `apiKey` (required) The API Key (Client ID) form the Viessman developer portal 
+* `apiKey` (required) The Client ID from the Viessman developer portal 
 * `user` (required) The E-Mail address which is registered for the ViCare App
 * `password` (required) The password which is registered for the ViCare App
 * `installationId` (optional / it will be discovered) The installation Id which belongs to your installation 
