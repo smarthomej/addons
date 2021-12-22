@@ -26,6 +26,7 @@
 				<description>The E-Mail address for which the application key has been issued</description>
 			</parameter>
 			<parameter name="password" type="text" required="true">
+				<label>Password</label>
 				<description>The password for the given E-Mail address</description>
 				<context>password</context>
 			</parameter>
