@@ -14,7 +14,10 @@
 package org.smarthomej.binding.mail.internal;
 
 import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
+
+import javax.activation.PatchedMailcapCommandMap;
+import javax.mail.MessagingException;
 
 import org.apache.commons.mail.DefaultAuthenticator;
 import org.apache.commons.mail.Email;
@@ -40,6 +43,7 @@ import org.smarthomej.binding.mail.internal.config.SMTPConfig;
 @NonNullByDefault
 public class SMTPHandler extends BaseThingHandler {
     private final Logger logger = LoggerFactory.getLogger(SMTPHandler.class);
+    private final PatchedMailcapCommandMap commandMap = new PatchedMailcapCommandMap();
 
     private @NonNullByDefault({}) SMTPConfig config;
 
@@ -94,8 +98,11 @@ public class SMTPHandler extends BaseThingHandler {
             if (!config.username.isEmpty() && !config.password.isEmpty()) {
                 mail.setAuthenticator(new DefaultAuthenticator(config.username, config.password));
             }
-            mail.send();
-        } catch (EmailException e) {
+
+            mail.buildMimeMessage();
+            mail.getMimeMessage().getDataHandler().setCommandMap(commandMap);
+            mail.sendMimeMessage();
+        } catch (MessagingException | EmailException e) {
             Throwable cause = e.getCause();
             if (cause != null) {
                 logger.warn("{}", cause.toString());
@@ -109,6 +116,6 @@ public class SMTPHandler extends BaseThingHandler {
 
     @Override
     public Collection<Class<? extends ThingHandlerService>> getServices() {
-        return Collections.singletonList(SendMailActions.class);
+        return List.of(SendMailActions.class);
     }
 }
