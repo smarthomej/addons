@@ -27,9 +27,10 @@ public class ProjectConfiguration {
     public String accessSecret = "";
     public Integer countryCode = 0;
     public String schema = "";
+    public String dataCenter = "";
 
     public boolean isValid() {
         return !username.isEmpty() && !password.isEmpty() && !accessId.isEmpty() && !accessSecret.isEmpty()
-                && countryCode != 0 && !schema.isEmpty();
+                && countryCode != 0 && !schema.isEmpty() && !dataCenter.isEmpty();
     }
 }

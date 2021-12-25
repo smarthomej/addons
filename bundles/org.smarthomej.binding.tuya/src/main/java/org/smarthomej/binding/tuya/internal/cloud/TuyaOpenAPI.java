@@ -60,7 +60,6 @@ public class TuyaOpenAPI {
     private final ScheduledExecutorService scheduler;
     private ProjectConfiguration config = new ProjectConfiguration();
     private final HttpClient httpClient;
-    private final String endPoint = "https://openapi.tuyaeu.com";
 
     private final ApiStatusCallback callback;
     private final Gson gson;
@@ -199,7 +198,7 @@ public class TuyaOpenAPI {
                 "sign_method", "HMAC-SHA256", //
                 "access_token", this.token.accessToken);
 
-        String fullUrl = this.endPoint + signUrl(path, params);
+        String fullUrl = config.dataCenter + signUrl(path, params);
         Request request = httpClient.newRequest(URI.create(fullUrl));
         request.method(method);
         headers.forEach(request::header);

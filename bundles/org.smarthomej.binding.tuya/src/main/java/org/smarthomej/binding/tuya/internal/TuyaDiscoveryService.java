@@ -67,7 +67,7 @@ public class TuyaDiscoveryService extends AbstractDiscoveryService implements Th
     private @Nullable ScheduledFuture<?> discoveryJob;
 
     public TuyaDiscoveryService() {
-        super(SUPPORTED_THING_TYPES, SEARCH_TIME, true);
+        super(SUPPORTED_THING_TYPES, SEARCH_TIME);
     }
 
     @Override
@@ -134,12 +134,13 @@ public class TuyaDiscoveryService extends AbstractDiscoveryService implements Th
     }
 
     @Override
+    public void activate() {
+        super.activate(null);
+    }
+
+    @Override
     public void deactivate() {
-        if (bridgeHandler == null) {
-            logger.warn("Bridgehandler not found, could not cleanup discovery results.");
-            return;
-        }
-        removeOlderResults(new Date().getTime(), bridgeUid);
+        removeOlderResults(new Date().getTime());
 
         super.deactivate();
     }
@@ -151,7 +152,10 @@ public class TuyaDiscoveryService extends AbstractDiscoveryService implements Th
 
     @Override
     public void startBackgroundDiscovery() {
-        discoveryJob = scheduler.scheduleWithFixedDelay(this::startScan, 0, 60, TimeUnit.SECONDS);
+        ScheduledFuture<?> discoveryJob = this.discoveryJob;
+        if (discoveryJob == null || discoveryJob.isCancelled()) {
+            this.discoveryJob = scheduler.scheduleWithFixedDelay(this::startScan, 1, 5, TimeUnit.MINUTES);
+        }
     }
 
     @Override
