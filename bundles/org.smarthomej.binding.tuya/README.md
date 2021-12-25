@@ -43,6 +43,7 @@ Write down (or copy) "Access ID/Client ID" and "Access Secret/Client Secret" (yp
 Add a `project` and enter your apps credentials (`username`/`password`) and the cloud credentials (`accessId`/`accessSecret`).
 The `countryCode` is the international dial prefix of the country you registered your app in (e.g. `49` for Germany or `43` for Austria).
 Depending on the app you use, set `schema` to `tuyaSmart` (for the Tuya Smart app) or `smartLife` (for the Smart Life app).
+The `datacenter` needs to be set to the same value as in your IoT project.
 
 The thing should come online immediately.
 

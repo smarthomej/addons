@@ -46,10 +46,10 @@
 				<description>The data center for for your Tuya account</description>
 				<options>
 					<option value="https://openapi.tuyacn.com">China</option>
-					<option value="https://openapi.tuyaus.com">America</option>
-					<option value="https://openapi-ueaz.tuyacn.com">America (Azure/MS)</option>
-					<option value="https://openapi.tuyaeu.com">Europe</option>
-					<option value="https://openapi-weaz.tuyaeu.com">Europe (Azure/MS)</option>
+					<option value="https://openapi.tuyaus.com">Western America</option>
+					<option value="https://openapi-ueaz.tuyacn.com">Eastern America (Azure/MS)</option>
+					<option value="https://openapi.tuyaeu.com">Central Europe</option>
+					<option value="https://openapi-weaz.tuyaeu.com">Western Europe (Azure/MS)</option>
 					<option value="https://openapi.tuyain.com">India</option>
 				</options>
 				<limitToOptions>true</limitToOptions>
