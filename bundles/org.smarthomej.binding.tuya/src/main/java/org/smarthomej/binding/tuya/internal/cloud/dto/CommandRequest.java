@@ -17,13 +17,13 @@ import java.util.List;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
- * The {@link CommandRequest} is a
+ * The {@link CommandRequest} represents a request to the cloud
  *
  * @author Jan N. Klug - Initial contribution
  */
 @NonNullByDefault
 public class CommandRequest {
-    public List<Command<?>> commands = List.of();
+    public List<Command<?>> commands;
 
     public CommandRequest(List<Command<?>> commands) {
         this.commands = commands;

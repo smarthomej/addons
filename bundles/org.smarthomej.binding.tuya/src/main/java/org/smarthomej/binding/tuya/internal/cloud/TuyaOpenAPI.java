@@ -50,7 +50,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 /**
- * The {@link TuyaOpenAPI} is an implementation of the TUYA OpenApi specification
+ * The {@link TuyaOpenAPI} is an implementation of the Tuya OpenApi specification
  *
  * @author Jan N. Klug - Initial contribution
  */

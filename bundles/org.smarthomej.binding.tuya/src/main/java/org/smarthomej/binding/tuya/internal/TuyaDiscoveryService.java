@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -62,9 +64,10 @@ public class TuyaDiscoveryService extends AbstractDiscoveryService implements Th
     private @Nullable ProjectHandler bridgeHandler;
     private @NonNullByDefault({}) ThingUID bridgeUid;
     private @NonNullByDefault({}) Storage<String> storage;
+    private @Nullable ScheduledFuture<?> discoveryJob;
 
     public TuyaDiscoveryService() {
-        super(SUPPORTED_THING_TYPES, SEARCH_TIME, false);
+        super(SUPPORTED_THING_TYPES, SEARCH_TIME, true);
     }
 
     @Override
@@ -144,5 +147,19 @@ public class TuyaDiscoveryService extends AbstractDiscoveryService implements Th
     @Override
     public Set<ThingTypeUID> getSupportedThingTypes() {
         return SUPPORTED_THING_TYPES;
+    }
+
+    @Override
+    public void startBackgroundDiscovery() {
+        discoveryJob = scheduler.scheduleWithFixedDelay(this::startScan, 0, 60, TimeUnit.SECONDS);
+    }
+
+    @Override
+    public void stopBackgroundDiscovery() {
+        ScheduledFuture<?> discoveryJob = this.discoveryJob;
+        if (discoveryJob != null) {
+            discoveryJob.cancel(true);
+            this.discoveryJob = null;
+        }
     }
 }

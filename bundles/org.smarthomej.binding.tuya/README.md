@@ -106,16 +106,16 @@ It contains a comma-separated list of command options for this channel (e.g. `wh
 
 ## Troubleshooting
 
-- Check if there are errors in the log and if you see a lof message like `Configuring IP address '192.168.1.100' for thing 'tuya:tuya:tuyaDevice:bf3122fba012345fc9pqa'`.
+- Check if there are errors in the log and if you see messages like `Configuring IP address '192.168.1.100' for thing 'tuya:tuya:tuyaDevice:bf3122fba012345fc9pqa'`.
 If this is missing, try configuring the IP manually.
-The MAC of your device can be found in the auto-discovered thing properties (might help identifying the device in your router).
+The MAC of your device can be found in the auto-discovered thing properties (this helps to identify the device in your router).
 - Provide TRACE level logs.
 Type `log:set TRACE org.smarthomej.binding.tuya` on the Karaf console to enable TRACE logging.
 Use `log:tail` to display the log.
 You can revert to normal logging with `log:set DEFAULT org.smarthomej.binding.tuya`
 - At least disable/enable the thing when providing logs.
 For most details better remove the device, use discovery and re-add the device. 
-Please PasteBin or a similar service, do not use JPG or other images, they can't be analysed properly.
+Please use PasteBin or a similar service, do not use JPG or other images, they can't be analysed properly.
 Check that the log doesn't contain any credentials. 
 - Add the thing configuration to your report (in the UI use the "Code" view).
 

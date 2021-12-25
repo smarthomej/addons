@@ -37,10 +37,14 @@ import org.slf4j.LoggerFactory;
 /**
  * The {@link CryptoUtil} is a support class for encrypting/decrypting messages
  *
+ * Parts of this code are inspired by the TuyAPI project (see notice file)
+ *
  * @author Jan N. Klug - Initial contribution
  */
 @NonNullByDefault
 public class CryptoUtil {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
+
     private static final int[] CRC_32_TABLE = { 0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f,
             0xe963a535, 0x9e6495a3, 0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988, 0x09b64c2b, 0x7eb17cbd, 0xe7b82d07,
             0x90bf1d91, 0x1db71064, 0x6ab020f2, 0xf3b97148, 0x84be41de, 0x1adad47d, 0x6ddde4eb, 0xf4d4b551, 0x83d385c7,
@@ -70,8 +74,7 @@ public class CryptoUtil {
             0x3e6e77db, 0xaed16a4a, 0xd9d65adc, 0x40df0b66, 0x37d83bf0, 0xa9bcae53, 0xdebb9ec5, 0x47b2cf7f, 0x30b5ffe9,
             0xbdbdf21c, 0xcabac28a, 0x53b39330, 0x24b4a3a6, 0xbad03605, 0xcdd70693, 0x54de5729, 0x23d967bf, 0xb3667a2e,
             0xc4614ab8, 0x5d681b02, 0x2a6f2b94, 0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d };
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
+    private static final int GCM_TAG_LENGTH = 16;
 
     private CryptoUtil() {
         // prevent instantiation
@@ -95,6 +98,12 @@ public class CryptoUtil {
         return ~crc;
     }
 
+    /**
+     * Calculate an SHA-256 hash of the input data
+     *
+     * @param data input data as String
+     * @return the resulting SHA-256 hash as hexadecimal String
+     */
     public static String sha256(String data) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -106,6 +115,12 @@ public class CryptoUtil {
         return "";
     }
 
+    /**
+     * Calculate a MD5 hash of the input data
+     *
+     * @param data input data as String
+     * @return the resulting MD5 hash as hexadecimal String
+     */
     public static String md5(String data) {
         try {
             MessageDigest digest = MessageDigest.getInstance("MD5");
@@ -117,6 +132,13 @@ public class CryptoUtil {
         return "";
     }
 
+    /**
+     * Calculate an SHA-256 MAC of the input data with a given secret
+     *
+     * @param data input data as String
+     * @param secret the secret to be used
+     * @return the resulting MAC as hexadecimal String
+     */
     public static String hmacSha256(String data, String secret) {
         try {
             Mac sha256HMAC = Mac.getInstance("HmacSHA256");
@@ -130,8 +152,14 @@ public class CryptoUtil {
         return "";
     }
 
-    public static final int GCM_TAG_LENGTH = 16;
-
+    /**
+     * Decrypt an AES-GCM encoded message
+     *
+     * @param msg the message as Base64 encoded string
+     * @param password the password as string
+     * @param t the timestamp of the message (used as AAD)
+     * @return the decrypted message as String (or null if decryption failed)
+     */
     public static @Nullable String decryptAesGcm(String msg, String password, long t) {
         try {
             byte[] rawBuffer = Base64.getDecoder().decode(msg);
@@ -147,7 +175,6 @@ public class CryptoUtil {
             cipher.updateAAD(Long.toString(t).getBytes(StandardCharsets.UTF_8));
             byte[] decoded = cipher.doFinal(rawBuffer, 4 + ivLength, dataLength);
             return new String(decoded);
-            // Arrays.copyOfRange(decoded, 0, dataLength - GCM_TAG_LENGTH)));
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException
                 | InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException e) {
             LOGGER.warn("Decryption of MQ failed: {}", e.getMessage());
@@ -156,6 +183,13 @@ public class CryptoUtil {
         return null;
     }
 
+    /**
+     * Decrypt an AES-ECB encoded message
+     *
+     * @param data the message as array of bytes
+     * @param key the key as array of bytes
+     * @return the decrypted message as String (or null if decryption failed)
+     */
     public static @Nullable String decryptAesEcb(byte[] data, byte[] key) {
         try {
             SecretKey secretKey = new SecretKeySpec(key, "AES");
@@ -171,6 +205,13 @@ public class CryptoUtil {
         return null;
     }
 
+    /**
+     * Encrypt an AES-ECB encoded message
+     *
+     * @param data the message as array of bytes
+     * @param key the key as array of bytes
+     * @return the encrypted message as array of bytes (or null if decryption failed)
+     */
     public static byte @Nullable [] encryptAesEcb(byte[] data, byte[] key) {
         try {
             SecretKey secretKey = new SecretKeySpec(key, "AES");
