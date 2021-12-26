@@ -53,6 +53,8 @@ public class ViessmannBindingConstants {
     public static final String VIESSMANN_TOKEN_URL = IAM_BASE_URL + "idp/v2/token";
     public static final String VIESSMANN_SCOPE = "IoT%20User%20offline_access";
 
+    public static final int REFRESH_TOKEN_EXPIRE = 15552000;
+
     public static final int API_TIMEOUT_MS = 20000;
     public static final String PROPERTY_ID = "deviceId";
 

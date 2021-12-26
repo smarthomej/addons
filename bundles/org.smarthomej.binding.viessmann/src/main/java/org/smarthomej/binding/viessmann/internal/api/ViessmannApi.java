@@ -66,6 +66,7 @@ public class ViessmannApi {
     private String gatewaySerial;
 
     private long tokenExpiryDate;
+    private long refreshTokenExpiryDate;
 
     private @NonNullByDefault({}) ViessmannAuth viessmannAuth;
 
@@ -109,6 +110,14 @@ public class ViessmannApi {
 
     public long getTokenExpiryDate() {
         return tokenExpiryDate;
+    }
+
+    public void setRefreshTokenExpiryDate(long expiresIn) {
+        refreshTokenExpiryDate = System.currentTimeMillis() + expiresIn;
+    }
+
+    public long getRefreshTokenExpiryDate() {
+        return refreshTokenExpiryDate;
     }
 
     public void createOAuthClientService() {
@@ -165,12 +174,17 @@ public class ViessmannApi {
         try {
             localAccessTokenResponseDTO = getTokenResponseDTO();
             if (localAccessTokenResponseDTO != null) {
-                long difference = getTokenExpiryDate() - System.currentTimeMillis();
-                if (difference <= TOKEN_MIN_DIFF_MS) {
-                    viessmannAuth.setState(ViessmannAuthState.NEED_REFRESH_TOKEN);
-                    viessmannAuth.setRefreshToken(localAccessTokenResponseDTO.refreshToken);
+                long diffRefreshTokenExpire = getRefreshTokenExpiryDate() - System.currentTimeMillis();
+                if (diffRefreshTokenExpire <= TOKEN_MIN_DIFF_MS) {
+                    viessmannAuth.setState(ViessmannAuthState.NEED_AUTH);
                 } else {
-                    viessmannAuth.setState(ViessmannAuthState.COMPLETE);
+                    long difference = getTokenExpiryDate() - System.currentTimeMillis();
+                    if (difference <= TOKEN_MIN_DIFF_MS) {
+                        viessmannAuth.setState(ViessmannAuthState.NEED_REFRESH_TOKEN);
+                        viessmannAuth.setRefreshToken(localAccessTokenResponseDTO.refreshToken);
+                    } else {
+                        viessmannAuth.setState(ViessmannAuthState.COMPLETE);
+                    }
                 }
             }
             viessmannAuth.doAuthorization();
