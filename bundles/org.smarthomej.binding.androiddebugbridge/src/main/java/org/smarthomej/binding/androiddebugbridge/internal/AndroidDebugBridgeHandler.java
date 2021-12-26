@@ -75,12 +75,21 @@ public class AndroidDebugBridgeHandler extends UpdatingBaseThingHandler {
     private @Nullable ScheduledFuture<?> connectionCheckerSchedule;
     private AndroidDebugBridgeMediaStatePackageConfig @Nullable [] packageConfigs;
     private final Map<String, Object> channelLastStateMap = new HashMap<>();
+    /** Prevent a dispose/init cycle while this flag is set. Use for property updates */
+    private boolean ignoreConfigurationUpdate;
 
     public AndroidDebugBridgeHandler(Thing thing,
             AndroidDebugBridgeDynamicCommandDescriptionProvider commandDescriptionProvider) {
         super(thing);
         this.commandDescriptionProvider = commandDescriptionProvider;
         this.adbConnection = new AndroidDebugBridgeDevice(scheduler);
+    }
+
+    @Override
+    public void handleConfigurationUpdate(Map<String, Object> configurationParameters) {
+        if (!ignoreConfigurationUpdate) {
+            super.handleConfigurationUpdate(configurationParameters);
+        }
     }
 
     @Override
@@ -351,6 +360,7 @@ public class AndroidDebugBridgeHandler extends UpdatingBaseThingHandler {
             logger.debug("Refresh device {} status", config.ip);
             if (adbConnection.isConnected()) {
                 updateStatus(ThingStatus.ONLINE);
+                refreshProperties();
                 refreshStatus();
             } else {
                 try {
@@ -370,14 +380,38 @@ public class AndroidDebugBridgeHandler extends UpdatingBaseThingHandler {
                 }
                 if (adbConnection.isConnected()) {
                     updateStatus(ThingStatus.ONLINE);
+                    refreshProperties();
                     refreshStatus();
                 }
             }
         } catch (InterruptedException ignored) {
-        } catch (AndroidDebugBridgeDeviceException | ExecutionException e) {
+        } catch (AndroidDebugBridgeDeviceException | AndroidDebugBridgeDeviceReadException | ExecutionException e) {
             logger.debug("Connection checker error: {}", e.getMessage());
             adbConnection.disconnect();
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
+        }
+    }
+
+    private void refreshProperties() throws InterruptedException, AndroidDebugBridgeDeviceException,
+            AndroidDebugBridgeDeviceReadException, ExecutionException {
+        // Add some information about the device
+        try {
+            Map<String, String> editProperties = editProperties();
+            editProperties.put(Thing.PROPERTY_SERIAL_NUMBER, adbConnection.getSerialNo());
+            editProperties.put(Thing.PROPERTY_MODEL_ID, adbConnection.getModel());
+            editProperties.put(Thing.PROPERTY_FIRMWARE_VERSION, adbConnection.getAndroidVersion());
+            editProperties.put(Thing.PROPERTY_VENDOR, adbConnection.getBrand());
+            try {
+                editProperties.put(Thing.PROPERTY_MAC_ADDRESS, adbConnection.getMacAddress());
+            } catch (AndroidDebugBridgeDeviceReadException e) {
+                // TODO: handle exception
+            }
+            ignoreConfigurationUpdate = true;
+            updateProperties(editProperties);
+            ignoreConfigurationUpdate = false;
+        } catch (TimeoutException e) {
+            logger.debug("Refresh properties error: {}", e.getMessage(), e);
+            return;
         }
     }
 

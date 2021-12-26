@@ -11,7 +11,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.smarthomej.binding.androiddebugbridge.internal;
+package org.smarthomej.binding.androiddebugbridge.internal.discovery;
 
 import static org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBridgeBindingConstants.*;
 
@@ -44,6 +44,10 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBridgeBindingConfiguration;
+import org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBridgeDevice;
+import org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBridgeDeviceException;
+import org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBridgeDeviceReadException;
 
 /**
  * The {@link AndroidDebugBridgeDiscoveryService} discover Android ADB Instances in the network.
@@ -138,8 +142,15 @@ public class AndroidDebugBridgeDiscoveryService extends AbstractDiscoveryService
             String model = device.getModel();
             String androidVersion = device.getAndroidVersion();
             String brand = device.getBrand();
-            logger.debug("discovered: {} - {} - {} - {}", model, serialNo, androidVersion, brand);
-            onDiscoverResult(serialNo, ip, port, model, androidVersion, brand);
+            String macAddress;
+            try {
+                macAddress = device.getMacAddress();
+            } catch (AndroidDebugBridgeDeviceReadException e) {
+                // TODO: handle exception
+                macAddress = "";
+            }
+            logger.debug("discovered: {} - {} - {} - {} - {}", model, serialNo, androidVersion, brand, macAddress);
+            onDiscoverResult(serialNo, ip, port, model, androidVersion, brand, macAddress);
         } finally {
             device.disconnect();
         }
@@ -153,7 +164,7 @@ public class AndroidDebugBridgeDiscoveryService extends AbstractDiscoveryService
     }
 
     private void onDiscoverResult(String serialNo, String ip, int port, String model, String androidVersion,
-            String brand) {
+            String brand, String macAddress) {
         Map<String, Object> properties = new HashMap<>();
         properties.put(Thing.PROPERTY_SERIAL_NUMBER, serialNo);
         properties.put(PARAMETER_IP, ip);
@@ -161,8 +172,9 @@ public class AndroidDebugBridgeDiscoveryService extends AbstractDiscoveryService
         properties.put(Thing.PROPERTY_MODEL_ID, model);
         properties.put(Thing.PROPERTY_VENDOR, brand);
         properties.put(Thing.PROPERTY_FIRMWARE_VERSION, androidVersion);
+        properties.put(Thing.PROPERTY_MAC_ADDRESS, macAddress);
         thingDiscovered(DiscoveryResultBuilder.create(new ThingUID(THING_TYPE_ANDROID_DEVICE, serialNo))
-                .withTTL(DISCOVERY_RESULT_TTL_SEC).withRepresentationProperty(Thing.PROPERTY_SERIAL_NUMBER)
+                .withTTL(DISCOVERY_RESULT_TTL_SEC).withRepresentationProperty(Thing.PROPERTY_MAC_ADDRESS)
                 .withProperties(properties).withLabel(String.format("%s (%s)", model, serialNo)).build());
     }
 
