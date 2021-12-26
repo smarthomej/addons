@@ -44,14 +44,14 @@ public class SerialBridgeThingHandler extends KNXBridgeBaseThingHandler {
     @Override
     public void initialize() {
         SerialBridgeConfiguration config = getConfigAs(SerialBridgeConfiguration.class);
-        String serialPort = config.getSerialPort();
+        String serialPort = config.serialPort;
         if (serialPort == null || serialPort.isEmpty()) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "serial port not configured");
             return;
         }
         SerialClient client = new SerialClient(config.getAutoReconnectPeriod(), thing.getUID(),
                 config.getResponseTimeout(), config.getReadingPause(), config.getReadRetriesLimit(), getScheduler(),
-                serialPort, this);
+                serialPort, config.useCEMI, this);
         updateStatus(ThingStatus.UNKNOWN);
         client.initialize();
         this.client = client;

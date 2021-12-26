@@ -9,14 +9,14 @@
 		<description>This is a KNX IP interface or router</description>
 
 		<config-description>
-			<parameter name="type" type="text">
+			<parameter name="type" type="text" required="false">
 				<label>IP Connection Type</label>
 				<description>The ip connection type for connecting to the KNX bus. Could be either TUNNEL or ROUTER</description>
-				<required>true</required>
 				<options>
 					<option value="TUNNEL">Tunnel</option>
 					<option value="ROUTER">Router</option>
 				</options>
+				<limitToOptions>true</limitToOptions>
 			</parameter>
 			<parameter name="ipAddress" type="text">
 				<label>Network Address</label>
@@ -25,7 +25,6 @@
 			</parameter>
 			<parameter name="portNumber" type="integer">
 				<description>Port number of the KNX/IP gateway</description>
-				<required>false</required> <!-- Only required in TUNNEL mode -->
 				<label>Port</label>
 				<default>3671</default>
 			</parameter>

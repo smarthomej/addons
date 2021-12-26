@@ -24,10 +24,6 @@ import org.eclipse.jdt.annotation.Nullable;
  */
 @NonNullByDefault
 public class SerialBridgeConfiguration extends BridgeConfiguration {
-
-    private @Nullable String serialPort;
-
-    public @Nullable String getSerialPort() {
-        return serialPort;
-    }
+    public @Nullable String serialPort;
+    public boolean useCEMI = false;
 }
