@@ -209,6 +209,7 @@ public class ViessmannAuth {
         api.setTokenResponseDTO(tokenResponse);
         refreshToken = tokenResponse.refreshToken;
         api.setTokenExpiryDate(TimeUnit.SECONDS.toMillis(tokenResponse.expiresIn));
+        api.setRefreshTokenExpiryDate(TimeUnit.SECONDS.toMillis(REFRESH_TOKEN_EXPIRE));
         setState(ViessmannAuthState.COMPLETE);
     }
 
