@@ -92,7 +92,7 @@ public class FireTVStickMDNSDiscoveryParticipant implements MDNSDiscoveryPartici
                 return DiscoveryResultBuilder.create(uid) //
                         .withProperties(Map.of( //
                                 PARAMETER_IP, ip, //
-                                Thing.PROPERTY_MAC_ADDRESS, macAddress)) //
+                                Thing.PROPERTY_MAC_ADDRESS, macAddress.toLowerCase())) //
                         .withLabel(friendlyName) //
                         .withRepresentationProperty(Thing.PROPERTY_MAC_ADDRESS) //
                         .build();
@@ -105,7 +105,7 @@ public class FireTVStickMDNSDiscoveryParticipant implements MDNSDiscoveryPartici
     public @Nullable ThingUID getThingUID(ServiceInfo service) {
         String macAddress = service.getPropertyString(MDNS_PROPERTY_MAC_ADDRESS);
         if (macAddress != null && !macAddress.isBlank()) {
-            return new ThingUID(THING_TYPE_ANDROID_DEVICE, macAddress.replaceAll(":", ""));
+            return new ThingUID(THING_TYPE_ANDROID_DEVICE, macAddress.replaceAll(":", "").toLowerCase());
         }
         return null;
     }

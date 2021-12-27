@@ -23,7 +23,6 @@ import java.net.SocketException;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -108,7 +107,7 @@ public class AndroidDebugBridgeDiscoveryService extends AbstractDiscoveryService
                                 while (retries < MAX_RETRIES) {
                                     try {
                                         discoverWithADB(currentIp, configuration.discoveryPort,
-                                                new String(netint.getHardwareAddress()));
+                                                new String(netint.getHardwareAddress()).toLowerCase());
                                     } catch (AndroidDebugBridgeDeviceReadException | TimeoutException e) {
                                         retries++;
                                         if (retries < MAX_RETRIES) {
@@ -160,17 +159,22 @@ public class AndroidDebugBridgeDiscoveryService extends AbstractDiscoveryService
 
     private void onDiscoverResult(String serialNo, String ip, int port, String model, String androidVersion,
             String brand, String macAddress) {
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(Thing.PROPERTY_SERIAL_NUMBER, serialNo);
-        properties.put(PARAMETER_IP, ip);
-        properties.put(PARAMETER_PORT, port);
-        properties.put(Thing.PROPERTY_MODEL_ID, model);
-        properties.put(Thing.PROPERTY_VENDOR, brand);
-        properties.put(Thing.PROPERTY_FIRMWARE_VERSION, androidVersion);
-        properties.put(Thing.PROPERTY_MAC_ADDRESS, macAddress);
-        thingDiscovered(DiscoveryResultBuilder.create(new ThingUID(THING_TYPE_ANDROID_DEVICE, serialNo))
-                .withTTL(DISCOVERY_RESULT_TTL_SEC).withRepresentationProperty(Thing.PROPERTY_MAC_ADDRESS)
-                .withProperties(properties).withLabel(String.format("%s (%s)", model, serialNo)).build());
+        String friendlyName = String.format("%s (%s)", model, ip);
+        thingDiscovered(
+                DiscoveryResultBuilder.create(new ThingUID(THING_TYPE_ANDROID_DEVICE, macAddress.replaceAll(":", ""))) //
+                        .withProperties(Map.of( //
+                                PARAMETER_IP, ip, //
+                                PARAMETER_PORT, port, //
+                                Thing.PROPERTY_MAC_ADDRESS, macAddress, //
+                                Thing.PROPERTY_SERIAL_NUMBER, serialNo, //
+                                Thing.PROPERTY_MODEL_ID, model, //
+                                Thing.PROPERTY_VENDOR, brand, //
+                                Thing.PROPERTY_FIRMWARE_VERSION, androidVersion //
+                        )) //
+                        .withLabel(friendlyName) //
+                        .withRepresentationProperty(Thing.PROPERTY_MAC_ADDRESS) //
+                        .withTTL(DISCOVERY_RESULT_TTL_SEC) //
+                        .build());
     }
 
     private @Nullable AndroidDebugBridgeBindingConfiguration getConfig() {

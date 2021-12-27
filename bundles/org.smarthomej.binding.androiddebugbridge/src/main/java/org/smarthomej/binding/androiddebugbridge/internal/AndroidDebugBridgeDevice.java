@@ -364,7 +364,7 @@ public class AndroidDebugBridgeDevice {
 
     public String getMacAddress() throws AndroidDebugBridgeDeviceException, InterruptedException,
             AndroidDebugBridgeDeviceReadException, TimeoutException, ExecutionException {
-        return getDeviceProp("ro.boot.wifimacaddr").toUpperCase();
+        return getDeviceProp("ro.boot.wifimacaddr").toLowerCase();
     }
 
     private String getDeviceProp(String name) throws AndroidDebugBridgeDeviceException, InterruptedException,
