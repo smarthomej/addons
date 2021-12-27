@@ -107,7 +107,8 @@ public class AndroidDebugBridgeDiscoveryService extends AbstractDiscoveryService
                                 int retries = 0;
                                 while (retries < MAX_RETRIES) {
                                     try {
-                                        discoverWithADB(currentIp, configuration.discoveryPort);
+                                        discoverWithADB(currentIp, configuration.discoveryPort,
+                                                new String(netint.getHardwareAddress()));
                                     } catch (AndroidDebugBridgeDeviceReadException | TimeoutException e) {
                                         retries++;
                                         if (retries < MAX_RETRIES) {
@@ -131,8 +132,9 @@ public class AndroidDebugBridgeDiscoveryService extends AbstractDiscoveryService
         }
     }
 
-    private void discoverWithADB(String ip, int port) throws InterruptedException, AndroidDebugBridgeDeviceException,
-            AndroidDebugBridgeDeviceReadException, TimeoutException, ExecutionException {
+    private void discoverWithADB(String ip, int port, String macAddress)
+            throws InterruptedException, AndroidDebugBridgeDeviceException, AndroidDebugBridgeDeviceReadException,
+            TimeoutException, ExecutionException {
         AndroidDebugBridgeDevice device = new AndroidDebugBridgeDevice(scheduler);
         device.configure(ip, port, 10);
         try {
@@ -142,13 +144,6 @@ public class AndroidDebugBridgeDiscoveryService extends AbstractDiscoveryService
             String model = device.getModel();
             String androidVersion = device.getAndroidVersion();
             String brand = device.getBrand();
-            String macAddress;
-            try {
-                macAddress = device.getMacAddress();
-            } catch (AndroidDebugBridgeDeviceReadException e) {
-                // TODO: handle exception
-                macAddress = "";
-            }
             logger.debug("discovered: {} - {} - {} - {} - {}", model, serialNo, androidVersion, brand, macAddress);
             onDiscoverResult(serialNo, ip, port, model, androidVersion, brand, macAddress);
         } finally {
