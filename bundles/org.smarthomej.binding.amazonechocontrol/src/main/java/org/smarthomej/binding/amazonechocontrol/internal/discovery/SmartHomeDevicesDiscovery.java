@@ -15,9 +15,7 @@ package org.smarthomej.binding.amazonechocontrol.internal.discovery;
 
 import static org.smarthomej.binding.amazonechocontrol.internal.AmazonEchoControlBindingConstants.*;
 
-import java.util.Date;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -33,10 +31,8 @@ import org.openhab.core.config.discovery.DiscoveryResultBuilder;
 import org.openhab.core.thing.ThingUID;
 import org.openhab.core.thing.binding.ThingHandler;
 import org.openhab.core.thing.binding.ThingHandlerService;
-import org.osgi.service.component.annotations.Activate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.AccountHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDeviceHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDeviceAlias;
@@ -55,8 +51,7 @@ public class SmartHomeDevicesDiscovery extends AbstractDiscoveryService implemen
     private @Nullable AccountHandler accountHandler;
     private final Logger logger = LoggerFactory.getLogger(SmartHomeDevicesDiscovery.class);
 
-    private @Nullable ScheduledFuture<?> startScanStateJob;
-    private @Nullable Long activateTimeStamp;
+    private @Nullable ScheduledFuture<?> discoveryJob;
 
     public SmartHomeDevicesDiscovery() {
         super(SUPPORTED_SMART_HOME_THING_TYPES_UIDS, 10);
@@ -73,7 +68,7 @@ public class SmartHomeDevicesDiscovery extends AbstractDiscoveryService implemen
     }
 
     public void activate() {
-        activate(new Hashtable<>());
+        super.activate(null);
     }
 
     @Override
@@ -87,68 +82,29 @@ public class SmartHomeDevicesDiscovery extends AbstractDiscoveryService implemen
         if (accountHandler == null) {
             return;
         }
-        stopScanJob();
-        Long activateTimeStamp = this.activateTimeStamp;
-        if (activateTimeStamp != null) {
-            removeOlderResults(activateTimeStamp);
-        }
         setSmartHomeDevices(accountHandler.updateSmartHomeDeviceList(false));
     }
 
-    protected void startAutomaticScan() {
-        AccountHandler accountHandler = this.accountHandler;
-        if (accountHandler == null) {
-            return;
-        }
-        if (!accountHandler.getThing().getThings().isEmpty()) {
-            stopScanJob();
-            return;
-        }
-        Connection connection = accountHandler.findConnection();
-        if (connection == null) {
-            return;
-        }
-        Date verifyTime = connection.tryGetVerifyTime();
-        if (verifyTime == null) {
-            return;
-        }
-        if (new Date().getTime() - verifyTime.getTime() < 10000) {
-            return;
-        }
-        startScan();
-    }
-
     @Override
-    protected void startBackgroundDiscovery() {
-        stopScanJob();
-        startScanStateJob = scheduler.scheduleWithFixedDelay(this::startAutomaticScan, 3000, 1000,
-                TimeUnit.MILLISECONDS);
-    }
-
-    @Override
-    protected void stopBackgroundDiscovery() {
-        stopScanJob();
-    }
-
-    void stopScanJob() {
-        ScheduledFuture<?> currentStartScanStateJob = startScanStateJob;
-        if (currentStartScanStateJob != null) {
-            currentStartScanStateJob.cancel(false);
-            startScanStateJob = null;
-        }
+    protected void stopScan() {
+        removeOlderResults(getTimestampOfLastScan());
         super.stopScan();
     }
 
     @Override
-    @Activate
-    public void activate(@Nullable Map<String, Object> config) {
-        super.activate(config);
-        if (config != null) {
-            modified(config);
+    protected void startBackgroundDiscovery() {
+        ScheduledFuture<?> discoveryJob = this.discoveryJob;
+        if (discoveryJob == null || discoveryJob.isCancelled()) {
+            this.discoveryJob = scheduler.scheduleWithFixedDelay(this::startScan, 3, 60, TimeUnit.SECONDS);
         }
-        Long activateTimeStamp = this.activateTimeStamp;
-        if (activateTimeStamp == null) {
-            this.activateTimeStamp = new Date().getTime();
+    }
+
+    @Override
+    protected void stopBackgroundDiscovery() {
+        ScheduledFuture<?> discoveryJob = this.discoveryJob;
+        if (discoveryJob != null) {
+            discoveryJob.cancel(true);
+            this.discoveryJob = null;
         }
     }
 
@@ -187,11 +143,11 @@ public class SmartHomeDevicesDiscovery extends AbstractDiscoveryService implemen
                 isSkillDevice = driverIdentity != null && "SKILL".equals(driverIdentity.namespace);
 
                 if (smartHomeDeviceDiscoveryMode == 1 && isSkillDevice) {
-                    // Connected through skill
+                    // Connected through skill and we want direct only
                     continue;
                 }
-                if (!(smartHomeDeviceDiscoveryMode == 2) && "openHAB".equalsIgnoreCase(shd.manufacturerName)) {
-                    // OpenHAB device
+                if (smartHomeDeviceDiscoveryMode == 2 && "openHAB".equalsIgnoreCase(shd.manufacturerName)) {
+                    // openHAB device and we want non-openHAB only
                     continue;
                 }
 
