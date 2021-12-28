@@ -124,11 +124,9 @@ public enum TelenotMsgType {
         if (mt == null) {
             if (s.matches("^6868(.*)16")) {
                 mt = TelenotMsgType.UNKNOWN;
+            } else {
+                mt = TelenotMsgType.INVALID;
             }
-        }
-
-        if (mt == null) {
-            mt = TelenotMsgType.INVALID;
         }
 
         return mt;
