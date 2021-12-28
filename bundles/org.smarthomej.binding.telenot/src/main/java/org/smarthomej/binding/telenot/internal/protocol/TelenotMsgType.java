@@ -46,6 +46,7 @@ public enum TelenotMsgType {
     USED_OUTPUT_CONTACTS_INFO,
     USED_SB_CONTACTS_INFO,
     USED_MB_CONTACTS_INFO,
+    UNKNOWN,
     INVALID;
 
     /** hash map from protocol message heading to type */
@@ -117,6 +118,12 @@ public enum TelenotMsgType {
             }
             if (s.matches("^68\\w\\w\\w\\w687302\\w\\w\\w\\w\\w\\w([F|f]{4})0153(.*)16$")) {
                 mt = TelenotMsgType.RESTART;
+            }
+        }
+
+        if (mt == null) {
+            if (s.matches("^6868(.*)16")) {
+                mt = TelenotMsgType.UNKNOWN;
             }
         }
 

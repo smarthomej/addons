@@ -284,8 +284,14 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
                             TelenotThingHandler.readyToSendData.set(true);
                             logger.trace("Ready to send data");
                             break;
-                        case INVALID:
+                        case UNKNOWN:
                             logger.warn("Received {} MsgType | hexString: {}", msgType, message);
+                            sendTelenotCommand(TelenotCommand.confirmACK());
+                            TelenotThingHandler.readyToSendData.set(true);
+                            logger.trace("Ready to send data");
+                            break;
+                        case INVALID:
+                            logger.debug("Received {} MsgType | hexString: {}", msgType, message);
                             sendTelenotCommand(TelenotCommand.confirmACK());
                             TelenotThingHandler.readyToSendData.set(true);
                             logger.trace("Ready to send data");
