@@ -95,7 +95,7 @@ public class AndroidDebugBridgeDevice {
 
     private Lock commandLock = new ReentrantLock();
 
-    AndroidDebugBridgeDevice(ScheduledExecutorService scheduler) {
+    public AndroidDebugBridgeDevice(ScheduledExecutorService scheduler) {
         this.scheduler = scheduler;
     }
 
@@ -331,7 +331,9 @@ public class AndroidDebugBridgeDevice {
             try {
                 return Integer.parseInt(splitResult[1]);
             } catch (NumberFormatException e) {
-                LOGGER.debug("Unable to parse device wake-lock: {}", e.getMessage());
+                String message = String.format("Unable to parse device wake-lock ('{}')", result);
+                LOGGER.debug(message + ": {}", e.getMessage());
+                throw new AndroidDebugBridgeDeviceReadException(message);
             }
         }
         throw new AndroidDebugBridgeDeviceReadException(WAKE_LOCK_CHANNEL, result);
@@ -362,11 +364,16 @@ public class AndroidDebugBridgeDevice {
         return getDeviceProp("ro.serialno");
     }
 
+    public String getMacAddress() throws AndroidDebugBridgeDeviceException, InterruptedException,
+            AndroidDebugBridgeDeviceReadException, TimeoutException, ExecutionException {
+        return getDeviceProp("ro.boot.wifimacaddr").toLowerCase();
+    }
+
     private String getDeviceProp(String name) throws AndroidDebugBridgeDeviceException, InterruptedException,
             AndroidDebugBridgeDeviceReadException, TimeoutException, ExecutionException {
         String result = runAdbShell("getprop", name, "&&", "sleep", "0.3").replace("\n", "").replace("\r", "");
         if (result.length() == 0) {
-            throw new AndroidDebugBridgeDeviceReadException("Device does not support properties");
+            throw new AndroidDebugBridgeDeviceReadException(String.format("Unable to get device property '%s'", name));
         }
         return result;
     }
@@ -441,15 +448,13 @@ public class AndroidDebugBridgeDevice {
                 ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                 String cmd = String.join(" ", args);
                 LOGGER.debug("{} - shell:{}", ip, cmd);
-                try {
-                    AdbStream stream = adb.open("shell:" + cmd);
+                try (AdbStream stream = adb.open("shell:" + cmd)) {
                     do {
                         byteArrayOutputStream.writeBytes(stream.read());
                     } while (!stream.isClosed());
                 } catch (IOException | IllegalStateException e) {
                     String message = e.getMessage();
-                    if (message != null && !"Stream closed".equals(message)
-                            && !"connect() must be called first".equals(message)) {
+                    if (!"Stream closed".equals(message) && !"connect() must be called first".equals(message)) {
                         throw e;
                     }
                 }
