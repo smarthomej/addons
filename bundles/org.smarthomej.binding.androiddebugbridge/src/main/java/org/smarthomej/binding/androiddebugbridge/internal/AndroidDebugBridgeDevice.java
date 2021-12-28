@@ -331,7 +331,9 @@ public class AndroidDebugBridgeDevice {
             try {
                 return Integer.parseInt(splitResult[1]);
             } catch (NumberFormatException e) {
-                LOGGER.debug("Unable to parse device wake-lock: {}", e.getMessage());
+                String message = String.format("Unable to parse device wake-lock ('{}')", result);
+                LOGGER.debug(message + ": {}", e.getMessage());
+                throw new AndroidDebugBridgeDeviceReadException(message);
             }
         }
         throw new AndroidDebugBridgeDeviceReadException(WAKE_LOCK_CHANNEL, result);

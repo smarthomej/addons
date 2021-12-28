@@ -404,13 +404,13 @@ public class AndroidDebugBridgeHandler extends UpdatingBaseThingHandler {
             try {
                 editProperties.put(Thing.PROPERTY_MAC_ADDRESS, adbConnection.getMacAddress());
             } catch (AndroidDebugBridgeDeviceReadException e) {
-                // TODO: handle exception
+                logger.debug("Refresh properties error: {}", e.getMessage());
             }
             ignoreConfigurationUpdate = true;
             updateProperties(editProperties);
             ignoreConfigurationUpdate = false;
         } catch (TimeoutException e) {
-            logger.debug("Refresh properties error: {}", e.getMessage(), e);
+            logger.debug("Unable to refresh properties error: Timeout");
             return;
         }
     }
