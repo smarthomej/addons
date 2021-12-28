@@ -28,7 +28,7 @@
 		<properties>
 			<property name="thingTypeVersion">1</property>
 		</properties>
-		<representation-property>serial</representation-property>
+		<representation-property>macAddress</representation-property>
 		<config-description>
 			<parameter name="ip" type="text" required="true">
 				<context>network-address</context>

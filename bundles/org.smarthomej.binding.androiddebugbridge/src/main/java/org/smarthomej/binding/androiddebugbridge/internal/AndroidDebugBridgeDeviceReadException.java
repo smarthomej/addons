@@ -14,6 +14,7 @@
 package org.smarthomej.binding.androiddebugbridge.internal;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.smarthomej.binding.androiddebugbridge.internal.discovery.AndroidDebugBridgeDiscoveryService;
 
 /**
  * The {@link AndroidDebugBridgeDiscoveryService} discover Android ADB Instances in the network.
