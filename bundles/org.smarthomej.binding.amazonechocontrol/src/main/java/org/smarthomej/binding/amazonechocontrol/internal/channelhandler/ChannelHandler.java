@@ -36,13 +36,13 @@ public abstract class ChannelHandler {
     public abstract boolean tryHandleCommand(Device device, Connection connection, String channelId, Command command)
             throws ConnectionException;
 
-    protected final IAmazonThingHandler thingHandler;
+    protected final AmazonHandlerCallback callback;
     protected final Gson gson;
     private final Logger logger;
 
-    protected ChannelHandler(IAmazonThingHandler thingHandler, Gson gson) {
+    protected ChannelHandler(AmazonHandlerCallback callback, Gson gson) {
         this.logger = LoggerFactory.getLogger(this.getClass());
-        this.thingHandler = thingHandler;
+        this.callback = callback;
         this.gson = gson;
     }
 

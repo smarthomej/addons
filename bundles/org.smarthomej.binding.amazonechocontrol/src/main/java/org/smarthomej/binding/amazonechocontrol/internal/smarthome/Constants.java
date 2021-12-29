@@ -27,7 +27,7 @@ import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDevice
  */
 @NonNullByDefault
 public class Constants {
-    public static final Map<String, Function<SmartHomeDeviceHandler, HandlerBase>> HANDLER_FACTORY = Map.ofEntries(
+    public static final Map<String, Function<SmartHomeDeviceHandler, InterfaceHandler>> HANDLER_FACTORY = Map.ofEntries(
             Map.entry(HandlerPowerController.INTERFACE, HandlerPowerController::new),
             Map.entry(HandlerBrightnessController.INTERFACE, HandlerBrightnessController::new),
             Map.entry(HandlerColorController.INTERFACE, HandlerColorController::new),

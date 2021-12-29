@@ -22,13 +22,13 @@ import org.openhab.core.types.State;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDevices.Device;
 
 /**
- * The {@link IAmazonThingHandler} is used from ChannelHandlers to communicate
+ * The {@link AmazonHandlerCallback} is used from ChannelHandlers to communicate
  * with the thing
  *
  * @author Michael Geramb - Initial contribution
  */
 @NonNullByDefault
-public interface IAmazonThingHandler {
+public interface AmazonHandlerCallback {
 
     void updateChannelState(String channelId, State state);
 
