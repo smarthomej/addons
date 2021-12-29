@@ -23,10 +23,8 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.IncreaseDecreaseType;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.PercentType;
-import org.openhab.core.thing.type.ChannelTypeUID;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.UnDefType;
-import org.smarthomej.binding.amazonechocontrol.internal.AmazonEchoControlBindingConstants;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDeviceHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapabilities.SmartHomeCapability;
@@ -42,16 +40,10 @@ import com.google.gson.JsonObject;
  */
 @NonNullByDefault
 public class HandlerBrightnessController extends AbstractInterfaceHandler {
-    // Interface
     public static final String INTERFACE = "Alexa.BrightnessController";
 
-    // Channel types
-    private static final ChannelTypeUID CHANNEL_TYPE_BRIGHTNESS = new ChannelTypeUID(
-            AmazonEchoControlBindingConstants.BINDING_ID, "brightness");
-
-    // Channel definitions
-    private static final ChannelInfo BRIGHTNESS = new ChannelInfo("brightness" /* propertyName */ ,
-            "brightness" /* ChannelId */, CHANNEL_TYPE_BRIGHTNESS /* Channel Type */);
+    private static final ChannelInfo BRIGHTNESS = new ChannelInfo("brightness", "brightness",
+            Constants.CHANNEL_TYPE_BRIGHTNESS);
 
     private @Nullable Integer lastBrightness;
 

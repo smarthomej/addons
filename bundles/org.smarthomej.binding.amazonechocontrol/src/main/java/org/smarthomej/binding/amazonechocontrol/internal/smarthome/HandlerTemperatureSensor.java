@@ -43,11 +43,10 @@ import com.google.gson.JsonObject;
  */
 @NonNullByDefault
 public class HandlerTemperatureSensor extends AbstractInterfaceHandler {
-    // Interface
     public static final String INTERFACE = "Alexa.TemperatureSensor";
-    // Channel definitions
-    private static final ChannelInfo TEMPERATURE = new ChannelInfo("temperature" /* propertyName */ ,
-            "temperature" /* ChannelId */, CHANNEL_TYPE_TEMPERATURE /* Channel Type */ );
+
+    private static final ChannelInfo TEMPERATURE = new ChannelInfo("temperature", "temperature",
+            CHANNEL_TYPE_TEMPERATURE);
 
     public HandlerTemperatureSensor(SmartHomeDeviceHandler smartHomeDeviceHandler) {
         super(smartHomeDeviceHandler, List.of(INTERFACE));

@@ -21,9 +21,7 @@ import java.util.Set;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.OpenClosedType;
-import org.openhab.core.thing.type.ChannelTypeUID;
 import org.openhab.core.types.Command;
-import org.smarthomej.binding.amazonechocontrol.internal.AmazonEchoControlBindingConstants;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDeviceHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapabilities.SmartHomeCapability;
@@ -40,45 +38,41 @@ import com.google.gson.JsonObject;
  */
 @NonNullByDefault
 public class HandlerAcousticEventSensor extends AbstractInterfaceHandler {
-    // Interface
     public static final String INTERFACE = "Alexa.AcousticEventSensor";
-    private static final ChannelTypeUID CHANNEL_TYPE_UID_ACOUSTIC_EVENT_DETECTION = new ChannelTypeUID(
-            AmazonEchoControlBindingConstants.BINDING_ID, "acousticEventDetectionState");
 
-    // Channel definitions
     private static final Map<String, ChannelInfo> PROPERTY_NAME_TO_CHANNEL_INFO = Map.ofEntries(
             Map.entry("glassBreakDetectionState",
                     new ChannelInfo("glassBreakDetectionState", "glassBreakDetectionState",
-                            CHANNEL_TYPE_UID_ACOUSTIC_EVENT_DETECTION, "Glass Break")),
+                            Constants.CHANNEL_TYPE_UID_ACOUSTIC_EVENT_DETECTION, "Glass Break")),
             Map.entry("beepingApplianceDetectionState",
                     new ChannelInfo("beepingApplianceDetectionState", "beepingApplianceDetectionState",
-                            CHANNEL_TYPE_UID_ACOUSTIC_EVENT_DETECTION, "Beeping Appliance")),
+                            Constants.CHANNEL_TYPE_UID_ACOUSTIC_EVENT_DETECTION, "Beeping Appliance")),
             Map.entry("runningWaterDetectionState",
                     new ChannelInfo("runningWaterDetectionState", "runningWaterDetectionState",
-                            CHANNEL_TYPE_UID_ACOUSTIC_EVENT_DETECTION, "Running Water")),
+                            Constants.CHANNEL_TYPE_UID_ACOUSTIC_EVENT_DETECTION, "Running Water")),
             Map.entry("dogBarkDetectionState",
                     new ChannelInfo("dogBarkDetectionState", "dogBarkDetectionState",
-                            CHANNEL_TYPE_UID_ACOUSTIC_EVENT_DETECTION, "Dog Bark")),
+                            Constants.CHANNEL_TYPE_UID_ACOUSTIC_EVENT_DETECTION, "Dog Bark")),
             Map.entry("humanPresenceDetectionState",
                     new ChannelInfo("humanPresenceDetectionState", "humanPresenceDetectionState",
-                            CHANNEL_TYPE_UID_ACOUSTIC_EVENT_DETECTION, "Human Presence")),
+                            Constants.CHANNEL_TYPE_UID_ACOUSTIC_EVENT_DETECTION, "Human Presence")),
             Map.entry("smokeSirenDetectionState",
                     new ChannelInfo("smokeSirenDetectionState", "smokeSirenDetectionState",
-                            CHANNEL_TYPE_UID_ACOUSTIC_EVENT_DETECTION, "Smoke Siren")),
+                            Constants.CHANNEL_TYPE_UID_ACOUSTIC_EVENT_DETECTION, "Smoke Siren")),
             Map.entry("snoreDetectionState",
                     new ChannelInfo("snoreDetectionState", "snoreDetectionState",
-                            CHANNEL_TYPE_UID_ACOUSTIC_EVENT_DETECTION, "Snore")),
+                            Constants.CHANNEL_TYPE_UID_ACOUSTIC_EVENT_DETECTION, "Snore")),
             Map.entry("waterSoundsDetectionState",
                     new ChannelInfo("waterSoundsDetectionState", "waterSoundsDetectionState",
-                            CHANNEL_TYPE_UID_ACOUSTIC_EVENT_DETECTION, "Water Sounds")),
+                            Constants.CHANNEL_TYPE_UID_ACOUSTIC_EVENT_DETECTION, "Water Sounds")),
             Map.entry("coughDetectionState",
                     new ChannelInfo("coughDetectionState", "coughDetectionState",
-                            CHANNEL_TYPE_UID_ACOUSTIC_EVENT_DETECTION, "Cough")),
+                            Constants.CHANNEL_TYPE_UID_ACOUSTIC_EVENT_DETECTION, "Cough")),
             Map.entry("carbonMonoxideSirenDetectionState",
                     new ChannelInfo("carbonMonoxideSirenDetectionState", "carbonMonoxideSirenDetectionState",
-                            CHANNEL_TYPE_UID_ACOUSTIC_EVENT_DETECTION, "Carbon Monoxide Siren")),
+                            Constants.CHANNEL_TYPE_UID_ACOUSTIC_EVENT_DETECTION, "Carbon Monoxide Siren")),
             Map.entry("babyCryDetectionState", new ChannelInfo("babyCryDetectionState", "babyCryDetectionState",
-                    CHANNEL_TYPE_UID_ACOUSTIC_EVENT_DETECTION, "Baby Cry")));
+                    Constants.CHANNEL_TYPE_UID_ACOUSTIC_EVENT_DETECTION, "Baby Cry")));
 
     public HandlerAcousticEventSensor(SmartHomeDeviceHandler smartHomeDeviceHandler) {
         super(smartHomeDeviceHandler, List.of(INTERFACE));

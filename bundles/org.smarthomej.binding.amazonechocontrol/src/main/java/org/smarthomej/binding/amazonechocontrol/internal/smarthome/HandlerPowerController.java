@@ -20,12 +20,8 @@ import java.util.Set;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.OnOffType;
-import org.openhab.core.thing.type.ChannelTypeUID;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.UnDefType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.smarthomej.binding.amazonechocontrol.internal.AmazonEchoControlBindingConstants;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDeviceHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapabilities.SmartHomeCapability;
@@ -41,19 +37,10 @@ import com.google.gson.JsonObject;
  */
 @NonNullByDefault
 public class HandlerPowerController extends AbstractInterfaceHandler {
-    private final Logger logger = LoggerFactory.getLogger(HandlerPowerController.class);
-
-    // Interface
     public static final String INTERFACE = "Alexa.PowerController";
 
-    // Channel types
-    private static final ChannelTypeUID CHANNEL_TYPE_POWER_STATE = new ChannelTypeUID(
-            AmazonEchoControlBindingConstants.BINDING_ID, "powerState");
-
-    // Channel definitions
-    private static final ChannelInfo POWER_STATE = new ChannelInfo("powerState" /* propertyName */ ,
-            "powerState" /* ChannelId */, CHANNEL_TYPE_POWER_STATE /* Channel Type */
-    );
+    private static final ChannelInfo POWER_STATE = new ChannelInfo("powerState", "powerState",
+            Constants.CHANNEL_TYPE_POWER_STATE);
 
     public HandlerPowerController(SmartHomeDeviceHandler smartHomeDeviceHandler) {
         super(smartHomeDeviceHandler, List.of(INTERFACE));

@@ -47,18 +47,14 @@ import com.google.gson.JsonObject;
  */
 @NonNullByDefault
 public class HandlerThermostatController extends AbstractInterfaceHandler {
-    // Interface
     public static final String INTERFACE = "Alexa.ThermostatController";
-    // Channel definitions
+
     private static final ChannelInfo TARGET_SETPOINT = new ChannelInfo("targetSetpoint" /* propertyNameReceive */,
-            "targetTemperature" /* propertyNameSend */, "targetSetpoint" /* ChannelId */,
-            CHANNEL_TYPE_TARGETSETPOINT /* Channel Type */ );
-    private static final ChannelInfo LOWER_SETPOINT = new ChannelInfo("lowerSetpoint" /* propertyName */ ,
-            "lowerSetTemperature" /* propertyNameSend */, "lowerSetpoint" /* ChannelId */,
-            CHANNEL_TYPE_LOWERSETPOINT /* Channel Type */ );
-    private static final ChannelInfo UPPER_SETPOINT = new ChannelInfo("upperSetpoint" /* propertyName */ ,
-            "upperSetTemperature" /* propertyNameSend */, "upperSetpoint" /* ChannelId */,
-            CHANNEL_TYPE_UPPERSETPOINT /* Channel Type */ );
+            "targetTemperature" /* propertyNameSend */, "targetSetpoint", CHANNEL_TYPE_TARGETSETPOINT);
+    private static final ChannelInfo LOWER_SETPOINT = new ChannelInfo("lowerSetpoint",
+            "lowerSetTemperature" /* propertyNameSend */, "lowerSetpoint", CHANNEL_TYPE_LOWERSETPOINT);
+    private static final ChannelInfo UPPER_SETPOINT = new ChannelInfo("upperSetpoint",
+            "upperSetTemperature" /* propertyNameSend */, "upperSetpoint", CHANNEL_TYPE_UPPERSETPOINT);
     private static final ChannelInfo MODE = new ChannelInfo("thermostatMode", "thermostatMode", "thermostatMode",
             CHANNEL_TYPE_THERMOSTATMODE);
 

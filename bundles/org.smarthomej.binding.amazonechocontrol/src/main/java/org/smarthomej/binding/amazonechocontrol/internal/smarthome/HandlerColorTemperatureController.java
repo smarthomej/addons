@@ -22,10 +22,8 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.StringType;
-import org.openhab.core.thing.type.ChannelTypeUID;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.UnDefType;
-import org.smarthomej.binding.amazonechocontrol.internal.AmazonEchoControlBindingConstants;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDeviceHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapabilities.SmartHomeCapability;
@@ -41,24 +39,13 @@ import com.google.gson.JsonObject;
  */
 @NonNullByDefault
 public class HandlerColorTemperatureController extends AbstractInterfaceHandler {
-    // Interface
     public static final String INTERFACE = "Alexa.ColorTemperatureController";
     public static final String INTERFACE_COLOR_PROPERTIES = "Alexa.ColorPropertiesController";
 
-    // Channel types
-    private static final ChannelTypeUID CHANNEL_TYPE_COLOR_TEMPERATURE_NAME = new ChannelTypeUID(
-            AmazonEchoControlBindingConstants.BINDING_ID, "colorTemperatureName");
-
-    private static final ChannelTypeUID CHANNEL_TYPE_COLOR_TEPERATURE_IN_KELVIN = new ChannelTypeUID(
-            AmazonEchoControlBindingConstants.BINDING_ID, "colorTemperatureInKelvin");
-
-    // Channel and Properties
-    private static final ChannelInfo COLOR_TEMPERATURE_IN_KELVIN = new ChannelInfo(
-            "colorTemperatureInKelvin" /* propertyName */ , "colorTemperatureInKelvin" /* ChannelId */,
-            CHANNEL_TYPE_COLOR_TEPERATURE_IN_KELVIN /* Channel Type */ );
-
-    private static final ChannelInfo COLOR_TEMPERATURE_NAME = new ChannelInfo("colorProperties" /* propertyName */ ,
-            "colorTemperatureName" /* ChannelId */, CHANNEL_TYPE_COLOR_TEMPERATURE_NAME /* Channel Type */ );
+    private static final ChannelInfo COLOR_TEMPERATURE_IN_KELVIN = new ChannelInfo("colorTemperatureInKelvin",
+            "colorTemperatureInKelvin", Constants.CHANNEL_TYPE_COLOR_TEMPERATURE_IN_KELVIN);
+    private static final ChannelInfo COLOR_TEMPERATURE_NAME = new ChannelInfo("colorProperties", "colorTemperatureName",
+            Constants.CHANNEL_TYPE_COLOR_TEMPERATURE_NAME);
 
     private @Nullable Integer lastColorTemperature;
     private @Nullable String lastColorName;

@@ -22,10 +22,8 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.OpenClosedType;
 import org.openhab.core.library.types.StringType;
-import org.openhab.core.thing.type.ChannelTypeUID;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.UnDefType;
-import org.smarthomej.binding.amazonechocontrol.internal.AmazonEchoControlBindingConstants;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDeviceHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapabilities.SmartHomeCapability;
@@ -41,40 +39,23 @@ import com.google.gson.JsonObject;
  */
 @NonNullByDefault
 public class HandlerSecurityPanelController extends AbstractInterfaceHandler {
-    // Interface
     public static final String INTERFACE = "Alexa.SecurityPanelController";
 
-    // Channel types
-    private static final ChannelTypeUID CHANNEL_TYPE_ARM_STATE = new ChannelTypeUID(
-            AmazonEchoControlBindingConstants.BINDING_ID, "armState");
-
-    private static final ChannelTypeUID CHANNEL_TYPE_BURGLARY_ALARM = new ChannelTypeUID(
-            AmazonEchoControlBindingConstants.BINDING_ID, "burglaryAlarm");
-
-    private static final ChannelTypeUID CHANNEL_TYPE_CARBON_MONOXIDE_ALARM = new ChannelTypeUID(
-            AmazonEchoControlBindingConstants.BINDING_ID, "carbonMonoxideAlarm");
-
-    private static final ChannelTypeUID CHANNEL_TYPE_FIRE_ALARM = new ChannelTypeUID(
-            AmazonEchoControlBindingConstants.BINDING_ID, "fireAlarm");
-
-    private static final ChannelTypeUID CHANNEL_TYPE_WATER_ALARM = new ChannelTypeUID(
-            AmazonEchoControlBindingConstants.BINDING_ID, "waterAlarm");
-
     // Channel definitions
-    private static final ChannelInfo ARM_STATE = new ChannelInfo("armState" /* propertyName */ ,
-            "armState" /* ChannelId */, CHANNEL_TYPE_ARM_STATE /* Channel Type */ );
+    private static final ChannelInfo ARM_STATE = new ChannelInfo("armState", "armState",
+            Constants.CHANNEL_TYPE_ARM_STATE);
 
-    private static final ChannelInfo BURGLARY_ALARM = new ChannelInfo("burglaryAlarm" /* propertyName */ ,
-            "burglaryAlarm" /* ChannelId */, CHANNEL_TYPE_BURGLARY_ALARM /* Channel Type */ );
+    private static final ChannelInfo BURGLARY_ALARM = new ChannelInfo("burglaryAlarm", "burglaryAlarm",
+            Constants.CHANNEL_TYPE_BURGLARY_ALARM);
 
-    private static final ChannelInfo CARBON_MONOXIDE_ALARM = new ChannelInfo("carbonMonoxideAlarm" /* propertyName */ ,
-            "carbonMonoxideAlarm" /* ChannelId */, CHANNEL_TYPE_CARBON_MONOXIDE_ALARM /* Channel Type */ );
+    private static final ChannelInfo CARBON_MONOXIDE_ALARM = new ChannelInfo("carbonMonoxideAlarm",
+            "carbonMonoxideAlarm", Constants.CHANNEL_TYPE_CARBON_MONOXIDE_ALARM);
 
-    private static final ChannelInfo FIRE_ALARM = new ChannelInfo("fireAlarm" /* propertyName */ ,
-            "fireAlarm" /* ChannelId */, CHANNEL_TYPE_FIRE_ALARM /* Channel Type */ );
+    private static final ChannelInfo FIRE_ALARM = new ChannelInfo("fireAlarm", "fireAlarm",
+            Constants.CHANNEL_TYPE_FIRE_ALARM);
 
-    private static final ChannelInfo WATER_ALARM = new ChannelInfo("waterAlarm" /* propertyName */ ,
-            "waterAlarm" /* ChannelId */, CHANNEL_TYPE_WATER_ALARM /* Channel Type */ );
+    private static final ChannelInfo WATER_ALARM = new ChannelInfo("waterAlarm", "waterAlarm",
+            Constants.CHANNEL_TYPE_WATER_ALARM);
 
     private static final Set<ChannelInfo> ALARM_CHANNELS = Set.of(BURGLARY_ALARM, CARBON_MONOXIDE_ALARM, FIRE_ALARM,
             WATER_ALARM);

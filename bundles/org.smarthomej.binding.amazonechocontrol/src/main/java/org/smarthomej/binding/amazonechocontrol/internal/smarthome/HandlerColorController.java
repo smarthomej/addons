@@ -24,10 +24,8 @@ import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.HSBType;
 import org.openhab.core.library.types.PercentType;
 import org.openhab.core.library.types.StringType;
-import org.openhab.core.thing.type.ChannelTypeUID;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.UnDefType;
-import org.smarthomej.binding.amazonechocontrol.internal.AmazonEchoControlBindingConstants;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDeviceHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapabilities.SmartHomeCapability;
@@ -43,23 +41,12 @@ import com.google.gson.JsonObject;
  */
 @NonNullByDefault
 public class HandlerColorController extends AbstractInterfaceHandler {
-    // Interface
     public static final String INTERFACE = "Alexa.ColorController";
     public static final String INTERFACE_COLOR_PROPERTIES = "Alexa.ColorPropertiesController";
 
-    // Channel types
-    private static final ChannelTypeUID CHANNEL_TYPE_COLOR_NAME = new ChannelTypeUID(
-            AmazonEchoControlBindingConstants.BINDING_ID, "colorName");
-
-    private static final ChannelTypeUID CHANNEL_TYPE_COLOR = new ChannelTypeUID(
-            AmazonEchoControlBindingConstants.BINDING_ID, "color");
-
-    // Channel and Properties
-    private static final ChannelInfo COLOR = new ChannelInfo("color" /* propertyName */, "color" /* ChannelId */,
-            CHANNEL_TYPE_COLOR /* Channel Type */);
-
-    private static final ChannelInfo COLOR_PROPERTIES = new ChannelInfo("colorProperties" /* propertyName */,
-            "colorName" /* ChannelId */, CHANNEL_TYPE_COLOR_NAME /* Channel Type */);
+    private static final ChannelInfo COLOR = new ChannelInfo("color", "color", Constants.CHANNEL_TYPE_COLOR);
+    private static final ChannelInfo COLOR_PROPERTIES = new ChannelInfo("colorProperties", "colorName",
+            Constants.CHANNEL_TYPE_COLOR_NAME);
 
     private @Nullable HSBType lastColor;
     private @Nullable String lastColorName;

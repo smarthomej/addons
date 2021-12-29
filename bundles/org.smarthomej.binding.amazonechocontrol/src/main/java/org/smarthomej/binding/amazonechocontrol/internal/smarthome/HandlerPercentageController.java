@@ -23,10 +23,8 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.IncreaseDecreaseType;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.PercentType;
-import org.openhab.core.thing.type.ChannelTypeUID;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.UnDefType;
-import org.smarthomej.binding.amazonechocontrol.internal.AmazonEchoControlBindingConstants;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDeviceHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapabilities.SmartHomeCapability;
@@ -42,17 +40,10 @@ import com.google.gson.JsonObject;
  */
 @NonNullByDefault
 public class HandlerPercentageController extends AbstractInterfaceHandler {
-    // Interface
     public static final String INTERFACE = "Alexa.PercentageController";
 
-    // Channel types
-    private static final ChannelTypeUID CHANNEL_TYPE_PERCENTAGE = new ChannelTypeUID(
-            AmazonEchoControlBindingConstants.BINDING_ID, "percentage");
-
-    // Channel definitions
-    private static final ChannelInfo PERCENTAGE = new ChannelInfo("percentage" /* propertyName */ ,
-            "percentage" /* ChannelId */, CHANNEL_TYPE_PERCENTAGE /* Channel Type */
-    );
+    private static final ChannelInfo PERCENTAGE = new ChannelInfo("percentage", "percentage",
+            Constants.CHANNEL_TYPE_PERCENTAGE);
 
     private @Nullable Integer lastPercentage;
 
