@@ -41,7 +41,7 @@ import com.google.gson.JsonObject;
  * @author Michael Geramb - Initial contribution
  */
 @NonNullByDefault
-public abstract class AbstractInterfaceHandler {
+public abstract class AbstractInterfaceHandler implements InterfaceHandler {
     private final Logger logger = LoggerFactory.getLogger(AbstractInterfaceHandler.class);
 
     private final List<String> interfaces;
@@ -140,9 +140,5 @@ public abstract class AbstractInterfaceHandler {
                     + itemType + "', propertyNameSend='" + propertyNameSend + "', channelTypeUID=" + channelTypeUID
                     + "}";
         }
-    }
-
-    public static class UpdateChannelResult {
-        public boolean needSingleUpdate;
     }
 }
