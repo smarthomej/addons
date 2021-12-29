@@ -206,8 +206,8 @@ public class WebSocketConnection {
 
     @SuppressWarnings("unused")
     @OnWebSocketError
-    public void onError(Session session, Throwable cause) {
-        if (!session.equals(this.session)) {
+    public void onError(@Nullable Session session, Throwable cause) {
+        if (session != null && !session.equals(this.session)) {
             handleWrongSession(session, "Connection error: " + cause.getMessage());
             return;
         }
@@ -235,7 +235,7 @@ public class WebSocketConnection {
     }
 
     private void handleWrongSession(Session session, String message) {
-        logger.warn("{}/{} received and discarded message for other session {}: {}.", socketName, session.hashCode(),
+        logger.warn("{}/{} received and discarded message for other or session {}: {}.", socketName, session.hashCode(),
                 session.hashCode(), message);
         if (session.isOpen()) {
             // Close the session if it is still open. It should already be closed anyway
