@@ -39,7 +39,7 @@ public class ChannelHandlerSendMessage extends ChannelHandler {
     private @Nullable AccountJson accountJson;
     private int lastMessageId = 1000;
 
-    public ChannelHandlerSendMessage(IAmazonThingHandler thingHandler, Gson gson) {
+    public ChannelHandlerSendMessage(AmazonHandlerCallback thingHandler, Gson gson) {
         super(thingHandler, gson);
     }
 
@@ -96,7 +96,7 @@ public class ChannelHandlerSendMessage extends ChannelHandler {
     }
 
     private void refreshChannel() {
-        thingHandler.updateChannelState(CHANNEL_NAME, new StringType(""));
+        callback.updateChannelState(CHANNEL_NAME, new StringType(""));
     }
 
     @SuppressWarnings("unused")

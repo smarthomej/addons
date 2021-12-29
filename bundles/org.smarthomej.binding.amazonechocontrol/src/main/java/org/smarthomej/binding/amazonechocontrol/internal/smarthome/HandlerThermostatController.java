@@ -18,21 +18,18 @@ import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Consta
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.library.unit.ImperialUnits;
 import org.openhab.core.library.unit.SIUnits;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.State;
-import org.openhab.core.types.StateDescription;
 import org.openhab.core.types.Type;
 import org.openhab.core.types.UnDefType;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
@@ -48,7 +45,7 @@ import com.google.gson.JsonObject;
  * @author Sven Killig - Initial contribution
  */
 @NonNullByDefault
-public class HandlerThermostatController extends HandlerBase {
+public class HandlerThermostatController extends AbstractInterfaceHandler {
     // Interface
     public static final String INTERFACE = "Alexa.ThermostatController";
     // Channel definitions
@@ -69,12 +66,7 @@ public class HandlerThermostatController extends HandlerBase {
     private final Map<String, Type> setpointCache = new HashMap<>();
 
     public HandlerThermostatController(SmartHomeDeviceHandler smartHomeDeviceHandler) {
-        super(smartHomeDeviceHandler);
-    }
-
-    @Override
-    public String[] getSupportedInterface() {
-        return new String[] { INTERFACE };
+        super(smartHomeDeviceHandler, List.of(INTERFACE));
     }
 
     @Override
@@ -140,11 +132,5 @@ public class HandlerThermostatController extends HandlerBase {
         }
 
         return false;
-    }
-
-    @Override
-    public @Nullable StateDescription findStateDescription(String channelId, StateDescription originalStateDescription,
-            @Nullable Locale locale) {
-        return null;
     }
 }

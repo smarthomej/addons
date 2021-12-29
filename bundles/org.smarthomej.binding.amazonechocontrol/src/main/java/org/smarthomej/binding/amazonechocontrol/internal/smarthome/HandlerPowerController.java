@@ -17,15 +17,12 @@ import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Consta
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.thing.type.ChannelTypeUID;
 import org.openhab.core.types.Command;
-import org.openhab.core.types.StateDescription;
 import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +41,7 @@ import com.google.gson.JsonObject;
  * @author Michael Geramb - Initial contribution
  */
 @NonNullByDefault
-public class HandlerPowerController extends HandlerBase {
+public class HandlerPowerController extends AbstractInterfaceHandler {
     private final Logger logger = LoggerFactory.getLogger(HandlerPowerController.class);
 
     // Interface
@@ -60,12 +57,7 @@ public class HandlerPowerController extends HandlerBase {
             ITEM_TYPE_SWITCH /* Item Type */);
 
     public HandlerPowerController(SmartHomeDeviceHandler smartHomeDeviceHandler) {
-        super(smartHomeDeviceHandler);
-    }
-
-    @Override
-    public String[] getSupportedInterface() {
-        return new String[] { INTERFACE };
+        super(smartHomeDeviceHandler, List.of(INTERFACE));
     }
 
     @Override
@@ -107,11 +99,5 @@ public class HandlerPowerController extends HandlerBase {
             }
         }
         return false;
-    }
-
-    @Override
-    public @Nullable StateDescription findStateDescription(String channelId, StateDescription originalStateDescription,
-            @Nullable Locale locale) {
-        return null;
     }
 }

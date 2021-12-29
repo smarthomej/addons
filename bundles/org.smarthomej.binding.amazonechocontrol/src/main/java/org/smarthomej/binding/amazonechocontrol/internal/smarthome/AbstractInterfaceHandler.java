@@ -17,17 +17,14 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.thing.type.ChannelTypeUID;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.State;
-import org.openhab.core.types.StateDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
@@ -44,14 +41,17 @@ import com.google.gson.JsonObject;
  * @author Michael Geramb - Initial contribution
  */
 @NonNullByDefault
-public abstract class HandlerBase {
-    private final Logger logger = LoggerFactory.getLogger(HandlerBase.class);
+public abstract class AbstractInterfaceHandler implements InterfaceHandler {
+    private final Logger logger = LoggerFactory.getLogger(AbstractInterfaceHandler.class);
+
+    private final List<String> interfaces;
 
     protected SmartHomeDeviceHandler smartHomeDeviceHandler;
     protected Map<String, ChannelInfo> channels = new HashMap<>();
 
-    public HandlerBase(SmartHomeDeviceHandler smartHomeDeviceHandler) {
+    public AbstractInterfaceHandler(SmartHomeDeviceHandler smartHomeDeviceHandler, List<String> interfaces) {
         this.smartHomeDeviceHandler = smartHomeDeviceHandler;
+        this.interfaces = interfaces;
     }
 
     protected abstract Set<ChannelInfo> findChannelInfos(SmartHomeCapability capability, String property);
@@ -62,14 +62,13 @@ public abstract class HandlerBase {
             List<SmartHomeCapability> capabilities, String channelId, Command command)
             throws IOException, InterruptedException;
 
-    public abstract @Nullable StateDescription findStateDescription(String channelId,
-            StateDescription originalStateDescription, @Nullable Locale locale);
-
     public boolean hasChannel(String channelId) {
         return channels.containsKey(channelId);
     }
 
-    public abstract String[] getSupportedInterface();
+    public List<String> getSupportedInterface() {
+        return interfaces;
+    }
 
     SmartHomeDeviceHandler getSmartHomeDeviceHandler() {
         return smartHomeDeviceHandler;
@@ -141,9 +140,5 @@ public abstract class HandlerBase {
                     + itemType + "', propertyNameSend='" + propertyNameSend + "', channelTypeUID=" + channelTypeUID
                     + "}";
         }
-    }
-
-    public static class UpdateChannelResult {
-        public boolean needSingleUpdate;
     }
 }
