@@ -40,7 +40,7 @@ Select "IoT Core", "Authorization" and "Device Status Notification" as APIs.
 Write down (or copy) "Access ID/Client ID" and "Access Secret/Client Secret" (ypu can always look it up in your account).
 - In the upper menu bar, select the "Devices" tab, then go to "Link Tuya App Account" and link you App account.
 
-Add a `project` and enter your apps credentials (`username`/`password`) and the cloud credentials (`accessId`/`accessSecret`).
+Add a `project` and enter your credentials (`username`/`password`, from the app - not your cloud account!) and the cloud project credentials (`accessId`/`accessSecret`).
 The `countryCode` is the international dial prefix of the country you registered your app in (e.g. `49` for Germany or `43` for Austria).
 Depending on the app you use, set `schema` to `tuyaSmart` (for the Tuya Smart app) or `smartLife` (for the Smart Life app).
 The `datacenter` needs to be set to the same value as in your IoT project.
