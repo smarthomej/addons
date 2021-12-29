@@ -17,17 +17,14 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.thing.type.ChannelTypeUID;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.State;
-import org.openhab.core.types.StateDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
@@ -64,11 +61,6 @@ public abstract class AbstractInterfaceHandler {
     public abstract boolean handleCommand(Connection connection, SmartHomeDevice shd, String entityId,
             List<SmartHomeCapability> capabilities, String channelId, Command command)
             throws IOException, InterruptedException;
-
-    public @Nullable StateDescription findStateDescription(String channelId, StateDescription originalStateDescription,
-            @Nullable Locale locale) {
-        return null;
-    }
 
     public boolean hasChannel(String channelId) {
         return channels.containsKey(channelId);

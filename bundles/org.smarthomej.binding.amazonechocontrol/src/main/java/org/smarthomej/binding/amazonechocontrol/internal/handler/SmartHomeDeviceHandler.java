@@ -21,7 +21,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -43,7 +42,6 @@ import org.openhab.core.thing.type.ChannelTypeUID;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.RefreshType;
 import org.openhab.core.types.State;
-import org.openhab.core.types.StateDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
@@ -375,16 +373,5 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
             }
         }
         return result;
-    }
-
-    public @Nullable StateDescription findStateDescription(Channel channel, StateDescription originalStateDescription,
-            @Nullable Locale locale) {
-        String channelId = channel.getUID().getId();
-        for (AbstractInterfaceHandler handler : handlers.values()) {
-            if (handler.hasChannel(channelId)) {
-                return handler.findStateDescription(channelId, originalStateDescription, locale);
-            }
-        }
-        return null;
     }
 }
