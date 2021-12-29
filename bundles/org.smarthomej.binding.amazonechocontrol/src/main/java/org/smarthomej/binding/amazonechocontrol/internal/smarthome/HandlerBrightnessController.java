@@ -59,12 +59,7 @@ public class HandlerBrightnessController extends AbstractInterfaceHandler {
     private @Nullable Integer lastBrightness;
 
     public HandlerBrightnessController(SmartHomeDeviceHandler smartHomeDeviceHandler) {
-        super(smartHomeDeviceHandler);
-    }
-
-    @Override
-    public String[] getSupportedInterface() {
-        return new String[] { INTERFACE };
+        super(smartHomeDeviceHandler, List.of(INTERFACE));
     }
 
     @Override

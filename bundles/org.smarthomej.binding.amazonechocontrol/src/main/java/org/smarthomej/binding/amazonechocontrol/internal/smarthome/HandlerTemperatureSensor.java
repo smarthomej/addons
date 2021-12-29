@@ -50,12 +50,7 @@ public class HandlerTemperatureSensor extends AbstractInterfaceHandler {
             ITEM_TYPE_NUMBER_TEMPERATURE /* Item Type */);
 
     public HandlerTemperatureSensor(SmartHomeDeviceHandler smartHomeDeviceHandler) {
-        super(smartHomeDeviceHandler);
-    }
-
-    @Override
-    public String[] getSupportedInterface() {
-        return new String[] { INTERFACE };
+        super(smartHomeDeviceHandler, List.of(INTERFACE));
     }
 
     @Override

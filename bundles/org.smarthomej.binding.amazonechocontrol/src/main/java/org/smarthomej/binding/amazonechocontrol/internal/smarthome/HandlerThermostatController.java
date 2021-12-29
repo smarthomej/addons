@@ -66,12 +66,7 @@ public class HandlerThermostatController extends AbstractInterfaceHandler {
     private final Map<String, Type> setpointCache = new HashMap<>();
 
     public HandlerThermostatController(SmartHomeDeviceHandler smartHomeDeviceHandler) {
-        super(smartHomeDeviceHandler);
-    }
-
-    @Override
-    public String[] getSupportedInterface() {
-        return new String[] { INTERFACE };
+        super(smartHomeDeviceHandler, List.of(INTERFACE));
     }
 
     @Override

@@ -57,12 +57,7 @@ public class HandlerPowerController extends AbstractInterfaceHandler {
             ITEM_TYPE_SWITCH /* Item Type */);
 
     public HandlerPowerController(SmartHomeDeviceHandler smartHomeDeviceHandler) {
-        super(smartHomeDeviceHandler);
-    }
-
-    @Override
-    public String[] getSupportedInterface() {
-        return new String[] { INTERFACE };
+        super(smartHomeDeviceHandler, List.of(INTERFACE));
     }
 
     @Override

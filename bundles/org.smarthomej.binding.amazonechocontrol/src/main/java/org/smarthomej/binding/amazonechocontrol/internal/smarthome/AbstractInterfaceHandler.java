@@ -47,11 +47,14 @@ import com.google.gson.JsonObject;
 public abstract class AbstractInterfaceHandler {
     private final Logger logger = LoggerFactory.getLogger(AbstractInterfaceHandler.class);
 
+    private final List<String> interfaces;
+
     protected SmartHomeDeviceHandler smartHomeDeviceHandler;
     protected Map<String, ChannelInfo> channels = new HashMap<>();
 
-    public AbstractInterfaceHandler(SmartHomeDeviceHandler smartHomeDeviceHandler) {
+    public AbstractInterfaceHandler(SmartHomeDeviceHandler smartHomeDeviceHandler, List<String> interfaces) {
         this.smartHomeDeviceHandler = smartHomeDeviceHandler;
+        this.interfaces = interfaces;
     }
 
     protected abstract Set<ChannelInfo> findChannelInfos(SmartHomeCapability capability, String property);
@@ -71,7 +74,9 @@ public abstract class AbstractInterfaceHandler {
         return channels.containsKey(channelId);
     }
 
-    public abstract String[] getSupportedInterface();
+    public List<String> getSupportedInterface() {
+        return interfaces;
+    }
 
     SmartHomeDeviceHandler getSmartHomeDeviceHandler() {
         return smartHomeDeviceHandler;

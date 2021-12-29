@@ -68,12 +68,7 @@ public class HandlerColorTemperatureController extends AbstractInterfaceHandler 
     private @Nullable String lastColorName;
 
     public HandlerColorTemperatureController(SmartHomeDeviceHandler smartHomeDeviceHandler) {
-        super(smartHomeDeviceHandler);
-    }
-
-    @Override
-    public String[] getSupportedInterface() {
-        return new String[] { INTERFACE, INTERFACE_COLOR_PROPERTIES };
+        super(smartHomeDeviceHandler, List.of(INTERFACE, INTERFACE_COLOR_PROPERTIES));
     }
 
     @Override

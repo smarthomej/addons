@@ -86,12 +86,7 @@ public class HandlerSecurityPanelController extends AbstractInterfaceHandler {
             WATER_ALARM);
 
     public HandlerSecurityPanelController(SmartHomeDeviceHandler smartHomeDeviceHandler) {
-        super(smartHomeDeviceHandler);
-    }
-
-    @Override
-    public String[] getSupportedInterface() {
-        return new String[] { INTERFACE };
+        super(smartHomeDeviceHandler, List.of(INTERFACE));
     }
 
     @Override

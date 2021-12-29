@@ -59,12 +59,7 @@ public class HandlerPercentageController extends AbstractInterfaceHandler {
     private @Nullable Integer lastPercentage;
 
     public HandlerPercentageController(SmartHomeDeviceHandler smartHomeDeviceHandler) {
-        super(smartHomeDeviceHandler);
-    }
-
-    @Override
-    public String[] getSupportedInterface() {
-        return new String[] { INTERFACE };
+        super(smartHomeDeviceHandler, List.of(INTERFACE));
     }
 
     @Override

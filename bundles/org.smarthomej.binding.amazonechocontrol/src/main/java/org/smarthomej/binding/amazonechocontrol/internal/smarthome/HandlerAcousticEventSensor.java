@@ -58,16 +58,11 @@ public class HandlerAcousticEventSensor extends AbstractInterfaceHandler {
             CHANNEL_TYPE_SMOKE_ALARM_DETECTION_STATE /* Channel Type */ , ITEM_TYPE_CONTACT /* Item Type */);
 
     public HandlerAcousticEventSensor(SmartHomeDeviceHandler smartHomeDeviceHandler) {
-        super(smartHomeDeviceHandler);
+        super(smartHomeDeviceHandler, List.of(INTERFACE));
     }
 
     private ChannelInfo[] getAlarmChannels() {
         return new ChannelInfo[] { GLASS_BREAK_DETECTION_STATE, SMOKE_ALARM_DETECTION_STATE };
-    }
-
-    @Override
-    public String[] getSupportedInterface() {
-        return new String[] { INTERFACE };
     }
 
     @Override

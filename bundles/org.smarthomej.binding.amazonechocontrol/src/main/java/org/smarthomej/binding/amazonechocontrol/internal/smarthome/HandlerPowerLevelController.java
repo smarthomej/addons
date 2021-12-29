@@ -59,12 +59,7 @@ public class HandlerPowerLevelController extends AbstractInterfaceHandler {
     private @Nullable Integer lastPowerLevel;
 
     public HandlerPowerLevelController(SmartHomeDeviceHandler smartHomeDeviceHandler) {
-        super(smartHomeDeviceHandler);
-    }
-
-    @Override
-    public String[] getSupportedInterface() {
-        return new String[] { INTERFACE };
+        super(smartHomeDeviceHandler, List.of(INTERFACE));
     }
 
     @Override
