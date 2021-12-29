@@ -1,8 +1,17 @@
 # Amazon Echo Control Binding
 
-This binding can control Amazon Echo devices (Alexa).
+This binding can control Amazon Echo devices (Alexa) and Smarthome devices connected through Alexa or a skill.
 
-**Upgrade notice:*** If you upgrade from a version before 2.5.0 you need to reset the account and login again (see at the bottom).
+Upgrade notice:
+
+- If you upgrade from a version before 2.5.0 you need to reset the account and login again (see at the bottom).
+- The `lastVoiceCommand` channel of the `amazonechocontrol` binding changed its behavior in version 3.1.8.
+Due to a wrong implementation the channel changed it's state to an empty string if the same command was received again.
+This has been corrected.
+If you want to be notified about every state update, please adjust your rule triggers to "received update".
+If you want to be notified about state changes (i.e. different commands), use `state changed`.
+
+## What this can be used for
 
 It provides features to control and view the current state of echo devices:
 
