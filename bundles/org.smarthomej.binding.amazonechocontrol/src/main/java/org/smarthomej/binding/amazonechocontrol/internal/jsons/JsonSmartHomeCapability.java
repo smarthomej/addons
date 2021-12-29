@@ -15,6 +15,7 @@ package org.smarthomej.binding.amazonechocontrol.internal.jsons;
 
 import java.util.List;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 
 import com.google.gson.annotations.SerializedName;
@@ -24,6 +25,7 @@ import com.google.gson.annotations.SerializedName;
  *
  * @author Lukas Knoeller - Initial contribution
  */
+@NonNullByDefault
 public class JsonSmartHomeCapability {
     public @Nullable String capabilityType;
     public @Nullable String type;
