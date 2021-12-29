@@ -114,7 +114,12 @@ import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonWakeWords;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonWakeWords.WakeWord;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonWebSiteCookie;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.SmartHomeBaseDevice;
+import org.unbescape.json.JsonEscape;
+import org.unbescape.json.JsonEscapeLevel;
+import org.unbescape.json.JsonEscapeType;
 import org.unbescape.xml.XmlEscape;
+import org.unbescape.xml.XmlEscapeLevel;
+import org.unbescape.xml.XmlEscapeType;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -1108,8 +1113,9 @@ public class Connection {
         if (plainSpeak.isEmpty() && plainBodyText.isEmpty()) {
             return;
         }
-        String escapedSpeak = trimmedSpeak.replace(plainSpeak, XmlEscape.escapeXml10(plainSpeak));
-
+        String escapedSpeak = trimmedSpeak.replace(plainSpeak,
+                XmlEscape.escapeXml10(plainSpeak, XmlEscapeType.CHARACTER_ENTITY_REFERENCES_DEFAULT_TO_HEXA,
+                        XmlEscapeLevel.LEVEL_1_ONLY_MARKUP_SIGNIFICANT));
         // we lock announcements until we have finished adding this one
         Lock lock = Objects.requireNonNull(locks.computeIfAbsent(TimerType.ANNOUNCEMENT, k -> new ReentrantLock()));
         lock.lock();
@@ -1171,8 +1177,9 @@ public class Connection {
         if (plainText.isEmpty()) {
             return;
         }
-        String escapedText = trimmedText.replace(plainText, XmlEscape.escapeXml10(plainText));
-
+        String escapedText = trimmedText.replace(plainText,
+                XmlEscape.escapeXml10(plainText, XmlEscapeType.CHARACTER_ENTITY_REFERENCES_DEFAULT_TO_HEXA,
+                        XmlEscapeLevel.LEVEL_1_ONLY_MARKUP_SIGNIFICANT));
         // we lock TTS until we have finished adding this one
         Lock lock = Objects.requireNonNull(locks.computeIfAbsent(TimerType.TTS, k -> new ReentrantLock()));
         lock.lock();
@@ -1221,7 +1228,8 @@ public class Connection {
         if (plainText.isEmpty()) {
             return;
         }
-        String escapedText = trimmedText.replace(plainText, XmlEscape.escapeXml10(plainText));
+        String escapedText = trimmedText.replace(plainText, JsonEscape.escapeJson(plainText,
+                JsonEscapeType.SINGLE_ESCAPE_CHARS_DEFAULT_TO_UHEXA, JsonEscapeLevel.LEVEL_1_BASIC_ESCAPE_SET));
 
         // we lock TextCommands until we have finished adding this one
         Lock lock = Objects.requireNonNull(locks.computeIfAbsent(TimerType.TEXT_COMMAND, k -> new ReentrantLock()));
