@@ -17,18 +17,15 @@ import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Consta
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 import javax.measure.quantity.Temperature;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.library.unit.ImperialUnits;
 import org.openhab.core.library.unit.SIUnits;
 import org.openhab.core.types.Command;
-import org.openhab.core.types.StateDescription;
 import org.openhab.core.types.UnDefType;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDeviceHandler;
@@ -44,7 +41,7 @@ import com.google.gson.JsonObject;
  * @author Michael Geramb - Initial contribution
  */
 @NonNullByDefault
-public class HandlerTemperatureSensor extends HandlerBase {
+public class HandlerTemperatureSensor extends AbstractInterfaceHandler {
     // Interface
     public static final String INTERFACE = "Alexa.TemperatureSensor";
     // Channel definitions
@@ -94,11 +91,5 @@ public class HandlerTemperatureSensor extends HandlerBase {
     public boolean handleCommand(Connection connection, SmartHomeDevice shd, String entityId,
             List<SmartHomeCapability> capabilities, String channelId, Command command) throws IOException {
         return false;
-    }
-
-    @Override
-    public @Nullable StateDescription findStateDescription(String channelId, StateDescription originalStateDescription,
-            @Nullable Locale locale) {
-        return null;
     }
 }

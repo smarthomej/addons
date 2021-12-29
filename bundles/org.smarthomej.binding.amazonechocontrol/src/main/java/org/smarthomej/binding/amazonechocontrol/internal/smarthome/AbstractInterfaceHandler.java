@@ -44,13 +44,13 @@ import com.google.gson.JsonObject;
  * @author Michael Geramb - Initial contribution
  */
 @NonNullByDefault
-public abstract class HandlerBase {
-    private final Logger logger = LoggerFactory.getLogger(HandlerBase.class);
+public abstract class AbstractInterfaceHandler {
+    private final Logger logger = LoggerFactory.getLogger(AbstractInterfaceHandler.class);
 
     protected SmartHomeDeviceHandler smartHomeDeviceHandler;
     protected Map<String, ChannelInfo> channels = new HashMap<>();
 
-    public HandlerBase(SmartHomeDeviceHandler smartHomeDeviceHandler) {
+    public AbstractInterfaceHandler(SmartHomeDeviceHandler smartHomeDeviceHandler) {
         this.smartHomeDeviceHandler = smartHomeDeviceHandler;
     }
 
@@ -62,8 +62,10 @@ public abstract class HandlerBase {
             List<SmartHomeCapability> capabilities, String channelId, Command command)
             throws IOException, InterruptedException;
 
-    public abstract @Nullable StateDescription findStateDescription(String channelId,
-            StateDescription originalStateDescription, @Nullable Locale locale);
+    public @Nullable StateDescription findStateDescription(String channelId, StateDescription originalStateDescription,
+            @Nullable Locale locale) {
+        return null;
+    }
 
     public boolean hasChannel(String channelId) {
         return channels.containsKey(channelId);

@@ -17,7 +17,6 @@ import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Consta
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -28,7 +27,6 @@ import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.PercentType;
 import org.openhab.core.thing.type.ChannelTypeUID;
 import org.openhab.core.types.Command;
-import org.openhab.core.types.StateDescription;
 import org.openhab.core.types.UnDefType;
 import org.smarthomej.binding.amazonechocontrol.internal.AmazonEchoControlBindingConstants;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
@@ -45,7 +43,7 @@ import com.google.gson.JsonObject;
  * @author Michael Geramb - Initial contribution
  */
 @NonNullByDefault
-public class HandlerPowerLevelController extends HandlerBase {
+public class HandlerPowerLevelController extends AbstractInterfaceHandler {
     // Interface
     public static final String INTERFACE = "Alexa.PowerLevelController";
 
@@ -145,11 +143,5 @@ public class HandlerPowerLevelController extends HandlerBase {
             }
         }
         return false;
-    }
-
-    @Override
-    public @Nullable StateDescription findStateDescription(String channelId, StateDescription originalStateDescription,
-            @Nullable Locale locale) {
-        return null;
     }
 }

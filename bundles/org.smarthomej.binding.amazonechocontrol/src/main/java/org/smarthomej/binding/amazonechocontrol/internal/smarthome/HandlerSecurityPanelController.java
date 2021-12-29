@@ -18,17 +18,14 @@ import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Consta
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.OpenClosedType;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.thing.type.ChannelTypeUID;
 import org.openhab.core.types.Command;
-import org.openhab.core.types.StateDescription;
 import org.openhab.core.types.UnDefType;
 import org.smarthomej.binding.amazonechocontrol.internal.AmazonEchoControlBindingConstants;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
@@ -45,7 +42,7 @@ import com.google.gson.JsonObject;
  * @author Michael Geramb - Initial contribution
  */
 @NonNullByDefault
-public class HandlerSecurityPanelController extends HandlerBase {
+public class HandlerSecurityPanelController extends AbstractInterfaceHandler {
     // Interface
     public static final String INTERFACE = "Alexa.SecurityPanelController";
 
@@ -168,11 +165,5 @@ public class HandlerSecurityPanelController extends HandlerBase {
             }
         }
         return false;
-    }
-
-    @Override
-    public @Nullable StateDescription findStateDescription(String channelUID, StateDescription originalStateDescription,
-            @Nullable Locale locale) {
-        return null;
     }
 }
