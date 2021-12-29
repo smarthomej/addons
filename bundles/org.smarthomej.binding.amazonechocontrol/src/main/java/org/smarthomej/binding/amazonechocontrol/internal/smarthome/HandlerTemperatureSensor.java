@@ -30,8 +30,8 @@ import org.openhab.core.types.Command;
 import org.openhab.core.types.UnDefType;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDeviceHandler;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapabilities.SmartHomeCapability;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevices.SmartHomeDevice;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapability;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevice;
 
 import com.google.gson.JsonObject;
 
@@ -53,7 +53,7 @@ public class HandlerTemperatureSensor extends AbstractInterfaceHandler {
     }
 
     @Override
-    protected Set<ChannelInfo> findChannelInfos(SmartHomeCapability capability, @Nullable String property) {
+    protected Set<ChannelInfo> findChannelInfos(JsonSmartHomeCapability capability, @Nullable String property) {
         if (TEMPERATURE.propertyName.equals(property)) {
             return Set.of(TEMPERATURE);
         }
@@ -83,8 +83,8 @@ public class HandlerTemperatureSensor extends AbstractInterfaceHandler {
     }
 
     @Override
-    public boolean handleCommand(Connection connection, SmartHomeDevice shd, String entityId,
-            List<SmartHomeCapability> capabilities, String channelId, Command command) throws IOException {
+    public boolean handleCommand(Connection connection, JsonSmartHomeDevice shd, String entityId,
+            List<JsonSmartHomeCapability> capabilities, String channelId, Command command) throws IOException {
         return false;
     }
 }

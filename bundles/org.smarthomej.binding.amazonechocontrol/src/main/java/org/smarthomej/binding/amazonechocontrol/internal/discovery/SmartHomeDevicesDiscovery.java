@@ -35,9 +35,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.AccountHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDeviceHandler;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevice;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevice.DriverIdentity;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDeviceAlias;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevices.DriverIdentity;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevices.SmartHomeDevice;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeGroups.SmartHomeGroup;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.SmartHomeBaseDevice;
 import org.smarthomej.binding.amazonechocontrol.internal.smarthome.Constants;
@@ -124,8 +124,8 @@ public class SmartHomeDevicesDiscovery extends AbstractDiscoveryService implemen
             String deviceName = null;
             Map<String, Object> props = new HashMap<>();
 
-            if (smartHomeDevice instanceof SmartHomeDevice) {
-                SmartHomeDevice shd = (SmartHomeDevice) smartHomeDevice;
+            if (smartHomeDevice instanceof JsonSmartHomeDevice) {
+                JsonSmartHomeDevice shd = (JsonSmartHomeDevice) smartHomeDevice;
                 logger.trace("Found SmartHome device: {}", shd);
 
                 String entityId = shd.entityId;
@@ -191,7 +191,7 @@ public class SmartHomeDevicesDiscovery extends AbstractDiscoveryService implemen
                     // No id
                     continue;
                 }
-                Set<SmartHomeDevice> supportedChildren = SmartHomeDeviceHandler.getSupportedSmartHomeDevices(shg,
+                Set<JsonSmartHomeDevice> supportedChildren = SmartHomeDeviceHandler.getSupportedSmartHomeDevices(shg,
                         deviceList);
                 if (supportedChildren.isEmpty()) {
                     // No children with a supported interface

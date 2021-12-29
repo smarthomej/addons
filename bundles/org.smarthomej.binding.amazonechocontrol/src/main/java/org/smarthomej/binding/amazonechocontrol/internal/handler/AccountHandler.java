@@ -79,7 +79,7 @@ import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonNotificationR
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonNotificationSound;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonPlaylists;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonPushCommand;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevices.SmartHomeDevice;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevice;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonWakeWords.WakeWord;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.SmartHomeBaseDevice;
 import org.smarthomej.binding.amazonechocontrol.internal.smarthome.SmartHomeDeviceStateGroupUpdateCalculator;
@@ -910,7 +910,7 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
                 if (smartHomeDeviceHandlers.isEmpty()) {
                     return;
                 }
-                List<SmartHomeDevice> devicesToUpdate = new ArrayList<>();
+                List<JsonSmartHomeDevice> devicesToUpdate = new ArrayList<>();
                 for (SmartHomeDeviceHandler device : smartHomeDeviceHandlers) {
                     String id = device.getId();
                     SmartHomeBaseDevice baseDevice = jsonIdSmartHomeDeviceMapping.get(id);

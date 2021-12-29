@@ -28,9 +28,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDeviceHandler;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapabilities.Properties;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapabilities.SmartHomeCapability;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevices.SmartHomeDevice;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapability;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapability.Properties;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevice;
 
 import com.google.gson.JsonObject;
 
@@ -51,12 +51,12 @@ public abstract class AbstractInterfaceHandler implements InterfaceHandler {
         this.interfaces = interfaces;
     }
 
-    protected abstract Set<ChannelInfo> findChannelInfos(SmartHomeCapability capability, String property);
+    protected abstract Set<ChannelInfo> findChannelInfos(JsonSmartHomeCapability capability, String property);
 
     public abstract void updateChannels(String interfaceName, List<JsonObject> stateList, UpdateChannelResult result);
 
-    public abstract boolean handleCommand(Connection connection, SmartHomeDevice shd, String entityId,
-            List<SmartHomeCapability> capabilities, String channelId, Command command)
+    public abstract boolean handleCommand(Connection connection, JsonSmartHomeDevice shd, String entityId,
+            List<JsonSmartHomeCapability> capabilities, String channelId, Command command)
             throws IOException, InterruptedException;
 
     public boolean hasChannel(String channelId) {
@@ -71,10 +71,10 @@ public abstract class AbstractInterfaceHandler implements InterfaceHandler {
         return smartHomeDeviceHandler;
     }
 
-    public Collection<ChannelInfo> initialize(List<SmartHomeCapability> capabilities) {
+    public Collection<ChannelInfo> initialize(List<JsonSmartHomeCapability> capabilities) {
         // TODO: reduce or remove
         Map<String, ChannelInfo> channels = new HashMap<>();
-        for (SmartHomeCapability capability : capabilities) {
+        for (JsonSmartHomeCapability capability : capabilities) {
             Properties properties = capability.properties;
             if (properties != null) {
                 List<Properties.Property> supported = Objects.requireNonNullElse(properties.supported, List.of());
@@ -92,8 +92,8 @@ public abstract class AbstractInterfaceHandler implements InterfaceHandler {
         return channels.values();
     }
 
-    protected boolean containsCapabilityProperty(List<SmartHomeCapability> capabilities, String propertyName) {
-        for (SmartHomeCapability capability : capabilities) {
+    protected boolean containsCapabilityProperty(List<JsonSmartHomeCapability> capabilities, String propertyName) {
+        for (JsonSmartHomeCapability capability : capabilities) {
             Properties properties = capability.properties;
             if (properties != null) {
                 List<Properties.Property> supported = Objects.requireNonNullElse(properties.supported, List.of());

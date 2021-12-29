@@ -37,9 +37,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDeviceHandler;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapabilities;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapabilities.SmartHomeCapability;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevices.SmartHomeDevice;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapability;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevice;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -81,19 +80,19 @@ public class HandlerRangeController extends AbstractInterfaceHandler {
     }
 
     @Override
-    protected Set<ChannelInfo> findChannelInfos(SmartHomeCapability capability, @Nullable String property) {
-        JsonSmartHomeCapabilities.Resources resources = capability.resources;
+    protected Set<ChannelInfo> findChannelInfos(JsonSmartHomeCapability capability, @Nullable String property) {
+        JsonSmartHomeCapability.Resources resources = capability.resources;
         String instance = capability.instance;
         if (resources == null || instance == null) { // instance is needed to identify state updates
             return Set.of();
         }
 
-        List<JsonSmartHomeCapabilities.Resources.Names> names = resources.friendlyNames;
+        List<JsonSmartHomeCapability.Resources.Names> names = resources.friendlyNames;
         if (names == null) {
             return Set.of();
         }
 
-        JsonSmartHomeCapabilities.Resources.Names.Value nameValue = names.stream().filter(n -> "asset".equals(n.type))
+        JsonSmartHomeCapability.Resources.Names.Value nameValue = names.stream().filter(n -> "asset".equals(n.type))
                 .findAny().map(n -> n.value).orElse(null);
         if (nameValue == null) {
             return Set.of();
@@ -108,7 +107,7 @@ public class HandlerRangeController extends AbstractInterfaceHandler {
         if (channelInfo != null) {
             instanceToChannelInfo.put(instance, channelInfo);
             // try to get configuration if present
-            JsonSmartHomeCapabilities.Configuration configuration = capability.configuration;
+            JsonSmartHomeCapability.Configuration configuration = capability.configuration;
             if (configuration != null) {
                 String alexaUnit = configuration.unitOfMeasure;
                 if (alexaUnit != null) {
@@ -150,8 +149,8 @@ public class HandlerRangeController extends AbstractInterfaceHandler {
     }
 
     @Override
-    public boolean handleCommand(Connection connection, SmartHomeDevice shd, String entityId,
-            List<SmartHomeCapability> capabilities, String channelId, Command command)
+    public boolean handleCommand(Connection connection, JsonSmartHomeDevice shd, String entityId,
+            List<JsonSmartHomeCapability> capabilities, String channelId, Command command)
             throws IOException, InterruptedException {
         return false;
     }
