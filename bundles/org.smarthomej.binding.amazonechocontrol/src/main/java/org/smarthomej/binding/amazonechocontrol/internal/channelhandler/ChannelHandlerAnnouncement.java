@@ -39,11 +39,8 @@ public class ChannelHandlerAnnouncement extends ChannelHandler {
 
     private static final String CHANNEL_NAME = "announcement";
 
-    protected final IEchoThingHandler thingHandler;
-
-    public ChannelHandlerAnnouncement(IEchoThingHandler thingHandler, Gson gson) {
-        super(thingHandler, gson);
-        this.thingHandler = thingHandler;
+    public ChannelHandlerAnnouncement(AmazonHandlerCallback callback, Gson gson) {
+        super(callback, gson);
     }
 
     @Override
@@ -93,7 +90,7 @@ public class ChannelHandlerAnnouncement extends ChannelHandler {
                             body = e.getLocalizedMessage();
                         }
                     }
-                    thingHandler.startAnnouncement(device, speak, Objects.requireNonNullElse(body, ""), title, volume);
+                    callback.startAnnouncement(device, speak, Objects.requireNonNullElse(body, ""), title, volume);
                 }
                 refreshChannel();
             }
@@ -104,7 +101,7 @@ public class ChannelHandlerAnnouncement extends ChannelHandler {
     }
 
     private void refreshChannel() {
-        thingHandler.updateChannelState(CHANNEL_NAME, new StringType(""));
+        callback.updateChannelState(CHANNEL_NAME, new StringType(""));
     }
 
     private static class AnnouncementRequestJson {

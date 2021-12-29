@@ -56,9 +56,9 @@ import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.amazonechocontrol.internal.AccountHandlerConfig;
 import org.smarthomej.binding.amazonechocontrol.internal.AccountServlet;
 import org.smarthomej.binding.amazonechocontrol.internal.ConnectionException;
+import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.AmazonHandlerCallback;
 import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.ChannelHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.ChannelHandlerSendMessage;
-import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.IAmazonThingHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.discovery.AmazonEchoDiscovery;
 import org.smarthomej.binding.amazonechocontrol.internal.discovery.SmartHomeDevicesDiscovery;
@@ -97,7 +97,7 @@ import com.google.gson.JsonSyntaxException;
  * @author Michael Geramb - Initial Contribution
  */
 @NonNullByDefault
-public class AccountHandler extends BaseBridgeHandler implements WebSocketCommandHandler, IAmazonThingHandler {
+public class AccountHandler extends BaseBridgeHandler implements WebSocketCommandHandler, AmazonHandlerCallback {
     private final Logger logger = LoggerFactory.getLogger(AccountHandler.class);
     private final Storage<String> stateStorage;
     private final HttpClient httpClient;

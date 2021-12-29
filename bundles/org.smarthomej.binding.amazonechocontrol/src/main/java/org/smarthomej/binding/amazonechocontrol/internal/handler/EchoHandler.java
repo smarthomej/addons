@@ -54,9 +54,9 @@ import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.amazonechocontrol.internal.ConnectionException;
+import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.AmazonHandlerCallback;
 import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.ChannelHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.ChannelHandlerAnnouncement;
-import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.IEchoThingHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonAscendingAlarm.AscendingAlarmModel;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates.BluetoothState;
@@ -91,7 +91,7 @@ import com.google.gson.Gson;
  * @author Michael Geramb - Initial contribution
  */
 @NonNullByDefault
-public class EchoHandler extends UpdatingBaseThingHandler implements IEchoThingHandler {
+public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandlerCallback {
     private final Logger logger = LoggerFactory.getLogger(EchoHandler.class);
     private final Gson gson;
     private @Nullable Device device;
