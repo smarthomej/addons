@@ -503,6 +503,34 @@
 		<state readOnly="true"/>
 	</channel-type>
 
+	<thing-type id="airqualitysensor">
+		<supported-bridge-type-refs>
+			<bridge-type-ref id="deconz"/>
+		</supported-bridge-type-refs>
+		<label>Carbon-monoxide Sensor</label>
+		<channels>
+			<channel typeId="airquality" id="airquality"/>
+			<channel typeId="airqualityppb" id="airqualityppb"/>
+			<channel typeId="last_updated" id="last_updated"/>
+		</channels>
+
+		<representation-property>uid</representation-property>
+
+		<config-description-ref uri="thing-type:deconz:sensor"/>
+	</thing-type>
+
+	<channel-type id="airquality">
+		<item-type>String</item-type>
+		<label>Air Quality</label>
+		<state readOnly="true"/>
+	</channel-type>
+
+	<channel-type id="airqualityppb">
+		<item-type>Number:Dimensionless</item-type>
+		<label>Air Quality (ppb)</label>
+		<state readOnly="true"/>
+	</channel-type>
+
 	<thing-type id="thermostat">
 		<supported-bridge-type-refs>
 			<bridge-type-ref id="deconz"/>
