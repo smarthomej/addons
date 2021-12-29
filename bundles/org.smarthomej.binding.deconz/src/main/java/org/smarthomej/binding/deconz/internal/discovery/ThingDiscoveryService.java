@@ -262,6 +262,8 @@ public class ThingDiscoveryService extends AbstractDiscoveryService implements D
             }
         } else if (sensor.type.contains("LightLevel")) { // ZHALightLevel
             thingTypeUID = THING_TYPE_LIGHT_SENSOR;
+        } else if (sensor.type.contains("ZHAAirQuality")) { // ZHAAirQuality
+            thingTypeUID = THING_TYPE_AIRQUALITY_SENSOR;
         } else if (sensor.type.contains("ZHATemperature")) { // ZHATemperature
             thingTypeUID = THING_TYPE_TEMPERATURE_SENSOR;
         } else if (sensor.type.contains("ZHAHumidity")) { // ZHAHumidity

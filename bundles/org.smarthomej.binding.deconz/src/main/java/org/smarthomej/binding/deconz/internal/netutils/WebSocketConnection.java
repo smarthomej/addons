@@ -152,7 +152,7 @@ public class WebSocketConnection {
         this.session = session;
     }
 
-    @SuppressWarnings({ "null", "unused" })
+    @SuppressWarnings("unused")
     @OnWebSocketMessage
     public void onMessage(Session session, String message) {
         if (!session.equals(this.session)) {

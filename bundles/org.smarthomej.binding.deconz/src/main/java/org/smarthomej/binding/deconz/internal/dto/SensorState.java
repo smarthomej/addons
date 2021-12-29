@@ -77,6 +77,9 @@ public class SensorState {
     public @Nullable Integer gesture;
     /** Thermostat may provide this value. */
     public @Nullable Integer valve;
+    /** air quality sensors provide this value */
+    public @Nullable String airquality;
+    public @Nullable Integer airqualityppb;
     /** Thermostats may provide this value */
     public @Nullable String windowopen;
     /** deCONZ sends a last update string with every event. */
@@ -92,7 +95,8 @@ public class SensorState {
                 + ", carbonmonoxide=" + carbonmonoxide + ", pressure=" + pressure + ", presence=" + presence
                 + ", power=" + power + ", battery=" + battery + ", consumption=" + consumption + ", voltage=" + voltage
                 + ", current=" + current + ", status=" + status + ", buttonevent=" + buttonevent + ", gesture="
-                + gesture + ", valve=" + valve + ", windowopen='" + windowopen + '\'' + ", lastupdated='" + lastupdated
-                + '\'' + ", xy=" + Arrays.toString(xy) + '}';
+                + gesture + ", valve=" + valve + ", airquality='" + airquality + "'" + ", airqualityppb="
+                + airqualityppb + ", windowopen='" + windowopen + "'" + ", lastupdated='" + lastupdated + "'" + ", xy="
+                + Arrays.toString(xy) + "}";
     }
 }

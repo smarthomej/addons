@@ -41,7 +41,7 @@ public class UpdateFileTest {
         checkUpdateFiles(DeconzHandlerFactory.class);
     }
 
-    private void checkUpdateFiles(Class clazz) {
+    private void checkUpdateFiles(Class<?> clazz) {
         // list all files
         String path = clazz.getProtectionDomain().getCodeSource().getLocation().getFile() + "update";
         File[] allUpdateFiles = new File(path).listFiles(pathname -> {
