@@ -25,10 +25,11 @@ const request = http.request(options, function (res) {
             let releasePr = [];
             fullJson.forEach(pr => {
                 if (pr.merged_at != null && pr.milestone != null && pr.milestone.title === releaseTag) {
+                    console.log(pr.url);
                     let module = pr.title.match(/\[(.*)\]/)[1];
                     releasePr.push({
                         'module': module,
-                        'label': pr.labels.map(label => label.name),
+                        'label': pr.labels.map(label => label.name).filter(item => item !== 'communityapproved'),
                         'title': pr.title.match(/\[.*\]\s(.*)/)[1],
                         'issue': parseInt(pr.url.match(/\/(\d+)$/)[1]),
                         'url': pr.html_url
@@ -54,7 +55,7 @@ const request = http.request(options, function (res) {
             // infrastructure
             output += '### General/Infrastructure\n\n';
             output += '| Type | Issue | Description |\n'
-            output += '---|:---:|---|\n';
+            output += '|---|:---:|---|\n';
             releasePr.forEach(pr => {
                 if (pr.module === "infrastructure") {
                     output += '|';

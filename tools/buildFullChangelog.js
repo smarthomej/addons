@@ -63,7 +63,7 @@ get().then(() => {
                     if (milestoneMicro <= microRelease) {
                         releasePr.push({
                             'milestone': milestone,
-                            'label': pr.labels.map(label => label.name),
+                            'label': pr.labels.map(label => label.name).filter(item => item !== 'communityapproved'),
                             'title': pr.title.match(/\[.*\]\s(.*)/)[1]
                         });
                     }
