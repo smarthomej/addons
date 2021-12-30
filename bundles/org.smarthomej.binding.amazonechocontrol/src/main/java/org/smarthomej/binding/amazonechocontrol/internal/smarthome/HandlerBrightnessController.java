@@ -13,8 +13,6 @@
  */
 package org.smarthomej.binding.amazonechocontrol.internal.smarthome;
 
-import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Constants.ITEM_TYPE_DIMMER;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -25,36 +23,27 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.IncreaseDecreaseType;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.PercentType;
-import org.openhab.core.thing.type.ChannelTypeUID;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.UnDefType;
-import org.smarthomej.binding.amazonechocontrol.internal.AmazonEchoControlBindingConstants;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDeviceHandler;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapabilities.SmartHomeCapability;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevices.SmartHomeDevice;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapability;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevice;
 
 import com.google.gson.JsonObject;
 
 /**
- * The {@link HandlerBrightnessController} is responsible for the Alexa.PowerControllerInterface
+ * The {@link HandlerBrightnessController} is responsible for the Alexa.PowerController interface
  *
  * @author Lukas Knoeller - Initial contribution
  * @author Michael Geramb - Initial contribution
  */
 @NonNullByDefault
 public class HandlerBrightnessController extends AbstractInterfaceHandler {
-    // Interface
     public static final String INTERFACE = "Alexa.BrightnessController";
 
-    // Channel types
-    private static final ChannelTypeUID CHANNEL_TYPE_BRIGHTNESS = new ChannelTypeUID(
-            AmazonEchoControlBindingConstants.BINDING_ID, "brightness");
-
-    // Channel definitions
-    private static final ChannelInfo BRIGHTNESS = new ChannelInfo("brightness" /* propertyName */ ,
-            "brightness" /* ChannelId */, CHANNEL_TYPE_BRIGHTNESS /* Channel Type */ ,
-            ITEM_TYPE_DIMMER /* Item Type */);
+    private static final ChannelInfo BRIGHTNESS = new ChannelInfo("brightness", "brightness",
+            Constants.CHANNEL_TYPE_BRIGHTNESS);
 
     private @Nullable Integer lastBrightness;
 
@@ -63,7 +52,7 @@ public class HandlerBrightnessController extends AbstractInterfaceHandler {
     }
 
     @Override
-    protected Set<ChannelInfo> findChannelInfos(SmartHomeCapability capability, String property) {
+    protected Set<ChannelInfo> findChannelInfos(JsonSmartHomeCapability capability, @Nullable String property) {
         if (BRIGHTNESS.propertyName.equals(property)) {
             return Set.of(BRIGHTNESS);
         }
@@ -87,12 +76,13 @@ public class HandlerBrightnessController extends AbstractInterfaceHandler {
         if (brightnessValue != null) {
             lastBrightness = brightnessValue;
         }
-        updateState(BRIGHTNESS.channelId, brightnessValue == null ? UnDefType.UNDEF : new PercentType(brightnessValue));
+        smartHomeDeviceHandler.updateState(BRIGHTNESS.channelId,
+                brightnessValue == null ? UnDefType.UNDEF : new PercentType(brightnessValue));
     }
 
     @Override
-    public boolean handleCommand(Connection connection, SmartHomeDevice shd, String entityId,
-            List<SmartHomeCapability> capabilities, String channelId, Command command)
+    public boolean handleCommand(Connection connection, JsonSmartHomeDevice shd, String entityId,
+            List<JsonSmartHomeCapability> capabilities, String channelId, Command command)
             throws IOException, InterruptedException {
         if (channelId.equals(BRIGHTNESS.channelId)) {
             if (containsCapabilityProperty(capabilities, BRIGHTNESS.propertyName)) {

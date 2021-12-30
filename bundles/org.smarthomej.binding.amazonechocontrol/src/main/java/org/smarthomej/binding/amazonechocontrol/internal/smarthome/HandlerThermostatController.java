@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.library.unit.ImperialUnits;
@@ -34,32 +35,28 @@ import org.openhab.core.types.Type;
 import org.openhab.core.types.UnDefType;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDeviceHandler;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapabilities.SmartHomeCapability;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevices.SmartHomeDevice;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapability;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevice;
 
 import com.google.gson.JsonObject;
 
 /**
- * The {@link HandlerThermostatController} is responsible for the Alexa.ThermostatControllerInterface
+ * The {@link HandlerThermostatController} is responsible for the Alexa.ThermostatController interface
  *
  * @author Sven Killig - Initial contribution
  */
 @NonNullByDefault
 public class HandlerThermostatController extends AbstractInterfaceHandler {
-    // Interface
     public static final String INTERFACE = "Alexa.ThermostatController";
-    // Channel definitions
+
     private static final ChannelInfo TARGET_SETPOINT = new ChannelInfo("targetSetpoint" /* propertyNameReceive */,
-            "targetTemperature" /* propertyNameSend */, "targetSetpoint" /* ChannelId */,
-            CHANNEL_TYPE_TARGETSETPOINT /* Channel Type */ , ITEM_TYPE_NUMBER_TEMPERATURE /* Item Type */);
-    private static final ChannelInfo LOWER_SETPOINT = new ChannelInfo("lowerSetpoint" /* propertyName */ ,
-            "lowerSetTemperature" /* propertyNameSend */, "lowerSetpoint" /* ChannelId */,
-            CHANNEL_TYPE_LOWERSETPOINT /* Channel Type */ , ITEM_TYPE_NUMBER_TEMPERATURE /* Item Type */);
-    private static final ChannelInfo UPPER_SETPOINT = new ChannelInfo("upperSetpoint" /* propertyName */ ,
-            "upperSetTemperature" /* propertyNameSend */, "upperSetpoint" /* ChannelId */,
-            CHANNEL_TYPE_UPPERSETPOINT /* Channel Type */ , ITEM_TYPE_NUMBER_TEMPERATURE /* Item Type */);
+            "targetTemperature" /* propertyNameSend */, "targetSetpoint", CHANNEL_TYPE_TARGETSETPOINT);
+    private static final ChannelInfo LOWER_SETPOINT = new ChannelInfo("lowerSetpoint",
+            "lowerSetTemperature" /* propertyNameSend */, "lowerSetpoint", CHANNEL_TYPE_LOWERSETPOINT);
+    private static final ChannelInfo UPPER_SETPOINT = new ChannelInfo("upperSetpoint",
+            "upperSetTemperature" /* propertyNameSend */, "upperSetpoint", CHANNEL_TYPE_UPPERSETPOINT);
     private static final ChannelInfo MODE = new ChannelInfo("thermostatMode", "thermostatMode", "thermostatMode",
-            CHANNEL_TYPE_THERMOSTATMODE, "String");
+            CHANNEL_TYPE_THERMOSTATMODE);
 
     private static final Set<ChannelInfo> ALL_CHANNELS = Set.of(TARGET_SETPOINT, LOWER_SETPOINT, UPPER_SETPOINT, MODE);
 
@@ -70,7 +67,7 @@ public class HandlerThermostatController extends AbstractInterfaceHandler {
     }
 
     @Override
-    protected Set<ChannelInfo> findChannelInfos(SmartHomeCapability capability, String property) {
+    protected Set<ChannelInfo> findChannelInfos(JsonSmartHomeCapability capability, @Nullable String property) {
         return ALL_CHANNELS.stream().filter(c -> c.propertyName.equals(property)).collect(Collectors.toSet());
     }
 
@@ -98,13 +95,14 @@ public class HandlerThermostatController extends AbstractInterfaceHandler {
                     }
                 }
             }
-            updateState(channel.channelId, Objects.requireNonNullElse(newState, UnDefType.UNDEF));
+            smartHomeDeviceHandler.updateState(channel.channelId,
+                    Objects.requireNonNullElse(newState, UnDefType.UNDEF));
         });
     }
 
     @Override
-    public boolean handleCommand(Connection connection, SmartHomeDevice shd, String entityId,
-            List<SmartHomeCapability> capabilities, String channelId, Command command)
+    public boolean handleCommand(Connection connection, JsonSmartHomeDevice shd, String entityId,
+            List<JsonSmartHomeCapability> capabilities, String channelId, Command command)
             throws IOException, InterruptedException {
         ChannelInfo channelInfo = ALL_CHANNELS.stream().filter(c -> c.channelId.equals(channelId)).findFirst()
                 .orElse(null);

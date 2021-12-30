@@ -13,9 +13,6 @@
  */
 package org.smarthomej.binding.amazonechocontrol.internal.smarthome;
 
-import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Constants.ITEM_TYPE_NUMBER;
-import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Constants.ITEM_TYPE_STRING;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -25,44 +22,30 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.StringType;
-import org.openhab.core.thing.type.ChannelTypeUID;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.UnDefType;
-import org.smarthomej.binding.amazonechocontrol.internal.AmazonEchoControlBindingConstants;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDeviceHandler;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapabilities.SmartHomeCapability;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevices.SmartHomeDevice;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapability;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevice;
 
 import com.google.gson.JsonObject;
 
 /**
- * The {@link HandlerColorTemperatureController} is responsible for the Alexa.ColorTemperatureController
+ * The {@link HandlerColorTemperatureController} is responsible for the Alexa.ColorTemperatureController interface
  *
  * @author Lukas Knoeller - Initial contribution
  * @author Michael Geramb - Initial contribution
  */
 @NonNullByDefault
 public class HandlerColorTemperatureController extends AbstractInterfaceHandler {
-    // Interface
     public static final String INTERFACE = "Alexa.ColorTemperatureController";
     public static final String INTERFACE_COLOR_PROPERTIES = "Alexa.ColorPropertiesController";
 
-    // Channel types
-    private static final ChannelTypeUID CHANNEL_TYPE_COLOR_TEMPERATURE_NAME = new ChannelTypeUID(
-            AmazonEchoControlBindingConstants.BINDING_ID, "colorTemperatureName");
-
-    private static final ChannelTypeUID CHANNEL_TYPE_COLOR_TEPERATURE_IN_KELVIN = new ChannelTypeUID(
-            AmazonEchoControlBindingConstants.BINDING_ID, "colorTemperatureInKelvin");
-
-    // Channel and Properties
-    private static final ChannelInfo COLOR_TEMPERATURE_IN_KELVIN = new ChannelInfo(
-            "colorTemperatureInKelvin" /* propertyName */ , "colorTemperatureInKelvin" /* ChannelId */,
-            CHANNEL_TYPE_COLOR_TEPERATURE_IN_KELVIN /* Channel Type */ , ITEM_TYPE_NUMBER /* Item Type */);
-
-    private static final ChannelInfo COLOR_TEMPERATURE_NAME = new ChannelInfo("colorProperties" /* propertyName */ ,
-            "colorTemperatureName" /* ChannelId */, CHANNEL_TYPE_COLOR_TEMPERATURE_NAME /* Channel Type */ ,
-            ITEM_TYPE_STRING /* Item Type */);
+    private static final ChannelInfo COLOR_TEMPERATURE_IN_KELVIN = new ChannelInfo("colorTemperatureInKelvin",
+            "colorTemperatureInKelvin", Constants.CHANNEL_TYPE_COLOR_TEMPERATURE_IN_KELVIN);
+    private static final ChannelInfo COLOR_TEMPERATURE_NAME = new ChannelInfo("colorProperties", "colorTemperatureName",
+            Constants.CHANNEL_TYPE_COLOR_TEMPERATURE_NAME);
 
     private @Nullable Integer lastColorTemperature;
     private @Nullable String lastColorName;
@@ -72,8 +55,8 @@ public class HandlerColorTemperatureController extends AbstractInterfaceHandler 
     }
 
     @Override
-    protected Set<ChannelInfo> findChannelInfos(SmartHomeCapability capability, String property) {
-        if (COLOR_TEMPERATURE_IN_KELVIN.propertyName.contentEquals(property)) {
+    protected Set<ChannelInfo> findChannelInfos(JsonSmartHomeCapability capability, @Nullable String property) {
+        if (COLOR_TEMPERATURE_IN_KELVIN.propertyName.equals(property)) {
             return Set.of(COLOR_TEMPERATURE_IN_KELVIN, COLOR_TEMPERATURE_NAME);
         }
         return Set.of();
@@ -96,8 +79,9 @@ public class HandlerColorTemperatureController extends AbstractInterfaceHandler 
                 lastColorTemperature = colorTemperatureInKelvinValue;
                 result.needSingleUpdate = true;
             }
-            updateState(COLOR_TEMPERATURE_IN_KELVIN.channelId, colorTemperatureInKelvinValue == null ? UnDefType.UNDEF
-                    : new DecimalType(colorTemperatureInKelvinValue));
+            smartHomeDeviceHandler.updateState(COLOR_TEMPERATURE_IN_KELVIN.channelId,
+                    colorTemperatureInKelvinValue == null ? UnDefType.UNDEF
+                            : new DecimalType(colorTemperatureInKelvinValue));
         }
         if (INTERFACE_COLOR_PROPERTIES.equals(interfaceName)) {
             String colorTemperatureNameValue = null;
@@ -114,14 +98,14 @@ public class HandlerColorTemperatureController extends AbstractInterfaceHandler 
             } else if (colorTemperatureNameValue == null && lastColorName != null) {
                 colorTemperatureNameValue = lastColorName;
             }
-            updateState(COLOR_TEMPERATURE_NAME.channelId,
+            smartHomeDeviceHandler.updateState(COLOR_TEMPERATURE_NAME.channelId,
                     colorTemperatureNameValue == null ? UnDefType.UNDEF : new StringType(colorTemperatureNameValue));
         }
     }
 
     @Override
-    public boolean handleCommand(Connection connection, SmartHomeDevice shd, String entityId,
-            List<SmartHomeCapability> capabilities, String channelId, Command command)
+    public boolean handleCommand(Connection connection, JsonSmartHomeDevice shd, String entityId,
+            List<JsonSmartHomeCapability> capabilities, String channelId, Command command)
             throws IOException, InterruptedException {
         if (channelId.equals(COLOR_TEMPERATURE_IN_KELVIN.channelId)) {
             // WRITING TO THIS CHANNEL DOES CURRENTLY NOT WORK, BUT WE LEAVE THE CODE FOR FUTURE USE!

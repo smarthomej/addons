@@ -106,7 +106,7 @@ import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonRegisterAppRe
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonRegisterAppResponse.Success;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonRegisterAppResponse.Tokens;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonRenewTokenResponse;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevices.SmartHomeDevice;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevice;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeGroups.SmartHomeGroup;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonStartRoutineRequest;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonUsersMeResponse;
@@ -811,7 +811,7 @@ public class Connection {
             if (map.containsKey("entityId") && map.containsKey("friendlyName") && map.containsKey("actions")) {
                 // device node found, create type element and add it to the results
                 JsonElement element = gson.toJsonTree(jsonNode);
-                SmartHomeDevice shd = parseJson(element.toString(), SmartHomeDevice.class);
+                JsonSmartHomeDevice shd = parseJson(element.toString(), JsonSmartHomeDevice.class);
                 devices.add(shd);
             } else if (map.containsKey("applianceGroupName")) {
                 JsonElement element = gson.toJsonTree(jsonNode);
@@ -847,9 +847,10 @@ public class Connection {
             String applianceId = device.findId();
             if (applianceId != null) {
                 JsonObject stateRequest;
-                if (device instanceof SmartHomeDevice && ((SmartHomeDevice) device).mergedApplianceIds != null) {
+                if (device instanceof JsonSmartHomeDevice
+                        && ((JsonSmartHomeDevice) device).mergedApplianceIds != null) {
                     List<String> mergedApplianceIds = Objects
-                            .requireNonNullElse(((SmartHomeDevice) device).mergedApplianceIds, List.of());
+                            .requireNonNullElse(((JsonSmartHomeDevice) device).mergedApplianceIds, List.of());
                     for (String idToMerge : mergedApplianceIds) {
                         mergedApplianceMap.put(idToMerge, applianceId);
                         stateRequest = new JsonObject();

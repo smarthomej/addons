@@ -19,8 +19,8 @@ import java.util.List;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.types.Command;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapabilities;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevices;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapability;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevice;
 
 import com.google.gson.JsonObject;
 
@@ -31,8 +31,7 @@ import com.google.gson.JsonObject;
  */
 @NonNullByDefault
 public interface InterfaceHandler {
-    Collection<AbstractInterfaceHandler.ChannelInfo> initialize(
-            List<JsonSmartHomeCapabilities.SmartHomeCapability> capabilities);
+    Collection<ChannelInfo> initialize(List<JsonSmartHomeCapability> capabilities);
 
     List<String> getSupportedInterface();
 
@@ -40,8 +39,8 @@ public interface InterfaceHandler {
 
     void updateChannels(String interfaceName, List<JsonObject> stateList, UpdateChannelResult result);
 
-    boolean handleCommand(Connection connection, JsonSmartHomeDevices.SmartHomeDevice shd, String entityId,
-            List<JsonSmartHomeCapabilities.SmartHomeCapability> capabilities, String channelId, Command command)
+    boolean handleCommand(Connection connection, JsonSmartHomeDevice shd, String entityId,
+            List<JsonSmartHomeCapability> capabilities, String channelId, Command command)
             throws IOException, InterruptedException;
 
     class UpdateChannelResult {

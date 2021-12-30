@@ -79,7 +79,7 @@ import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonNotificationR
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonNotificationSound;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonPlaylists;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonPushCommand;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevices.SmartHomeDevice;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevice;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonWakeWords.WakeWord;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.SmartHomeBaseDevice;
 import org.smarthomej.binding.amazonechocontrol.internal.smarthome.SmartHomeDeviceStateGroupUpdateCalculator;
@@ -233,10 +233,18 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
         }
     }
 
+    public void removeEchoHandler(EchoHandler echoHandler) {
+        echoHandlers.remove(echoHandler);
+    }
+
     public void addSmartHomeDeviceHandler(SmartHomeDeviceHandler smartHomeDeviceHandler) {
         if (smartHomeDeviceHandlers.add(smartHomeDeviceHandler)) {
             forceCheckData();
         }
+    }
+
+    public void removeSmartHomeDeviceHandler(SmartHomeDeviceHandler smartHomeDeviceHandler) {
+        smartHomeDeviceHandlers.remove(smartHomeDeviceHandler);
     }
 
     public void forceCheckData() {
@@ -783,17 +791,15 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
             long endTimestamp = timestamp + 30000;
             List<CustomerHistoryRecord> customerHistoryRecords = connection.getActivities(startTimestamp, endTimestamp);
             for (CustomerHistoryRecord customerHistoryRecord : customerHistoryRecords) {
-                if (customerHistoryRecord != null) {
-                    String recordKey = customerHistoryRecord.recordKey;
-                    String search = key.registeredUserId + "#" + key.entryId;
-                    if (recordKey != null && search.equals(recordKey)) {
-                        String[] splitRecordKey = recordKey.split("#");
-                        if (splitRecordKey.length >= 2) {
-                            EchoHandler echoHandler = findEchoHandlerBySerialNumber(splitRecordKey[3]);
-                            if (echoHandler != null) {
-                                echoHandler.handlePushActivity(customerHistoryRecord);
-                                break;
-                            }
+                String recordKey = customerHistoryRecord.recordKey;
+                String search = key.registeredUserId + "#" + key.entryId;
+                if (recordKey != null && search.equals(recordKey)) {
+                    String[] splitRecordKey = recordKey.split("#");
+                    if (splitRecordKey.length >= 2) {
+                        EchoHandler echoHandler = findEchoHandlerBySerialNumber(splitRecordKey[3]);
+                        if (echoHandler != null) {
+                            echoHandler.handlePushActivity(customerHistoryRecord);
+                            break;
                         }
                     }
                 }
@@ -805,7 +811,7 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
         refreshData();
     }
 
-    private @Nullable SmartHomeBaseDevice findSmartDeviceHomeJson(SmartHomeDeviceHandler handler) {
+    private @Nullable SmartHomeBaseDevice findSmartHomeDeviceJson(SmartHomeDeviceHandler handler) {
         String id = handler.getId();
         if (!id.isEmpty()) {
             return jsonIdSmartHomeDeviceMapping.get(id);
@@ -848,15 +854,12 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
         }
         // update handlers
         smartHomeDeviceHandlers
-                .forEach(child -> child.setDeviceAndUpdateThingState(this, findSmartDeviceHomeJson(child)));
+                .forEach(child -> child.setDeviceAndUpdateThingState(this, findSmartHomeDeviceJson(child)));
 
         return Objects.requireNonNullElse(smartHomeDevices, List.of());
     }
 
-    public void forceDelayedSmartHomeStateUpdate(@Nullable String deviceId) {
-        if (deviceId == null) {
-            return;
-        }
+    public void forceDelayedSmartHomeStateUpdate(String deviceId) {
         synchronized (synchronizeSmartHomeJobScheduler) {
             requestedDeviceUpdates.add(deviceId);
             ScheduledFuture<?> refreshSmartHomeAfterCommandJob = this.refreshSmartHomeAfterCommandJob;
@@ -905,7 +908,7 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
                 if (smartHomeDeviceHandlers.isEmpty()) {
                     return;
                 }
-                List<SmartHomeDevice> devicesToUpdate = new ArrayList<>();
+                List<JsonSmartHomeDevice> devicesToUpdate = new ArrayList<>();
                 for (SmartHomeDeviceHandler device : smartHomeDeviceHandlers) {
                     String id = device.getId();
                     SmartHomeBaseDevice baseDevice = jsonIdSmartHomeDeviceMapping.get(id);
