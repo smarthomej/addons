@@ -40,6 +40,7 @@ import org.smarthomej.binding.amazonechocontrol.internal.handler.AccountHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.EchoHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.FlashBriefingProfileHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDeviceHandler;
+import org.smarthomej.commons.SimpleDynamicCommandDescriptionProvider;
 
 import com.google.gson.Gson;
 
@@ -60,13 +61,15 @@ public class AmazonEchoControlHandlerFactory extends BaseThingHandlerFactory {
     private final BindingServlet bindingServlet;
     private final Gson gson;
     private final HttpClient httpClient;
+    private final SimpleDynamicCommandDescriptionProvider dynamicCommandDescriptionProvider;
 
     @Activate
-    public AmazonEchoControlHandlerFactory(@Reference HttpService httpService, @Reference StorageService storageService)
-            throws Exception {
+    public AmazonEchoControlHandlerFactory(@Reference HttpService httpService, @Reference StorageService storageService,
+            @Reference SimpleDynamicCommandDescriptionProvider dynamicCommandDescriptionProvider) throws Exception {
         this.storageService = storageService;
         this.httpService = httpService;
         this.gson = new Gson();
+        this.dynamicCommandDescriptionProvider = dynamicCommandDescriptionProvider;
         this.httpClient = new HttpClient(new SslContextFactory.Client());
         this.bindingServlet = new BindingServlet(httpService);
 
@@ -109,7 +112,7 @@ public class AmazonEchoControlHandlerFactory extends BaseThingHandlerFactory {
         } else if (SUPPORTED_ECHO_THING_TYPES_UIDS.contains(thingTypeUID)) {
             return new EchoHandler(thing, gson);
         } else if (SUPPORTED_SMART_HOME_THING_TYPES_UIDS.contains(thingTypeUID)) {
-            return new SmartHomeDeviceHandler(thing, gson);
+            return new SmartHomeDeviceHandler(thing, gson, dynamicCommandDescriptionProvider);
         }
         return null;
     }

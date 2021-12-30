@@ -40,6 +40,7 @@ import org.openhab.core.thing.binding.ThingHandlerCallback;
 import org.openhab.core.thing.binding.builder.ChannelBuilder;
 import org.openhab.core.thing.binding.builder.ThingBuilder;
 import org.openhab.core.types.Command;
+import org.openhab.core.types.CommandOption;
 import org.openhab.core.types.RefreshType;
 import org.openhab.core.types.State;
 import org.slf4j.Logger;
@@ -55,6 +56,7 @@ import org.smarthomej.binding.amazonechocontrol.internal.jsons.SmartHomeBaseDevi
 import org.smarthomej.binding.amazonechocontrol.internal.smarthome.ChannelInfo;
 import org.smarthomej.binding.amazonechocontrol.internal.smarthome.Constants;
 import org.smarthomej.binding.amazonechocontrol.internal.smarthome.InterfaceHandler;
+import org.smarthomej.commons.SimpleDynamicCommandDescriptionProvider;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -67,16 +69,20 @@ import com.google.gson.JsonObject;
 @NonNullByDefault
 public class SmartHomeDeviceHandler extends BaseThingHandler {
     private final Logger logger = LoggerFactory.getLogger(SmartHomeDeviceHandler.class);
+    private final SimpleDynamicCommandDescriptionProvider dynamicCommandDescriptionProvider;
 
-    private @Nullable SmartHomeBaseDevice smartHomeBaseDevice;
     private final Gson gson;
     private final Map<String, InterfaceHandler> interfaceHandlers = new HashMap<>();
     private final Map<String, JsonArray> lastStates = new HashMap<>();
+
+    private @Nullable SmartHomeBaseDevice smartHomeBaseDevice;
     private String deviceId = "";
 
-    public SmartHomeDeviceHandler(Thing thing, Gson gson) {
+    public SmartHomeDeviceHandler(Thing thing, Gson gson,
+            SimpleDynamicCommandDescriptionProvider dynamicCommandDescriptionProvider) {
         super(thing);
         this.gson = gson;
+        this.dynamicCommandDescriptionProvider = dynamicCommandDescriptionProvider;
     }
 
     public synchronized void setDeviceAndUpdateThingState(AccountHandler accountHandler,
@@ -123,6 +129,12 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
                     if (addChannelToDevice(thingBuilder, callback, channelInfo)) {
                         changed = true;
                     }
+
+                    List<CommandOption> commandOptions = handler.getCommandDescription(channelInfo);
+                    if (commandOptions != null) {
+                        dynamicCommandDescriptionProvider.setCommandOptions(
+                                new ChannelUID(thing.getUID(), channelInfo.channelId), commandOptions);
+                    }
                 }
             }
         }
@@ -168,6 +180,8 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
         if (accountHandler != null) {
             accountHandler.removeSmartHomeDeviceHandler(this);
         }
+
+        dynamicCommandDescriptionProvider.removeCommandDescriptionForThing(thing.getUID());
     }
 
     public String getId() {
