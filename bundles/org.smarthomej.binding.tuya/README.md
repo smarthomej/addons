@@ -37,8 +37,11 @@ Enter a name (e.g. "My Smarthome"), select "Smart Home" for "Industry" and "Deve
 For security reasons, select only the "Data Center" that your app is connected to (you can change that later if you select the wrong one). 
 Select "IoT Core", "Authorization" and "Device Status Notification" as APIs.
 - You should be redirected to the "Overview" tab of your project. 
-Write down (or copy) "Access ID/Client ID" and "Access Secret/Client Secret" (ypu can always look it up in your account).
+Write down (or copy) "Access ID/Client ID" and "Access Secret/Client Secret" (you can always look it up in your account).
 - In the upper menu bar, select the "Devices" tab, then go to "Link Tuya App Account" and link you App account.
+
+
+The next steps are performed in openHAB's Main UI:
 
 Add a `project` and enter your credentials (`username`/`password`, from the app - not your cloud account!) and the cloud project credentials (`accessId`/`accessSecret`).
 The `countryCode` is the international dial prefix of the country you registered your app in (e.g. `49` for Germany or `43` for Austria).
@@ -49,6 +52,7 @@ The thing should come online immediately.
 
 If the thing does not come online, check 
 
+- if you really used the app and not the developer portal credentials
 - if you entered the correct country code (check in the App if you accidentally choose a wrong country)
 - check if you selected the correct "Data Center" in your cloud project (you can select more than one for testing).
 
@@ -68,14 +72,15 @@ There is no clear rule how to determine if a device has protocol 3.3 or 3.1.
 It is recommended to start with 3.3 and watch the log file if it that works and use 3.1 otherwise.
 
 *Note:* Support for protocol 3.1 is considered experimental.
+In case something is not working, please open an issue on [GitHub](https://github.com/smarthomej/addons/issues) and add TRACE level logs.
 
 ## Channels
 
-For auto-discovered devices the schema of the device is requested from the cloud.
-Based on that channels are added to the thing on first startup.
+Channels are added automatically based on device schemas on first startup.
+The binding first tries to get it from a database of known device schemas.
+If no schema is found a schema retrieved from the cloud during discovery is used (if applicable).
 
-In case you manually configured the device (or no schema was retrieved during discovery), a database is used to lookup the correct schema.
-The device will change to OFFLINE status if this is not successful.
+The device will change to OFFLINE status if no device schema could be determined.
 
 Channels can also be added manually.
 The available channel-types are `color`, `dimmer`, `number`, `string` and  `switch`.

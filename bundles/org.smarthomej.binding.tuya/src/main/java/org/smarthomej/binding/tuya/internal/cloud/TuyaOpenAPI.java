@@ -175,7 +175,7 @@ public class TuyaOpenAPI {
             return CompletableFuture.completedFuture(resultResponse.result);
         } else {
             if (resultResponse.code >= 1010 && resultResponse.code <= 1013) {
-                logger.warn("Server reported invalid token. This should never happen. Trying to relogin");
+                logger.warn("Server reported invalid token. This should never happen. Trying to re-login.");
                 callback.tuyaOpenApiStatus(false);
                 return CompletableFuture.failedFuture(new ConnectionException(resultResponse.msg));
             }
