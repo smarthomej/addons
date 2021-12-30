@@ -22,6 +22,7 @@ import java.util.Set;
 import javax.measure.quantity.Temperature;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.library.unit.ImperialUnits;
 import org.openhab.core.library.unit.SIUnits;
@@ -29,8 +30,8 @@ import org.openhab.core.types.Command;
 import org.openhab.core.types.UnDefType;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDeviceHandler;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapabilities.SmartHomeCapability;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevices.SmartHomeDevice;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapability;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevice;
 
 import com.google.gson.JsonObject;
 
@@ -42,19 +43,17 @@ import com.google.gson.JsonObject;
  */
 @NonNullByDefault
 public class HandlerTemperatureSensor extends AbstractInterfaceHandler {
-    // Interface
     public static final String INTERFACE = "Alexa.TemperatureSensor";
-    // Channel definitions
-    private static final ChannelInfo TEMPERATURE = new ChannelInfo("temperature" /* propertyName */ ,
-            "temperature" /* ChannelId */, CHANNEL_TYPE_TEMPERATURE /* Channel Type */ ,
-            ITEM_TYPE_NUMBER_TEMPERATURE /* Item Type */);
+
+    private static final ChannelInfo TEMPERATURE = new ChannelInfo("temperature", "temperature",
+            CHANNEL_TYPE_TEMPERATURE);
 
     public HandlerTemperatureSensor(SmartHomeDeviceHandler smartHomeDeviceHandler) {
         super(smartHomeDeviceHandler, List.of(INTERFACE));
     }
 
     @Override
-    protected Set<ChannelInfo> findChannelInfos(SmartHomeCapability capability, String property) {
+    protected Set<ChannelInfo> findChannelInfos(JsonSmartHomeCapability capability, @Nullable String property) {
         if (TEMPERATURE.propertyName.equals(property)) {
             return Set.of(TEMPERATURE);
         }
@@ -79,12 +78,13 @@ public class HandlerTemperatureSensor extends AbstractInterfaceHandler {
                 }
             }
         }
-        updateState(TEMPERATURE.channelId, temperatureValue == null ? UnDefType.UNDEF : temperatureValue);
+        smartHomeDeviceHandler.updateState(TEMPERATURE.channelId,
+                temperatureValue == null ? UnDefType.UNDEF : temperatureValue);
     }
 
     @Override
-    public boolean handleCommand(Connection connection, SmartHomeDevice shd, String entityId,
-            List<SmartHomeCapability> capabilities, String channelId, Command command) throws IOException {
+    public boolean handleCommand(Connection connection, JsonSmartHomeDevice shd, String entityId,
+            List<JsonSmartHomeCapability> capabilities, String channelId, Command command) throws IOException {
         return false;
     }
 }

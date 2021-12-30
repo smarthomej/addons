@@ -13,8 +13,6 @@
  */
 package org.smarthomej.binding.amazonechocontrol.internal.smarthome;
 
-import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Constants.ITEM_TYPE_DIMMER;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -25,14 +23,12 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.IncreaseDecreaseType;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.PercentType;
-import org.openhab.core.thing.type.ChannelTypeUID;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.UnDefType;
-import org.smarthomej.binding.amazonechocontrol.internal.AmazonEchoControlBindingConstants;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDeviceHandler;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapabilities.SmartHomeCapability;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevices.SmartHomeDevice;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapability;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevice;
 
 import com.google.gson.JsonObject;
 
@@ -44,17 +40,10 @@ import com.google.gson.JsonObject;
  */
 @NonNullByDefault
 public class HandlerPowerLevelController extends AbstractInterfaceHandler {
-    // Interface
     public static final String INTERFACE = "Alexa.PowerLevelController";
 
-    // Channel types
-    private static final ChannelTypeUID CHANNEL_TYPE_POWER_LEVEL = new ChannelTypeUID(
-            AmazonEchoControlBindingConstants.BINDING_ID, "powerLevel");
-
-    // Channel definitions
-    private static final ChannelInfo POWER_LEVEL = new ChannelInfo("powerLevel" /* propertyName */ ,
-            "powerLevel" /* ChannelId */, CHANNEL_TYPE_POWER_LEVEL /* Channel Type */ ,
-            ITEM_TYPE_DIMMER /* Item Type */);
+    private static final ChannelInfo POWER_LEVEL = new ChannelInfo("powerLevel", "powerLevel",
+            Constants.CHANNEL_TYPE_POWER_LEVEL);
 
     private @Nullable Integer lastPowerLevel;
 
@@ -63,7 +52,7 @@ public class HandlerPowerLevelController extends AbstractInterfaceHandler {
     }
 
     @Override
-    protected Set<ChannelInfo> findChannelInfos(SmartHomeCapability capability, String property) {
+    protected Set<ChannelInfo> findChannelInfos(JsonSmartHomeCapability capability, @Nullable String property) {
         if (POWER_LEVEL.propertyName.equals(property)) {
             return Set.of(POWER_LEVEL);
         }
@@ -87,13 +76,13 @@ public class HandlerPowerLevelController extends AbstractInterfaceHandler {
         if (powerLevelValue != null) {
             lastPowerLevel = powerLevelValue;
         }
-        updateState(POWER_LEVEL.channelId,
+        smartHomeDeviceHandler.updateState(POWER_LEVEL.channelId,
                 powerLevelValue == null ? UnDefType.UNDEF : new PercentType(powerLevelValue));
     }
 
     @Override
-    public boolean handleCommand(Connection connection, SmartHomeDevice shd, String entityId,
-            List<SmartHomeCapability> capabilities, String channelId, Command command)
+    public boolean handleCommand(Connection connection, JsonSmartHomeDevice shd, String entityId,
+            List<JsonSmartHomeCapability> capabilities, String channelId, Command command)
             throws IOException, InterruptedException {
         if (channelId.equals(POWER_LEVEL.channelId)) {
             if (containsCapabilityProperty(capabilities, POWER_LEVEL.propertyName)) {

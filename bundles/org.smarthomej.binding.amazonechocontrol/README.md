@@ -46,6 +46,7 @@ It also provides features to control devices connected to your echo:
 - control groups of lights or just single bulbs
 - receive the current state of the lights
 - turn on/off smart plugs (e. g. OSRAM)
+- receive states of attached sensors like particulate matter or carbon monoxide
 
 Restrictions:
 
@@ -78,15 +79,10 @@ With the possibility to control your lights you could do:
 - automatically turn on your lights at the evening
 - integrate your smart bulbs with rules 
 
-## Binding Configuration
-
-The binding does not have any configuration.
-The configuration of your amazon account must be done in the 'Amazon Account' device.
-
 ## First Steps
 
-1) Create an 'Amazon Account' thing
-2) open the url YOUR_OPENHAB/amazonechocontrol in your browser (e.g. http://openhab:8080/amazonechocontrol/), click the link for your account thing and login.
+1) Create an Amazon `account` thing
+2) Open the url `YOUR_OPENHAB/amazonechocontrol` in your browser (e.g. http://openhab:8080/amazonechocontrol/), click the link for your account thing and login.
 3) You should see now a message that the login was successful
 4) If you encounter redirect/page refresh issues, enable two-factor authentication (2FA) on your Amazon account.
 
@@ -103,59 +99,42 @@ If you want to discover your smart home devices you need to activate it in the '
 Devices from other skills can be discovered too.
 See section *Smart Home Devices* below for more information.
 
-## Account
+## Account Thing `account`
 
 The configuration of your Amazon account must be done in the 'Amazon Account' device.
 
-### Account Thing
-
-#### Supported Thing Type
-
-| Thing type id        | Name                                  |
-|----------------------|---------------------------------------|
-| account              | Amazon Account                        |
-
-#### Thing Configuration
+### Thing Configuration
 
 | Configuration name              | Default | Description                                                                           |
 |---------------------------------|---------|---------------------------------------------------------------------------------------|
-| discoverSmartHome               | 0       | 0...No discover, 1...Discover direct connected, 2...Discover direct and Alexa skill devices, 3...Discover direct, Alexa and openHAB skill devices |
-| pollingIntervalSmartHomeAlexa   | 30      | Defines the time in seconds for openHAB to pull the state of the Alexa connected devices. The minimum is 10 seconds. | 
-| pollingIntervalSmartSkills      | 120     | Defines the time in seconds for openHAB to pull the state of the over a skill connected devices. The minimum is 60 seconds. |
+| `discoverSmartHome`             | 0       | 0...No discover, 1...Discover direct connected, 2...Discover direct and Alexa skill devices, 3...Discover direct, Alexa and openHAB skill devices |
+| `pollingIntervalSmartHomeAlexa` | 30      | Defines the time in seconds for openHAB to pull the state of the Alexa connected devices. The minimum is 10 seconds. | 
+| `pollingIntervalSmartSkills`    | 120     | Defines the time in seconds for openHAB to pull the state of the over a skill connected devices. The minimum is 60 seconds. |
 
-#### Channels
+### Channels
 
 | Channel Type ID       | Item Type   | Access Mode | Thing Type                    | Description                                                                                                                                                                
 |-----------------------|-------------|-------------|-------------------------------|------------------------------------------------------------------------------------------
-| sendMessage           | String      | W           | account                       | Write Only! Sends a message to the Echo devices.
+| `sendMessage`         | String      | W           | account                       | Write Only! Sends a message to the Echo devices.
 
-## Echo Control (Control Echo devices from openHAB)
-
-### echo, echospot, echoshow, wha Things
-
-#### Supported Thing Type
+## Echo Control (Control Echo devices from openHAB) `echo`, `echospot`, `echoshow`, `wha`
 
 | Thing type id        | Name                                  |
 |----------------------|---------------------------------------|
-| echo                 | Amazon Echo Device                    |
-| echospot             | Amazon Echo Spot Device               |
-| echoshow             | Amazon Echo Show Device               |
-| wha                  | Amazon Echo Whole House Audio Control |
+| `echo`               | Amazon Echo Device                    |
+| `echospot`           | Amazon Echo Spot Device               |
+| `echoshow`           | Amazon Echo Show Device               |
+| `wha`                | Amazon Echo Whole House Audio Control |
 
-#### Thing Configuration
+### Thing Configuration 
 
 | Configuration name       | Description                                        |
 |--------------------------|----------------------------------------------------|
-| serialNumber             | Serial number of the Amazon Echo in the Alexa app  |
+| `serialNumber`           | Serial number of the Amazon Echo in the Alexa app  |
 
 You will find the serial number in the Alexa app or on the webpage YOUR_OPENHAB/amazonechocontrol/YOUR_ACCOUNT (e.g. http://openhab:8080/amazonechocontrol/account1).
 
-### Flash Briefing Profile
-
-The flashbriefingprofile thing has no configuration parameters.
-It will be configured at runtime by using the save channel to store the current flash briefing configuration in the thing.
-
-#### Channels
+### Channels
 
 | Channel Type ID       | Item Type   | Access Mode | Thing Type                    | Description
 |-----------------------|-------------|-------------|-------------------------------|------------------------------------------------------------------------------------------
@@ -205,7 +184,7 @@ It will be configured at runtime by using the save channel to store the current 
 | playOnDevice          | String      | W           | flashbriefingprofile          | Write Only! Specify the echo serial number or name to start the flash briefing. 
 
 **Attention:** Channels marked with (*) are deprecated and will be removed in the future.
-Amazon already started to remove some of the functionality.
+Amazon already started to remove some of that functionality.
 You can use the `textCommand` channel with a value of `Play Radio XYZ on TuneIn` or `Play playlist CrazyMusic on AmazonMusic` instead.
 
 ## Advanced Feature Technically Experienced Users
@@ -354,19 +333,13 @@ sitemap amazonechocontrol label="Echo Devices"
 }
 ```
 
-## Flash Briefing
+## Flash Briefing `flashbriefingprofile`
 
-#### Supported Things
-
-| Thing type id        | Name                                  |
-|----------------------|---------------------------------------|
-| flashbriefingprofile | Flash briefing profile                |
-
-#### Channels
+### Channels
 
 The flashbriefingprofile thing has no configuration parameters.
 It will be configured at runtime by using the save channel to store the current flash briefing configuration which is set in the alexa app in the thing. Create a flashbriefingprofile Thing for each set you need.
-E.g. One Flashbriefing profile with technical news and wheater, one for playing world news and one for sport news.
+E.g. One Flashbriefing profile with technical news and weather, one for playing world news and one for sport news.
 
 | Channel Type ID       | Item Type   | Access Mode | Thing Type                    | Description                                                                                                                                                                
 |-----------------------|-------------|-------------|-------------------------------|------------------------------------------------------------------------------------------
@@ -374,7 +347,7 @@ E.g. One Flashbriefing profile with technical news and wheater, one for playing 
 | active                | Switch      | R/W         | flashbriefingprofile          | Active the profile
 | playOnDevice          | String      | W           | flashbriefingprofile          | Specify the echo serial number or name to start the flash briefing. 
 
-#### Example
+### Example
 
 #### flashbriefings.things
 
@@ -423,10 +396,13 @@ sitemap flashbriefings label="Flash Briefings"
 
 ## Smart Home Devices
 
-Note: the channels of smartHomeDevices and smartHomeDeviceGroup will be created dynamically based on the capabilities reported by the amazon server. This can take a little bit of time. 
-The polling interval configured in the Account Thing to get the state is specified in minutes and has a minimum of 10. This means it takes up to 10 minutes to see the state of a channel. The reason for this low interval is, that the polling causes a big server load for the Smart Home Skills.
+Note: the channels of smartHomeDevices and smartHomeDeviceGroup will be created dynamically based on the capabilities reported by the amazon server.
+This can take some time. 
+The polling interval configured in the Account Thing to get the state is specified in minutes and has a minimum of 10. 
+This means it takes up to 10 minutes to see the state of a channel. 
+The reason for this low interval is, that the polling causes a big server load for the Smart Home Skills.
 
-#### Supported Things
+### Supported Things
 
 | Thing type id        | Name                                  |
 |----------------------|---------------------------------------|
@@ -434,7 +410,7 @@ The polling interval configured in the Account Thing to get the state is specifi
 | smartHomeDeviceGroup | Smart Home Device group               |
 
 
-#### Thing configuration of smartHomeDevice, smartHomeDeviceGroup
+### Thing configuration of smartHomeDevice, smartHomeDeviceGroup
 
 | Configuration name       | Description                                                               |
 |--------------------------|---------------------------------------------------------------------------|
@@ -442,7 +418,7 @@ The polling interval configured in the Account Thing to get the state is specifi
 
 The only possibility to find out the id is by using the discover function in the UI. You can use then the id, if you want define the Thing in a file.
 
-#### Channels
+### Channels
 
 The channels of the smarthome devices will be generated at runtime. Check in the UI thing configurations, which channels are created.
 
@@ -534,7 +510,7 @@ sitemap smarthome label="Smart Home Devices"
 
 The url <YOUR_OPENHAB>/amazonechocontrol/<YOUR_ACCOUNT>/PROXY/<API_URL> provides a proxy server with an authenticated connection to the amazon alexa server. This can be used to call alexa api from rules.
 
-E.g. to read out the history call from an installation on openhab:8080 with a account named account1:
+E.g. to read out the history call from an installation on openhab:8080 with an account named account1:
 
 http://openhab:8080/amazonechocontrol/account1/PROXY/api/activities?startTime=&size=50&offset=1
 
@@ -708,7 +684,8 @@ The binding is tested with amazon.de, amazon.fr, amazon.it, amazon.com and amazo
 
 The idea for writing this binding came from this blog: https://blog.loetzimmer.de/2017/10/amazon-alexa-hort-auf-die-shell-echo.html (German).
 Thank you Alex!
-The technical information for the web socket connection to get live Alexa state updates cames from Ingo. He has done the Alexa ioBroker implementation https://github.com/Apollon77
+The technical information for the web socket connection to get live Alexa state updates cames from Ingo. 
+He has done the Alexa ioBroker implementation https://github.com/Apollon77
 Thank you Ingo!
 
 ## Trademark Disclaimer

@@ -13,24 +13,19 @@
  */
 package org.smarthomej.binding.amazonechocontrol.internal.smarthome;
 
-import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Constants.ITEM_TYPE_SWITCH;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.OnOffType;
-import org.openhab.core.thing.type.ChannelTypeUID;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.UnDefType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.smarthomej.binding.amazonechocontrol.internal.AmazonEchoControlBindingConstants;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDeviceHandler;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapabilities.SmartHomeCapability;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevices.SmartHomeDevice;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapability;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevice;
 
 import com.google.gson.JsonObject;
 
@@ -42,26 +37,17 @@ import com.google.gson.JsonObject;
  */
 @NonNullByDefault
 public class HandlerPowerController extends AbstractInterfaceHandler {
-    private final Logger logger = LoggerFactory.getLogger(HandlerPowerController.class);
-
-    // Interface
     public static final String INTERFACE = "Alexa.PowerController";
 
-    // Channel types
-    private static final ChannelTypeUID CHANNEL_TYPE_POWER_STATE = new ChannelTypeUID(
-            AmazonEchoControlBindingConstants.BINDING_ID, "powerState");
-
-    // Channel definitions
-    private static final ChannelInfo POWER_STATE = new ChannelInfo("powerState" /* propertyName */ ,
-            "powerState" /* ChannelId */, CHANNEL_TYPE_POWER_STATE /* Channel Type */ ,
-            ITEM_TYPE_SWITCH /* Item Type */);
+    private static final ChannelInfo POWER_STATE = new ChannelInfo("powerState", "powerState",
+            Constants.CHANNEL_TYPE_POWER_STATE);
 
     public HandlerPowerController(SmartHomeDeviceHandler smartHomeDeviceHandler) {
         super(smartHomeDeviceHandler, List.of(INTERFACE));
     }
 
     @Override
-    protected Set<ChannelInfo> findChannelInfos(SmartHomeCapability capability, String property) {
+    protected Set<ChannelInfo> findChannelInfos(JsonSmartHomeCapability capability, @Nullable String property) {
         if (POWER_STATE.propertyName.equals(property)) {
             return Set.of(POWER_STATE);
         }
@@ -70,7 +56,6 @@ public class HandlerPowerController extends AbstractInterfaceHandler {
 
     @Override
     public void updateChannels(String interfaceName, List<JsonObject> stateList, UpdateChannelResult result) {
-        logger.trace("{} received {}", this.smartHomeDeviceHandler.getId(), stateList);
         Boolean powerStateValue = null;
         for (JsonObject state : stateList) {
             if (POWER_STATE.propertyName.equals(state.get("name").getAsString())) {
@@ -79,13 +64,13 @@ public class HandlerPowerController extends AbstractInterfaceHandler {
                 powerStateValue = "ON".equals(value);
             }
         }
-        logger.trace("{} final state {}", this.smartHomeDeviceHandler.getId(), powerStateValue);
-        updateState(POWER_STATE.channelId, powerStateValue == null ? UnDefType.UNDEF : OnOffType.from(powerStateValue));
+        smartHomeDeviceHandler.updateState(POWER_STATE.channelId,
+                powerStateValue == null ? UnDefType.UNDEF : OnOffType.from(powerStateValue));
     }
 
     @Override
-    public boolean handleCommand(Connection connection, SmartHomeDevice shd, String entityId,
-            List<SmartHomeCapability> capabilities, String channelId, Command command)
+    public boolean handleCommand(Connection connection, JsonSmartHomeDevice shd, String entityId,
+            List<JsonSmartHomeCapability> capabilities, String channelId, Command command)
             throws IOException, InterruptedException {
         if (channelId.equals(POWER_STATE.channelId)) {
             if (containsCapabilityProperty(capabilities, POWER_STATE.propertyName)) {

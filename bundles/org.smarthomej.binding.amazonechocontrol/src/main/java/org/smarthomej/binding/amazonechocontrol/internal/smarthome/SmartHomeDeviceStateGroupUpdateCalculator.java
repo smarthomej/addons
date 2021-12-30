@@ -23,8 +23,8 @@ import java.util.Set;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevices.DriverIdentity;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevices.SmartHomeDevice;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevice;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevice.DriverIdentity;
 
 /**
  * Handles the update interval calculation
@@ -59,7 +59,7 @@ public class SmartHomeDeviceStateGroupUpdateCalculator {
         this.updateIntervalSkillsInSeconds = updateIntervalSkillsInSeconds;
     }
 
-    private Integer getUpdateIntervalInSeconds(SmartHomeDevice shd) {
+    private Integer getUpdateIntervalInSeconds(JsonSmartHomeDevice shd) {
         Integer updateIntervalInSeconds = shd.updateIntervalInSeconds;
         if (updateIntervalInSeconds != null) {
             return updateIntervalInSeconds;
@@ -94,11 +94,11 @@ public class SmartHomeDeviceStateGroupUpdateCalculator {
         return updateIntervalInSeconds;
     }
 
-    public void removeDevicesWithNoUpdate(List<SmartHomeDevice> devices) {
+    public void removeDevicesWithNoUpdate(List<JsonSmartHomeDevice> devices) {
         Date updateTimeStamp = new Date();
         // check if new group is needed
         boolean syncAllGroups = false;
-        for (SmartHomeDevice device : devices) {
+        for (JsonSmartHomeDevice device : devices) {
             int updateIntervalInSeconds = getUpdateIntervalInSeconds(device);
             if (!updateGroups.containsKey(updateIntervalInSeconds)) {
                 UpdateGroup newGroup = new UpdateGroup(updateIntervalInSeconds);
