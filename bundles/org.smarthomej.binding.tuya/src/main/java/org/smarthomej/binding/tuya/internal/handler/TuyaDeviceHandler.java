@@ -267,35 +267,7 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
             addChannels(schema);
         }
 
-        // configure channels and datapoints
-        thing.getChannels().forEach(ch -> {
-            ChannelConfiguration configuration = ch.getConfiguration().as(ChannelConfiguration.class);
-            ChannelTypeUID channelTypeUID = ch.getChannelTypeUID();
-
-            if (channelTypeUID == null) {
-                logger.warn("Could not determine ChannelTypeUID for '{}'", ch.getUID());
-                return;
-            }
-
-            String channelId = ch.getUID().getId();
-
-            if (!configuration.range.isEmpty()) {
-                List<CommandOption> commandOptions = toCommandOptionList(
-                        Arrays.stream(configuration.range.split(",")).collect(Collectors.toList()));
-                dynamicCommandDescriptionProvider.setCommandOptions(ch.getUID(), commandOptions);
-            }
-
-            dpToChannelId.put(configuration.dp, channelId);
-            channelIdToConfiguration.put(channelId, configuration);
-            channelIdToChannelTypeUID.put(channelId, channelTypeUID);
-
-            // check if we have additional DPs (these are switch DP for color or brightness only)
-            if (configuration.dp2 != 0) {
-                List<String> list = Objects
-                        .requireNonNull(dp2ToChannelId.computeIfAbsent(configuration.dp2, ArrayList::new));
-                list.add(channelId);
-            }
-        });
+        thing.getChannels().forEach(this::configureChannel);
 
         if (!configuration.ip.isEmpty()) {
             deviceInfoChanged(new DeviceInfo(configuration.ip, configuration.protocol));
@@ -397,6 +369,35 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
         channels.values().forEach(thingBuilder::withChannel);
 
         updateThing(thingBuilder.build());
+    }
+
+    private void configureChannel(Channel channel) {
+        ChannelConfiguration configuration = channel.getConfiguration().as(ChannelConfiguration.class);
+        ChannelTypeUID channelTypeUID = channel.getChannelTypeUID();
+
+        if (channelTypeUID == null) {
+            logger.warn("Could not determine ChannelTypeUID for '{}'", channel.getUID());
+            return;
+        }
+
+        String channelId = channel.getUID().getId();
+
+        if (!configuration.range.isEmpty()) {
+            List<CommandOption> commandOptions = toCommandOptionList(
+                    Arrays.stream(configuration.range.split(",")).collect(Collectors.toList()));
+            dynamicCommandDescriptionProvider.setCommandOptions(channel.getUID(), commandOptions);
+        }
+
+        dpToChannelId.put(configuration.dp, channelId);
+        channelIdToConfiguration.put(channelId, configuration);
+        channelIdToChannelTypeUID.put(channelId, channelTypeUID);
+
+        // check if we have additional DPs (these are switch DP for color or brightness only)
+        if (configuration.dp2 != 0) {
+            List<String> list = Objects
+                    .requireNonNull(dp2ToChannelId.computeIfAbsent(configuration.dp2, ArrayList::new));
+            list.add(channelId);
+        }
     }
 
     private List<CommandOption> toCommandOptionList(List<String> options) {

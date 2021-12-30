@@ -59,7 +59,7 @@ public class TuyaEncoder extends MessageToByteEncoder<MessageWrapper<?>> {
 
     @Override
     @SuppressWarnings("unchecked")
-    protected void encode(@NonNullByDefault({}) ChannelHandlerContext ctx, @NonNullByDefault({}) MessageWrapper<?> msg,
+    protected void encode(@NonNullByDefault({}) ChannelHandlerContext ctx, MessageWrapper<?> msg,
             @NonNullByDefault({}) ByteBuf out) throws Exception {
         Map<String, Object> payload = new HashMap<>();
         payload.put("devId", deviceId);

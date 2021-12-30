@@ -29,6 +29,7 @@ import io.netty.channel.ChannelHandlerContext;
  *
  * @author Jan N. Klug - Initial contribution
  */
+@NonNullByDefault
 public class DiscoveryMessageHandler extends ChannelDuplexHandler {
     private final Map<String, DeviceInfo> deviceInfos;
     private final Map<String, DeviceInfoSubscriber> deviceListeners;

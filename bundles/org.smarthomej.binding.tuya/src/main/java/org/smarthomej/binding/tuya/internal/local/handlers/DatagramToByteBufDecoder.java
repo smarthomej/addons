@@ -26,10 +26,11 @@ import io.netty.handler.codec.MessageToMessageDecoder;
  *
  * @author Jan N. Klug - Initial contribution
  */
+@NonNullByDefault
 public class DatagramToByteBufDecoder extends MessageToMessageDecoder<DatagramPacket> {
 
     @Override
-    protected void decode(@Nullable ChannelHandlerContext ctx, @NonNullByDefault({}) DatagramPacket msg,
+    protected void decode(@Nullable ChannelHandlerContext ctx, DatagramPacket msg,
             @NonNullByDefault({}) List<Object> out) throws Exception {
         out.add(msg.content().copy());
     }

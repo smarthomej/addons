@@ -62,7 +62,6 @@ public class TuyaDiscoveryService extends AbstractDiscoveryService implements Th
     private final Gson gson = new Gson();
 
     private @Nullable ProjectHandler bridgeHandler;
-    private @NonNullByDefault({}) ThingUID bridgeUid;
     private @NonNullByDefault({}) Storage<String> storage;
     private @Nullable ScheduledFuture<?> discoveryJob;
 
@@ -122,7 +121,6 @@ public class TuyaDiscoveryService extends AbstractDiscoveryService implements Th
     @Override
     public void setThingHandler(ThingHandler thingHandler) {
         if (thingHandler instanceof ProjectHandler) {
-            bridgeUid = thingHandler.getThing().getUID();
             this.bridgeHandler = (ProjectHandler) thingHandler;
             this.storage = ((ProjectHandler) thingHandler).getStorage();
         }
