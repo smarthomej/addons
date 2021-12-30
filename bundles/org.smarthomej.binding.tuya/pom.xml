@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.smarthomej.addons.bundles</groupId>
+    <artifactId>org.smarthomej.addons.reactor.bundles</artifactId>
+    <version>3.1.9-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>org.smarthomej.binding.tuya</artifactId>
+
+  <name>SmartHome/J Add-ons :: Bundles :: Tuya Binding</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.smarthomej.addons.bundles</groupId>
+      <artifactId>org.smarthomej.commons</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-common</artifactId>
+      <version>4.1.53.Final</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+
+</project>

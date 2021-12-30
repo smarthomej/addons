@@ -33,6 +33,7 @@
     <module>org.smarthomej.binding.tcpudp</module>
     <module>org.smarthomej.binding.telenot</module>
     <module>org.smarthomej.binding.tr064</module>
+    <module>org.smarthomej.binding.tuya</module>
     <module>org.smarthomej.binding.viessmann</module>
     <module>org.smarthomej.persistence.influxdb</module>
     <!-- transformations -->
