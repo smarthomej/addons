@@ -1179,29 +1179,26 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
         List<VoiceHistoryRecordItem> voiceHistoryRecordItems = customerHistoryRecord.voiceHistoryRecordItems;
         if (voiceHistoryRecordItems != null) {
             for (VoiceHistoryRecordItem voiceHistoryRecordItem : voiceHistoryRecordItems) {
-                if (voiceHistoryRecordItem != null) {
-                    String recordItemType = voiceHistoryRecordItem.recordItemType;
-                    if ("CUSTOMER_TRANSCRIPT".equals(recordItemType) || "ASR_REPLACEMENT_TEXT".equals(recordItemType)) {
-                        String customerTranscript = voiceHistoryRecordItem.transcriptText;
-                        if (customerTranscript != null && !customerTranscript.isEmpty()) {
-                            // REMOVE WAKEWORD
-                            String wakeWordPrefix = this.wakeWord;
-                            if (wakeWordPrefix != null
-                                    && customerTranscript.toLowerCase().startsWith(wakeWordPrefix.toLowerCase())) {
-                                customerTranscript = customerTranscript.substring(wakeWordPrefix.length()).trim();
-                                // STOP IF WAKEWORD ONLY
-                                if (customerTranscript.isEmpty()) {
-                                    return;
-                                }
+                String recordItemType = voiceHistoryRecordItem.recordItemType;
+                if ("CUSTOMER_TRANSCRIPT".equals(recordItemType) || "ASR_REPLACEMENT_TEXT".equals(recordItemType)) {
+                    String customerTranscript = voiceHistoryRecordItem.transcriptText;
+                    if (customerTranscript != null && !customerTranscript.isEmpty()) {
+                        // REMOVE WAKEWORD
+                        String wakeWordPrefix = this.wakeWord;
+                        if (wakeWordPrefix != null
+                                && customerTranscript.toLowerCase().startsWith(wakeWordPrefix.toLowerCase())) {
+                            customerTranscript = customerTranscript.substring(wakeWordPrefix.length()).trim();
+                            // STOP IF WAKEWORD ONLY
+                            if (customerTranscript.isEmpty()) {
+                                return;
                             }
-                            updateState(CHANNEL_LAST_VOICE_COMMAND, new StringType(customerTranscript));
                         }
-                    } else if ("ALEXA_RESPONSE".equals(recordItemType)
-                            || "TTS_REPLACEMENT_TEXT".equals(recordItemType)) {
-                        String alexaResponse = voiceHistoryRecordItem.transcriptText;
-                        if (alexaResponse != null && !alexaResponse.isEmpty()) {
-                            updateState(CHANNEL_LAST_SPOKEN_TEXT, new StringType(alexaResponse));
-                        }
+                        updateState(CHANNEL_LAST_VOICE_COMMAND, new StringType(customerTranscript));
+                    }
+                } else if ("ALEXA_RESPONSE".equals(recordItemType) || "TTS_REPLACEMENT_TEXT".equals(recordItemType)) {
+                    String alexaResponse = voiceHistoryRecordItem.transcriptText;
+                    if (alexaResponse != null && !alexaResponse.isEmpty()) {
+                        updateState(CHANNEL_LAST_SPOKEN_TEXT, new StringType(alexaResponse));
                     }
                 }
             }

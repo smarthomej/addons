@@ -558,6 +558,7 @@
 	<channel-type id="color">
 		<item-type>Color</item-type>
 		<label>Color</label>
+		<state readOnly="true"/>
 	</channel-type>
 	<channel-type id="colorName">
 		<item-type>String</item-type>

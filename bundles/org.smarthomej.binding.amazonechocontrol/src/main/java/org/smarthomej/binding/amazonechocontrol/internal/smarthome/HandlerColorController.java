@@ -26,6 +26,8 @@ import org.openhab.core.library.types.PercentType;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.UnDefType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDeviceHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapability;
@@ -41,6 +43,7 @@ import com.google.gson.JsonObject;
  */
 @NonNullByDefault
 public class HandlerColorController extends AbstractInterfaceHandler {
+    private static final Logger logger = LoggerFactory.getLogger(HandlerColorController.class);
     public static final String INTERFACE = "Alexa.ColorController";
     public static final String INTERFACE_COLOR_PROPERTIES = "Alexa.ColorPropertiesController";
 
@@ -66,7 +69,6 @@ public class HandlerColorController extends AbstractInterfaceHandler {
     @Override
     public void updateChannels(String interfaceName, List<JsonObject> stateList, UpdateChannelResult result) {
         if (INTERFACE.equals(interfaceName)) {
-            // WRITING TO THIS CHANNEL DOES CURRENTLY NOT WORK, BUT WE LEAVE THE CODE FOR FUTURE USE!
             HSBType colorValue = null;
             for (JsonObject state : stateList) {
                 if (COLOR.propertyName.equals(state.get("name").getAsString())) {
@@ -111,16 +113,7 @@ public class HandlerColorController extends AbstractInterfaceHandler {
             List<JsonSmartHomeCapability> capabilities, String channelId, Command command)
             throws IOException, InterruptedException {
         if (channelId.equals(COLOR.channelId)) {
-            if (containsCapabilityProperty(capabilities, COLOR.propertyName)) {
-                if (command instanceof HSBType) {
-                    HSBType color = ((HSBType) command);
-                    JsonObject colorObject = new JsonObject();
-                    colorObject.addProperty("hue", color.getHue());
-                    colorObject.addProperty("saturation", color.getSaturation().floatValue() / 100);
-                    colorObject.addProperty("brightness", color.getBrightness().floatValue() / 100);
-                    connection.smartHomeCommand(entityId, "setColor", Map.of("value", colorObject));
-                }
-            }
+            logger.info("Discarding command to 'color' channel, read-only.");
         }
         if (channelId.equals(COLOR_PROPERTIES.channelId)) {
             if (containsCapabilityProperty(capabilities, COLOR.propertyName)) {

@@ -66,7 +66,7 @@ public class JsonSmartHomeCapability {
     }
 
     public static class Configuration {
-        public Configuration.@Nullable Range supportedRange;
+        public @Nullable Range supportedRange;
         public @Nullable String unitOfMeasure;
         public @Nullable List<String> presets;
 
@@ -98,7 +98,7 @@ public class JsonSmartHomeCapability {
         }
 
         public static class Names {
-            public Resources.Names.@Nullable Value value;
+            public @Nullable Value value;
             @SerializedName("@type")
             public @Nullable String type;
 

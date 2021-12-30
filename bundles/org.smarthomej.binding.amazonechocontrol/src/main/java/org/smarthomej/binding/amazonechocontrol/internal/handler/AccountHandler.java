@@ -791,17 +791,15 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
             long endTimestamp = timestamp + 30000;
             List<CustomerHistoryRecord> customerHistoryRecords = connection.getActivities(startTimestamp, endTimestamp);
             for (CustomerHistoryRecord customerHistoryRecord : customerHistoryRecords) {
-                if (customerHistoryRecord != null) {
-                    String recordKey = customerHistoryRecord.recordKey;
-                    String search = key.registeredUserId + "#" + key.entryId;
-                    if (recordKey != null && search.equals(recordKey)) {
-                        String[] splitRecordKey = recordKey.split("#");
-                        if (splitRecordKey.length >= 2) {
-                            EchoHandler echoHandler = findEchoHandlerBySerialNumber(splitRecordKey[3]);
-                            if (echoHandler != null) {
-                                echoHandler.handlePushActivity(customerHistoryRecord);
-                                break;
-                            }
+                String recordKey = customerHistoryRecord.recordKey;
+                String search = key.registeredUserId + "#" + key.entryId;
+                if (recordKey != null && search.equals(recordKey)) {
+                    String[] splitRecordKey = recordKey.split("#");
+                    if (splitRecordKey.length >= 2) {
+                        EchoHandler echoHandler = findEchoHandlerBySerialNumber(splitRecordKey[3]);
+                        if (echoHandler != null) {
+                            echoHandler.handlePushActivity(customerHistoryRecord);
+                            break;
                         }
                     }
                 }

@@ -18,6 +18,8 @@ import java.util.Objects;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDeviceNetworkState.SmartHomeDeviceNetworkState;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeTags.JsonSmartHomeTag;
 
 /**
  * The {@link JsonSmartHomeDevice} encapsulates smarthome device API responses
@@ -34,9 +36,9 @@ public class JsonSmartHomeDevice implements SmartHomeBaseDevice {
     public @Nullable String friendlyName;
     public @Nullable String reachability;
     public @Nullable String entityId;
-    public JsonSmartHomeDeviceNetworkState.@Nullable SmartHomeDeviceNetworkState applianceNetworkState;
+    public @Nullable SmartHomeDeviceNetworkState applianceNetworkState;
     public @Nullable List<JsonSmartHomeCapability> capabilities;
-    public JsonSmartHomeTags.@Nullable JsonSmartHomeTag tags;
+    public @Nullable JsonSmartHomeTag tags;
     public @Nullable List<String> applianceTypes;
     public @Nullable List<JsonSmartHomeDeviceAlias> aliases;
     public @Nullable List<JsonSmartHomeDevice> groupDevices;
