@@ -13,9 +13,13 @@
 package org.smarthomej.binding.amazonechocontrol.internal.smarthome;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.library.types.HSBType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.smarthomej.commons.util.ResourceUtil;
 
 /**
  * The {@link AlexaColor} defines the Alexa color names
@@ -24,23 +28,9 @@ import org.openhab.core.library.types.HSBType;
  */
 @NonNullByDefault
 public class AlexaColor {
-    public static final List<AlexaColor> ALEXA_COLORS = List.of( //
-            new AlexaColor("white", new HSBType("0,0,100")), //
-            new AlexaColor("red", new HSBType("0,100,100")), //
-            new AlexaColor("crimson", new HSBType("348,90,100")), //
-            new AlexaColor("salmon", new HSBType("16,52,100")), //
-            new AlexaColor("orange", new HSBType("38,100,100")), //
-            new AlexaColor("gold", new HSBType("49,100,100")), //
-            new AlexaColor("yellow", new HSBType("60,100,100")), //
-            new AlexaColor("green", new HSBType("120,100,100")), //
-            new AlexaColor("turquoise", new HSBType("173,72,100")), //
-            new AlexaColor("cyan", new HSBType("180,100,100")), //
-            new AlexaColor("sky_blue", new HSBType("197,42,100")), //
-            new AlexaColor("blue", new HSBType("240,100,100")), //
-            new AlexaColor("purple", new HSBType("276,86,100")), //
-            new AlexaColor("magenta", new HSBType("300,100,100")), //
-            new AlexaColor("pink", new HSBType("348,25,100")), //
-            new AlexaColor("lavender", new HSBType("255,50,100")));
+    private static final Logger LOGGER = LoggerFactory.getLogger(AlexaColor.class);
+
+    public static final List<AlexaColor> ALEXA_COLORS = getColors();
 
     public final String colorName;
     final HSBType value;
@@ -107,5 +97,10 @@ public class AlexaColor {
         } else {
             return Math.pow(value, 1.0 / 3.0);
         }
+    }
+
+    private static List<AlexaColor> getColors() {
+        return ResourceUtil.readProperties(AlexaColor.class, "color.properties").entrySet().stream()
+                .map(e -> new AlexaColor(e.getKey(), new HSBType(e.getValue()))).collect(Collectors.toList());
     }
 }

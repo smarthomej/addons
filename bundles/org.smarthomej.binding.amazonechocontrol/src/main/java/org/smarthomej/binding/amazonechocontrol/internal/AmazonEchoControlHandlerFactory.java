@@ -41,6 +41,7 @@ import org.smarthomej.binding.amazonechocontrol.internal.handler.EchoHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.FlashBriefingProfileHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDeviceHandler;
 import org.smarthomej.commons.SimpleDynamicCommandDescriptionProvider;
+import org.smarthomej.commons.SimpleDynamicStateDescriptionProvider;
 
 import com.google.gson.Gson;
 
@@ -62,14 +63,17 @@ public class AmazonEchoControlHandlerFactory extends BaseThingHandlerFactory {
     private final Gson gson;
     private final HttpClient httpClient;
     private final SimpleDynamicCommandDescriptionProvider dynamicCommandDescriptionProvider;
+    private final SimpleDynamicStateDescriptionProvider dynamicStateDescriptionProvider;
 
     @Activate
     public AmazonEchoControlHandlerFactory(@Reference HttpService httpService, @Reference StorageService storageService,
-            @Reference SimpleDynamicCommandDescriptionProvider dynamicCommandDescriptionProvider) throws Exception {
+            @Reference SimpleDynamicCommandDescriptionProvider dynamicCommandDescriptionProvider,
+            @Reference SimpleDynamicStateDescriptionProvider dynamicStateDescriptionProvider) throws Exception {
         this.storageService = storageService;
         this.httpService = httpService;
         this.gson = new Gson();
         this.dynamicCommandDescriptionProvider = dynamicCommandDescriptionProvider;
+        this.dynamicStateDescriptionProvider = dynamicStateDescriptionProvider;
         this.httpClient = new HttpClient(new SslContextFactory.Client());
         this.bindingServlet = new BindingServlet(httpService);
 
@@ -112,7 +116,8 @@ public class AmazonEchoControlHandlerFactory extends BaseThingHandlerFactory {
         } else if (SUPPORTED_ECHO_THING_TYPES_UIDS.contains(thingTypeUID)) {
             return new EchoHandler(thing, gson);
         } else if (SUPPORTED_SMART_HOME_THING_TYPES_UIDS.contains(thingTypeUID)) {
-            return new SmartHomeDeviceHandler(thing, gson, dynamicCommandDescriptionProvider);
+            return new SmartHomeDeviceHandler(thing, gson, dynamicCommandDescriptionProvider,
+                    dynamicStateDescriptionProvider);
         }
         return null;
     }

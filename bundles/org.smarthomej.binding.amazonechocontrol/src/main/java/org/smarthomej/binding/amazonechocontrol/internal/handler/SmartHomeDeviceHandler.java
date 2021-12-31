@@ -43,6 +43,7 @@ import org.openhab.core.types.Command;
 import org.openhab.core.types.CommandOption;
 import org.openhab.core.types.RefreshType;
 import org.openhab.core.types.State;
+import org.openhab.core.types.StateDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
@@ -57,6 +58,7 @@ import org.smarthomej.binding.amazonechocontrol.internal.smarthome.ChannelInfo;
 import org.smarthomej.binding.amazonechocontrol.internal.smarthome.Constants;
 import org.smarthomej.binding.amazonechocontrol.internal.smarthome.InterfaceHandler;
 import org.smarthomej.commons.SimpleDynamicCommandDescriptionProvider;
+import org.smarthomej.commons.SimpleDynamicStateDescriptionProvider;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -70,6 +72,7 @@ import com.google.gson.JsonObject;
 public class SmartHomeDeviceHandler extends BaseThingHandler {
     private final Logger logger = LoggerFactory.getLogger(SmartHomeDeviceHandler.class);
     private final SimpleDynamicCommandDescriptionProvider dynamicCommandDescriptionProvider;
+    private final SimpleDynamicStateDescriptionProvider dynamicStateDescriptionProvider;
 
     private final Gson gson;
     private final Map<String, InterfaceHandler> interfaceHandlers = new HashMap<>();
@@ -79,10 +82,12 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
     private String deviceId = "";
 
     public SmartHomeDeviceHandler(Thing thing, Gson gson,
-            SimpleDynamicCommandDescriptionProvider dynamicCommandDescriptionProvider) {
+            SimpleDynamicCommandDescriptionProvider dynamicCommandDescriptionProvider,
+            SimpleDynamicStateDescriptionProvider dynamicStateDescriptionProvider) {
         super(thing);
         this.gson = gson;
         this.dynamicCommandDescriptionProvider = dynamicCommandDescriptionProvider;
+        this.dynamicStateDescriptionProvider = dynamicStateDescriptionProvider;
     }
 
     public synchronized void setDeviceAndUpdateThingState(AccountHandler accountHandler,
@@ -126,14 +131,21 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
                 }
                 for (ChannelInfo channelInfo : required) {
                     unusedChannels.remove(channelInfo.channelId);
-                    if (addChannelToDevice(thingBuilder, callback, channelInfo)) {
+                    ChannelUID channelUID = new ChannelUID(thing.getUID(), channelInfo.channelId);
+                    Channel channel = thing.getChannel(channelUID);
+                    if (channel == null || !channelInfo.channelTypeUID.equals(channel.getChannelTypeUID())) {
+                        channel = addChannelToDevice(thingBuilder, callback, channelInfo);
                         changed = true;
                     }
 
-                    List<CommandOption> commandOptions = handler.getCommandDescription(channelInfo);
+                    List<CommandOption> commandOptions = handler.getCommandDescription(channel);
                     if (commandOptions != null) {
-                        dynamicCommandDescriptionProvider.setCommandOptions(
-                                new ChannelUID(thing.getUID(), channelInfo.channelId), commandOptions);
+                        dynamicCommandDescriptionProvider.setCommandOptions(channelUID, commandOptions);
+                    }
+
+                    StateDescription stateDescription = handler.getStateDescription(channel);
+                    if (stateDescription != null) {
+                        dynamicStateDescriptionProvider.setDescription(channelUID, stateDescription);
                     }
                 }
             }
@@ -182,23 +194,17 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
         }
 
         dynamicCommandDescriptionProvider.removeCommandDescriptionForThing(thing.getUID());
+        dynamicStateDescriptionProvider.removeDescriptionsForThing(thing.getUID());
     }
 
     public String getId() {
         return deviceId;
     }
 
-    private boolean addChannelToDevice(ThingBuilder thingBuilder, ThingHandlerCallback callback,
+    private Channel addChannelToDevice(ThingBuilder thingBuilder, ThingHandlerCallback callback,
             ChannelInfo channelInfo) {
-        Channel channel = thing.getChannel(channelInfo.channelId);
-        if (channel != null) {
-            if (channelInfo.channelTypeUID.equals(channel.getChannelTypeUID())) {
-                // channel exist with the same settings
-                return false;
-            }
-            // channel exist with other settings, remove it first
-            thingBuilder.withoutChannel(channel.getUID());
-        }
+        ChannelUID channelUID = new ChannelUID(thing.getUID(), channelInfo.channelId);
+        thingBuilder.withoutChannel(channelUID);
 
         ChannelBuilder channelBuilder = callback.createChannelBuilder(
                 new ChannelUID(thing.getUID(), channelInfo.channelId), channelInfo.channelTypeUID);
@@ -206,9 +212,10 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
         if (label != null) {
             channelBuilder.withLabel(label);
         }
-        thingBuilder.withChannel(channelBuilder.build());
+        Channel channel = channelBuilder.build();
+        thingBuilder.withChannel(channel);
 
-        return true;
+        return channel;
     }
 
     public void updateChannelStates(List<SmartHomeBaseDevice> allDevices,

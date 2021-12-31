@@ -558,7 +558,14 @@
 	<channel-type id="color">
 		<item-type>Color</item-type>
 		<label>Color</label>
-		<state readOnly="true"/>
+		<config-description>
+			<parameter name="matchColors" type="boolean">
+				<label>Match Colors</label>
+				<description>The API does not support sending HSB values. Enabling this allows the binding to try to get the most
+					similar pre-defined color and send that instead.</description>
+				<default>false</default>
+			</parameter>
+		</config-description>
 	</channel-type>
 	<channel-type id="colorName">
 		<item-type>String</item-type>
