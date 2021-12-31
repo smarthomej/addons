@@ -22,7 +22,9 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.types.Command;
+import org.openhab.core.types.CommandOption;
 import org.openhab.core.types.State;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +51,12 @@ public abstract class AbstractInterfaceHandler implements InterfaceHandler {
     public AbstractInterfaceHandler(SmartHomeDeviceHandler smartHomeDeviceHandler, List<String> interfaces) {
         this.smartHomeDeviceHandler = smartHomeDeviceHandler;
         this.interfaces = interfaces;
+    }
+
+    @Override
+    public @Nullable List<CommandOption> getCommandDescription(ChannelInfo channelInfo) {
+        // return null if not used
+        return null;
     }
 
     protected abstract Set<ChannelInfo> findChannelInfos(JsonSmartHomeCapability capability, String property);
