@@ -14,9 +14,11 @@
 package org.smarthomej.binding.amazonechocontrol.internal.smarthome;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -25,6 +27,7 @@ import org.openhab.core.library.types.HSBType;
 import org.openhab.core.library.types.PercentType;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.types.Command;
+import org.openhab.core.types.CommandOption;
 import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,9 +78,9 @@ public class HandlerColorController extends AbstractInterfaceHandler {
                     JsonObject value = state.get("value").getAsJsonObject();
                     // For groups take the maximum
                     if (colorValue == null) {
-                        colorValue = new HSBType(new DecimalType(value.get("hue").getAsInt()),
-                                new PercentType(value.get("saturation").getAsInt() * 100),
-                                new PercentType(value.get("brightness").getAsInt() * 100));
+                        colorValue = new HSBType(new DecimalType(value.get("hue").getAsDouble()),
+                                new PercentType(BigDecimal.valueOf(value.get("saturation").getAsDouble() * 100.0)),
+                                new PercentType(BigDecimal.valueOf(value.get("brightness").getAsDouble() * 100.0)));
                     }
                 }
             }
@@ -128,5 +131,11 @@ public class HandlerColorController extends AbstractInterfaceHandler {
             }
         }
         return false;
+    }
+
+    @Override
+    public List<CommandOption> getCommandDescription(ChannelInfo channelInfo) {
+        return AlexaColor.ALEXA_COLORS.stream().map(color -> new CommandOption(color.colorName, color.colorName))
+                .collect(Collectors.toList());
     }
 }
