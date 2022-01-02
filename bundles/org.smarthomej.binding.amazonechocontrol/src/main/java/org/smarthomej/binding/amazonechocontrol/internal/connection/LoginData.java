@@ -51,7 +51,7 @@ public class LoginData {
     public @Nullable Date loginTime;
     private List<Cookie> cookies = new ArrayList<>();
 
-    public LoginData(CookieManager cookieManager, String frc, String serial, String deviceId) {
+    public LoginData(CookieManager cookieManager, String deviceId, String frc, String serial) {
         this.cookieManager = cookieManager;
         this.frc = frc;
         this.serial = serial;
