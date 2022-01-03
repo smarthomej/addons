@@ -90,11 +90,11 @@ public class AccountServlet extends HttpServlet {
         this.gson = gson;
 
         try {
-            servletUrlWithoutRoot = "amazonechocontrol/" + URLEncoder.encode(id, "UTF8");
+            servletUrlWithoutRoot = "amazonechocontrol/" + URLEncoder.encode(id, StandardCharsets.UTF_8);
             servletUrl = "/" + servletUrlWithoutRoot;
 
             httpService.registerServlet(servletUrl, this, null, httpService.createDefaultHttpContext());
-        } catch (UnsupportedEncodingException | NamespaceException | ServletException e) {
+        } catch (NamespaceException | ServletException e) {
             throw new IllegalStateException(e.getMessage());
         }
     }
@@ -210,7 +210,7 @@ public class AccountServlet extends HttpServlet {
                     value = strings[0];
                 }
             }
-            postDataBuilder.append(URLEncoder.encode(value, StandardCharsets.UTF_8.name()));
+            postDataBuilder.append(URLEncoder.encode(value, StandardCharsets.UTF_8));
         }
 
         uri = req.getRequestURI();
@@ -396,8 +396,9 @@ public class AccountServlet extends HttpServlet {
         html.append("/changeDomain'>Change</a>");
 
         // Main UI link
-        html.append("<br><a href='/#!/settings/things/" + BINDING_ID + ":"
-                + URLEncoder.encode(THING_TYPE_ACCOUNT.getId(), "UTF8") + ":" + URLEncoder.encode(id, "UTF8") + "'>");
+        html.append("<br><a href='/#!/settings/things/" + BINDING_ID + ":")
+                .append(URLEncoder.encode(THING_TYPE_ACCOUNT.getId(), StandardCharsets.UTF_8)).append(":")
+                .append(URLEncoder.encode(id, StandardCharsets.UTF_8)).append("'>");
         html.append(HtmlEscape.escapeHtml4("Check Thing in Main UI"));
         html.append("</a><br><br>");
 
@@ -415,13 +416,13 @@ public class AccountServlet extends HttpServlet {
             html.append("</td><td>");
             Thing accountHandler = account.findThingBySerialNumber(device.serialNumber);
             if (accountHandler != null) {
-                html.append("<a href='" + servletUrl + "/ids/?serialNumber="
-                        + URLEncoder.encode(device.serialNumber, "UTF8") + "'>"
-                        + HtmlEscape.escapeHtml4(accountHandler.getLabel()) + "</a>");
+                html.append("<a href='").append(servletUrl).append("/ids/?serialNumber=")
+                        .append(URLEncoder.encode(device.serialNumber, StandardCharsets.UTF_8)).append("'>")
+                        .append(HtmlEscape.escapeHtml4(accountHandler.getLabel())).append("</a>");
             } else {
-                html.append("<a href='" + servletUrl + "/ids/?serialNumber="
-                        + URLEncoder.encode(device.serialNumber, "UTF8") + "'>" + HtmlEscape.escapeHtml4("Not defined")
-                        + "</a>");
+                html.append("<a href='").append(servletUrl).append("/ids/?serialNumber=")
+                        .append(URLEncoder.encode(device.serialNumber, StandardCharsets.UTF_8)).append("'>")
+                        .append(HtmlEscape.escapeHtml4("Not defined")).append("</a>");
             }
             html.append("</td><td>");
             html.append(HtmlEscape.escapeHtml4(nullReplacement(device.deviceFamily)));
