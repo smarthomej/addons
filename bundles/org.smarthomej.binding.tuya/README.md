@@ -112,6 +112,8 @@ It contains a comma-separated list of command options for this channel (e.g. `wh
 
 ## Troubleshooting
 
+- If the `project` thing is not coming `ONLINE` check if you see your devices in the cloud-account on `iot.tuya.com`. 
+If the listis empty, most likely you selected a wrong datacenter. 
 - Check if there are errors in the log and if you see messages like `Configuring IP address '192.168.1.100' for thing 'tuya:tuya:tuyaDevice:bf3122fba012345fc9pqa'`.
 If this is missing, try configuring the IP manually.
 The MAC of your device can be found in the auto-discovered thing properties (this helps to identify the device in your router).
