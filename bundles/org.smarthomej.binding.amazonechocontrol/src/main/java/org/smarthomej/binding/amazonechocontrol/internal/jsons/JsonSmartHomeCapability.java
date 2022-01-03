@@ -68,7 +68,7 @@ public class JsonSmartHomeCapability {
     public static class Configuration {
         public @Nullable Range supportedRange;
         public @Nullable String unitOfMeasure;
-        public @Nullable List<String> presets;
+        public @Nullable List<Object> presets;
 
         @Override
         public String toString() {
