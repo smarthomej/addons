@@ -93,9 +93,9 @@ public class LoginData {
         builder.append(deviceName).append("\n");
         builder.append(accountCustomerId).append("\n");
         builder.append(loginTime.getTime()).append("\n");
-        builder.append(cookies.size()).append("\n");
         cookies = cookieManager.getCookieStore().getCookies().stream().map(LoginData.Cookie::fromHttpCookie)
                 .collect(Collectors.toList());
+        builder.append(cookies.size()).append("\n");
         cookies.forEach(cookie -> builder.append(cookie.serialize()));
         return builder.toString();
     }
