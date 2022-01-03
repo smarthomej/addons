@@ -365,11 +365,11 @@ public class AccountServlet extends HttpServlet {
         StringBuilder html = createPageStart("");
         html.append(HtmlEscape.escapeHtml4(message));
         // logout link
-        html.append(" <a href='" + servletUrl + "/logout' >");
+        html.append(" <a href='").append(servletUrl).append("/logout' >");
         html.append(HtmlEscape.escapeHtml4("Logout"));
         html.append("</a>");
         // newdevice link
-        html.append(" | <a href='" + servletUrl + "/newdevice' >");
+        html.append(" | <a href='").append(servletUrl).append("/newdevice' >");
         html.append(HtmlEscape.escapeHtml4("Logout and create new device id"));
         html.append("</a>");
         // customer id
@@ -390,7 +390,7 @@ public class AccountServlet extends HttpServlet {
         html.append("/changeDomain'>Change</a>");
 
         // Main UI link
-        html.append("<br><a href='/#!/settings/things/" + BINDING_ID + ":")
+        html.append("<br><a href='/#!/settings/things/").append(BINDING_ID).append(":")
                 .append(URLEncoder.encode(THING_TYPE_ACCOUNT.getId(), StandardCharsets.UTF_8)).append(":")
                 .append(URLEncoder.encode(id, StandardCharsets.UTF_8)).append("'>");
         html.append(HtmlEscape.escapeHtml4("Check Thing in Main UI"));
