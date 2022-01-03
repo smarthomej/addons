@@ -17,6 +17,7 @@ import static org.smarthomej.binding.amazonechocontrol.internal.AmazonEchoContro
 
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,15 +46,14 @@ public class BindingServlet extends HttpServlet {
 
     private final Logger logger = LoggerFactory.getLogger(BindingServlet.class);
 
-    String servletUrlWithoutRoot;
-    String servletUrl;
-    HttpService httpService;
+    private final String servletUrl;
+    private final HttpService httpService;
 
-    List<Thing> accountHandlers = new ArrayList<>();
+    private final List<Thing> accountHandlers = new ArrayList<>();
 
     public BindingServlet(HttpService httpService) {
         this.httpService = httpService;
-        servletUrlWithoutRoot = "amazonechocontrol";
+        String servletUrlWithoutRoot = "amazonechocontrol";
         servletUrl = "/" + servletUrlWithoutRoot;
         try {
             httpService.registerServlet(servletUrl, this, null, httpService.createDefaultHttpContext());
@@ -105,17 +105,17 @@ public class BindingServlet extends HttpServlet {
         }
 
         StringBuilder html = new StringBuilder();
-        html.append("<html><head><title>" + HtmlEscape.escapeHtml4(BINDING_NAME) + "</title><head><body>");
-        html.append("<h1>" + HtmlEscape.escapeHtml4(BINDING_NAME) + "</h1>");
+        html.append("<html><head><title>").append(HtmlEscape.escapeHtml4(BINDING_NAME)).append("</title><head><body>");
+        html.append("<h1>").append(HtmlEscape.escapeHtml4(BINDING_NAME)).append("</h1>");
 
         synchronized (accountHandlers) {
             if (accountHandlers.isEmpty()) {
                 html.append("No Account thing created.");
             } else {
                 for (Thing accountHandler : accountHandlers) {
-                    String url = URLEncoder.encode(accountHandler.getUID().getId(), "UTF8");
-                    html.append("<a href='./" + url + " '>" + HtmlEscape.escapeHtml4(accountHandler.getLabel())
-                            + "</a><br>");
+                    String url = URLEncoder.encode(accountHandler.getUID().getId(), StandardCharsets.UTF_8);
+                    html.append("<a href='./").append(url).append(" '>")
+                            .append(HtmlEscape.escapeHtml4(accountHandler.getLabel())).append("</a><br>");
                 }
             }
         }

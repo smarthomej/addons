@@ -397,7 +397,7 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
                     }
                 } catch (ConnectionException e) {
                     updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, e.getMessage());
-                } catch (IOException | URISyntaxException e) {
+                } catch (URISyntaxException e) {
                     updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getLocalizedMessage());
                 }
             }
