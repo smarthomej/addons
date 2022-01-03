@@ -112,7 +112,6 @@ public class BindingConstants {
     public static final String CHANNEL_WINDOW_OPEN = "windowopen";
     public static final String CHANNEL_EXTERNAL_WINDOW_OPEN = "externalwindowopen";
 
-
     // group + light channel ids
     public static final String CHANNEL_SWITCH = "switch";
     public static final String CHANNEL_BRIGHTNESS = "brightness";
