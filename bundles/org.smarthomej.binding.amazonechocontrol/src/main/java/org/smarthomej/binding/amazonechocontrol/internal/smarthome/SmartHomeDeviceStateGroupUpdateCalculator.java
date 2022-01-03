@@ -35,11 +35,11 @@ import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevi
 public class SmartHomeDeviceStateGroupUpdateCalculator {
     private final Logger logger = LoggerFactory.getLogger(SmartHomeDeviceStateGroupUpdateCalculator.class);
 
-    private static final Integer UPDATE_INTERVAL_PRIVATE_SKILLS_IN_SECONDS = 10;
-    private static final Integer UPDATE_INTERVAL_PRIVATE_SKILLS_IN_SECONDS_TRACE = 600;
-    private static final Integer UPDATE_INTERVAL_ACOUSTIC_EVENTS_IN_SECONDS = 10;
-    private Integer updateIntervalAmazonInSeconds;
-    private Integer updateIntervalSkillsInSeconds;
+    private static final int UPDATE_INTERVAL_PRIVATE_SKILLS_IN_SECONDS = 300;
+    private static final int UPDATE_INTERVAL_PRIVATE_SKILLS_IN_SECONDS_TRACE = 10;
+    private static final int UPDATE_INTERVAL_ACOUSTIC_EVENTS_IN_SECONDS = 10;
+    private final int updateIntervalAmazonInSeconds;
+    private final int updateIntervalSkillsInSeconds;
 
     private static class UpdateGroup {
         private final int intervalInSeconds;
