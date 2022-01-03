@@ -46,13 +46,14 @@ import com.google.gson.JsonObject;
  */
 @NonNullByDefault
 public class HandlerColorController extends AbstractInterfaceHandler {
-    private static final Logger logger = LoggerFactory.getLogger(HandlerColorController.class);
     public static final String INTERFACE = "Alexa.ColorController";
     public static final String INTERFACE_COLOR_PROPERTIES = "Alexa.ColorPropertiesController";
 
     private static final ChannelInfo COLOR = new ChannelInfo("color", "color", Constants.CHANNEL_TYPE_COLOR);
     private static final ChannelInfo COLOR_PROPERTIES = new ChannelInfo("colorProperties", "colorName",
             Constants.CHANNEL_TYPE_COLOR_NAME);
+
+    private final Logger logger = LoggerFactory.getLogger(HandlerColorController.class);
 
     private @Nullable HSBType lastColor;
     private @Nullable String lastColorName;

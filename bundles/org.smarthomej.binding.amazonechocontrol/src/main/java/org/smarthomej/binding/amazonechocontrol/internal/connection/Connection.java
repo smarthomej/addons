@@ -16,7 +16,6 @@ package org.smarthomej.binding.amazonechocontrol.internal.connection;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.CookieManager;
 import java.net.HttpCookie;
 import java.net.URI;
@@ -304,7 +303,7 @@ public class Connection {
                 }
                 this.loginData.accountCustomerId = accountCustomerId;
             }
-        } catch (URISyntaxException | IOException | ConnectionException e) {
+        } catch (URISyntaxException | ConnectionException e) {
             logger.debug("Getting account customer Id failed", e);
         }
         return loginData.loginTime;
@@ -660,10 +659,10 @@ public class Connection {
         this.renewTime = (long) (System.currentTimeMillis() + Connection.EXPIRES_IN * 1000d / 0.8d); // start renew at
     }
 
-    public boolean checkRenewSession() throws URISyntaxException, UnsupportedEncodingException, ConnectionException {
+    public boolean checkRenewSession() throws URISyntaxException, ConnectionException {
         if (System.currentTimeMillis() >= this.renewTime) {
             String renewTokenPostData = "app_name=Amazon%20Alexa&app_version=2.2.443692.0&di.sdk.version=6.10.0&source_token="
-                    + URLEncoder.encode(loginData.refreshToken, StandardCharsets.UTF_8.name())
+                    + URLEncoder.encode(loginData.refreshToken, StandardCharsets.UTF_8)
                     + "&package_name=com.amazon.echo&di.hw.version=iPhone&platform=iOS&requested_token_type=access_token&source_token_type=refresh_token&di.os.name=iOS&di.os.version=14.8&current_version=6.10.0";
             String renewTokenResponseJson = makeRequestAndReturnString("POST", "https://api.amazon.com/auth/token",
                     renewTokenPostData, false, Map.of());

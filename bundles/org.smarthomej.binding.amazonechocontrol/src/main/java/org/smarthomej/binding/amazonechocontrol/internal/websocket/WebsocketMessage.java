@@ -31,6 +31,7 @@ import com.google.gson.JsonSyntaxException;
  * @author Jan N. Klug - Initial contribution
  */
 @NonNullByDefault
+@SuppressWarnings("unused")
 public class WebsocketMessage {
     private final Logger logger = LoggerFactory.getLogger(WebsocketMessage.class);
 

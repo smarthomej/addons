@@ -16,7 +16,6 @@ package org.smarthomej.binding.amazonechocontrol.internal;
 import static org.smarthomej.binding.amazonechocontrol.internal.AmazonEchoControlBindingConstants.*;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -342,12 +341,7 @@ public class AccountServlet extends HttpServlet {
                 String[] elements = param.split("=");
                 if (elements.length == 2) {
                     String name = elements[0];
-                    String value = "";
-                    try {
-                        value = URLDecoder.decode(elements[1], "UTF8");
-                    } catch (UnsupportedEncodingException e) {
-                        logger.info("Unsupported encoding", e);
-                    }
+                    String value = URLDecoder.decode(elements[1], StandardCharsets.UTF_8);
                     map.put(name, value);
                 }
             }
