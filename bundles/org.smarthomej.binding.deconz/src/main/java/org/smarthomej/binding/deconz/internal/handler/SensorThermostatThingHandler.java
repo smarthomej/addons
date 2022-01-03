@@ -125,6 +125,9 @@ public class SensorThermostatThingHandler extends SensorBaseThingHandler {
                     return;
                 }
                 break;
+            case CHANNEL_EXTERNAL_WINDOW_OPEN:
+                newConfig.externalwindowopen = OnOffType.ON.equals(command);
+                break;
             default:
                 // no supported command
                 return;
@@ -152,6 +155,9 @@ public class SensorThermostatThingHandler extends SensorBaseThingHandler {
             case CHANNEL_THERMOSTAT_MODE:
                 updateState(channelUID, new StringType(mode));
                 break;
+            case CHANNEL_EXTERNAL_WINDOW_OPEN:
+                updateSwitchChannel(channelUID, newConfig.externalwindowopen);
+                break;
         }
     }
 
@@ -170,7 +176,7 @@ public class SensorThermostatThingHandler extends SensorBaseThingHandler {
                     updateQuantityTypeChannel(channelUID, valve, PERCENT, 1.0);
                 }
                 break;
-            case CHANNEL_WINDOWOPEN:
+            case CHANNEL_WINDOW_OPEN:
                 String open = newState.windowopen;
                 if (open != null) {
                     updateState(channelUID, "Closed".equals(open) ? OpenClosedType.CLOSED : OpenClosedType.OPEN);
@@ -220,9 +226,24 @@ public class SensorThermostatThingHandler extends SensorBaseThingHandler {
 
         SensorMessage sensorMessage = (SensorMessage) stateResponse;
         SensorState sensorState = sensorMessage.state;
+        SensorConfig sensorConfig = sensorMessage.config;
+
+        boolean changed = false;
+        ThingBuilder thingBuilder = editThing();
+
         if (sensorState != null && sensorState.windowopen != null) {
-            ThingBuilder thingBuilder = editThing();
-            createChannel(thingBuilder, CHANNEL_WINDOWOPEN, ChannelKind.STATE);
+            if (createChannel(thingBuilder, CHANNEL_WINDOW_OPEN, ChannelKind.STATE)) {
+                changed = true;
+            }
+        }
+
+        if (sensorConfig != null && sensorConfig.externalwindowopen != null) {
+            if (createChannel(thingBuilder, CHANNEL_EXTERNAL_WINDOW_OPEN, ChannelKind.STATE)) {
+                changed = true;
+            }
+        }
+
+        if (changed) {
             updateThing(thingBuilder.build());
         }
 
