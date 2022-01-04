@@ -560,7 +560,7 @@
 		<label>Window Open</label>
 	</channel-type>
 	<channel-type id="externalwindowopen">
-		<item-type>Switch</item-type>
+		<item-type>Contact</item-type>
 		<label>External Window Open</label>
 	</channel-type>
 	<channel-type id="heatsetpoint">

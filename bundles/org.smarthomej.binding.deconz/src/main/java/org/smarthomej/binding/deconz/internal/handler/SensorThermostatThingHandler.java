@@ -126,7 +126,7 @@ public class SensorThermostatThingHandler extends SensorBaseThingHandler {
                 }
                 break;
             case CHANNEL_EXTERNAL_WINDOW_OPEN:
-                newConfig.externalwindowopen = OnOffType.ON.equals(command);
+                newConfig.externalwindowopen = OpenClosedType.OPEN.equals(command);
                 break;
             default:
                 // no supported command
@@ -156,7 +156,10 @@ public class SensorThermostatThingHandler extends SensorBaseThingHandler {
                 updateState(channelUID, new StringType(mode));
                 break;
             case CHANNEL_EXTERNAL_WINDOW_OPEN:
-                updateSwitchChannel(channelUID, newConfig.externalwindowopen);
+                Boolean open = newConfig.externalwindowopen;
+                if (open != null) {
+                    updateState(channelUID, open ? OpenClosedType.OPEN : OpenClosedType.CLOSED);
+                }
                 break;
         }
     }
