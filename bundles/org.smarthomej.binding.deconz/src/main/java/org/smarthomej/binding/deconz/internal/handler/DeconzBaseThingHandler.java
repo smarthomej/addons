@@ -240,8 +240,8 @@ public abstract class DeconzBaseThingHandler extends UpdatingBaseThingHandler im
         if (lastSeen != null && config.lastSeenPolling > 0) {
             thingEdited = createChannel(thingBuilder, CHANNEL_LAST_SEEN, ChannelKind.STATE);
             updateState(CHANNEL_LAST_SEEN, Util.convertTimestampToDateTime(lastSeen));
-            lastSeenPollingJob = scheduler.schedule(() -> requestState(this::processLastSeen), config.lastSeenPolling,
-                    TimeUnit.MINUTES);
+            lastSeenPollingJob = scheduler.scheduleWithFixedDelay(() -> requestState(this::processLastSeen),
+                    config.lastSeenPolling, config.lastSeenPolling, TimeUnit.MINUTES);
             logger.trace("lastSeen polling enabled for thing {} with interval of {} minutes", thing.getUID(),
                     config.lastSeenPolling);
         } else if (thing.getChannel(CHANNEL_LAST_SEEN) != null) {
