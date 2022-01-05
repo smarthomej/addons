@@ -555,12 +555,20 @@
 		<description>Status of this thermostat's childlock.</description>
 		<category>Lock</category>
 	</channel-type>
+	<channel-type id="windowopen">
+		<item-type>Contact</item-type>
+		<label>Window Open</label>
+	</channel-type>
+	<channel-type id="externalwindowopen">
+		<item-type>Contact</item-type>
+		<label>External Window Open</label>
+	</channel-type>
 	<channel-type id="heatsetpoint">
 		<item-type>Number:Temperature</item-type>
 		<label>Target temperature</label>
 		<description>Target temperature</description>
 		<category>Heating</category>
-		<state pattern="%.1f %unit%" step="0.5" max="28" min="6"></state>
+		<state pattern="%.1f %unit%" step="0.5" max="28" min="6"/>
 	</channel-type>
 	<channel-type id="mode">
 		<item-type>String</item-type>

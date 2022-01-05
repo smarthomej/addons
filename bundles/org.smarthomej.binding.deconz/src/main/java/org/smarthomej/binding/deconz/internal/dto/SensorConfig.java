@@ -37,11 +37,12 @@ public class SensorConfig {
     public @Nullable ThermostatMode mode;
     public @Nullable Integer offset;
     public @Nullable Boolean locked;
+    public @Nullable Boolean externalwindowopen;
 
     @Override
     public String toString() {
         return "SensorConfig{" + "on=" + on + ", reachable=" + reachable + ", battery=" + battery + ", temperature="
                 + temperature + ", heatsetpoint=" + heatsetpoint + ", mode=" + mode + ", offset=" + offset + ", locked="
-                + locked + "}";
+                + locked + ", externalwindowopen=" + externalwindowopen + "}";
     }
 }
