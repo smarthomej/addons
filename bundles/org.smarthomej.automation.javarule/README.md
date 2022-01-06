@@ -51,7 +51,7 @@ It is re-generated if items are added or removed.
 You can use is at all places where you would normally put the item name e.g. instead of `postUpdate("MySwitchItem", OFF);` you could use `postUpdate(Items.MySwitchItem, OFF)`.
 This allows code completion (if your IDE supports it)  and reduces the risk of typos.
 
-The `org.smarthomej.automation.javarule.Things` class contains `String` constants for all items.
+The `org.smarthomej.automation.javarule.Things` class contains `String` constants for all things.
 It is re-generated if things are added or removed.
 You can use is at all places where you would normally put the thing UID e.g. instead of `actions.get("deconz", "deconz:deconz:1234abcd");` you could use `actions.get("deconz", Things.deconz_deconz_1234abcd)`.
 This allows code completion (if your IDE supports it)  and reduces the risk of typos.
