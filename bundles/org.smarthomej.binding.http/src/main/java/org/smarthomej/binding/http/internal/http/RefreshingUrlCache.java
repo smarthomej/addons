@@ -102,7 +102,7 @@ public class RefreshingUrlCache {
                 responseContentFuture.exceptionally(t -> {
                     if (t instanceof HttpAuthException) {
                         if (isRetry || !httpClient.reAuth(uri)) {
-                            logger.debug("Authentication failure failed for '{}', retry=", uri, isRetry);
+                            logger.debug("Authentication failed for '{}', retry={}", uri, isRetry);
                             httpStatusListener.onHttpError("Authorization failed");
                         } else {
                             refresh(true);

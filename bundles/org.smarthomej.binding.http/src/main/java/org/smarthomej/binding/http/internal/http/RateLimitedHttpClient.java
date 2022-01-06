@@ -136,7 +136,7 @@ public class RateLimitedHttpClient {
     /**
      * Get the {@link AuthenticationStore} from the wrapped {@link HttpClient}
      *
-     * @return
+     * @return the AuthenticationStore of the client
      */
     public AuthenticationStore getAuthenticationStore() {
         return httpClient.getAuthenticationStore();
@@ -184,11 +184,11 @@ public class RateLimitedHttpClient {
     }
 
     private static class RequestQueueEntry {
-        private URI finalUrl;
-        private HttpMethod method;
-        private String content;
-        private @Nullable String contentType;
-        private CompletableFuture<Request> future;
+        private final URI finalUrl;
+        private final HttpMethod method;
+        private final String content;
+        private final @Nullable String contentType;
+        private final CompletableFuture<Request> future;
 
         public RequestQueueEntry(URI finalUrl, HttpMethod method, String content, @Nullable String contentType,
                 CompletableFuture<Request> future) {
