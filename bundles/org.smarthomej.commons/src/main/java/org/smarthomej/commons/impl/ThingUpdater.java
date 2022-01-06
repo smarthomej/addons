@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Scanner;
 import java.util.TreeMap;
 import java.util.concurrent.ScheduledExecutorService;
@@ -40,6 +41,7 @@ import org.openhab.core.thing.binding.builder.ThingBuilder;
 import org.openhab.core.thing.type.ChannelTypeUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smarthomej.commons.util.ResourceUtil;
 
 /**
  * The {@link ThingUpdater} is responsible for processing thing updates
@@ -64,21 +66,14 @@ public class ThingUpdater {
         thingUid = thing.getUID();
         String thingType = thing.getThingTypeUID().getId();
 
-        // we need the classloader of the bundle that our handler belongs to
-        ClassLoader classLoader = clazz.getClassLoader();
-        if (classLoader == null) {
-            logger.warn("Could not get classloader for class {}", clazz);
-            return;
-        }
-
         String fileName = "update/" + thingType + ".update";
-        InputStream inputStream = classLoader.getResourceAsStream(fileName);
-        if (inputStream == null) {
+        Optional<InputStream> inputStream = ResourceUtil.getResourceStream(clazz, fileName);
+        if (inputStream.isEmpty()) {
             logger.trace("No update instructions found for thing type '{}'", thingType);
             return;
         }
 
-        try (Scanner scanner = new Scanner(inputStream, StandardCharsets.UTF_8)) {
+        try (Scanner scanner = new Scanner(inputStream.get(), StandardCharsets.UTF_8)) {
             scanner.useDelimiter(Pattern.compile("\\r|\\n|\\r\\n"));
             while (scanner.hasNext()) {
                 String line = scanner.next().trim();
