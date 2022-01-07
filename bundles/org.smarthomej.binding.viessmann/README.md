@@ -66,7 +66,7 @@ The channels are automatically generated for all available features.
 
 ### Version 2.3.10
 
-All channels on `device` - thing needs to be recreated to support OUM.
+All channels on `device` - thing needs to be recreated to support Units Of Measurement.
 Simply delete the thing and rediscover.
 The channel links do not need to be deleted.
 But it could be that some have to be relinked.
