@@ -9,7 +9,7 @@
 		<description>The bridge to communicate with the Viessmann API</description>
 
 		<channels>
-			<channel id="countApiCalls" typeId="number">
+			<channel id="countApiCalls" typeId="type-number">
 				<label>Count API Calls</label>
 			</channel>
 		</channels>
