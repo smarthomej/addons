@@ -14,6 +14,10 @@
 
   <name>SmartHome/J Add-ons :: Bundles :: Amazon Echo Control Binding</name>
 
+  <properties>
+    <bnd.importpackage>!net.minidev.*,!org.apache.tapestry5.*,!org.codehaus.jettison.*</bnd.importpackage>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.smarthomej.addons.bundles</groupId>
@@ -25,6 +29,24 @@
       <groupId>org.unbescape</groupId>
       <artifactId>unbescape</artifactId>
       <version>1.1.6.RELEASE</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.jayway.jsonpath</groupId>
+      <artifactId>json-path</artifactId>
+      <version>2.6.0</version>
+      <scope>compile</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>net.minidev</groupId>
+          <artifactId>json-smart</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+      <version>20200518</version>
       <scope>compile</scope>
     </dependency>
   </dependencies>

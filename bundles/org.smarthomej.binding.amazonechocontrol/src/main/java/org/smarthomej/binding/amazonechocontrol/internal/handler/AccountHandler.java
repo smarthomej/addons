@@ -13,6 +13,8 @@
  */
 package org.smarthomej.binding.amazonechocontrol.internal.handler;
 
+import static com.jayway.jsonpath.Criteria.where;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
@@ -56,22 +58,19 @@ import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.amazonechocontrol.internal.AccountHandlerConfig;
 import org.smarthomej.binding.amazonechocontrol.internal.AccountServlet;
 import org.smarthomej.binding.amazonechocontrol.internal.ConnectionException;
+import org.smarthomej.binding.amazonechocontrol.internal.JsonDocument;
 import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.AmazonHandlerCallback;
 import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.ChannelHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.ChannelHandlerSendMessage;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.discovery.AmazonEchoDiscovery;
 import org.smarthomej.binding.amazonechocontrol.internal.discovery.SmartHomeDevicesDiscovery;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonAscendingAlarm.AscendingAlarmModel;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates.BluetoothState;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCommandPayloadPushActivity;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCommandPayloadPushActivity.Key;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCommandPayloadPushDevice;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCommandPayloadPushDevice.DopplerId;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCommandPayloadPushNotificationChange;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCustomerHistoryRecords.CustomerHistoryRecord;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDeviceNotificationState.DeviceNotificationState;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDevices.Device;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonFeed;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonMusicProvider;
@@ -80,7 +79,6 @@ import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonNotificationS
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonPlaylists;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonPushCommand;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevice;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonWakeWords.WakeWord;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.SmartHomeBaseDevice;
 import org.smarthomej.binding.amazonechocontrol.internal.smarthome.SmartHomeDeviceStateGroupUpdateCalculator;
 import org.smarthomej.binding.amazonechocontrol.internal.websocket.WebSocketCommandHandler;
@@ -508,12 +506,7 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
 
                 // check if logged in
                 Connection currentConnection = connection;
-                if (currentConnection != null) {
-                    if (!currentConnection.getIsLoggedIn()) {
-                        return;
-                    }
-                }
-                if (currentConnection == null) {
+                if (currentConnection == null || !currentConnection.getIsLoggedIn()) {
                     return;
                 }
 
@@ -522,16 +515,13 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
                 updateSmartHomeDeviceList(false);
                 updateFlashBriefingHandlers();
 
-                List<DeviceNotificationState> deviceNotificationStates = List.of();
-                List<AscendingAlarmModel> ascendingAlarmModels = List.of();
+                JsonDocument deviceNotificationStates = currentConnection
+                        .alexaGetRequest("/api/device-notification-state");
+                JsonDocument ascendingAlarmModels = currentConnection.alexaGetRequest("/api/ascending-alarm");
+
                 JsonBluetoothStates states = null;
                 List<JsonMusicProvider> musicProviders = null;
                 if (currentConnection.getIsLoggedIn()) {
-                    // update notification states
-                    deviceNotificationStates = currentConnection.getDeviceNotificationStates();
-
-                    // update ascending alarm
-                    ascendingAlarmModels = currentConnection.getAscendingAlarm();
 
                     // update bluetooth states
                     states = currentConnection.getBluetoothConnectionStates();
@@ -570,20 +560,20 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
                     if (states != null) {
                         state = states.findStateByDevice(device);
                     }
-                    DeviceNotificationState deviceNotificationState = null;
-                    AscendingAlarmModel ascendingAlarmModel = null;
+                    Integer deviceNotificationVolume = null;
+                    Boolean ascendingAlarmEnabled = null;
                     if (device != null) {
                         final String serialNumber = device.serialNumber;
                         if (serialNumber != null) {
-                            ascendingAlarmModel = ascendingAlarmModels.stream()
-                                    .filter(current -> serialNumber.equals(current.deviceSerialNumber)).findFirst()
-                                    .orElse(null);
-                            deviceNotificationState = deviceNotificationStates.stream()
-                                    .filter(current -> serialNumber.equals(current.deviceSerialNumber)).findFirst()
-                                    .orElse(null);
+                            ascendingAlarmEnabled = ascendingAlarmModels.getFirst(
+                                    "$.ascendingAlarmModelList[?].ascendingAlarmEnabled", Boolean.class,
+                                    where("deviceSerialNumber").eq(serialNumber));
+                            deviceNotificationVolume = deviceNotificationStates.getFirst(
+                                    "$.deviceNotificationStates[?].volumeLevel", Integer.class,
+                                    where("deviceSerialNumber").eq(serialNumber));
                         }
                     }
-                    child.updateState(this, device, state, deviceNotificationState, ascendingAlarmModel, playlists,
+                    child.updateState(this, device, state, deviceNotificationVolume, ascendingAlarmEnabled, playlists,
                             notificationSounds, musicProviders);
                 }
 
@@ -641,14 +631,16 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
             flashBriefingProfileHandlers.forEach(h -> h.setCommandDescription(jsonSerialNumberDeviceMapping.values()));
         }
 
-        List<WakeWord> wakeWords = currentConnection.getWakeWords();
-        // update handlers
-        for (EchoHandler echoHandler : echoHandlers) {
-            String serialNumber = echoHandler.findSerialNumber();
-            String deviceWakeWord = wakeWords.stream()
-                    .filter(wakeWord -> serialNumber.equals(wakeWord.deviceSerialNumber)).findFirst()
-                    .map(wakeWord -> wakeWord.wakeWord).orElse(null);
-            echoHandler.setDeviceAndUpdateThingState(this, findDeviceJson(serialNumber), deviceWakeWord);
+        try {
+            JsonDocument document = currentConnection.alexaGetRequest("/api/wake-word?cached=true");
+            for (EchoHandler echoHandler : echoHandlers) {
+                String serialNumber = echoHandler.findSerialNumber();
+                String wakeWord = document.getFirst(
+                        "$.wakeWords[?(@.deviceSerialNumber == '" + serialNumber + "')].wakeWord", String.class);
+                echoHandler.setDeviceAndUpdateThingState(this, findDeviceJson(serialNumber), wakeWord);
+            }
+        } catch (ConnectionException e) {
+            logger.info("getting wakewords failed", e);
         }
 
         if (devices != null) {
@@ -777,28 +769,28 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
         if (payload == null) {
             return;
         }
-        JsonCommandPayloadPushActivity pushActivity = Objects
-                .requireNonNull(gson.fromJson(payload, JsonCommandPayloadPushActivity.class));
+        JsonDocument pushActivity = new JsonDocument(payload);
+        String userId = pushActivity.get("$.key.registeredUserId", String.class);
+        String entryId = pushActivity.get("$.key.entryId", String.class);
 
-        Key key = pushActivity.key;
-        if (key == null) {
+        if (userId == null || entryId == null) {
             return;
         }
+        String searchKey = userId + "#" + entryId;
 
         Connection connection = this.connection;
         if (connection == null || !connection.getIsLoggedIn()) {
             return;
         }
 
-        Long timestamp = pushActivity.timestamp;
+        Long timestamp = pushActivity.get("$.timestamp", Long.class);
         if (timestamp != null) {
             long startTimestamp = timestamp - 30000;
             long endTimestamp = timestamp + 30000;
             List<CustomerHistoryRecord> customerHistoryRecords = connection.getActivities(startTimestamp, endTimestamp);
             for (CustomerHistoryRecord customerHistoryRecord : customerHistoryRecords) {
                 String recordKey = customerHistoryRecord.recordKey;
-                String search = key.registeredUserId + "#" + key.entryId;
-                if (recordKey != null && search.equals(recordKey)) {
+                if (recordKey != null && searchKey.equals(recordKey)) {
                     String[] splitRecordKey = recordKey.split("#");
                     if (splitRecordKey.length >= 2) {
                         EchoHandler echoHandler = findEchoHandlerBySerialNumber(splitRecordKey[3]);

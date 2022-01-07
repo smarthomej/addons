@@ -62,14 +62,12 @@ import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.AmazonHa
 import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.ChannelHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.ChannelHandlerAnnouncement;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonAscendingAlarm.AscendingAlarmModel;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates.BluetoothState;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates.PairedDevice;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCommandPayloadPushNotificationChange;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCommandPayloadPushVolumeChange;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCustomerHistoryRecords.CustomerHistoryRecord;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCustomerHistoryRecords.CustomerHistoryRecord.VoiceHistoryRecordItem;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDeviceNotificationState.DeviceNotificationState;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDevices.Device;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonEqualizer;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonMediaState;
@@ -842,17 +840,17 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
     }
 
     public void updateState(AccountHandler accountHandler, @Nullable Device device,
-            @Nullable BluetoothState bluetoothState, @Nullable DeviceNotificationState deviceNotificationState,
-            @Nullable AscendingAlarmModel ascendingAlarmModel, @Nullable JsonPlaylists playlists,
+            @Nullable BluetoothState bluetoothState, @Nullable Integer deviceNotificationVolume,
+            @Nullable Boolean ascendingAlarmEnabled, @Nullable JsonPlaylists playlists,
             @Nullable List<JsonNotificationSound> alarmSounds, @Nullable List<JsonMusicProvider> musicProviders) {
         try {
             this.logger.debug("Handle updateState {}", this.getThing().getUID());
 
-            if (deviceNotificationState != null) {
-                notificationVolumeLevel = deviceNotificationState.volumeLevel;
+            if (deviceNotificationVolume != null) {
+                notificationVolumeLevel = deviceNotificationVolume;
             }
-            if (ascendingAlarmModel != null) {
-                ascendingAlarm = ascendingAlarmModel.ascendingAlarmEnabled;
+            if (ascendingAlarmEnabled != null) {
+                ascendingAlarm = ascendingAlarmEnabled;
             }
             if (playlists != null) {
                 createPlaylistsCommandOptions(playlists);

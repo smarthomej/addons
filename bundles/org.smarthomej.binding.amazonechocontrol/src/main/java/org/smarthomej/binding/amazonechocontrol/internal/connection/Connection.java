@@ -13,6 +13,8 @@
  */
 package org.smarthomej.binding.amazonechocontrol.internal.connection;
 
+import static com.jayway.jsonpath.Criteria.where;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -63,10 +65,9 @@ import org.openhab.core.library.unit.SIUnits;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.amazonechocontrol.internal.ConnectionException;
+import org.smarthomej.binding.amazonechocontrol.internal.JsonDocument;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonAnnouncementContent;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonAnnouncementTarget;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonAscendingAlarm;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonAscendingAlarm.AscendingAlarmModel;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonAutomation;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonAutomation.Payload;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates;
@@ -74,8 +75,6 @@ import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBootstrapResu
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBootstrapResult.Authentication;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCustomerHistoryRecords;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCustomerHistoryRecords.CustomerHistoryRecord;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDeviceNotificationState;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDeviceNotificationState.DeviceNotificationState;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDevices;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDevices.Device;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonEnabledFeeds;
@@ -109,8 +108,6 @@ import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevi
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeGroups.SmartHomeGroup;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonStartRoutineRequest;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonUsersMeResponse;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonWakeWords;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonWakeWords.WakeWord;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonWebSiteCookie;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.SmartHomeBaseDevice;
 import org.unbescape.json.JsonEscape;
@@ -289,19 +286,23 @@ public class Connection {
         try {
             checkRenewSession();
 
-            String accountCustomerId = this.loginData.accountCustomerId;
+            String accountCustomerId = loginData.accountCustomerId;
             if (accountCustomerId == null || accountCustomerId.isEmpty()) {
-                List<Device> devices = this.getDeviceList();
-                accountCustomerId = devices.stream().filter(device -> loginData.serial.equals(device.serialNumber))
-                        .findAny().map(device -> device.deviceOwnerCustomerId).orElse(null);
-                if (accountCustomerId == null || accountCustomerId.isEmpty()) {
-                    accountCustomerId = devices.stream().filter(device -> "This Device".equals(device.accountName))
-                            .findAny().map(device -> {
-                                loginData.serial = Objects.requireNonNullElse(device.serialNumber, loginData.serial);
-                                return device.deviceOwnerCustomerId;
-                            }).orElse(null);
+                String jsonDevices = this.getDeviceListJson();
+                JsonDocument document = new JsonDocument(jsonDevices);
+                if (!loginData.serial.isEmpty()) {
+                    // we only need to try getting the customer id by serial number if that is set
+                    accountCustomerId = document.getFirst("$.devices[?].deviceOwnerCustomerId", String.class,
+                            where("serialNumber").eq(loginData.serial));
                 }
-                this.loginData.accountCustomerId = accountCustomerId;
+                if (accountCustomerId == null || accountCustomerId.isEmpty()) {
+                    String thisDevicePath = document.getFirstPath("$.devices[?]",
+                            where("accountName").eq("This Device"));
+                    loginData.serial = Objects
+                            .requireNonNullElse(document.get(thisDevicePath + ".serialNumber", String.class), "");
+                    accountCustomerId = document.get(thisDevicePath + ".deviceOwnerCustomerId", String.class);
+                }
+                loginData.accountCustomerId = accountCustomerId;
             }
         } catch (URISyntaxException | ConnectionException e) {
             logger.debug("Getting account customer Id failed", e);
@@ -378,6 +379,21 @@ public class Connection {
 
     public String makeRequestAndReturnString(String url) throws ConnectionException {
         return makeRequestAndReturnString("GET", url, null, false, Map.of());
+    }
+
+    /**
+     * perform a GET request to the Alexa server and return a {@link JsonDocument}
+     *
+     * @param path the path to the requested resource
+     * @return the requested resource as {@link JsonDocument}
+     * @throws ConnectionException in case of an error
+     */
+    public JsonDocument alexaGetRequest(String path) throws ConnectionException {
+        if (getIsLoggedIn()) {
+            return new JsonDocument(makeRequestAndReturnString(alexaServer + path));
+        } else {
+            return JsonDocument.EMPTY;
+        }
     }
 
     public String makeRequestAndReturnString(String requestMethod, String url, @Nullable String postData, boolean json,
@@ -785,21 +801,6 @@ public class Connection {
     }
 
     // commands and states
-    public List<WakeWord> getWakeWords() {
-        String json;
-        try {
-            json = makeRequestAndReturnString(alexaServer + "/api/wake-word?cached=true");
-            JsonWakeWords wakeWords = parseJson(json, JsonWakeWords.class);
-            if (wakeWords == null) {
-                return List.of();
-            }
-            return Objects.requireNonNullElse(wakeWords.wakeWords, List.of());
-        } catch (ConnectionException e) {
-            logger.info("getting wakewords failed", e);
-        }
-        return List.of();
-    }
-
     public List<SmartHomeBaseDevice> getSmarthomeDeviceList() throws ConnectionException {
         try {
             String json = makeRequestAndReturnString(alexaServer + "/api/phoenix");
@@ -1050,34 +1051,6 @@ public class Connection {
                 + ",\"deviceSerialNumber\":\"" + device.serialNumber + "\",\"deviceType\":\"" + device.deviceType
                 + "\",\"deviceAccountId\":null}";
         makeRequest("PUT", url, command, true, true, Map.of(), 0);
-    }
-
-    public List<DeviceNotificationState> getDeviceNotificationStates() {
-        try {
-            String json = makeRequestAndReturnString(alexaServer + "/api/device-notification-state");
-            JsonDeviceNotificationState result = parseJson(json, JsonDeviceNotificationState.class);
-            if (result == null) {
-                return List.of();
-            }
-            return Objects.requireNonNullElse(result.deviceNotificationStates, List.of());
-        } catch (ConnectionException e) {
-            logger.info("Error getting device notification states", e);
-        }
-        return List.of();
-    }
-
-    public List<AscendingAlarmModel> getAscendingAlarm() {
-        try {
-            String json = makeRequestAndReturnString(alexaServer + "/api/ascending-alarm");
-            JsonAscendingAlarm result = parseJson(json, JsonAscendingAlarm.class);
-            if (result == null) {
-                return List.of();
-            }
-            return Objects.requireNonNullElse(result.ascendingAlarmModelList, List.of());
-        } catch (ConnectionException e) {
-            logger.info("Error getting device notification states", e);
-        }
-        return List.of();
     }
 
     public void bluetooth(Device device, @Nullable String address) throws ConnectionException {
