@@ -24,11 +24,12 @@ public class ThingMessageDTO {
     private String channelType;
     private String uom;
     private String value;
-    private String feature;
     private String featureClear;
     private String featureName;
     private String featureDescription;
     private String deviceId;
+    private String suffix;
+    private String unit;
     private FeatureCommands commands;
 
     public String getType() {
@@ -64,11 +65,11 @@ public class ThingMessageDTO {
     }
 
     public String getFeature() {
-        return feature;
-    }
-
-    public void setFeature(String feature) {
-        this.feature = feature;
+        if (suffix.isEmpty()) {
+            return featureClear;
+        } else {
+            return featureClear + "#" + suffix;
+        }
     }
 
     public String getFeatureClear() {
@@ -80,6 +81,13 @@ public class ThingMessageDTO {
     }
 
     public String getFeatureName() {
+        if (suffix.isEmpty() || "schedule".equals(suffix)) {
+            return featureName;
+        }
+        return featureName + " " + suffix;
+    }
+
+    public String getFeatureNameClear() {
         return featureName;
     }
 
@@ -111,9 +119,30 @@ public class ThingMessageDTO {
         this.commands = commands;
     }
 
+    public String getUnit() {
+        return unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
+    }
+
+    public String getSuffix() {
+        return suffix;
+    }
+
+    public void setSuffix(String suffix) {
+        if ("value".equals(suffix) || "name".equals(suffix) || "entries".equals(suffix)
+                || "overlapAllowed".equals(suffix)) {
+            this.suffix = "";
+        } else {
+            this.suffix = suffix;
+        }
+    }
+
     public String getChannelId() {
         StringBuilder sb = new StringBuilder();
-        String f = feature.replace(".", ";");
+        String f = featureClear.replace(".", ";");
         String parts[] = f.split(";");
         int count = 0;
         for (String str : parts) {
@@ -124,6 +153,26 @@ public class ThingMessageDTO {
             }
             count++;
         }
+        if (!suffix.isEmpty()) {
+            sb.append("#" + suffix);
+        }
+        return sb.toString();
+    }
+
+    public String getSubChannelId() {
+        StringBuilder sb = new StringBuilder();
+        String f = featureClear.replace(".", ";");
+        String parts[] = f.split(";");
+        int count = 0;
+        for (String str : parts) {
+            if (count != 0) {
+                sb.append(str.substring(0, 1).toUpperCase()).append(str.substring(1));
+            } else {
+                sb.append(str);
+            }
+            count++;
+        }
+        sb.append("#" + suffix);
         return sb.toString();
     }
 }
