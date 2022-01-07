@@ -61,3 +61,14 @@ _All configurations are made in the UI_
 
 There are many different channels.
 The channels are automatically generated for all available features.
+
+## Breaking changes
+
+### Version 2.3.10
+
+All channels on `device` - thing needs to be recreated to support OUM.
+Simply delete the thing and rediscover.
+The channel links do not need to be deleted.
+But it could be that some have to be relinked.
+Or the item type has to be adjusted. 
+(e.g. Number -> Number:Time)
