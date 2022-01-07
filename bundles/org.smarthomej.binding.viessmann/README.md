@@ -1,6 +1,6 @@
 # Viessmann Binding
 
-<img src="/doc/viessmann_wordmark_rgb_1_vitorange.png" width="100"/>
+<img src="/bundles/org.smarthomej.binding.viessmann/doc/viessmann_wordmark_rgb_1_vitorange.png" width="100"/>
 
 This binding connects Viessmann Heatings via the new Viessmann API.
 It provides features like the ViCare-App.
