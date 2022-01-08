@@ -69,4 +69,9 @@ Things that are still version `0` are first upgraded to version `1` and then imm
 - `NumberItemConverter`
 - `PlayerItemConverter`
 - `RollershutterItemConverter`
-- `GenericItemConverter` for all other item types
+- `GenericItemConverter`: for all other item types
+
+### package `util`
+
+- `ColorUtil`: methods for converting HSB colors to CIE xy colors
+- `ResourceUtil`: methods for handling files in the `resources` directory
