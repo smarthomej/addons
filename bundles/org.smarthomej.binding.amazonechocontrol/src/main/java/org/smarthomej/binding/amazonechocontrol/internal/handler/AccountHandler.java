@@ -279,6 +279,8 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
             }
             flashBriefingProfileHandler.initialize(this, currentFlashBriefingJson);
         }
+        // set flashbriefing description on echo handlers
+        echoHandlers.forEach(h -> h.createStartCommandCommandOptions(flashBriefingProfileHandlers));
     }
 
     private void scheduleUpdate() {
@@ -306,6 +308,7 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
         // check for flash briefing profile handler
         if (childHandler instanceof FlashBriefingProfileHandler) {
             flashBriefingProfileHandlers.remove(childHandler);
+            echoHandlers.forEach(h -> h.createStartCommandCommandOptions(flashBriefingProfileHandlers));
         }
         // check for flash briefing profile handler
         if (childHandler instanceof SmartHomeDeviceHandler) {
@@ -634,6 +637,8 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
             // create new device map
             jsonSerialNumberDeviceMapping = devices.stream().filter(device -> device.serialNumber != null)
                     .collect(Collectors.toMap(d -> Objects.requireNonNull(d.serialNumber), d -> d));
+            // notify flashbriefing profile handlers of changed device list
+            flashBriefingProfileHandlers.forEach(h -> h.setCommandDescription(jsonSerialNumberDeviceMapping.values()));
         }
 
         List<WakeWord> wakeWords = currentConnection.getWakeWords();

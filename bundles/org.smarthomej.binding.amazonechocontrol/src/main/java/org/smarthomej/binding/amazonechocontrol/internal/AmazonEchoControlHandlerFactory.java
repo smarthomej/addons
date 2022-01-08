@@ -112,9 +112,9 @@ public class AmazonEchoControlHandlerFactory extends BaseThingHandlerFactory {
         } else if (thingTypeUID.equals(THING_TYPE_FLASH_BRIEFING_PROFILE)) {
             Storage<String> storage = storageService.getStorage(thing.getUID().toString(),
                     String.class.getClassLoader());
-            return new FlashBriefingProfileHandler(thing, storage);
+            return new FlashBriefingProfileHandler(thing, storage, dynamicCommandDescriptionProvider);
         } else if (SUPPORTED_ECHO_THING_TYPES_UIDS.contains(thingTypeUID)) {
-            return new EchoHandler(thing, gson);
+            return new EchoHandler(thing, gson, dynamicCommandDescriptionProvider, dynamicStateDescriptionProvider);
         } else if (SUPPORTED_SMART_HOME_THING_TYPES_UIDS.contains(thingTypeUID)) {
             return new SmartHomeDeviceHandler(thing, gson, dynamicCommandDescriptionProvider,
                     dynamicStateDescriptionProvider);

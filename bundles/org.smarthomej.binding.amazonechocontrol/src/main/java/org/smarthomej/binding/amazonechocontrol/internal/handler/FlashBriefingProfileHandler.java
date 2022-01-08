@@ -15,6 +15,9 @@ package org.smarthomej.binding.amazonechocontrol.internal.handler;
 
 import static org.smarthomej.binding.amazonechocontrol.internal.AmazonEchoControlBindingConstants.*;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -30,11 +33,13 @@ import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.binding.BaseThingHandler;
 import org.openhab.core.types.Command;
+import org.openhab.core.types.CommandOption;
 import org.openhab.core.types.RefreshType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDevices.Device;
+import org.smarthomej.commons.SimpleDynamicCommandDescriptionProvider;
 
 /**
  * The {@link FlashBriefingProfileHandler} is responsible for storing and loading of a flash briefing configuration
@@ -43,8 +48,8 @@ import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDevices.Devic
  */
 @NonNullByDefault
 public class FlashBriefingProfileHandler extends BaseThingHandler {
-
     private final Logger logger = LoggerFactory.getLogger(FlashBriefingProfileHandler.class);
+    private final SimpleDynamicCommandDescriptionProvider dynamicCommandDescriptionProvider;
 
     @Nullable
     AccountHandler accountHandler;
@@ -53,8 +58,10 @@ public class FlashBriefingProfileHandler extends BaseThingHandler {
     String currentConfigurationJson = "";
     private @Nullable ScheduledFuture<?> updateStateJob;
 
-    public FlashBriefingProfileHandler(Thing thing, Storage<String> storage) {
+    public FlashBriefingProfileHandler(Thing thing, Storage<String> storage,
+            SimpleDynamicCommandDescriptionProvider dynamicCommandDescriptionProvider) {
         super(thing);
+        this.dynamicCommandDescriptionProvider = dynamicCommandDescriptionProvider;
         this.stateStorage = storage;
     }
 
@@ -194,5 +201,23 @@ public class FlashBriefingProfileHandler extends BaseThingHandler {
             this.stateStorage.put("configurationJson", configurationJson);
         }
         return configurationJson;
+    }
+
+    public void setCommandDescription(Collection<Device> devices) {
+        if (devices.isEmpty()) {
+            return;
+        }
+
+        List<CommandOption> options = new ArrayList<>();
+        options.add(new CommandOption("", ""));
+        for (Device device : devices) {
+            final String value = device.serialNumber;
+            if (value != null && device.getCapabilities().contains("FLASH_BRIEFING")) {
+                options.add(new CommandOption(value, device.accountName));
+            }
+        }
+
+        ChannelUID channelUID = new ChannelUID(thing.getUID(), CHANNEL_PLAY_ON_DEVICE);
+        dynamicCommandDescriptionProvider.setCommandOptions(channelUID, options);
     }
 }

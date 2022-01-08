@@ -48,8 +48,12 @@ import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingUID;
 import org.openhab.core.types.Command;
+import org.openhab.core.types.CommandOption;
 import org.openhab.core.types.RefreshType;
 import org.openhab.core.types.State;
+import org.openhab.core.types.StateDescription;
+import org.openhab.core.types.StateDescriptionFragmentBuilder;
+import org.openhab.core.types.StateOption;
 import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,6 +85,8 @@ import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonPlayerState.P
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonPlayerState.PlayerInfo.Provider;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonPlayerState.PlayerInfo.Volume;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonPlaylists;
+import org.smarthomej.commons.SimpleDynamicCommandDescriptionProvider;
+import org.smarthomej.commons.SimpleDynamicStateDescriptionProvider;
 import org.smarthomej.commons.UpdatingBaseThingHandler;
 
 import com.google.gson.Gson;
@@ -94,6 +100,9 @@ import com.google.gson.Gson;
 public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandlerCallback {
     private final Logger logger = LoggerFactory.getLogger(EchoHandler.class);
     private final Gson gson;
+    private final SimpleDynamicStateDescriptionProvider dynamicStateDescriptionProvider;
+    private final SimpleDynamicCommandDescriptionProvider dynamicCommandDescriptionProvider;
+
     private @Nullable Device device;
     private Set<String> capabilities = new HashSet<>();
     private @Nullable AccountHandler account;
@@ -110,7 +119,6 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
     private int lastKnownVolume = 25;
     private int textToSpeechVolume = 0;
     private @Nullable JsonEqualizer lastKnownEqualizer = null;
-    private @Nullable BluetoothState bluetoothState;
     private boolean disableUpdate = false;
     private boolean updateRemind = true;
     private boolean updateTextToSpeech = true;
@@ -121,9 +129,6 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
     private boolean updateStartCommand = true;
     private @Nullable Integer notificationVolumeLevel;
     private @Nullable Boolean ascendingAlarm;
-    private @Nullable JsonPlaylists playLists;
-    private List<JsonNotificationSound> alarmSounds = List.of();
-    private List<JsonMusicProvider> musicProviders = List.of();
     private final List<ChannelHandler> channelHandlers = new ArrayList<>();
 
     private @Nullable JsonNotificationResponse currentNotification;
@@ -132,9 +137,13 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
     long mediaProgressMs;
     long mediaStartMs;
 
-    public EchoHandler(Thing thing, Gson gson) {
+    public EchoHandler(Thing thing, Gson gson,
+            SimpleDynamicCommandDescriptionProvider dynamicCommandDescriptionProvider,
+            SimpleDynamicStateDescriptionProvider dynamicStateDescriptionProvider) {
         super(thing);
         this.gson = gson;
+        this.dynamicCommandDescriptionProvider = dynamicCommandDescriptionProvider;
+        this.dynamicStateDescriptionProvider = dynamicStateDescriptionProvider;
         channelHandlers.add(new ChannelHandlerAnnouncement(this, this.gson));
     }
 
@@ -198,32 +207,12 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
         }
     }
 
-    public @Nullable BluetoothState findBluetoothState() {
-        return this.bluetoothState;
-    }
-
-    public @Nullable JsonPlaylists findPlaylists() {
-        return this.playLists;
-    }
-
-    public List<JsonNotificationSound> findAlarmSounds() {
-        return this.alarmSounds;
-    }
-
-    public List<JsonMusicProvider> findMusicProviders() {
-        return this.musicProviders;
-    }
-
     private @Nullable Connection findConnection() {
         AccountHandler accountHandler = this.account;
         if (accountHandler != null) {
             return accountHandler.findConnection();
         }
         return null;
-    }
-
-    public @Nullable AccountHandler findAccount() {
-        return this.account;
     }
 
     public @Nullable Device findDevice() {
@@ -244,7 +233,6 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
             logger.trace("Command '{}' received for channel '{}'", command, channelUID);
             int waitForUpdate = 1000;
             boolean needBluetoothRefresh = false;
-            String lastKnownBluetoothMAC = this.lastKnownBluetoothMAC;
 
             ScheduledFuture<?> updateStateJob = this.updateStateJob;
             this.updateStateJob = null;
@@ -441,19 +429,9 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
             }
             if (channelId.equals(CHANNEL_BLUETOOTH)) {
                 needBluetoothRefresh = true;
+                String lastKnownBluetoothMAC = this.lastKnownBluetoothMAC;
                 if (command == OnOffType.ON) {
                     waitForUpdate = 4000;
-                    String bluetoothId = lastKnownBluetoothMAC;
-                    BluetoothState state = bluetoothState;
-                    if (state != null && (bluetoothId == null || bluetoothId.isEmpty())) {
-                        for (PairedDevice paired : state.getPairedDeviceList()) {
-                            String pairedAddress = paired.address;
-                            if (pairedAddress != null && !pairedAddress.isEmpty()) {
-                                lastKnownBluetoothMAC = pairedAddress;
-                                break;
-                            }
-                        }
-                    }
                     if (lastKnownBluetoothMAC != null && !lastKnownBluetoothMAC.isEmpty()) {
                         connection.bluetooth(device, lastKnownBluetoothMAC);
                     }
@@ -781,6 +759,102 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
         }
     }
 
+    private void createMusicProviderStateDescription(List<JsonMusicProvider> jsonMusicProviders) {
+        List<StateOption> options = new ArrayList<>();
+        for (JsonMusicProvider musicProvider : jsonMusicProviders) {
+            List<String> properties = musicProvider.supportedProperties;
+            String providerId = musicProvider.id;
+            String displayName = musicProvider.displayName;
+            if (properties != null && properties.contains("Alexa.Music.PlaySearchPhrase") && providerId != null
+                    && !providerId.isEmpty() && "AVAILABLE".equals(musicProvider.availability) && displayName != null
+                    && !displayName.isEmpty()) {
+                options.add(new StateOption(providerId, displayName));
+            }
+        }
+        ChannelUID channelUID = new ChannelUID(thing.getUID(), CHANNEL_MUSIC_PROVIDER_ID);
+        StateDescription stateDescription = StateDescriptionFragmentBuilder.create().withOptions(options).build()
+                .toStateDescription();
+
+        if (stateDescription != null) {
+            dynamicStateDescriptionProvider.setDescription(channelUID, stateDescription);
+        }
+    }
+
+    private void createAlarmSoundsCommandOptions(List<JsonNotificationSound> alarmSounds) {
+        if (alarmSounds.isEmpty()) {
+            return;
+        }
+
+        List<CommandOption> options = new ArrayList<>();
+        options.add(new CommandOption("", ""));
+
+        for (JsonNotificationSound notificationSound : alarmSounds) {
+            if (notificationSound.folder == null && notificationSound.providerId != null && notificationSound.id != null
+                    && notificationSound.displayName != null) {
+                String providerSoundId = notificationSound.providerId + ":" + notificationSound.id;
+                options.add(new CommandOption(providerSoundId, notificationSound.displayName));
+            }
+        }
+        ChannelUID channelUID = new ChannelUID(thing.getUID(), CHANNEL_PLAY_ALARM_SOUND);
+        dynamicCommandDescriptionProvider.setCommandOptions(channelUID, options);
+    }
+
+    private void createPlaylistsCommandOptions(JsonPlaylists playlists) {
+        List<CommandOption> options = new ArrayList<>();
+        options.add(new CommandOption("", ""));
+        Map<String, JsonPlaylists.PlayList @Nullable []> playlistMap = playlists.playlists;
+        if (playlistMap != null) {
+            for (JsonPlaylists.PlayList[] innerLists : playlistMap.values()) {
+                if (innerLists != null && innerLists.length > 0) {
+                    JsonPlaylists.PlayList playList = innerLists[0];
+                    final String value = playList.playlistId;
+                    if (value != null && playList.title != null) {
+                        options.add(new CommandOption(value,
+                                String.format("%s (%d)", playList.title, playList.trackCount)));
+                    }
+                }
+            }
+        }
+        ChannelUID channelUID = new ChannelUID(thing.getUID(), CHANNEL_AMAZON_MUSIC_PLAY_LIST_ID);
+        dynamicCommandDescriptionProvider.setCommandOptions(channelUID, options);
+    }
+
+    public void createStartCommandCommandOptions(Set<FlashBriefingProfileHandler> flashBriefingProfileHandlers) {
+        List<CommandOption> options = new ArrayList<>();
+        options.add(new CommandOption("Weather", "Weather"));
+        options.add(new CommandOption("Traffic", "Traffic"));
+        options.add(new CommandOption("GoodMorning", "Good morning"));
+        options.add(new CommandOption("SingASong", "Song"));
+        options.add(new CommandOption("TellStory", "Story"));
+        options.add(new CommandOption("FlashBriefing", "Flash briefing"));
+
+        for (FlashBriefingProfileHandler flashBriefing : flashBriefingProfileHandlers) {
+            String value = FLASH_BRIEFING_COMMAND_PREFIX + flashBriefing.getThing().getUID().getId();
+            String displayName = flashBriefing.getThing().getLabel();
+            options.add(new CommandOption(value, displayName));
+        }
+        ChannelUID channelUID = new ChannelUID(thing.getUID(), CHANNEL_START_COMMAND);
+        dynamicCommandDescriptionProvider.setCommandOptions(channelUID, options);
+    }
+
+    private void createBluetoothMACStateDescription(BluetoothState bluetoothState) {
+        List<StateOption> options = new ArrayList<>();
+        options.add(new StateOption("", ""));
+        for (PairedDevice device : bluetoothState.getPairedDeviceList()) {
+            final String value = device.address;
+            if (value != null && device.friendlyName != null) {
+                options.add(new StateOption(value, device.friendlyName));
+            }
+        }
+        ChannelUID channelUID = new ChannelUID(thing.getUID(), CHANNEL_BLUETOOTH_MAC);
+        StateDescription stateDescription = StateDescriptionFragmentBuilder.create().withOptions(options).build()
+                .toStateDescription();
+
+        if (stateDescription != null) {
+            dynamicStateDescriptionProvider.setDescription(channelUID, stateDescription);
+        }
+    }
+
     public void updateState(AccountHandler accountHandler, @Nullable Device device,
             @Nullable BluetoothState bluetoothState, @Nullable DeviceNotificationState deviceNotificationState,
             @Nullable AscendingAlarmModel ascendingAlarmModel, @Nullable JsonPlaylists playlists,
@@ -795,13 +869,13 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
                 ascendingAlarm = ascendingAlarmModel.ascendingAlarmEnabled;
             }
             if (playlists != null) {
-                this.playLists = playlists;
+                createPlaylistsCommandOptions(playlists);
             }
             if (alarmSounds != null) {
-                this.alarmSounds = alarmSounds;
+                createAlarmSoundsCommandOptions(alarmSounds);
             }
             if (musicProviders != null) {
-                this.musicProviders = musicProviders;
+                createMusicProviderStateDescription(musicProviders);
             }
             if (!setDeviceAndUpdateThingState(accountHandler, device, null)) {
                 this.logger.debug("Handle updateState {} aborted: Not online", this.getThing().getUID());
@@ -933,13 +1007,14 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
             String bluetoothMAC = "";
             String bluetoothDeviceName = "";
             boolean bluetoothIsConnected = false;
+
             if (bluetoothState != null) {
-                this.bluetoothState = bluetoothState;
                 for (PairedDevice paired : bluetoothState.getPairedDeviceList()) {
                     String pairedAddress = paired.address;
                     if (paired.connected && pairedAddress != null) {
                         bluetoothIsConnected = true;
                         bluetoothMAC = pairedAddress;
+                        lastKnownBluetoothMAC = pairedAddress;
                         bluetoothDeviceName = paired.friendlyName;
                         if (bluetoothDeviceName == null || bluetoothDeviceName.isEmpty()) {
                             bluetoothDeviceName = pairedAddress;
@@ -947,9 +1022,7 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
                         break;
                     }
                 }
-            }
-            if (!bluetoothMAC.isEmpty()) {
-                lastKnownBluetoothMAC = bluetoothMAC;
+                createBluetoothMACStateDescription(bluetoothState);
             }
 
             // handle radio
