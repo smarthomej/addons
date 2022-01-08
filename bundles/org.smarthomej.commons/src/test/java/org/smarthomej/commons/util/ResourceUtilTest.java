@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
- * The {@link ResourceUtilTest} is a
+ * The {@link ResourceUtilTest} contains tests for the {@link ResourceUtil} class
  *
  * @author Jan N. Klug - Initial contribution
  */
