@@ -18,8 +18,10 @@ import java.util.List;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.core.thing.Channel;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.CommandOption;
+import org.openhab.core.types.StateDescription;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapability;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevice;
@@ -46,7 +48,10 @@ public interface InterfaceHandler {
             throws IOException, InterruptedException;
 
     @Nullable
-    List<CommandOption> getCommandDescription(ChannelInfo channelInfo);
+    List<CommandOption> getCommandDescription(Channel channel);
+
+    @Nullable
+    StateDescription getStateDescription(Channel channel);
 
     class UpdateChannelResult {
         public boolean needSingleUpdate;

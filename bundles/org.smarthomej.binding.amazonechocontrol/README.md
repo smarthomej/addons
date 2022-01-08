@@ -416,31 +416,35 @@ The reason for this low interval is, that the polling causes a big server load f
 |--------------------------|---------------------------------------------------------------------------|
 | id                       | The id of the device or device group                                      |
 
-The only possibility to find out the id is by using the discover function in the UI. You can use then the id, if you want define the Thing in a file.
+The only possibility to find out the id is using discovery function in the UI.
+You can use that id  if you want to define the thing in a file.
 
 ### Channels
 
 The channels of the smarthome devices will be generated at runtime. Check in the UI thing configurations, which channels are created.
 
-| Channel Type ID          | Item Type | Access Mode | Thing Type                    | Description                                                                                                                                                                
-|--------------------------|-----------|-------------|-------------------------------|------------------------------------------------------------------------------------------
-| powerState               | Switch    | R/W         | smartHomeDevice, smartHomeDeviceGroup | Shows and changes the state (ON/OFF) of your device
-| brightness               | Dimmer    | R/W         | smartHomeDevice, smartHomeDeviceGroup | Shows and changes the brightness of your lamp
-| color                    | Color     | R           | smartHomeDevice, smartHomeDeviceGroup | Shows the color of your light
-| colorName                | String    | R/W         | smartHomeDevice, smartHomeDeviceGroup | Shows and changes the color name of your light (groups are not able to show their color)
-| colorTemperatureName     | String    | R/W         | smartHomeDevice, smartHomeDeviceGroup | White temperatures name of your lights (groups are not able to show their color)
-| armState                 | String    | R/W         | smartHomeDevice, smartHomeDeviceGroup | State of your alarm guard. Options: ARMED_AWAY, ARMED_STAY, ARMED_NIGHT, DISARMED (groups are not able to show their state)
-| burglaryAlarm            | Contact   | R           | smartHomeDevice | Burglary alarm
-| carbonMonoxideAlarm      | Contact   | R           | smartHomeDevice | Carbon monoxide detection alarm
-| fireAlarm                | Contact   | R           | smartHomeDevice | Fire alarm
-| waterAlarm               | Contact   | R           | smartHomeDevice | Water alarm
-| glassBreakDetectionState | Contact   | R           | smartHomeDevice | Glass break detection alarm
-| smokeAlarmDetectionState | Contact   | R           | smartHomeDevice | Smoke detection alarm
-| temperature              | Number    | R           | smartHomeDevice | Temperature
-| targetSetpoint           | Number:Temperature | R/W | smartHomeDevice | Thermostat Setpoint |
-| lowerSetpoint            | Number:Temperature | R/W | smartHomeDevice | Thermostat Lower Setpoint |
-| upperSetpoint            | Number:Temperature | R/W | smartHomeDevice | Thermostat Upper Setpoint |
-| thermostatMode           | String    | R/W         | smartHomeDevice | Thermostat Mode (`AUTO`, `COOL`, `HEAT`, `OFF`, `ECO`) |
+| Channel Type ID          | Item Type          | Access Mode | Thing Type                            | Description                                                                                                                 |                                                                                   
+|--------------------------|--------------------|-------------|---------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|
+| powerState               | Switch             | R/W         | smartHomeDevice, smartHomeDeviceGroup | Shows and changes the state (ON/OFF) of your device                                                                         |
+| brightness               | Dimmer             | R/W         | smartHomeDevice, smartHomeDeviceGroup | Shows and changes the brightness of your lamp                                                                               |
+| color                    | Color              | R(/W)       | smartHomeDevice, smartHomeDeviceGroup | Shows the color of your light                                                                                               |
+| colorName                | String             | R/W         | smartHomeDevice, smartHomeDeviceGroup | Shows and changes the color name of your light (groups are not able to show their color)                                    |
+| colorTemperatureName     | String             | R/W         | smartHomeDevice, smartHomeDeviceGroup | White temperatures name of your lights (groups are not able to show their color)                                            |
+| armState                 | String             | R/W         | smartHomeDevice, smartHomeDeviceGroup | State of your alarm guard. Options: ARMED_AWAY, ARMED_STAY, ARMED_NIGHT, DISARMED (groups are not able to show their state) |
+| burglaryAlarm            | Contact            | R           | smartHomeDevice                       | Burglary alarm                                                                                                              |
+| carbonMonoxideAlarm      | Contact            | R           | smartHomeDevice                       | Carbon monoxide detection alarm                                                                                             |
+| fireAlarm                | Contact            | R           | smartHomeDevice                       | Fire alarm                                                                                                                  |
+| waterAlarm               | Contact            | R           | smartHomeDevice                       | Water alarm                                                                                                                 |
+| glassBreakDetectionState | Contact            | R           | smartHomeDevice                       | Glass break detection alarm                                                                                                 |
+| smokeAlarmDetectionState | Contact            | R           | smartHomeDevice                       | Smoke detection alarm                                                                                                       |
+| temperature              | Number             | R           | smartHomeDevice                       | Temperature                                                                                                                 |
+| targetSetpoint           | Number:Temperature | R/W         | smartHomeDevice                       | Thermostat Setpoint                                                                                                         ||
+| lowerSetpoint            | Number:Temperature | R/W         | smartHomeDevice                       | Thermostat Lower Setpoint                                                                                                   ||
+| upperSetpoint            | Number:Temperature | R/W         | smartHomeDevice                       | Thermostat Upper Setpoint                                                                                                   ||
+| thermostatMode           | String             | R/W         | smartHomeDevice                       | Thermostat Mode (`AUTO`, `COOL`, `HEAT`, `OFF`, `ECO`)                                                                      ||
+
+*Note*: The `color` channel is read-only by default because Alexa does only support setting colors by their name.
+It has a configuration parameter `matchColors` which enables writing to that channel and tries to find the closes available color when sending a command to Alexa.
 
 ### Example
 

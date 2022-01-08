@@ -23,9 +23,11 @@ import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.core.thing.Channel;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.CommandOption;
 import org.openhab.core.types.State;
+import org.openhab.core.types.StateDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
@@ -54,7 +56,13 @@ public abstract class AbstractInterfaceHandler implements InterfaceHandler {
     }
 
     @Override
-    public @Nullable List<CommandOption> getCommandDescription(ChannelInfo channelInfo) {
+    public @Nullable List<CommandOption> getCommandDescription(Channel channel) {
+        // return null if not used
+        return null;
+    }
+
+    @Override
+    public @Nullable StateDescription getStateDescription(Channel channel) {
         // return null if not used
         return null;
     }

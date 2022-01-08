@@ -13,10 +13,14 @@
  */
 package org.smarthomej.binding.amazonechocontrol.internal.smarthome;
 
+import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Constants.CONFIG_MATCH_COLORS;
+
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -26,8 +30,11 @@ import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.HSBType;
 import org.openhab.core.library.types.PercentType;
 import org.openhab.core.library.types.StringType;
+import org.openhab.core.thing.Channel;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.CommandOption;
+import org.openhab.core.types.StateDescription;
+import org.openhab.core.types.StateDescriptionFragmentBuilder;
 import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +64,7 @@ public class HandlerColorController extends AbstractInterfaceHandler {
 
     private @Nullable HSBType lastColor;
     private @Nullable String lastColorName;
+    private boolean matchColors = false;
 
     public HandlerColorController(SmartHomeDeviceHandler smartHomeDeviceHandler) {
         super(smartHomeDeviceHandler, List.of(INTERFACE, INTERFACE_COLOR_PROPERTIES));
@@ -117,7 +125,17 @@ public class HandlerColorController extends AbstractInterfaceHandler {
             List<JsonSmartHomeCapability> capabilities, String channelId, Command command)
             throws IOException, InterruptedException {
         if (channelId.equals(COLOR.channelId)) {
-            logger.info("Discarding command to 'color' channel, read-only.");
+            if (matchColors) {
+                if (command instanceof HSBType) {
+                    HSBType color = (HSBType) command;
+                    String colorName = AlexaColor.getClosestColorName(color);
+                    lastColorName = colorName;
+                    connection.smartHomeCommand(entityId, "setColor", Map.of("colorName", colorName));
+                    return true;
+                }
+            } else {
+                logger.info("Discarding command to 'color' channel, read-only.");
+            }
         }
         if (channelId.equals(COLOR_PROPERTIES.channelId)) {
             if (containsCapabilityProperty(capabilities, COLOR.propertyName)) {
@@ -135,8 +153,23 @@ public class HandlerColorController extends AbstractInterfaceHandler {
     }
 
     @Override
-    public List<CommandOption> getCommandDescription(ChannelInfo channelInfo) {
-        return AlexaColor.ALEXA_COLORS.stream().map(color -> new CommandOption(color.colorName, color.colorName))
-                .collect(Collectors.toList());
+    public @Nullable List<CommandOption> getCommandDescription(Channel channel) {
+        String channelId = channel.getUID().getId();
+        if (COLOR_PROPERTIES.channelId.equals(channelId)) {
+            return AlexaColor.ALEXA_COLORS.stream().map(color -> new CommandOption(color.colorName, color.colorName))
+                    .sorted(Comparator.comparing(CommandOption::getCommand)).collect(Collectors.toList());
+        }
+        return null;
+    }
+
+    @Override
+    public @Nullable StateDescription getStateDescription(Channel channel) {
+        String channelId = channel.getUID().getId();
+        if (COLOR.channelId.equals(channelId)) {
+            matchColors = Objects.requireNonNullElse((boolean) channel.getConfiguration().get(CONFIG_MATCH_COLORS),
+                    false);
+            return StateDescriptionFragmentBuilder.create().withReadOnly(!matchColors).build().toStateDescription();
+        }
+        return null;
     }
 }
