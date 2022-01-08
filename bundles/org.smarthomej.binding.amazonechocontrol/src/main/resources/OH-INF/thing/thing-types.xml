@@ -329,6 +329,7 @@
 		<item-type>String</item-type>
 		<label>Alarm Sound</label>
 		<description>Plays an alarm sound</description>
+		<autoUpdatePolicy>veto</autoUpdatePolicy>
 	</channel-type>
 	<channel-type id="amazonMusicTrackId" advanced="true">
 		<item-type>String</item-type>
@@ -344,6 +345,7 @@
 		<item-type>String</item-type>
 		<label>AmazonMusic Play List</label>
 		<description>Amazon Music play list id (Write only, no current state)</description>
+		<autoUpdatePolicy>veto</autoUpdatePolicy>
 	</channel-type>
 	<channel-type id="amazonMusicPlayListIdLastUsed" advanced="true">
 		<item-type>String</item-type>
@@ -497,6 +499,7 @@
 		<item-type>String</item-type>
 		<label>Start</label>
 		<description>Start information (Write only)</description>
+		<autoUpdatePolicy>veto</autoUpdatePolicy>
 	</channel-type>
 	<channel-type id="notificationVolume" advanced="true">
 		<item-type>Dimmer</item-type>

@@ -215,8 +215,8 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
         }
     }
 
-    public List<FlashBriefingProfileHandler> getFlashBriefingProfileHandlers() {
-        return new ArrayList<>(flashBriefingProfileHandlers);
+    public Set<FlashBriefingProfileHandler> getFlashBriefingProfileHandlers() {
+        return new HashSet<>(flashBriefingProfileHandlers);
     }
 
     public List<Device> getLastKnownDevices() {

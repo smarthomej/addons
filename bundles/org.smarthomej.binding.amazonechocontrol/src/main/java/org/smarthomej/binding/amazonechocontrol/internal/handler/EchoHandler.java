@@ -123,10 +123,8 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
     private boolean updateRemind = true;
     private boolean updateTextToSpeech = true;
     private boolean updateTextCommand = true;
-    private boolean updateAlarm = true;
     private boolean updateRoutine = true;
     private boolean updatePlayMusicVoiceCommand = true;
-    private boolean updateStartCommand = true;
     private @Nullable Integer notificationVolumeLevel;
     private @Nullable Boolean ascendingAlarm;
     private final List<ChannelHandler> channelHandlers = new ArrayList<>();
@@ -155,6 +153,7 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
             AccountHandler account = (AccountHandler) bridge.getHandler();
             if (account != null) {
                 setDeviceAndUpdateThingState(account, this.device, null);
+                createStartCommandCommandOptions(account.getFlashBriefingProfileHandlers());
                 account.addEchoHandler(this);
             }
         }
@@ -515,7 +514,6 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
                     String alarmSound = command.toFullString();
                     if (!alarmSound.isEmpty()) {
                         waitForUpdate = 3000;
-                        updateAlarm = true;
                         String[] parts = alarmSound.split(":", 2);
                         JsonNotificationSound sound = new JsonNotificationSound();
                         if (parts.length == 2) {
@@ -585,7 +583,6 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
                 if (command instanceof StringType) {
                     String commandText = command.toFullString();
                     if (!commandText.isEmpty()) {
-                        updateStartCommand = true;
                         if (commandText.startsWith(FLASH_BRIEFING_COMMAND_PREFIX)) {
                             // Handle custom flashbriefings commands
                             String flashBriefingId = commandText.substring(FLASH_BRIEFING_COMMAND_PREFIX.length());
@@ -750,10 +747,6 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
                     updateState(CHANNEL_REMIND, StringType.EMPTY);
                     updateRemind = false;
                 }
-                if ("Alarm".equals(type)) {
-                    updateState(CHANNEL_PLAY_ALARM_SOUND, StringType.EMPTY);
-                    updateAlarm = false;
-                }
             }
             stopCurrentNotification();
         }
@@ -781,13 +774,7 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
     }
 
     private void createAlarmSoundsCommandOptions(List<JsonNotificationSound> alarmSounds) {
-        if (alarmSounds.isEmpty()) {
-            return;
-        }
-
         List<CommandOption> options = new ArrayList<>();
-        options.add(new CommandOption("", ""));
-
         for (JsonNotificationSound notificationSound : alarmSounds) {
             if (notificationSound.folder == null && notificationSound.providerId != null && notificationSound.id != null
                     && notificationSound.displayName != null) {
@@ -801,7 +788,6 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
 
     private void createPlaylistsCommandOptions(JsonPlaylists playlists) {
         List<CommandOption> options = new ArrayList<>();
-        options.add(new CommandOption("", ""));
         Map<String, JsonPlaylists.PlayList @Nullable []> playlistMap = playlists.playlists;
         if (playlistMap != null) {
             for (JsonPlaylists.PlayList[] innerLists : playlistMap.values()) {
@@ -1117,10 +1103,6 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
                 updateRemind = false;
                 updateState(CHANNEL_REMIND, StringType.EMPTY);
             }
-            if (updateAlarm && currentNotifcationUpdateTimer == null) {
-                updateAlarm = false;
-                updateState(CHANNEL_PLAY_ALARM_SOUND, StringType.EMPTY);
-            }
             if (updateRoutine) {
                 updateRoutine = false;
                 updateState(CHANNEL_START_ROUTINE, StringType.EMPTY);
@@ -1136,10 +1118,6 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
             if (updatePlayMusicVoiceCommand) {
                 updatePlayMusicVoiceCommand = false;
                 updateState(CHANNEL_PLAY_MUSIC_VOICE_COMMAND, StringType.EMPTY);
-            }
-            if (updateStartCommand) {
-                updateStartCommand = false;
-                updateState(CHANNEL_START_COMMAND, StringType.EMPTY);
             }
 
             updateState(CHANNEL_MUSIC_PROVIDER_ID, new StringType(musicProviderId));
