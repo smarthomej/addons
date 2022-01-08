@@ -58,6 +58,7 @@ import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.amazonechocontrol.internal.ConnectionException;
+import org.smarthomej.binding.amazonechocontrol.internal.JsonDocument;
 import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.AmazonHandlerCallback;
 import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.ChannelHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.ChannelHandlerAnnouncement;
@@ -70,8 +71,6 @@ import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCustomerHisto
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCustomerHistoryRecords.CustomerHistoryRecord.VoiceHistoryRecordItem;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDevices.Device;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonEqualizer;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonMediaState;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonMediaState.QueueEntry;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonMusicProvider;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonNotificationResponse;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonNotificationSound;
@@ -963,9 +962,10 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
                 updateMediaProgress(true);
             }
 
-            JsonMediaState mediaState = null;
+            JsonDocument mediaState = null;
             if ("AMAZON_MUSIC".equalsIgnoreCase(musicProviderId) || "TUNEIN".equalsIgnoreCase(musicProviderId)) {
-                mediaState = connection.getMediaState(device);
+                mediaState = connection.alexaGetRequest("/api/media/state?deviceSerialNumber=" + device.serialNumber
+                        + "&deviceType=" + device.deviceType);
             }
 
             // handle music provider id
@@ -980,9 +980,9 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
             String amazonMusicPlayListId = "";
             boolean amazonMusic = false;
             if (mediaState != null) {
-                String contentId = mediaState.contentId;
-                if (isPlaying && "CLOUD_PLAYER".equals(mediaState.providerId) && contentId != null
-                        && !contentId.isEmpty()) {
+                String contentId = mediaState.get("$.contentId", String.class);
+                if (isPlaying && "CLOUD_PLAYER".equals(mediaState.get("$.providerId", String.class))
+                        && contentId != null && !contentId.isEmpty()) {
                     amazonMusicTrackId = contentId;
                     lastKnownAmazonMusicId = amazonMusicTrackId;
                     amazonMusic = true;
@@ -1015,12 +1015,12 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
             boolean isRadio = false;
             String radioStationId = "";
             if (mediaState != null) {
-                radioStationId = Objects.requireNonNullElse(mediaState.radioStationId, "");
-                if (!radioStationId.isEmpty()) {
+                radioStationId = mediaState.get("$.radioStationId", String.class);
+                if (radioStationId != null && !radioStationId.isEmpty()) {
                     lastKnownRadioStationId = radioStationId;
                     if ("TUNEIN".equalsIgnoreCase(musicProviderId)) {
                         isRadio = true;
-                        if (!"PLAYING".equals(mediaState.currentState)) {
+                        if (!"PLAYING".equals(mediaState.get("$.currentState", String.class))) {
                             radioStationId = "";
                         }
                     }
@@ -1037,33 +1037,28 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
                     title = infoText.title;
                 }
                 if (infoText.subText1 != null) {
-                    subTitle1 = infoText.subText1;
+                    subTitle1 = Objects.requireNonNullElse(infoText.subText1, subTitle1);
                 }
 
                 if (infoText.subText2 != null) {
-                    subTitle2 = infoText.subText2;
+                    subTitle2 = Objects.requireNonNullElse(infoText.subText2, subTitle2);
                 }
             }
             if (mainArt != null) {
-                if (mainArt.url != null) {
-                    imageUrl = mainArt.url;
-                }
+                imageUrl = Objects.requireNonNullElse(mainArt.url, imageUrl);
             }
-            if (mediaState != null) {
-                List<QueueEntry> queueEntries = Objects.requireNonNullElse(mediaState.queue, List.of());
-                if (!queueEntries.isEmpty()) {
-                    QueueEntry entry = queueEntries.get(0);
-                    if (isRadio) {
-                        if ((imageUrl == null || imageUrl.isEmpty()) && entry.imageURL != null) {
-                            imageUrl = entry.imageURL;
-                        }
-                        if ((subTitle1 == null || subTitle1.isEmpty()) && entry.radioStationSlogan != null) {
-                            subTitle1 = entry.radioStationSlogan;
-                        }
-                        if ((subTitle2 == null || subTitle2.isEmpty()) && entry.radioStationLocation != null) {
-                            subTitle2 = entry.radioStationLocation;
-                        }
-                    }
+            if (mediaState != null && isRadio) {
+                if (imageUrl.isEmpty()) {
+                    imageUrl = Objects.requireNonNullElse(mediaState.get("$.queue[0].imageURL", String.class),
+                            imageUrl);
+                }
+                if (subTitle1.isEmpty()) {
+                    subTitle1 = Objects.requireNonNullElse(
+                            mediaState.get("$.queue[0].radioStationSlogan", String.class), subTitle1);
+                }
+                if (subTitle2.isEmpty()) {
+                    subTitle2 = Objects.requireNonNullElse(
+                            mediaState.get("$.queue[0].radioStationLocation", String.class), subTitle2);
                 }
             }
 
@@ -1083,12 +1078,12 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
             Integer volume = null;
             if (!connection.isSequenceNodeQueueRunning()) {
                 if (mediaState != null) {
-                    volume = mediaState.volume;
+                    volume = mediaState.get("$.volume", Integer.class);
                 }
                 if (playerInfo != null && volume == null) {
-                    Volume volumnInfo = playerInfo.volume;
-                    if (volumnInfo != null) {
-                        volume = volumnInfo.volume;
+                    Volume volumeInfo = playerInfo.volume;
+                    if (volumeInfo != null) {
+                        volume = volumeInfo.volume;
                     }
                 }
                 if (volume != null && volume > 0) {

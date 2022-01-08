@@ -82,7 +82,6 @@ import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonEqualizer;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonExchangeTokenResponse;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonExchangeTokenResponse.Cookie;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonFeed;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonMediaState;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonMusicProvider;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonNetworkDetails;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonNotificationRequest;
@@ -923,12 +922,6 @@ public class Connection {
         String json = makeRequestAndReturnString(alexaServer + "/api/np/player?deviceSerialNumber="
                 + device.serialNumber + "&deviceType=" + device.deviceType + "&screenWidth=1440");
         return parseJson(json, JsonPlayerState.class);
-    }
-
-    public @Nullable JsonMediaState getMediaState(Device device) throws ConnectionException {
-        String json = makeRequestAndReturnString(alexaServer + "/api/media/state?deviceSerialNumber="
-                + device.serialNumber + "&deviceType=" + device.deviceType);
-        return parseJson(json, JsonMediaState.class);
     }
 
     public List<CustomerHistoryRecord> getActivities(@Nullable Long startTime, @Nullable Long endTime) {
