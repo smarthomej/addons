@@ -58,6 +58,7 @@ public class ViessmannBridgeHandler extends BaseBridgeHandler {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final HttpClient httpClient;
+    private final @Nullable String callbackUrl;
 
     private @NonNullByDefault({}) ViessmannApi api;
 
@@ -78,9 +79,10 @@ public class ViessmannBridgeHandler extends BaseBridgeHandler {
 
     private BridgeConfiguration config = new BridgeConfiguration();
 
-    public ViessmannBridgeHandler(Bridge bridge, HttpClient httpClient) {
+    public ViessmannBridgeHandler(Bridge bridge, HttpClient httpClient, @Nullable String callbackUrl) {
         super(bridge);
         this.httpClient = httpClient;
+        this.callbackUrl = callbackUrl;
     }
 
     public void setInstallationGatewayId(String newInstallation, String newGateway) {
@@ -143,7 +145,7 @@ public class ViessmannBridgeHandler extends BaseBridgeHandler {
         newInstallationId = "";
         newGatewaySerial = "";
         api = new ViessmannApi(this, this.config.apiKey, httpClient, this.config.user, this.config.password,
-                this.config.installationId, this.config.gatewaySerial);
+                this.config.installationId, this.config.gatewaySerial, callbackUrl);
         if (this.config.installationId.isEmpty() || this.config.gatewaySerial.isEmpty()) {
             setConfigInstallationGatewayId();
         }

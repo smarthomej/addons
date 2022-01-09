@@ -11,7 +11,9 @@ You have to register your ViCare Account at the Viessmann developer portal and c
 
 * `name` - `i.e. openhab`
 * `Google reCAPTCHA` - `off`
-* `Redicect URI` - `http://localhost:8080/viessmann/authcode/`
+* `Redicect URI` - `http://localhost:8080/viessmann/authcode/` (*)
+
+(*) If your openHAB system is running on a different port than `8080`, you have to change this in the `Redirect URI`
 
 ### Hint: 
 

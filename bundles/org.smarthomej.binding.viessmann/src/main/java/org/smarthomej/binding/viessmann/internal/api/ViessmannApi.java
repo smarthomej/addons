@@ -57,6 +57,7 @@ public class ViessmannApi {
 
     private final ViessmannBridgeHandler bridgeHandler;
     private final HttpClient httpClient;
+    private final @Nullable String callbackUrl;
 
     private final String apiKey;
     private final String user;
@@ -71,7 +72,7 @@ public class ViessmannApi {
     private @NonNullByDefault({}) ViessmannAuth viessmannAuth;
 
     public ViessmannApi(final ViessmannBridgeHandler bridgeHandler, final String apiKey, HttpClient httpClient,
-            String user, String password, String installationId, String gatewaySerial) {
+            String user, String password, String installationId, String gatewaySerial, @Nullable String callbackUrl) {
         this.bridgeHandler = bridgeHandler;
         this.apiKey = apiKey;
         this.httpClient = httpClient;
@@ -79,6 +80,7 @@ public class ViessmannApi {
         this.password = password;
         this.installationId = installationId;
         this.gatewaySerial = gatewaySerial;
+        this.callbackUrl = callbackUrl;
         tokenResponse = null;
         httpHeaders = new Properties();
         httpHeaders.put("User-Agent", "openhab-viessmann-api/2.0");
@@ -123,7 +125,7 @@ public class ViessmannApi {
     public void createOAuthClientService() {
         String bridgeUID = bridgeHandler.getThing().getUID().getAsString();
         logger.debug("API: Creating OAuth Client Service for {}", bridgeUID);
-        viessmannAuth = new ViessmannAuth(this, bridgeHandler, apiKey, httpClient, user, password);
+        viessmannAuth = new ViessmannAuth(this, bridgeHandler, apiKey, httpClient, user, password, callbackUrl);
     }
 
     /**
