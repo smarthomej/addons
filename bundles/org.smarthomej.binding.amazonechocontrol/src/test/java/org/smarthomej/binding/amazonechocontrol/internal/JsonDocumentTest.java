@@ -15,6 +15,7 @@ package org.smarthomej.binding.amazonechocontrol.internal;
 import static com.jayway.jsonpath.Criteria.where;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -28,34 +29,35 @@ import org.junit.jupiter.api.Test;
  */
 @NonNullByDefault
 public class JsonDocumentTest {
-    private final String json = "{\"key\" : [1, 3, 7], \"key2\" : \"stringValue\"}";
+    private final String json = "{\"store\":{\"book\":[{\"category\":\"reference\",\"author\":\"Nigel Rees\",\"title\":\"Sayings of the Century\",\"price\":8.95},{\"category\":\"fiction\",\"author\":\"Evelyn Waugh\",\"title\":\"Sword of Honour\",\"price\":12.99},{\"category\":\"fiction\",\"author\":\"Herman Melville\",\"title\":\"Moby Dick\",\"isbn\":\"0-553-21311-3\",\"price\":8.99},{\"category\":\"fiction\",\"author\":\"J. R. R. Tolkien\",\"title\":\"The Lord of the Rings\",\"isbn\":\"0-395-19395-8\",\"price\":22.99}],\"bicycle\":{\"color\":\"red\",\"price\":19.95}},\"expensive\":10}";
+
     private final JsonDocument document = new JsonDocument(json);
 
     @Test
-    public void integerListTest() {
-        List<Integer> value = document.getList("$.key", Integer.class);
+    public void doubleListTest() {
+        List<Double> value = document.getList("$.store.book[*].price", Double.class);
         Assertions.assertNotNull(value);
         Objects.requireNonNull(value);
-        Assertions.assertEquals(3, value.size());
+        Assertions.assertEquals(4, value.size());
     }
 
     @Test
     public void integerListMissingTest() {
-        List<Integer> value = document.getList("$.keya", Integer.class);
+        List<String> value = document.getList("$.store.displays", String.class);
         Assertions.assertNull(value);
     }
 
     @Test
-    public void stringTest() {
-        String valueString = document.get("$.key2", String.class);
-        Assertions.assertNotNull(valueString);
-        Assertions.assertEquals("stringValue", valueString);
+    public void singleValueTest() {
+        Integer value = document.get("$.expensive", Integer.class);
+        Assertions.assertNotNull(value);
+        Assertions.assertEquals(10, value);
     }
 
     @Test
-    public void stringMissingTest() {
-        String valueString2 = document.get("$.key2a", String.class);
-        Assertions.assertNull(valueString2);
+    public void singleValueMissingTest() {
+        Integer value = document.get("$.explosive", Integer.class);
+        Assertions.assertNull(value);
     }
 
     @Test
@@ -73,12 +75,19 @@ public class JsonDocumentTest {
 
     @Test
     public void pathTest() {
-        String json = "{\"wakeWords\":[{\"active\":true,\"deviceSerialNumber\":\"G081470503340B84\",\"deviceType\":\"A30YDR2MK8HMRV\",\"midFieldState\":null,\"wakeWord\":\"ALEXA\"},{\"active\":true,\"deviceSerialNumber\":\"G090XG2154640M15\",\"deviceType\":\"A1RABVCI4QCIKC\",\"midFieldState\":null,\"wakeWord\":\"ALEXA\"}]}";
-        JsonDocument document = new JsonDocument(json);
-        String wakewordPath = document.getFirstPath("$.wakeWords[?].wakeWord",
-                where("deviceSerialNumber").eq("G081470503340B84"));
-        Assertions.assertNotNull(wakewordPath);
-        Objects.requireNonNull(wakewordPath);
-        Assertions.assertEquals("$['wakeWords'][0]['wakeWord']", wakewordPath);
+        String authorPath = document.getFirstPath("$.store.book[*].author");
+        Assertions.assertNotNull(authorPath);
+        Objects.requireNonNull(authorPath);
+        Assertions.assertEquals("$['store']['book'][0]['author']", authorPath);
+    }
+
+    @Test
+    public void mapTest() {
+        List<Map<String, Object>> maps = document.getMapList("$.store.book[*]['author', 'title']");
+        Assertions.assertNotNull(maps);
+        Objects.requireNonNull(maps);
+        Assertions.assertEquals(4, maps.size());
+        Assertions.assertEquals("Nigel Rees", maps.get(0).get("author"));
+        Assertions.assertEquals("Sword of Honour", maps.get(1).get("title"));
     }
 }

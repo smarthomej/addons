@@ -17,6 +17,8 @@ import java.util.Map;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -48,13 +50,17 @@ public class JsonDocument {
 
     // @formatter:off
     private static final TypeRef<List<String>> STRING_LIST = new TypeRef<>() {};
+    private static final TypeRef<List<Map<String, Object>>> MAP_LIST = new TypeRef<>() {};
     private static final Map<Class<?>, TypeRef<?>> LIST_TYPE_REFS = Map.ofEntries(
             Map.entry(Boolean.class, new TypeRef<List<Boolean>>() {}),
+            Map.entry(Double.class, new TypeRef<List<Double>>() {}),
             Map.entry(Integer.class, new TypeRef<List<Integer>>() {}),
             Map.entry(String.class, STRING_LIST));
     // @formatter:on
 
     public static final JsonDocument EMPTY = new JsonDocument("{}");
+
+    private final Logger logger = LoggerFactory.getLogger(JsonDocument.class);
     private final Object parsedJson;
 
     public JsonDocument(String json) {
@@ -81,9 +87,14 @@ public class JsonDocument {
     public <T> @Nullable List<T> getList(String path, Class<T> clazz, Predicate... filters) {
         TypeRef<?> typeRef = LIST_TYPE_REFS.get(clazz);
         if (typeRef == null) {
+            logger.warn("Did not find list TypeRef for {}, this is a bug.", clazz);
             return null;
         }
         return (List<T>) get(path, typeRef, filters);
+    }
+
+    public @Nullable List<Map<String, Object>> getMapList(String path, Predicate... filters) {
+        return get(path, MAP_LIST, filters);
     }
 
     /**
