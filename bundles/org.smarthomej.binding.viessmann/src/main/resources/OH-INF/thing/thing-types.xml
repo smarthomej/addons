@@ -69,11 +69,11 @@
 		<supported-bridge-type-refs>
 			<bridge-type-ref id="bridge"/>
 		</supported-bridge-type-refs>
-
 		<label>Viessmann Device</label>
-
+		<properties>
+			<property name="thingTypeVersion">1</property>
+		</properties>
 		<representation-property>deviceId</representation-property>
-
 		<config-description>
 			<parameter name="deviceId" type="text" required="true">
 				<label>Device Id</label>
