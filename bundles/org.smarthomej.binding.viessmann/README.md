@@ -1,6 +1,6 @@
 # Viessmann Binding
 
-<img src="/bundles/org.smarthomej.binding.viessmann/doc/viessmann_wordmark_rgb_1_vitorange.png" width="100"/>
+<img src="/bundles/org.smarthomej.binding.viessmann/doc/viessmann_wordmark_rgb_1_vitorange.png" width="140"/>
 
 This binding connects Viessmann Heatings via the new Viessmann API.
 It provides features like the ViCare-App.
@@ -69,8 +69,12 @@ The channels are automatically generated for all available features.
 ### Version 2.3.10
 
 All channels on `device` - thing needs to be recreated to support Units Of Measurement.
-Simply delete the thing and rediscover.
-The channel links do not need to be deleted.
-But it could be that some have to be relinked.
-Or the item type has to be adjusted. 
-(e.g. Number -> Number:Time)
+This happens automatically.
+
+The item type of each item has to be adjusted:
+
+| unit              | old item type | new item type         |
+|-------------------|---------------|-----------------------|
+| hour, minutes,... | Number        | Number:Time           |
+| percent           | Nubmer        | Number:Dimensionless  |
+| temperature       | Number        | Number:Temperature    |
