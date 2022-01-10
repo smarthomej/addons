@@ -7,7 +7,7 @@ It provides features like the ViCare-App.
 
 ## Note / Important
 
-You have to register your ViCare Account at the Viessmann developer portal and create a Client ID.
+You have to register your ViCare Account at the [Viessmann developer portal](https://developer.viessmann.com/) and create a Client ID.
 
 * `name` - `i.e. openhab`
 * `Google reCAPTCHA` - `off`
