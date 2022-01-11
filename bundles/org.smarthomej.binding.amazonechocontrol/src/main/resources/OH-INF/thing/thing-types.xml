@@ -329,6 +329,7 @@
 		<item-type>String</item-type>
 		<label>Alarm Sound</label>
 		<description>Plays an alarm sound</description>
+		<autoUpdatePolicy>veto</autoUpdatePolicy>
 	</channel-type>
 	<channel-type id="amazonMusicTrackId" advanced="true">
 		<item-type>String</item-type>
@@ -344,6 +345,7 @@
 		<item-type>String</item-type>
 		<label>AmazonMusic Play List</label>
 		<description>Amazon Music play list id (Write only, no current state)</description>
+		<autoUpdatePolicy>veto</autoUpdatePolicy>
 	</channel-type>
 	<channel-type id="amazonMusicPlayListIdLastUsed" advanced="true">
 		<item-type>String</item-type>
@@ -439,7 +441,7 @@
 		<label>Music Voice Command</label>
 		<description>Voice command as text. E.g. 'Yesterday from the Beatles' (Write only)</description>
 	</channel-type>
-	<channel-type id="sendMessage" advanced="false">
+	<channel-type id="sendMessage">
 		<item-type>String</item-type>
 		<label>Send Message</label>
 		<description>Sends a message to the Echo devices (Write only).</description>
@@ -471,7 +473,6 @@
 		<item-type>String</item-type>
 		<label>Last Voice Command</label>
 		<description>Last voice command spoken to the device. Writing to the channel starts voice output.</description>
-		<state readOnly="false"/>
 	</channel-type>
 	<channel-type id="lastSpokenText" advanced="true">
 		<item-type>String</item-type>
@@ -479,16 +480,15 @@
 		<description>Last spoken text of the device.</description>
 		<state readOnly="true"/>
 	</channel-type>
-	<channel-type id="mediaProgress" advanced="false">
+	<channel-type id="mediaProgress">
 		<item-type>Dimmer</item-type>
 		<label>Media Progress</label>
 		<description>Media progress in percent</description>
-		<state readOnly="false"/>
 	</channel-type>
 	<channel-type id="mediaProgressTime" advanced="true">
 		<item-type>Number:Time</item-type>
 		<label>Media Play Time</label>
-		<state readOnly="false" pattern="%d %unit%"/>
+		<state pattern="%d %unit%"/>
 	</channel-type>
 	<channel-type id="mediaLength" advanced="true">
 		<item-type>Number:Time</item-type>
@@ -499,27 +499,16 @@
 		<item-type>String</item-type>
 		<label>Start</label>
 		<description>Start information (Write only)</description>
-		<state pattern="String" readOnly="false">
-			<options>
-				<option value="Weather">Weather</option>
-				<option value="Traffic">Traffic</option>
-				<option value="GoodMorning">Good morning</option>
-				<option value="SingASong">Song</option>
-				<option value="TellStory">Story</option>
-				<option value="FlashBriefing">Flash briefing</option>
-			</options>
-		</state>
+		<autoUpdatePolicy>veto</autoUpdatePolicy>
 	</channel-type>
 	<channel-type id="notificationVolume" advanced="true">
 		<item-type>Dimmer</item-type>
 		<label>Notification Volume</label>
-		<state readOnly="false"/>
 	</channel-type>
 	<channel-type id="ascendingAlarm" advanced="true">
 		<item-type>Switch</item-type>
 		<label>Ascending Alarm</label>
 		<description>Ascending alarm up to the configured volume</description>
-		<state readOnly="false"/>
 	</channel-type>
 	<channel-type id="nextReminder" advanced="true">
 		<item-type>DateTime</item-type>

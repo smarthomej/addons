@@ -18,7 +18,6 @@ import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.thing.ThingTypeUID;
-import org.openhab.core.thing.type.ChannelTypeUID;
 
 /**
  * The {@link AmazonEchoControlBindingConstants} class defines common constants, which are
@@ -97,17 +96,6 @@ public class AmazonEchoControlBindingConstants {
     public static final String CHANNEL_SAVE = "save";
     public static final String CHANNEL_ACTIVE = "active";
     public static final String CHANNEL_PLAY_ON_DEVICE = "playOnDevice";
-
-    // List of channel Type UIDs
-    public static final ChannelTypeUID CHANNEL_TYPE_BLUETHOOTH_MAC = new ChannelTypeUID(BINDING_ID, "bluetoothMAC");
-    public static final ChannelTypeUID CHANNEL_TYPE_AMAZON_MUSIC_PLAY_LIST_ID = new ChannelTypeUID(BINDING_ID,
-            "amazonMusicPlayListId");
-    public static final ChannelTypeUID CHANNEL_TYPE_PLAY_ALARM_SOUND = new ChannelTypeUID(BINDING_ID, "playAlarmSound");
-    public static final ChannelTypeUID CHANNEL_TYPE_CHANNEL_PLAY_ON_DEVICE = new ChannelTypeUID(BINDING_ID,
-            "playOnDevice");
-    public static final ChannelTypeUID CHANNEL_TYPE_MUSIC_PROVIDER_ID = new ChannelTypeUID(BINDING_ID,
-            "musicProviderId");
-    public static final ChannelTypeUID CHANNEL_TYPE_START_COMMAND = new ChannelTypeUID(BINDING_ID, "startCommand");
 
     // List of all Properties
     public static final String DEVICE_PROPERTY_SERIAL_NUMBER = "serialNumber";
