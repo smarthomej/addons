@@ -29,7 +29,6 @@ import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.library.types.StringType;
-import org.openhab.core.library.unit.Units;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.Channel;
 import org.openhab.core.thing.ChannelUID;
@@ -43,7 +42,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.viessmann.internal.config.ThingsConfig;
 import org.smarthomej.binding.viessmann.internal.dto.ThingMessageDTO;
-import org.smarthomej.binding.viessmann.internal.dto.UnitsMap;
 import org.smarthomej.binding.viessmann.internal.dto.ViessmannMessage;
 import org.smarthomej.binding.viessmann.internal.dto.features.FeatureCommands;
 import org.smarthomej.binding.viessmann.internal.dto.features.FeatureDataDTO;
@@ -145,7 +143,7 @@ public class DeviceHandler extends ViessmannThingHandler {
                         Integer f = value.intValue();
                         String s = f.toString();
                         for (String str : com) {
-                            if (str.indexOf("Temperature") != -1) {
+                            if (str.contains("Temperature")) {
                                 uri = prop.get(str + "Uri");
                                 param = "{\"" + prop.get(str + "Params") + "\":" + s + "}";
                                 break;
@@ -205,7 +203,7 @@ public class DeviceHandler extends ViessmannThingHandler {
                     String typeEntry = "";
                     Boolean bool = false;
                     String viUnit = "";
-                    String unit = "";
+                    String unit = null;
                     msg.setFeatureName(getFeatureName(featureDataDTO.feature));
                     msg.setSuffix(entry);
                     switch (entry) {
@@ -330,12 +328,12 @@ public class DeviceHandler extends ViessmannThingHandler {
                     msg.setValue(valueEntry);
                     msg.setChannelType("type-" + typeEntry);
 
-                    if (msg.getDeviceId().indexOf(config.deviceId) != -1 && !"unit".equals(entry)) {
+                    if (msg.getDeviceId().contains(config.deviceId) && !"unit".equals(entry)) {
                         if (!"[]".equals(valueEntry)) {
                             if (viUnit != null) {
                                 if (!viUnit.isEmpty()) {
                                     msg.setUnit(viUnit);
-                                    unit = UnitsMap.getUnit(viUnit);
+                                    unit = UNIT_MAP.get(viUnit);
                                 }
                             }
                             logger.trace("Feature: {} Type:{} Entry: {}={}", featureDataDTO.feature, typeEntry, entry,
@@ -394,27 +392,25 @@ public class DeviceHandler extends ViessmannThingHandler {
                                 case "decimal":
                                 case "number":
                                 case "temperature":
-                                    if (unit != null) {
-                                        if (unit.isEmpty()) {
-                                            DecimalType state = DecimalType.valueOf(msg.getValue());
-                                            updateState(msg.getChannelId(), state);
-                                        } else {
-                                            updateState(msg.getChannelId(),
-                                                    new QuantityType<>(msg.getValue() + " " + unit));
-                                        }
+                                    if (unit == null) {
+                                        DecimalType state = DecimalType.valueOf(msg.getValue());
+                                        updateState(msg.getChannelId(), state);
+                                    } else {
+                                        updateState(msg.getChannelId(),
+                                                new QuantityType<>(msg.getValue() + " " + unit));
                                     }
                                     break;
                                 case "percent":
                                     updateState(msg.getChannelId(),
-                                            new QuantityType<>(Double.valueOf(msg.getValue()), Units.PERCENT));
+                                            new QuantityType<>(Double.valueOf(msg.getValue()) + " " + unit));
                                     break;
                                 case "minute":
                                     updateState(msg.getChannelId(),
-                                            new QuantityType<>(Double.valueOf(msg.getValue()), Units.MINUTE));
+                                            new QuantityType<>(Double.valueOf(msg.getValue()) + " " + unit));
                                     break;
                                 case "hours":
                                     updateState(msg.getChannelId(),
-                                            new QuantityType<>(Double.valueOf(msg.getValue()), Units.HOUR));
+                                            new QuantityType<>(Double.valueOf(msg.getValue()) + " " + unit));
                                     break;
                                 case "boolean":
                                     OnOffType state = bool ? OnOffType.ON : OnOffType.OFF;
@@ -584,7 +580,7 @@ public class DeviceHandler extends ViessmannThingHandler {
             }
         }
         ChannelTypeUID channelTypeUID = new ChannelTypeUID(BINDING_ID, channelType);
-        if (msg.getFeatureName().indexOf("active") != -1) {
+        if (msg.getFeatureName().contains("active")) {
             logger.trace("Feature: {} ChannelType: {}", msg.getFeatureClear(), channelType);
         }
         Channel channel = callback.createChannelBuilder(channelUID, channelTypeUID).withLabel(msg.getFeatureName())
@@ -611,7 +607,7 @@ public class DeviceHandler extends ViessmannThingHandler {
             String channelType = msg.getChannelType();
 
             ChannelTypeUID channelTypeUID = new ChannelTypeUID(BINDING_ID, channelType);
-            if (msg.getFeatureName().indexOf("active") != -1) {
+            if (msg.getFeatureName().contains("active")) {
                 logger.trace("Feature: {} ChannelType: {}", msg.getFeatureClear(), channelType);
             }
             Channel channel = callback.createChannelBuilder(channelUID, channelTypeUID).withLabel(msg.getFeatureName())

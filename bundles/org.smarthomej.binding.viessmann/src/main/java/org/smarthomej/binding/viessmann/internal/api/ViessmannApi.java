@@ -246,7 +246,7 @@ public class ViessmannApi {
             logger.trace("API: Get Request URL is '{}'", url);
             response = HttpUtil.executeUrl("GET", url, setHeaders(), null, null, API_TIMEOUT_MS);
             logger.trace("API: Response took {} msec: {}", System.currentTimeMillis() - startTime, response);
-            if (response.indexOf("viErrorId") >= 0) {
+            if (response.contains("viErrorId")) {
                 ViErrorDTO viError = GSON.fromJson(response, ViErrorDTO.class);
                 if (viError != null) {
                     if (viError.getStatusCode() == 429) {
@@ -278,7 +278,7 @@ public class ViessmannApi {
             String response = HttpUtil.executeUrl("POST", url, setHeaders(), new ByteArrayInputStream(json.getBytes()),
                     "application/json", API_TIMEOUT_MS);
             logger.trace("API: Response took {} msec: {}", System.currentTimeMillis() - startTime, response);
-            if (response.indexOf("viErrorId") >= 0) {
+            if (response.contains("viErrorId")) {
                 ViErrorDTO viError = GSON.fromJson(response, ViErrorDTO.class);
                 if (viError != null) {
                     if (viError.getStatusCode() == 429) {

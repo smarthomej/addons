@@ -1,6 +1,6 @@
 # Viessmann Binding
 
-<img src="/bundles/org.smarthomej.binding.viessmann/doc/viessmann_wordmark_rgb_1_vitorange.png" width="140"/>
+<img src="org.smarthomej.binding.viessmann/doc/viessmann_wordmark_rgb_1_vitorange.png" width="140"/>
 
 This binding connects Viessmann Heatings via the new Viessmann API.
 It provides features like the ViCare-App.
@@ -11,7 +11,7 @@ You have to register your ViCare Account at the [Viessmann developer portal](htt
 
 * `name` - `i.e. openhab`
 * `Google reCAPTCHA` - `off`
-* `Redicect URI` - `http://localhost:8080/viessmann/authcode/` (*)
+* `Redirect URI` - `http://localhost:8080/viessmann/authcode/` (*)
 
 (*) If your openHAB system is running on a different port than `8080`, you have to change this in the `Redirect URI`
 

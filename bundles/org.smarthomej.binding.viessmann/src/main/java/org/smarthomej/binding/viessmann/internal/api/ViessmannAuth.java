@@ -141,18 +141,18 @@ public class ViessmannAuth {
             url.append("?response_type=code");
             url.append("&client_id=").append(apiKey);
             url.append("&code_challenge=2e21faa1-db2c-4d0b-a10f-575fd372bc8c-575fd372bc8c");
-            url.append("&redirect_uri=" + callbackUrl + "/viessmann/authcode/");
+            url.append("&redirect_uri=").append(callbackUrl).append("/viessmann/authcode/");
             url.append("&scope=").append(VIESSMANN_SCOPE);
             logger.trace("ViessmannAuth: Getting authorize URL={}", url);
             String response = executeUrlAuthorize("GET", url.toString());
             logger.trace("ViessmannAuth: Auth response: {}", response);
             if (response != null) {
-                if (response.indexOf("<!DOCTYPE html>") >= 0) {
+                if (response.contains("<!DOCTYPE html>")) {
                     logger.warn("ViessmannAuth: Login failed. Please check user and passowrd.");
                     updateBridgeStatusLogin();
                     return;
                 }
-                if (response.indexOf("error") >= 0) {
+                if (response.contains("error")) {
                     logger.warn("ViessmannAuth: Login failed. Wrong code response.");
                     return;
                 }
@@ -197,7 +197,7 @@ public class ViessmannAuth {
             StringBuilder url = new StringBuilder(VIESSMANN_TOKEN_URL);
             url.append("?grant_type=authorization_code");
             url.append("&client_id=").append(apiKey);
-            url.append("&redirect_uri=" + callbackUrl + "/viessmann/authcode/");
+            url.append("&redirect_uri=").append(callbackUrl).append("/viessmann/authcode/");
             url.append("&code_verifier=2e21faa1-db2c-4d0b-a10f-575fd372bc8c-575fd372bc8c");
             url.append("&code=").append(code);
 

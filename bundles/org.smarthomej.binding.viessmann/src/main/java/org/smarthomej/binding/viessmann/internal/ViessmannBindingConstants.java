@@ -20,6 +20,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.core.library.unit.SIUnits;
+import org.openhab.core.library.unit.Units;
 import org.openhab.core.thing.ThingTypeUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +64,13 @@ public class ViessmannBindingConstants {
 
     public static final Map<String, String> FEATURE_DESCRIPTION_MAP = readPropertiesFile(
             "featuresDescription.properties");
+
+    public static final Map<String, String> UNIT_MAP = Map.of( //
+            "celsius", SIUnits.CELSIUS.getSymbol(), //
+            "kilowattHour", Units.KILOWATT_HOUR.toString(), //
+            "percent", Units.PERCENT.toString(), //
+            "minute", Units.MINUTE.toString(), //
+            "hour", Units.HOUR.toString());
 
     public static Map<String, String> readPropertiesFile(String filename) {
         InputStream resource = Thread.currentThread().getContextClassLoader().getResourceAsStream(filename);
