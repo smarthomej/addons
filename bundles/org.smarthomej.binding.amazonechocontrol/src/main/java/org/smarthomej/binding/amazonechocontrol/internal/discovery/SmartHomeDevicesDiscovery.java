@@ -160,28 +160,36 @@ public class SmartHomeDevicesDiscovery extends AbstractDiscoveryService implemen
                 thingUID = new ThingUID(THING_TYPE_SMART_HOME_DEVICE, bridgeThingUID, entityId.replace(".", "-"));
 
                 List<JsonSmartHomeDeviceAlias> aliases = shd.aliases;
-                if ("Amazon".equals(shd.manufacturerName) && driverIdentity != null
-                        && "SonarCloudService".equals(driverIdentity.identifier)) {
+                if (shd.manufacturerName != null && shd.manufacturerName.startsWith("Amazon")) {
                     List<@Nullable String> interfaces = shd.getCapabilities().stream().map(c -> c.interfaceName)
                             .collect(Collectors.toList());
-                    if (interfaces.contains("Alexa.AcousticEventSensor")) {
+                    if (driverIdentity != null && "SonarCloudService".equals(shd.driverIdentity.identifier)) {
+                        if (interfaces.contains("Alexa.AcousticEventSensor")) {
+                            deviceName = "Alexa Guard on " + shd.friendlyName;
+                        } else if (interfaces.contains("Alexa.ColorController")) {
+                            deviceName = "Alexa Color Controller on " + shd.friendlyName;
+                        } else if (interfaces.contains("Alexa.PowerController")) {
+                            deviceName = "Alexa Plug on " + shd.friendlyName;
+                        } else {
+                            deviceName = "Unknown Device on " + shd.friendlyName;
+                        }
+                    } else if (driverIdentity != null && "OnGuardSmartHomeBridgeService".equals(shd.driverIdentity.identifier)) {
+                        deviceName = "Alexa Guard";
+                    } else if (driverIdentity != null && "AlexaBridge".equals(shd.driverIdentity.namespace) && interfaces.contains("Alexa.AcousticEventSensor")) {
                         deviceName = "Alexa Guard on " + shd.friendlyName;
-                    } else if (interfaces.contains("Alexa.ColorController")) {
-                        deviceName = "Alexa Color Controller on " + shd.friendlyName;
-                    } else if (interfaces.contains("Alexa.PowerController")) {
-                        deviceName = "Alexa Plug on " + shd.friendlyName;
                     } else {
                         deviceName = "Unknown Device on " + shd.friendlyName;
                     }
-                } else if ("Amazon".equals(shd.manufacturerName) && driverIdentity != null
-                        && "OnGuardSmartHomeBridgeService".equals(driverIdentity.identifier)) {
-                    deviceName = "Alexa Guard";
                 } else if (aliases != null && !aliases.isEmpty() && aliases.get(0).friendlyName != null) {
                     deviceName = aliases.get(0).friendlyName;
                 } else {
                     deviceName = shd.friendlyName;
                 }
                 props.put(DEVICE_PROPERTY_ID, id);
+                if (shd.alexaDeviceIdentifierList != null && !shd.alexaDeviceIdentifierList.isEmpty()) {
+                    props.put(DEVICE_PROPERTY_DEVICE_IDENTIFIER_LIST, shd.alexaDeviceIdentifierList.stream().map(d -> d.dmsDeviceSerialNumber+" @ "+d.dmsDeviceTypeId).collect(
+                            Collectors.joining(", ")));
+                }
             } else if (smartHomeDevice instanceof SmartHomeGroup) {
                 SmartHomeGroup shg = (SmartHomeGroup) smartHomeDevice;
                 logger.trace("Found SmartHome device: {}", shg);
