@@ -58,7 +58,7 @@ The `ipbridge` thing supports a TCP/IP connection to an RS323 to LAN adapter.
 * `hostname` (required) The hostname or IP address of the serial to LAN adapter
 * `tcpPort` (default = 4116) TCP port number for the serial to LAN adapter connection
 * `discovery` Enables the discovery
-* `updateClock` The period in hours that updates the clock on the telenot system.
+* `updateClock` The period in hours for updating the clock on the telenot system.
 Set to 0 to disable.
 * `reconnect` (1-60, default = 2) The period in minutes that the handler will wait between connection checks and connection attempts
 * `timeout` (0-60, default = 5) The period in minutes after which the connection will be reset if no valid messages have been received. Set to 0 to disable.
@@ -77,9 +77,9 @@ Bridge telenot:ipbridge:device [ hostname="xxx.xxx.xxx.xxx", tcpPort=4116 ] {
 The `input` thing provides all channels with the state of each single reporting group.
 The `output` thing provides all channels with the state of each single reporting area.
 
-* 1. Add things
-* 2. Enable discovery in the `ipbridge` thing
-* 3. Now all available channel will be added automatically
+* 1. Add things.
+* 2. Enable discovery in the `ipbridge` thing.
+* 3. All available channel will be added automatically.
      The discovery takes about 5 minutes.
 
 ### `mb`
