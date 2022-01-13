@@ -401,13 +401,7 @@ public class DeviceHandler extends ViessmannThingHandler {
                                     }
                                     break;
                                 case "percent":
-                                    updateState(msg.getChannelId(),
-                                            new QuantityType<>(Double.valueOf(msg.getValue()) + " " + unit));
-                                    break;
                                 case "minute":
-                                    updateState(msg.getChannelId(),
-                                            new QuantityType<>(Double.valueOf(msg.getValue()) + " " + unit));
-                                    break;
                                 case "hours":
                                     updateState(msg.getChannelId(),
                                             new QuantityType<>(Double.valueOf(msg.getValue()) + " " + unit));
