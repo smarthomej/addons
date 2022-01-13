@@ -56,7 +56,7 @@ public class WebSocketConnection {
     private final WebSocketClient client;
     private final String socketName;
     private final Gson gson;
-    private final int watchdogInterval;
+    private int watchdogInterval;
 
     private final WebSocketConnectionListener connectionListener;
     private final Map<String, WebSocketMessageListener> listeners = new ConcurrentHashMap<>();
@@ -73,6 +73,10 @@ public class WebSocketConnection {
         this.client.setMaxIdleTimeout(0);
         this.gson = gson;
         this.socketName = "Websocket$" + System.currentTimeMillis() + "-" + INSTANCE_COUNTER.incrementAndGet();
+        this.watchdogInterval = watchdogInterval;
+    }
+
+    public void setWatchdogInterval(int watchdogInterval) {
         this.watchdogInterval = watchdogInterval;
     }
 
@@ -113,7 +117,7 @@ public class WebSocketConnection {
     private void stopWatchdogTimer() {
         ScheduledFuture<?> watchdogTimer = this.watchdogJob;
         if (watchdogTimer != null) {
-            watchdogTimer.cancel(true);
+            watchdogTimer.cancel(false);
             this.watchdogJob = null;
         }
     }
