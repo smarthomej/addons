@@ -169,6 +169,13 @@ public class IPBridgeHandler extends TelenotBridgeHandler {
             refreshSendDataJob = null;
         }
 
+        ScheduledFuture<?> ucJob = updateTelenotClockJob;
+        if (ucJob != null) {
+            // use cancel(false) so we don't kill ourselves when reconnect job calls disconnect()
+            ucJob.cancel(false);
+            updateTelenotClockJob = null;
+        }
+
         // Must close the socket first so the message reader thread will exit properly.
         Socket s = socket;
         if (s != null) {
