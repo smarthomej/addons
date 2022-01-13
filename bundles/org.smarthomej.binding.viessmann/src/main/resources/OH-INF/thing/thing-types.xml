@@ -9,7 +9,7 @@
 		<description>The bridge to communicate with the Viessmann API</description>
 
 		<channels>
-			<channel id="countApiCalls" typeId="number">
+			<channel id="countApiCalls" typeId="type-number">
 				<label>Count API Calls</label>
 			</channel>
 		</channels>
@@ -69,11 +69,11 @@
 		<supported-bridge-type-refs>
 			<bridge-type-ref id="bridge"/>
 		</supported-bridge-type-refs>
-
 		<label>Viessmann Device</label>
-
+		<properties>
+			<property name="thingTypeVersion">1</property>
+		</properties>
 		<representation-property>deviceId</representation-property>
-
 		<config-description>
 			<parameter name="deviceId" type="text" required="true">
 				<label>Device Id</label>
@@ -107,11 +107,11 @@
 	<channel-type id="type-energy">
 		<item-type>Number:Energy</item-type>
 		<label>Energy</label>
-		<state pattern="%.1f %unit%" readOnly="true">
+		<state pattern="%.3f %unit%" readOnly="true">
 		</state>
 	</channel-type>
 
-	<channel-type id="type-number">
+	<channel-type id="type-decimal">
 		<item-type>Number</item-type>
 		<label>Number</label>
 		<category>Number</category>
@@ -119,11 +119,35 @@
 		</state>
 	</channel-type>
 
-	<channel-type id="number">
+	<channel-type id="type-number">
 		<item-type>Number</item-type>
 		<label>Number</label>
 		<category>Number</category>
-		<state pattern="%d" readOnly="true">
+		<state pattern="%d %unit%" readOnly="true">
+		</state>
+	</channel-type>
+
+	<channel-type id="type-minute">
+		<item-type>Number:Time</item-type>
+		<label>Number</label>
+		<category>Number</category>
+		<state pattern="%d %unit%" readOnly="true">
+		</state>
+	</channel-type>
+
+	<channel-type id="type-hours">
+		<item-type>Number:Time</item-type>
+		<label>Number</label>
+		<category>Number</category>
+		<state pattern="%.1f %unit%" readOnly="true">
+		</state>
+	</channel-type>
+
+	<channel-type id="type-percent">
+		<item-type>Number:Dimensionless</item-type>
+		<label>Number</label>
+		<category>Number</category>
+		<state pattern="%d %unit%" readOnly="true">
 		</state>
 	</channel-type>
 

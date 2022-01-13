@@ -20,4 +20,5 @@ package org.smarthomej.binding.viessmann.internal.dto.features;
 public class FeatureString {
     public String type;
     public String value;
+    public String unit;
 }

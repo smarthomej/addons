@@ -14,12 +14,14 @@ package org.smarthomej.binding.viessmann.internal;
 
 import static org.smarthomej.binding.viessmann.internal.ViessmannBindingConstants.*;
 
+import java.util.Dictionary;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.client.HttpClient;
 import org.openhab.core.io.net.http.HttpClientFactory;
+import org.openhab.core.net.HttpServiceUtil;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingTypeUID;
@@ -31,6 +33,8 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.http.HttpService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.viessmann.internal.handler.DeviceHandler;
 import org.smarthomej.binding.viessmann.internal.handler.ViessmannBridgeHandler;
 
@@ -43,9 +47,12 @@ import org.smarthomej.binding.viessmann.internal.handler.ViessmannBridgeHandler;
 @NonNullByDefault
 @Component(configurationPid = "binding.viessmann", service = ThingHandlerFactory.class)
 public class ViessmannHandlerFactory extends BaseThingHandlerFactory {
+    private final Logger logger = LoggerFactory.getLogger(ViessmannHandlerFactory.class);
 
     private final HttpClient httpClient;
     private final BindingServlet bindingServlet;
+
+    private @Nullable String callbackUrl;
 
     private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Set.of(THING_TYPE_BRIDGE, THING_TYPE_DEVICE);
 
@@ -53,6 +60,13 @@ public class ViessmannHandlerFactory extends BaseThingHandlerFactory {
     public ViessmannHandlerFactory(@Reference HttpService httpService, @Reference HttpClientFactory httpClientFactory) {
         this.httpClient = httpClientFactory.getCommonHttpClient();
         this.bindingServlet = new BindingServlet(httpService);
+    }
+
+    @Override
+    protected void activate(ComponentContext componentContext) {
+        super.activate(componentContext);
+        Dictionary<String, Object> properties = componentContext.getProperties();
+        callbackUrl = (String) properties.get("callbackUrl");
     }
 
     @Override
@@ -72,7 +86,7 @@ public class ViessmannHandlerFactory extends BaseThingHandlerFactory {
 
         if (THING_TYPE_BRIDGE.equals(thingTypeUID)) {
             bindingServlet.addAccountThing(thing);
-            return new ViessmannBridgeHandler((Bridge) thing, httpClient);
+            return new ViessmannBridgeHandler((Bridge) thing, httpClient, createCallbackUrl());
         } else if (THING_TYPE_DEVICE.equals(thingTypeUID)) {
             return new DeviceHandler(thing);
         }
@@ -83,5 +97,19 @@ public class ViessmannHandlerFactory extends BaseThingHandlerFactory {
     protected synchronized void removeHandler(ThingHandler thingHandler) {
         BindingServlet bindingServlet = this.bindingServlet;
         bindingServlet.removeAccountThing(thingHandler.getThing());
+    }
+
+    private @Nullable String createCallbackUrl() {
+        if (callbackUrl != null) {
+            return callbackUrl;
+        } else {
+            // we do not use SSL as it can cause certificate validation issues.
+            final int port = HttpServiceUtil.getHttpServicePort(bundleContext);
+            if (port == -1) {
+                logger.warn("Cannot find port of the http service.");
+                return null;
+            }
+            return "http://localhost:" + port;
+        }
     }
 }

@@ -52,6 +52,7 @@ public class ViessmannAuth {
     private final String apiKey;
     private final String user;
     private final String password;
+    private final @Nullable String callbackUrl;
 
     private final HttpClient httpClient;
 
@@ -69,13 +70,14 @@ public class ViessmannAuth {
     private @Nullable String refreshToken;
 
     public ViessmannAuth(ViessmannApi api, ViessmannBridgeHandler bridgeHandler, String apiKey, HttpClient httpClient,
-            String user, String password) {
+            String user, String password, @Nullable String callbackUrl) {
         this.api = api;
         this.apiKey = apiKey;
         this.httpClient = httpClient;
         this.bridgeHandler = bridgeHandler;
         this.user = user;
         this.password = password;
+        this.callbackUrl = callbackUrl;
         state = ViessmannAuthState.NEED_AUTH;
         authResponse = null;
     }
@@ -134,49 +136,53 @@ public class ViessmannAuth {
      */
     private void authorize() throws ViessmannAuthException {
         logger.debug("ViessmannAuth: State is {}: Executing step: 'authorize'", state);
-        StringBuilder url = new StringBuilder(VIESSMANN_AUTHORIZE_URL);
-        url.append("?response_type=code");
-        url.append("&client_id=").append(apiKey);
-        url.append("&code_challenge=2e21faa1-db2c-4d0b-a10f-575fd372bc8c-575fd372bc8c");
-        url.append("&redirect_uri=http://localhost:8080/viessmann/authcode/");
-        url.append("&scope=").append(VIESSMANN_SCOPE);
-        logger.trace("ViessmannAuth: Getting authorize URL={}", url);
-        String response = executeUrlAuthorize("GET", url.toString());
-        logger.trace("ViessmannAuth: Auth response: {}", response);
-        if (response != null) {
-            if (response.indexOf("<!DOCTYPE html>") >= 0) {
-                logger.warn("ViessmannAuth: Login failed. Please check user and passowrd.");
-                updateBridgeStatusLogin();
-                return;
-            }
-            if (response.indexOf("error") >= 0) {
-                logger.warn("ViessmannAuth: Login failed. Wrong code response.");
-                return;
-            }
-        }
-        try {
-            authResponse = api.getGson().fromJson(response, AuthorizeResponseDTO.class);
-            if (authResponse == null) {
-                logger.debug("ViessmannAuth: Got null authorize response from Viessmann API");
-                setState(ViessmannAuthState.NEED_AUTH);
-                return;
-            } else {
-                AuthorizeResponseDTO resp = this.authResponse;
-                if (resp == null) {
-                    logger.warn("AuthorizeResponseDTO is null. This should not happen.");
+        if (callbackUrl != null) {
+            StringBuilder url = new StringBuilder(VIESSMANN_AUTHORIZE_URL);
+            url.append("?response_type=code");
+            url.append("&client_id=").append(apiKey);
+            url.append("&code_challenge=2e21faa1-db2c-4d0b-a10f-575fd372bc8c-575fd372bc8c");
+            url.append("&redirect_uri=").append(callbackUrl).append("/viessmann/authcode/");
+            url.append("&scope=").append(VIESSMANN_SCOPE);
+            logger.trace("ViessmannAuth: Getting authorize URL={}", url);
+            String response = executeUrlAuthorize("GET", url.toString());
+            logger.trace("ViessmannAuth: Auth response: {}", response);
+            if (response != null) {
+                if (response.contains("<!DOCTYPE html>")) {
+                    logger.warn("ViessmannAuth: Login failed. Please check user and passowrd.");
+                    updateBridgeStatusLogin();
                     return;
                 }
-                if (resp.errorMsg != null) {
+                if (response.contains("error")) {
+                    logger.warn("ViessmannAuth: Login failed. Wrong code response.");
+                    return;
+                }
+            }
+            try {
+                authResponse = api.getGson().fromJson(response, AuthorizeResponseDTO.class);
+                if (authResponse == null) {
                     logger.debug("ViessmannAuth: Got null authorize response from Viessmann API");
                     setState(ViessmannAuthState.NEED_AUTH);
                     return;
+                } else {
+                    AuthorizeResponseDTO resp = this.authResponse;
+                    if (resp == null) {
+                        logger.warn("AuthorizeResponseDTO is null. This should not happen.");
+                        return;
+                    }
+                    if (resp.errorMsg != null) {
+                        logger.debug("ViessmannAuth: Got null authorize response from Viessmann API");
+                        setState(ViessmannAuthState.NEED_AUTH);
+                        return;
+                    }
+                    code = resp.code;
+                    setState(ViessmannAuthState.NEED_TOKEN);
                 }
-                code = resp.code;
-                setState(ViessmannAuthState.NEED_TOKEN);
+            } catch (JsonSyntaxException e) {
+                logger.info("ViessmannAuth: Exception while parsing authorize response: {}", e.getMessage());
+                setState(ViessmannAuthState.NEED_AUTH);
             }
-        } catch (JsonSyntaxException e) {
-            logger.info("ViessmannAuth: Exception while parsing authorize response: {}", e.getMessage());
-            setState(ViessmannAuthState.NEED_AUTH);
+        } else {
+            logger.warn("We do not have any callback url, so we cannot authorize!");
         }
     }
 
@@ -187,30 +193,34 @@ public class ViessmannAuth {
      */
     private void getTokens() throws ViessmannAuthException {
         logger.debug("ViessmannAuth: State is {}: Executing step: 'getToken'", state);
-        StringBuilder url = new StringBuilder(VIESSMANN_TOKEN_URL);
-        url.append("?grant_type=authorization_code");
-        url.append("&client_id=").append(apiKey);
-        url.append("&redirect_uri=http://localhost:8080/viessmann/authcode/");
-        url.append("&code_verifier=2e21faa1-db2c-4d0b-a10f-575fd372bc8c-575fd372bc8c");
-        url.append("&code=").append(code);
+        if (callbackUrl != null) {
+            StringBuilder url = new StringBuilder(VIESSMANN_TOKEN_URL);
+            url.append("?grant_type=authorization_code");
+            url.append("&client_id=").append(apiKey);
+            url.append("&redirect_uri=").append(callbackUrl).append("/viessmann/authcode/");
+            url.append("&code_verifier=2e21faa1-db2c-4d0b-a10f-575fd372bc8c-575fd372bc8c");
+            url.append("&code=").append(code);
 
-        logger.trace("ViessmannAuth: Posting token URL={}", url);
-        String response = executeUrlToken("POST", url.toString());
+            logger.trace("ViessmannAuth: Posting token URL={}", url);
+            String response = executeUrlToken("POST", url.toString());
 
-        TokenResponseDTO tokenResponse = api.getGson().fromJson(response, TokenResponseDTO.class);
-        if (tokenResponse == null) {
-            logger.debug("ViessmannAuth: Got null token response from Viessmann API");
-            bridgeHandler.updateBridgeStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-                    String.format("ViessmannAuth: Got null token response from Viessmann API"));
-            setState(ViessmannAuthState.NEED_AUTH);
-            return;
+            TokenResponseDTO tokenResponse = api.getGson().fromJson(response, TokenResponseDTO.class);
+            if (tokenResponse == null) {
+                logger.debug("ViessmannAuth: Got null token response from Viessmann API");
+                bridgeHandler.updateBridgeStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
+                        String.format("ViessmannAuth: Got null token response from Viessmann API"));
+                setState(ViessmannAuthState.NEED_AUTH);
+                return;
+            }
+            logger.trace("ViessmannAuth: Got a valid token response: {}", response);
+            api.setTokenResponseDTO(tokenResponse);
+            refreshToken = tokenResponse.refreshToken;
+            api.setTokenExpiryDate(TimeUnit.SECONDS.toMillis(tokenResponse.expiresIn));
+            api.setRefreshTokenExpiryDate(TimeUnit.SECONDS.toMillis(REFRESH_TOKEN_EXPIRE));
+            setState(ViessmannAuthState.COMPLETE);
+        } else {
+            logger.warn("We do not have any callback url, so we cannot get token!");
         }
-        logger.trace("ViessmannAuth: Got a valid token response: {}", response);
-        api.setTokenResponseDTO(tokenResponse);
-        refreshToken = tokenResponse.refreshToken;
-        api.setTokenExpiryDate(TimeUnit.SECONDS.toMillis(tokenResponse.expiresIn));
-        api.setRefreshTokenExpiryDate(TimeUnit.SECONDS.toMillis(REFRESH_TOKEN_EXPIRE));
-        setState(ViessmannAuthState.COMPLETE);
     }
 
     /**

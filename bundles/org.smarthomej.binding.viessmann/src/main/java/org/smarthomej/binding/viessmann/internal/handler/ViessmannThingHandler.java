@@ -20,11 +20,11 @@ import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.ThingStatusInfo;
-import org.openhab.core.thing.binding.BaseThingHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.viessmann.internal.dto.ViessmannMessage;
 import org.smarthomej.binding.viessmann.internal.dto.features.FeatureDataDTO;
+import org.smarthomej.commons.UpdatingBaseThingHandler;
 
 /**
  * {@link ViessmannThingHandler} is the abstract base class for all Viessmann thing handlers.
@@ -32,7 +32,7 @@ import org.smarthomej.binding.viessmann.internal.dto.features.FeatureDataDTO;
  * @author Ronny Grun - Initial contribution
  */
 @NonNullByDefault
-public abstract class ViessmannThingHandler extends BaseThingHandler {
+public abstract class ViessmannThingHandler extends UpdatingBaseThingHandler {
 
     private final Logger logger = LoggerFactory.getLogger(ViessmannThingHandler.class);
     protected final AtomicBoolean firstUpdateReceived = new AtomicBoolean(false);

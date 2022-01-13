@@ -22,4 +22,5 @@ import java.util.List;
 public class FeatureListDouble {
     public String type;
     public List<Double> value = null;
+    public String unit;
 }

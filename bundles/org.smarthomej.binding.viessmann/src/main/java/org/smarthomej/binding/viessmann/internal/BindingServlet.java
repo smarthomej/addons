@@ -95,8 +95,8 @@ public class BindingServlet extends HttpServlet {
         StringBuilder html = new StringBuilder();
         int codeEnd;
         if (queryString != null && queryString.length() > 0) {
-            if (queryString.indexOf("code=") != -1) {
-                if (queryString.indexOf("&") == -1) {
+            if (queryString.contains("code=")) {
+                if (!queryString.contains("&")) {
                     codeEnd = queryString.length();
                 } else {
                     codeEnd = queryString.indexOf("&");
