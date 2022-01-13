@@ -27,6 +27,7 @@ import org.openhab.core.thing.ThingStatusDetail;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.telenot.internal.config.IPBridgeConfig;
+import org.smarthomej.binding.telenot.internal.protocol.TelenotCommand;
 
 /**
  * Handler responsible for communicating via TCP with the Telenot IP Serial device.
@@ -90,6 +91,11 @@ public class IPBridgeHandler extends TelenotBridgeHandler {
                     config.reconnect, TimeUnit.MINUTES);
             refreshSendDataJob = scheduler.scheduleWithFixedDelay(this::refreshSendData, config.refreshData,
                     config.refreshData, TimeUnit.MINUTES);
+            if (config.updateClock > 0) {
+                updateTelenotClockJob = scheduler.scheduleWithFixedDelay(this::updateClock, 0, config.updateClock,
+                        TimeUnit.HOURS);
+            }
+
         } catch (ConnectException e) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, e.getMessage());
             disconnect();
@@ -125,6 +131,18 @@ public class IPBridgeHandler extends TelenotBridgeHandler {
     protected synchronized void refreshSendData() {
         logger.debug("Start refreshing data to eventbus");
         refresh = true;
+    }
+
+    protected synchronized void updateClock() {
+        boolean wait = true;
+        while (!TelenotThingHandler.readyToSendData.get()) {
+            if (wait) {
+                logger.debug("waiting for ready to send data");
+                wait = false;
+            }
+        }
+        logger.debug("Start updating Telenot system clock");
+        sendTelenotCommand(TelenotCommand.setDateTime());
     }
 
     @Override
