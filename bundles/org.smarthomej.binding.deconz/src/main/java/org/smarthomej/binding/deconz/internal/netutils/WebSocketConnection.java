@@ -91,6 +91,7 @@ public class WebSocketConnection {
             return;
         }
         try {
+            connectionState = ConnectionState.CONNECTING;
             URI destUri = URI.create("ws://" + ip);
             client.start();
             logger.debug("Trying to connect {} to {}", socketName, destUri);
