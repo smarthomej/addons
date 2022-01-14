@@ -10,6 +10,17 @@ To get the serial data to the ethernet bus use the following converter or anothe
 Connect this module to the GMS-Port (Serial).
 You have to enable the GMS-Protocol in the CompasX Software.
 
+
+Adapter Config:
+
+```
+Baud Rate：9600 bps
+Data Size：   8 bit
+Parity:        none
+Stop Bits：   1 bit
+Mode:    TCP Server
+```
+
 ## Note
 
 The Building management protocol is a two-way street. 
@@ -47,6 +58,8 @@ The `ipbridge` thing supports a TCP/IP connection to an RS323 to LAN adapter.
 * `hostname` (required) The hostname or IP address of the serial to LAN adapter
 * `tcpPort` (default = 4116) TCP port number for the serial to LAN adapter connection
 * `discovery` Enables the discovery
+* `updateClock` The period in hours for updating the clock on the telenot system.
+Set to 0 to disable.
 * `reconnect` (1-60, default = 2) The period in minutes that the handler will wait between connection checks and connection attempts
 * `timeout` (0-60, default = 5) The period in minutes after which the connection will be reset if no valid messages have been received. Set to 0 to disable.
 
@@ -59,13 +72,15 @@ Bridge telenot:ipbridge:device [ hostname="xxx.xxx.xxx.xxx", tcpPort=4116 ] {
 }
 ```
 
-### `input`
+### `input` and `output`
 
 The `input` thing provides all channels with the state of each single reporting group.
+The `output` thing provides all channels with the state of each single reporting area.
 
-### `ouput`
-
-The `input` thing provides all channels with the state of each single reporting area.
+* 1. Add things.
+* 2. Enable discovery in the `ipbridge` thing.
+* 3. All available channel will be added automatically.
+     The discovery takes about 5 minutes.
 
 ### `mb`
 

@@ -28,6 +28,13 @@
 				<description>Enable automatic discovery. After saving this, it goes to off and the discovery will start. </description>
 				<default>false</default>
 			</parameter>
+			<parameter name="updateClock" type="integer" min="0" max="24" unit="h">
+				<label>Update Telenot system clock</label>
+				<description>The period in hours that the binding updates the Telenot system clock. Set 0 to disable.</description>
+				<unitLabel>hours</unitLabel>
+				<default>24</default>
+				<advanced>true</advanced>
+			</parameter>
 			<parameter name="refreshData" type="integer" min="0" max="60" unit="min">
 				<label>Refresh Data Interval</label>
 				<description>The period in minutes that the handler will refresh the data to eventbus</description>

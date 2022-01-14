@@ -27,6 +27,7 @@ import org.openhab.core.thing.ThingStatusDetail;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.telenot.internal.config.IPBridgeConfig;
+import org.smarthomej.binding.telenot.internal.protocol.TelenotCommand;
 
 /**
  * Handler responsible for communicating via TCP with the Telenot IP Serial device.
@@ -90,6 +91,11 @@ public class IPBridgeHandler extends TelenotBridgeHandler {
                     config.reconnect, TimeUnit.MINUTES);
             refreshSendDataJob = scheduler.scheduleWithFixedDelay(this::refreshSendData, config.refreshData,
                     config.refreshData, TimeUnit.MINUTES);
+            if (config.updateClock > 0) {
+                updateTelenotClockJob = scheduler.scheduleWithFixedDelay(this::updateClock, 0, config.updateClock,
+                        TimeUnit.HOURS);
+            }
+
         } catch (ConnectException e) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, e.getMessage());
             disconnect();
@@ -127,6 +133,18 @@ public class IPBridgeHandler extends TelenotBridgeHandler {
         refresh = true;
     }
 
+    protected synchronized void updateClock() {
+        boolean wait = true;
+        while (!TelenotThingHandler.readyToSendData.get()) {
+            if (wait) {
+                logger.debug("waiting for ready to send data");
+                wait = false;
+            }
+        }
+        logger.debug("Start updating Telenot system clock");
+        sendTelenotCommand(TelenotCommand.setDateTime());
+    }
+
     @Override
     protected synchronized void disconnect() {
         logger.trace("Disconnecting");
@@ -149,6 +167,13 @@ public class IPBridgeHandler extends TelenotBridgeHandler {
             // use cancel(false) so we don't kill ourselves when reconnect job calls disconnect()
             rfJob.cancel(false);
             refreshSendDataJob = null;
+        }
+
+        ScheduledFuture<?> ucJob = updateTelenotClockJob;
+        if (ucJob != null) {
+            // use cancel(false) so we don't kill ourselves when reconnect job calls disconnect()
+            ucJob.cancel(false);
+            updateTelenotClockJob = null;
         }
 
         // Must close the socket first so the message reader thread will exit properly.

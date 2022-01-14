@@ -100,6 +100,7 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
     protected @Nullable ScheduledFuture<?> connectionCheckJob;
     protected @Nullable ScheduledFuture<?> refreshSendDataJob;
     protected @Nullable ScheduledFuture<?> connectRetryJob;
+    protected @Nullable ScheduledFuture<?> updateTelenotClockJob;
 
     public TelenotBridgeHandler(Bridge bridge) {
         super(bridge);
