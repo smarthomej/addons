@@ -59,13 +59,14 @@ If your device is not discovered, please check the DEBUG log for unknown devices
 
 These configuration parameters are available:
 
-| Parameter | Description                                                                     | Type    | Default |
-|-----------|---------------------------------------------------------------------------------|---------|---------|
-| host      | Host address (hostname / ip) of deCONZ interface                                | string  | n/a     |
-| httpPort  | Port of deCONZ HTTP interface                                                   | string  | 80      |
-| port      | Port of deCONZ Websocket (optional, can be filled automatically) **(Advanced)** | string  | n/a     |
-| apikey    | Authorization API key (optional, can be filled automatically)                   | string  | n/a     |
-| timeout   | Timeout for asynchronous HTTP requests (in milliseconds)                        | integer | 2000    |
+| Parameter        | Description                                                                                                             | Type    | Default |
+|------------------|-------------------------------------------------------------------------------------------------------------------------|---------|---------|
+| host             | Host address (hostname / ip) of deCONZ interface                                                                        | string  | n/a     |
+| httpPort         | Port of deCONZ HTTP interface                                                                                           | string  | 80      |
+| port             | Port of deCONZ Websocket (optional, can be filled automatically) **(Advanced)**                                         | string  | n/a     |
+| apikey           | Authorization API key (optional, can be filled automatically)                                                           | string  | n/a     |
+| timeout          | Timeout for asynchronous HTTP requests (in milliseconds)                                                                | integer | 2000    |
+| websocketTimeout | Timeout for the websocket connection (in s). After this time, the connection is considered dead and tries to re-connect | integer | 120     |
 
 The deCONZ bridge requires the IP address or hostname as a configuration value in order for the binding to know where to access it.
 If needed you can specify an optional port for the HTTP interface or the Websocket.

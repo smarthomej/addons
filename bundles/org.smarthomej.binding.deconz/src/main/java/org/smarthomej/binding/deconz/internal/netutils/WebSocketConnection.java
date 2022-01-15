@@ -56,7 +56,7 @@ public class WebSocketConnection {
     private final WebSocketClient client;
     private final String socketName;
     private final Gson gson;
-    private final int watchdogInterval;
+    private int watchdogInterval;
 
     private final WebSocketConnectionListener connectionListener;
     private final Map<String, WebSocketMessageListener> listeners = new ConcurrentHashMap<>();
@@ -76,6 +76,10 @@ public class WebSocketConnection {
         this.watchdogInterval = watchdogInterval;
     }
 
+    public void setWatchdogInterval(int watchdogInterval) {
+        this.watchdogInterval = watchdogInterval;
+    }
+
     public void start(String ip) {
         if (connectionState == ConnectionState.CONNECTED) {
             return;
@@ -87,6 +91,7 @@ public class WebSocketConnection {
             return;
         }
         try {
+            connectionState = ConnectionState.CONNECTING;
             URI destUri = URI.create("ws://" + ip);
             client.start();
             logger.debug("Trying to connect {} to {}", socketName, destUri);
@@ -113,7 +118,7 @@ public class WebSocketConnection {
     private void stopWatchdogTimer() {
         ScheduledFuture<?> watchdogTimer = this.watchdogJob;
         if (watchdogTimer != null) {
-            watchdogTimer.cancel(true);
+            watchdogTimer.cancel(false);
             this.watchdogJob = null;
         }
     }

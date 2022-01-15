@@ -69,8 +69,6 @@ import com.google.gson.Gson;
 public class DeconzBridgeHandler extends BaseBridgeHandler implements WebSocketConnectionListener {
     public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES = Set.of(BRIDGE_TYPE);
 
-    private static final int WEBSOCKET_WATCHDOG_INTERVAL = 120; // in s
-
     private final Logger logger = LoggerFactory.getLogger(DeconzBridgeHandler.class);
     private final AsyncHttpClient http;
     private final WebSocketFactory webSocketFactory;
@@ -87,6 +85,7 @@ public class DeconzBridgeHandler extends BaseBridgeHandler implements WebSocketC
 
     /** The poll frequency for the API Key verification */
     private static final int POLL_FREQUENCY_SEC = 10;
+    private boolean ignoreConnectionLost = true;
 
     public DeconzBridgeHandler(Bridge thing, WebSocketFactory webSocketFactory, AsyncHttpClient http, Gson gson) {
         super(thing);
@@ -104,7 +103,7 @@ public class DeconzBridgeHandler extends BaseBridgeHandler implements WebSocketC
             websocketID = websocketID.substring(websocketID.length() - 20);
         }
         return new WebSocketConnection(this, webSocketFactory.createWebSocketClient(websocketID), gson,
-                WEBSOCKET_WATCHDOG_INTERVAL);
+                config.websocketTimeout);
     }
 
     @Override
@@ -129,7 +128,7 @@ public class DeconzBridgeHandler extends BaseBridgeHandler implements WebSocketC
     private void stopTimer() {
         ScheduledFuture<?> future = connectionJob;
         if (future != null) {
-            future.cancel(true);
+            future.cancel(false);
             connectionJob = null;
         }
     }
@@ -266,6 +265,7 @@ public class DeconzBridgeHandler extends BaseBridgeHandler implements WebSocketC
      * {@link #initializeBridgeState} need to be called first to obtain the websocket port.
      */
     private void startWebSocketConnection() {
+        ignoreConnectionLost = false;
         if (webSocketConnection.isConnected() || websocketPort == 0 || thingDisposing) {
             return;
         }
@@ -297,6 +297,7 @@ public class DeconzBridgeHandler extends BaseBridgeHandler implements WebSocketC
         logger.debug("Start initializing bridge {}", thing.getUID());
         thingDisposing = false;
         config = getConfigAs(DeconzBridgeConfig.class);
+        webSocketConnection.setWatchdogInterval(config.websocketTimeout);
         updateStatus(ThingStatus.UNKNOWN);
         if (config.apikey == null) {
             requestApiKey();
@@ -320,6 +321,10 @@ public class DeconzBridgeHandler extends BaseBridgeHandler implements WebSocketC
 
     @Override
     public void webSocketConnectionLost(String reason) {
+        if (ignoreConnectionLost) {
+            return;
+        }
+        ignoreConnectionLost = true;
         updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, reason);
         stopTimer();
 
