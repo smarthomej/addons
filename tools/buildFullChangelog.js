@@ -60,7 +60,7 @@ get().then(() => {
 
                     let milestoneMicro = milestone.substr(milestone.lastIndexOf(".") + 1, milestone.length);
 
-                    if (milestoneMicro <= microRelease) {
+                    if (parseInt(milestoneMicro) <= parseInt(microRelease)) {
                         releasePr.push({
                             'milestone': milestone,
                             'label': pr.labels.map(label => label.name).filter(item => item !== 'communityapproved'),
@@ -74,7 +74,7 @@ get().then(() => {
                 if (a.milestone === b.milestone) {
                     return 1;
                 } else {
-                    return a.milestone < b.milestone ? 1 : -1;
+                    return parseInt(a.milestone.substr(a.milestone.lastIndexOf(".")+1)) < parseInt(b.milestone.substr(b.milestone.lastIndexOf(".")+1)) ? 1 : -1;
                 }
             });
 
