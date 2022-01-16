@@ -17,11 +17,9 @@ import static org.smarthomej.binding.knx.internal.KNXBindingConstants.*;
 
 import java.math.BigDecimal;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
@@ -71,8 +69,9 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
     private final Logger logger = LoggerFactory.getLogger(DeviceThingHandler.class);
 
     private final Set<GroupAddress> groupAddresses = ConcurrentHashMap.newKeySet();
-    private final ExpiringCacheMap<GroupAddress, @Nullable Boolean> groupAddressesWriteBlocked = new ExpiringCacheMap<>(Duration.ofMillis(1000));
-    private final Set<OutboundSpec> groupAddressesRespondingSpec = ConcurrentHashMap.newKeySet();
+    private final ExpiringCacheMap<GroupAddress, @Nullable Boolean> groupAddressesWriteBlocked = new ExpiringCacheMap<>(
+            Duration.ofMillis(1000));
+    private final Map<GroupAddress, OutboundSpec> groupAddressesRespondingSpec = new ConcurrentHashMap<>();
     private final Map<GroupAddress, ScheduledFuture<?>> readFutures = new ConcurrentHashMap<>();
     private final Map<ChannelUID, ScheduledFuture<?>> channelFutures = new ConcurrentHashMap<>();
     private final Map<ChannelUID, KNXChannel> knxChannels = new ConcurrentHashMap<>();
@@ -88,19 +87,12 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
         DeviceConfig config = getConfigAs(DeviceConfig.class);
         readInterval = config.getReadInterval();
 
-        List<ChannelUID> controlChannels = new ArrayList<>();
         // gather all GAs from channel configurations and create channels
         getThing().getChannels().forEach(channel -> {
             KNXChannel knxChannel = KNXChannelFactory.createKnxChannel(channel);
             knxChannels.put(channel.getUID(), knxChannel);
             groupAddresses.addAll(knxChannel.getAllGroupAddresses());
-            if (knxChannel.isControl()) {
-                controlChannels.add(knxChannel.getChannelUID());
-            }
         });
-
-        scheduler.schedule(() -> controlChannels.forEach(c -> postCommand(c, RefreshType.REFRESH)), 5,
-                TimeUnit.SECONDS);
     }
 
     @Override
@@ -188,15 +180,6 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
         return groupAddresses.contains(destination);
     }
 
-    /** KNXIO remember controls, removeIf may be null */
-    private void rememberRespondingSpec(OutboundSpec commandSpec) {
-        GroupAddress ga = commandSpec.getGroupAddress();
-        groupAddressesRespondingSpec.removeIf(spec -> spec.matchesDestination(ga));
-        groupAddressesRespondingSpec.add(commandSpec);
-        logger.trace("rememberRespondingSpec handled commandSpec for '{}' size '{}'", ga,
-                groupAddressesRespondingSpec.size());
-    }
-
     /** Handling commands triggered from openHAB */
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
@@ -224,10 +207,11 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
                             logger.debug("Write to {} blocked for 1s/one call after read.", destination);
                             groupAddressesWriteBlocked.putValue(destination, null);
                         } else {
-                        getClient().writeToKNX(commandSpec);
-                        if (knxChannel.isControl()) {
-                            rememberRespondingSpec(commandSpec);
-                        }}
+                            getClient().writeToKNX(commandSpec);
+                            if (knxChannel.isControl()) {
+                                groupAddressesRespondingSpec.put(destination, commandSpec);
+                            }
+                        }
                     } else {
                         logger.debug(
                                 "None of the configured GAs on channel '{}' could handle the command '{}' of type '{}'",
@@ -250,13 +234,12 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
         Set<GroupAddress> rsa = knxChannel.getWriteAddresses();
         if (!rsa.isEmpty()) {
             logger.trace("onGroupRead size '{}'", rsa.size());
-            Optional<OutboundSpec> os = groupAddressesRespondingSpec.stream()
-                    .filter(spec -> spec.matchesDestination(destination)).findFirst();
-            if (os.isPresent()) {
-                logger.trace("onGroupRead respondToKNX '{}'", os.get().getGroupAddress());
+            OutboundSpec os = groupAddressesRespondingSpec.get(destination);
+            if (os != null) {
+                logger.trace("onGroupRead respondToKNX '{}'", os.getGroupAddress());
                 /* KNXIO: sending real "GroupValueResponse" to the KNX bus. */
                 try {
-                    getClient().respondToKNX(os.get());
+                    getClient().respondToKNX(os);
                 } catch (KNXException e) {
                     logger.warn("An error occurred on channel {}: {}", channelUID, e.getMessage(), e);
                 }
@@ -324,13 +307,12 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
                     if (value != null) {
                         OutboundSpec commandSpec = knxChannel.getCommandSpec(value);
                         if (commandSpec != null) {
-                            rememberRespondingSpec(commandSpec);
+                            groupAddressesRespondingSpec.put(destination, commandSpec);
                         }
                     }
                 }
                 processDataReceived(destination, asdu, listenSpec, knxChannel);
             }
-
         }
     }
 
