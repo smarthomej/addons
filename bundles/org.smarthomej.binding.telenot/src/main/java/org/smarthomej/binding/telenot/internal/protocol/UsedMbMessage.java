@@ -50,8 +50,22 @@ public class UsedMbMessage extends TelenotMessage {
         int contactHexLen = contactNameHex.length();
         int b = 0;
         while (b < contactHexLen) {
-            Integer charcode = Integer.parseInt(contactNameHex.substring(b, b + 2), 16);
-            strBuilder.append(String.valueOf(Character.toChars(charcode)));
+            String hex = contactNameHex.substring(b, b + 2);
+            switch (hex) {
+                case "E1":
+                    strBuilder.append("ä");
+                    break;
+                case "EF":
+                    strBuilder.append("ö");
+                    break;
+                case "F5":
+                    strBuilder.append("ü");
+                    break;
+                default:
+                    Integer charcode = Integer.parseInt(hex, 16);
+                    strBuilder.append(String.valueOf(Character.toChars(charcode)));
+                    break;
+            }
             b = b + 2;
         }
         String strcontact = strBuilder.toString();
