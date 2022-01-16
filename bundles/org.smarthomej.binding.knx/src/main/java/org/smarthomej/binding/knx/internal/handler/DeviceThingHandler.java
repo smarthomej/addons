@@ -16,6 +16,8 @@ package org.smarthomej.binding.knx.internal.handler;
 import static org.smarthomej.binding.knx.internal.KNXBindingConstants.*;
 
 import java.math.BigDecimal;
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -26,6 +28,8 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.core.cache.ExpiringCacheMap;
 import org.openhab.core.library.types.IncreaseDecreaseType;
 import org.openhab.core.thing.Channel;
 import org.openhab.core.thing.ChannelUID;
@@ -67,7 +71,7 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
     private final Logger logger = LoggerFactory.getLogger(DeviceThingHandler.class);
 
     private final Set<GroupAddress> groupAddresses = ConcurrentHashMap.newKeySet();
-    private final Set<GroupAddress> groupAddressesWriteBlockedOnce = ConcurrentHashMap.newKeySet();
+    private final ExpiringCacheMap<GroupAddress, @Nullable Boolean> groupAddressesWriteBlocked = new ExpiringCacheMap<>(Duration.ofMillis(1000));
     private final Set<OutboundSpec> groupAddressesRespondingSpec = ConcurrentHashMap.newKeySet();
     private final Map<GroupAddress, ScheduledFuture<?>> readFutures = new ConcurrentHashMap<>();
     private final Map<ChannelUID, ScheduledFuture<?>> channelFutures = new ConcurrentHashMap<>();
@@ -84,12 +88,19 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
         DeviceConfig config = getConfigAs(DeviceConfig.class);
         readInterval = config.getReadInterval();
 
+        List<ChannelUID> controlChannels = new ArrayList<>();
         // gather all GAs from channel configurations and create channels
         getThing().getChannels().forEach(channel -> {
             KNXChannel knxChannel = KNXChannelFactory.createKnxChannel(channel);
             knxChannels.put(channel.getUID(), knxChannel);
             groupAddresses.addAll(knxChannel.getAllGroupAddresses());
+            if (knxChannel.isControl()) {
+                controlChannels.add(knxChannel.getChannelUID());
+            }
         });
+
+        scheduler.schedule(() -> controlChannels.forEach(c -> postCommand(c, RefreshType.REFRESH)), 5,
+                TimeUnit.SECONDS);
     }
 
     @Override
@@ -102,7 +113,7 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
         }
 
         groupAddresses.clear();
-        groupAddressesWriteBlockedOnce.clear();
+        groupAddressesWriteBlocked.clear();
         groupAddressesRespondingSpec.clear();
         knxChannels.clear();
 
@@ -207,11 +218,16 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
                 try {
                     OutboundSpec commandSpec = knxChannel.getCommandSpec(command);
                     // only send GroupValueWrite to KNX if GA is not blocked once
-                    if (commandSpec != null && !groupAddressesWriteBlockedOnce.remove(commandSpec.getGroupAddress())) {
+                    if (commandSpec != null) {
+                        GroupAddress destination = commandSpec.getGroupAddress();
+                        if (groupAddressesWriteBlocked.get(destination) == null) {
+                            logger.debug("Write to {} blocked for 1s/one call after read.", destination);
+                            groupAddressesWriteBlocked.putValue(destination, null);
+                        } else {
                         getClient().writeToKNX(commandSpec);
                         if (knxChannel.isControl()) {
                             rememberRespondingSpec(commandSpec);
-                        }
+                        }}
                     } else {
                         logger.debug(
                                 "None of the configured GAs on channel '{}' could handle the command '{}' of type '{}'",
@@ -265,7 +281,10 @@ public class DeviceThingHandler extends AbstractKNXThingHandler {
                     // Send REFRESH to openHAB to get this event for scripting with postCommand
                     // and remember to ignore/block this REFRESH to be sent back to KNX as GroupValueWrite after
                     // postCommand is done!
-                    groupAddressesWriteBlockedOnce.add(destination);
+                    if (!groupAddressesWriteBlocked.containsKey(destination)) {
+                        groupAddressesWriteBlocked.put(destination, () -> null);
+                    }
+                    groupAddressesWriteBlocked.putValue(destination, true);
                     postCommand(knxChannel.getChannelUID(), RefreshType.REFRESH);
                 }
             }
