@@ -64,7 +64,15 @@ public class JsonSmartHomeDevice implements SmartHomeBaseDevice {
 
     @Override
     public String toString() {
-        return "JsonSmartHomeDevice{" + "updateIntervalInSeconds=" + updateIntervalInSeconds + ", applianceId='" + applianceId + "'" + ", manufacturerName='" + manufacturerName + "'" + ", friendlyDescription='" + friendlyDescription + "'" + ", modelName='" + modelName + "'" + ", friendlyName='" + friendlyName + "'" + ", reachability='" + reachability + "'" + ", entityId='" + entityId + "'" + ", applianceNetworkState=" + applianceNetworkState + ", capabilities=" + capabilities + ", tags=" + tags + ", applianceTypes=" + applianceTypes + ", aliases=" + aliases + ", groupDevices=" + groupDevices + ", connectedVia='" + connectedVia + "'" + ", alexaDeviceIdentifierList=" + alexaDeviceIdentifierList + ", driverIdentity=" + driverIdentity + ", mergedApplianceIds=" + mergedApplianceIds + ", smarthomeDevices=" + smarthomeDevices + "}";
+        return "JsonSmartHomeDevice{" + "updateIntervalInSeconds=" + updateIntervalInSeconds + ", applianceId='"
+                + applianceId + "'" + ", manufacturerName='" + manufacturerName + "'" + ", friendlyDescription='"
+                + friendlyDescription + "'" + ", modelName='" + modelName + "'" + ", friendlyName='" + friendlyName
+                + "'" + ", reachability='" + reachability + "'" + ", entityId='" + entityId + "'"
+                + ", applianceNetworkState=" + applianceNetworkState + ", capabilities=" + capabilities + ", tags="
+                + tags + ", applianceTypes=" + applianceTypes + ", aliases=" + aliases + ", groupDevices="
+                + groupDevices + ", connectedVia='" + connectedVia + "'" + ", alexaDeviceIdentifierList="
+                + alexaDeviceIdentifierList + ", driverIdentity=" + driverIdentity + ", mergedApplianceIds="
+                + mergedApplianceIds + ", smarthomeDevices=" + smarthomeDevices + "}";
     }
 
     public static class DriverIdentity {
@@ -83,7 +91,8 @@ public class JsonSmartHomeDevice implements SmartHomeBaseDevice {
 
         @Override
         public String toString() {
-            return "DeviceIdentifier{" + "dmsDeviceSerialNumber='" + dmsDeviceSerialNumber + "'" + ", dmsDeviceTypeId='" + dmsDeviceTypeId + "'" + "}";
+            return "DeviceIdentifier{" + "dmsDeviceSerialNumber='" + dmsDeviceSerialNumber + "'" + ", dmsDeviceTypeId='"
+                    + dmsDeviceTypeId + "'" + "}";
         }
     }
 }
