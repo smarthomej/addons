@@ -44,6 +44,8 @@ public class IPBridgeHandler extends TelenotBridgeHandler {
 
     private @Nullable Socket socket = null;
 
+    private @Nullable ScheduledFuture<?> connectJob = null;
+
     public IPBridgeHandler(Bridge bridge) {
         super(bridge);
     }
@@ -71,7 +73,14 @@ public class IPBridgeHandler extends TelenotBridgeHandler {
 
     @Override
     protected synchronized void connect() {
-        disconnect(); // make sure we are disconnected
+        disconnect();
+        ScheduledFuture<?> connectJob = this.connectJob;
+        if (connectJob == null || connectJob.isDone()) {
+            connectJob = scheduler.schedule(this::internalConnect, 2, TimeUnit.SECONDS);
+        }
+    }
+
+    protected synchronized void internalConnect() {
         writeException = false;
         try {
             Socket socket = new Socket(config.hostname, config.tcpPort);
@@ -176,16 +185,20 @@ public class IPBridgeHandler extends TelenotBridgeHandler {
             updateTelenotClockJob = null;
         }
 
+        ScheduledFuture<?> connectJob = this.connectJob;
+        if (connectJob != null) {
+            // use cancel(false) so we don't kill ourselves when reconnect job calls disconnect()
+            connectJob.cancel(false);
+            connectJob = null;
+        }
+
         // Must close the socket first so the message reader thread will exit properly.
         Socket s = socket;
         if (s != null) {
             try {
                 s.close();
-                Thread.sleep(2000);
             } catch (IOException e) {
                 logger.debug("error closing socket: {}", e.getMessage());
-            } catch (InterruptedException e) {
-                logger.debug("waiting after closing socket fails: {}", e.getMessage());
             }
         }
         socket = null;
