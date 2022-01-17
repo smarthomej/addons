@@ -14,10 +14,10 @@ You have to enable the GMS-Protocol in the CompasX Software.
 Adapter Config:
 
 ```
-Baud Rate：9600 bps
-Data Size：   8 bit
+Baud Rate: 9600 bps
+Data Size:    8 bit
 Parity:        none
-Stop Bits：   1 bit
+Stop Bits:    1 bit
 Mode:    TCP Server
 ```
 
