@@ -181,8 +181,11 @@ public class IPBridgeHandler extends TelenotBridgeHandler {
         if (s != null) {
             try {
                 s.close();
+                Thread.sleep(2000);
             } catch (IOException e) {
                 logger.debug("error closing socket: {}", e.getMessage());
+            } catch (InterruptedException e) {
+                logger.debug("waiting after closing socket fails: {}", e.getMessage());
             }
         }
         socket = null;
