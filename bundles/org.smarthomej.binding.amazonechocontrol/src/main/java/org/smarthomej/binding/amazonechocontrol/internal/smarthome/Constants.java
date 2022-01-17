@@ -38,7 +38,8 @@ public class Constants {
             Map.entry(HandlerThermostatController.INTERFACE, HandlerThermostatController::new),
             Map.entry(HandlerPercentageController.INTERFACE, HandlerPercentageController::new),
             Map.entry(HandlerPowerLevelController.INTERFACE, HandlerPowerLevelController::new),
-            Map.entry(HandlerRangeController.INTERFACE, HandlerRangeController::new));
+            Map.entry(HandlerRangeController.INTERFACE, HandlerRangeController::new),
+            Map.entry(HandlerMotionSensor.INTERFACE, HandlerMotionSensor::new));
 
     public static final Set<String> SUPPORTED_INTERFACES = HANDLER_FACTORY.keySet();
 
@@ -93,4 +94,6 @@ public class Constants {
             AmazonEchoControlBindingConstants.BINDING_ID, "fireAlarm");
     public static final ChannelTypeUID CHANNEL_TYPE_WATER_ALARM = new ChannelTypeUID(
             AmazonEchoControlBindingConstants.BINDING_ID, "waterAlarm");
+    public static final ChannelTypeUID CHANNEL_TYPE_MOTION_DETECTED = new ChannelTypeUID(
+            AmazonEchoControlBindingConstants.BINDING_ID, "motionDetected");
 }
