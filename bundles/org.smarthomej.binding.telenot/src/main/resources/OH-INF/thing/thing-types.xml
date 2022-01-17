@@ -21,7 +21,7 @@
 			<parameter name="tcpPort" type="integer">
 				<label>TCP Port</label>
 				<description>TCP port number for the Telenot connection</description>
-				<default>20108</default>
+				<default>4116</default>
 			</parameter>
 			<parameter name="discovery" type="boolean">
 				<label>Enable Discovery</label>
@@ -29,10 +29,10 @@
 				<default>false</default>
 			</parameter>
 			<parameter name="updateClock" type="integer" min="0" max="24" unit="h">
-				<label>Update Telenot system clock</label>
+				<label>Update Telenot's clock</label>
 				<description>The period in hours that the binding updates the Telenot system clock. Set 0 to disable.</description>
 				<unitLabel>hours</unitLabel>
-				<default>24</default>
+				<default>0</default>
 				<advanced>true</advanced>
 			</parameter>
 			<parameter name="refreshData" type="integer" min="0" max="60" unit="min">
