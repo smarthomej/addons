@@ -82,6 +82,7 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
     private final Object lock = new Object();
     protected @Nullable TelenotDiscoveryService discoveryService;
     protected boolean discovery;
+    protected boolean discoveryStarted = false;
     protected boolean refresh;
     protected volatile @Nullable Date lastReceivedTime;
     protected volatile boolean writeException;
@@ -303,6 +304,10 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
                 } catch (MessageParseException e) {
                     logger.warn("Error {} while parsing message {}. Please report bug.", e.getMessage(), message);
                 }
+                if (discoveryStarted && usedInputContact.isEmpty() && usedReportingArea.isEmpty()) {
+                    discoveryStarted = false;
+                    logger.info("Discovery job completed");
+                }
             }
 
             if (message == null) {
@@ -482,6 +487,7 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
      * @throws MessageParseException
      */
     private void parseUsedContactInfoMessage(TelenotMsgType mt, String msg) throws MessageParseException {
+        discoveryStarted = true;
         logger.trace("MSG: {}", msg);
         if (mt == TelenotMsgType.USED_CONTACTS_INFO && !usedInputContact.isEmpty()) {
             UsedContactInfoMessage uciStateMessage;

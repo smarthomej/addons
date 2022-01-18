@@ -25,7 +25,7 @@ public class IPBridgeConfig {
     public @Nullable String hostname;
     public int tcpPort = 4116;
     public boolean discovery = false;
-    public int updateClock = 24;
+    public int updateClock = 0;
     public int reconnect = 2;
     public int refreshData = 10;
     public int timeout = 5;

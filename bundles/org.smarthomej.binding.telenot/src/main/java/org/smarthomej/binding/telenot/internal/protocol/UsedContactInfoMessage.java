@@ -12,7 +12,10 @@
  */
 package org.smarthomej.binding.telenot.internal.protocol;
 
+import java.nio.charset.StandardCharsets;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.core.util.HexUtils;
 import org.smarthomej.binding.telenot.internal.TelenotMessageException;
 
 /**
@@ -30,7 +33,6 @@ public class UsedContactInfoMessage extends TelenotMessage {
 
     public UsedContactInfoMessage(String message) throws TelenotMessageException {
         super(message);
-        StringBuilder strBuilder = new StringBuilder();
 
         String parts[] = message.split(":");
 
@@ -46,15 +48,8 @@ public class UsedContactInfoMessage extends TelenotMessage {
         stringLen = msg.substring(16 + stateMsgLength, 16 + stateMsgLength + 2);
         int nameMsgLength = Integer.parseInt(stringLen, 16) * 2;
         String contactNameHex = msg.substring(20 + stateMsgLength, 20 + stateMsgLength + nameMsgLength);
-
-        int contactHexLen = contactNameHex.length();
-        int b = 0;
-        while (b < contactHexLen) {
-            Integer charcode = Integer.parseInt(contactNameHex.substring(b, b + 2), 16);
-            strBuilder.append(String.valueOf(Character.toChars(charcode)));
-            b = b + 2;
-        }
-        String strcontact = strBuilder.toString();
+        String strcontact = new String(HexUtils.hexToBytes(contactNameHex), StandardCharsets.ISO_8859_1)
+                .replace("á", "ä").replace("ï", "ö").replace("õ", "ü");
 
         try {
             address = parts[0];
