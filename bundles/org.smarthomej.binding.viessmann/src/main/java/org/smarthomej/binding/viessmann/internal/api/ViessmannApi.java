@@ -288,8 +288,14 @@ public class ViessmannApi {
                                 String.format("API Call limit reached. Reset at {}",
                                         viError.getExtendedPayload().getLimitRestetDateTime()));
                     } else {
-                        logger.warn("ViError: {} | Reason: {}", viError.getMessage(),
-                                viError.getExtendedPayload().getReason());
+                        if (viError.getExtendedPayload() != null) {
+                            logger.warn("ViError: {} | Reason: {} {}", viError.getMessage(),
+                                    viError.getExtendedPayload().getReason(),
+                                    viError.getExtendedPayload().getDetails());
+                        } else {
+                            logger.warn("ViError: {}", viError.getMessage());
+                        }
+
                     }
                 }
                 return false;

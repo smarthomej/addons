@@ -28,9 +28,15 @@ public class ExtendedPayload {
     private String clientId;
     private String userId;
     private Long limitReset;
+    public String code;
+    public String details;
 
     public String getReason() {
-        return reason;
+        if (reason != null) {
+            return reason;
+        } else {
+            return "";
+        }
     }
 
     public void setReason(String reason) {
@@ -80,5 +86,17 @@ public class ExtendedPayload {
 
     public void setLimitReset(Long limitReset) {
         this.limitReset = limitReset;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public String getDetails() {
+        if (details != null) {
+            return details;
+        } else {
+            return "";
+        }
     }
 }
