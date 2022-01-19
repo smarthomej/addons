@@ -71,7 +71,7 @@
 		</supported-bridge-type-refs>
 		<label>Viessmann Device</label>
 		<properties>
-			<property name="thingTypeVersion">1</property>
+			<property name="thingTypeVersion">2</property>
 		</properties>
 		<representation-property>deviceId</representation-property>
 		<config-description>
@@ -99,9 +99,30 @@
 
 	<channel-type id="type-setTargetTemperature">
 		<item-type>Number:Temperature</item-type>
-		<label>Set terget temperature</label>
+		<label>Set target temperature</label>
 		<category>Temperature</category>
 		<state min="10" max="60" step="1" pattern="%d %unit%" readOnly="false"/>
+	</channel-type>
+
+	<channel-type id="type-setTargetHysteresis">
+		<item-type>Number:Temperature</item-type>
+		<label>Set target hysteresis</label>
+		<category>Temperature</category>
+		<state min="1" max="10" step="0.5" pattern="%.1f %unit%" readOnly="false"/>
+	</channel-type>
+
+	<channel-type id="type-setMin">
+		<item-type>Number:Temperature</item-type>
+		<label>Set target Temp. min</label>
+		<category>Temperature</category>
+		<state min="1" max="30" step="1" pattern="%d %unit%" readOnly="false"/>
+	</channel-type>
+
+	<channel-type id="type-setMax">
+		<item-type>Number:Temperature</item-type>
+		<label>Set target Temp. max</label>
+		<category>Temperature</category>
+		<state min="10" max="70" step="1" pattern="%d %unit%" readOnly="false"/>
 	</channel-type>
 
 	<channel-type id="type-energy">

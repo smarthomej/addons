@@ -31,6 +31,10 @@ public class FeatureCommands {
     public FeatureSchedule schedule;
     public FeatureDefaultCommands unschedule;
     public FeatureSetTargetTemperature setTargetTemperature;
+    public FeatureSetTargetTemperature setMin;
+    public FeatureSetTargetTemperature setMax;
+    public FeatureSetLevels setLevels;
+    public FeatureSetHysteresis setHysteresis;
 
     public ArrayList<String> getUsedCommands() {
         ArrayList<String> list = new ArrayList<String>();
@@ -66,6 +70,9 @@ public class FeatureCommands {
         }
         if (setTargetTemperature != null) {
             list.add("setTargetTemperature");
+        }
+        if (setHysteresis != null) {
+            list.add("setHysteresis");
         }
         return list;
     }

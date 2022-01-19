@@ -13,10 +13,10 @@
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
 /**
- * The {@link FeatureSetTargetTemperatureParams} is responsible for
+ * The {@link FeatureSetHysteresisParamsHysteresis} is responsible for
  *
  * @author Ronny Grun - Initial contribution
  */
-public class FeatureSetTargetTemperatureParams {
-    public FeatureDefalutSetterParamsInteger temperature;
+public class FeatureSetHysteresisParamsHysteresis {
+    public FeatureDefaultSetterParamsDouble hysteresis;
 }

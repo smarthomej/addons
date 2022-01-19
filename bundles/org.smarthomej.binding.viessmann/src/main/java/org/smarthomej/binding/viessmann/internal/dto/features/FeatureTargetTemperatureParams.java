@@ -18,5 +18,5 @@ package org.smarthomej.binding.viessmann.internal.dto.features;
  * @author Ronny Grun - Initial contribution
  */
 public class FeatureTargetTemperatureParams {
-    public FeatureDefalutSetterParams targetTemperature;
+    public FeatureDefalutSetterParamsInteger targetTemperature;
 }

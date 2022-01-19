@@ -13,12 +13,13 @@
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
 /**
- * The {@link FeatureDefalutSetterParams} is responsible for
+ * The {@link FeatureSetHysteresis} is responsible for
  *
  * @author Ronny Grun - Initial contribution
  */
-public class FeatureDefalutSetterParams {
-    Boolean required;
-    String type;
-    public FeatureConstraintsSteppingInteger constraints;
+public class FeatureSetHysteresis {
+    public String uri;
+    public String name;
+    public Boolean isExecutable;
+    public FeatureSetHeatingCurve params;
 }
