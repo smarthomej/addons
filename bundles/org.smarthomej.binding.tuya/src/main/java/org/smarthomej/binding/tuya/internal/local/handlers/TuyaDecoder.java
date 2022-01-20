@@ -137,12 +137,16 @@ public class TuyaDecoder extends ByteToMessageDecoder {
         MessageWrapper<?> m;
         if (CommandType.UDP.equals(commandType)) {
             // UDP is unencrpyted
-            m = new MessageWrapper<>(commandType, new String(payload));
+            m = new MessageWrapper<>(commandType,
+                    Objects.requireNonNull(gson.fromJson(new String(payload), DiscoveryMessage.class)));
         } else {
             String decodedMessage = CryptoUtil.decryptAesEcb(payload, key);
             if (decodedMessage == null) {
                 return;
             }
+            logger.trace("{}/{}: Decoded raw payload: {}", deviceId,
+                    Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""), decodedMessage);
+
             if (CommandType.STATUS.equals(commandType) || CommandType.DP_QUERY.equals(commandType)) {
                 Type type = TypeToken.getParameterized(TcpPayload.class, INTEGER_OBJECT_MAP_TYPE).getType();
                 m = new MessageWrapper<>(commandType,

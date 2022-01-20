@@ -27,14 +27,17 @@ public class DiscoveryMessage {
     @SerializedName("gwId")
     public String deviceId = "";
     public int active = 0;
-    public int ablilty = 0;
+    @SerializedName(value = "ability", alternate = { "ablilty" })
+    public int ability = 0;
+    public int mode = 0;
     public boolean encrypt = true;
     public String productKey = "";
     public String version = "";
 
     @Override
     public String toString() {
-        return "Discovery{ip='" + ip + "', deviceId='" + deviceId + "', active=" + active + ", ablilty=" + ablilty
-                + ", encrypt=" + encrypt + ", productKey='" + productKey + "', version='" + version + "'}";
+        return "DiscoveryMessage{ip='" + ip + "', deviceId='" + deviceId + "', active=" + active + ", ability="
+                + ability + ", mode=" + mode + ", encrypt=" + encrypt + ", productKey='" + productKey + "', version='"
+                + version + "'}";
     }
 }
