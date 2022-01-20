@@ -55,7 +55,7 @@ public class TuyaDevice implements ChannelFutureListener {
     private final DeviceStatusListener deviceStatusListener;
     private final String deviceId;
 
-    private String address;
+    private final String address;
     private @Nullable Channel channel;
 
     public TuyaDevice(Gson gson, DeviceStatusListener deviceStatusListener, EventLoopGroup eventLoopGroup,
@@ -91,11 +91,6 @@ public class TuyaDevice implements ChannelFutureListener {
             channel.pipeline().fireUserEventTriggered(new UserEventHandler.DisposeEvent());
             this.channel = null;
         }
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-        disconnect();
     }
 
     public void set(Map<Integer, Object> command) {
