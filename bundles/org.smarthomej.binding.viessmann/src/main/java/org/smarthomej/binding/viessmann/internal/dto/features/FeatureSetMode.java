@@ -13,7 +13,7 @@
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
 /**
- * The {@link FeatureSetMode} is responsible for
+ * The {@link FeatureSetMode} provides set mode of features
  *
  * @author Ronny Grun - Initial contribution
  */

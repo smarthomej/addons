@@ -15,7 +15,7 @@ package org.smarthomej.binding.viessmann.internal.dto.features;
 import java.util.List;
 
 /**
- * The {@link FeatureConstraintsEnum} is responsible for
+ * The {@link FeatureConstraintsEnum} provides enum constraints of features
  *
  * @author Ronny Grun - Initial contribution
  */

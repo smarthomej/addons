@@ -13,7 +13,7 @@
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
 /**
- * The {@link FeatureNewSchedule} is responsible for
+ * The {@link FeatureNewSchedule} provides new schedule of features
  *
  * @author Ronny Grun - Initial contribution
  */

@@ -13,7 +13,7 @@
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
 /**
- * The {@link FeatureDefaultSetterParamsDouble} is responsible for
+ * The {@link FeatureDefaultSetterParamsDouble} provides default parameters of double features
  *
  * @author Ronny Grun - Initial contribution
  */

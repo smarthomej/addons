@@ -13,7 +13,7 @@
 package org.smarthomej.binding.viessmann.internal.dto.error;
 
 /**
- * The {@link ViErrorDTO} is responsible for
+ * The {@link ViErrorDTO} provides the viessmann error message
  *
  * @author Ronny Grun - Initial contribution
  */

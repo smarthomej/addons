@@ -13,7 +13,7 @@
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
 /**
- * The {@link FeatureSetLevels} is responsible for
+ * The {@link FeatureSetLevels} provides set levels of features
  *
  * @author Ronny Grun - Initial contribution
  */

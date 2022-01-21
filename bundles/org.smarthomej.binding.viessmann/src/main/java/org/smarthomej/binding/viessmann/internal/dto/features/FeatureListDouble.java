@@ -15,7 +15,7 @@ package org.smarthomej.binding.viessmann.internal.dto.features;
 import java.util.List;
 
 /**
- * The {@link FeatureListDouble} is responsible for
+ * The {@link FeatureListDouble} provides list with double value of features
  *
  * @author Ronny Grun - Initial contribution
  */

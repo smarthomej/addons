@@ -15,7 +15,7 @@ package org.smarthomej.binding.viessmann.internal.dto.features;
 import java.util.List;
 
 /**
- * The {@link FeatureDataDTO} is responsible for
+ * The {@link FeatureDataDTO} provides all data of a feature
  *
  * @author Ronny Grun - Initial contribution
  */

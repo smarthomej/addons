@@ -13,7 +13,7 @@
 package org.smarthomej.binding.viessmann.internal.dto.error;
 
 /**
- * The {@link TokenErrorDTO} is responsible for
+ * The {@link TokenErrorDTO} provides the token error message 
  *
  * @author Ronny Grun - Initial contribution
  */

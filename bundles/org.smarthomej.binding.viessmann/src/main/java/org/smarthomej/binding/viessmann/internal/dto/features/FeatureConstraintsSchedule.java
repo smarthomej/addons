@@ -15,7 +15,7 @@ package org.smarthomej.binding.viessmann.internal.dto.features;
 import java.util.List;
 
 /**
- * The {@link FeatureConstraintsSchedule} is responsible for
+ * The {@link FeatureConstraintsSchedule} provides schedule constraints of features
  *
  * @author Ronny Grun - Initial contribution
  */

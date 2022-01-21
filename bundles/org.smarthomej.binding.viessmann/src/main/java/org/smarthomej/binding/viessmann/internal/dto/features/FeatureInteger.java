@@ -13,7 +13,7 @@
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
 /**
- * The {@link FeatureInteger} is responsible for
+ * The {@link FeatureInteger} provides integer value of features
  *
  * @author Ronny Grun - Initial contribution
  */

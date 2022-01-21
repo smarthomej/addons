@@ -13,11 +13,11 @@
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
 /**
- * The {@link FeatureSetLevelsParams} is responsible for
+ * The {@link FeatureSetLevelsParams} provides levels parameters of features
  *
  * @author Ronny Grun - Initial contribution
  */
 public class FeatureSetLevelsParams {
-    public FeatureDefalutSetterParamsInteger minTemperature;
-    public FeatureDefalutSetterParamsInteger maxTemperature;
+    public FeatureDefaultSetterParamsInteger minTemperature;
+    public FeatureDefaultSetterParamsInteger maxTemperature;
 }

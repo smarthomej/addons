@@ -13,10 +13,10 @@
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
 /**
- * The {@link FeatureTargetTemperatureParams} is responsible for
+ * The {@link FeatureTargetTemperatureParams} provides parameters of target temperature features
  *
  * @author Ronny Grun - Initial contribution
  */
 public class FeatureTargetTemperatureParams {
-    public FeatureDefalutSetterParamsInteger targetTemperature;
+    public FeatureDefaultSetterParamsInteger targetTemperature;
 }

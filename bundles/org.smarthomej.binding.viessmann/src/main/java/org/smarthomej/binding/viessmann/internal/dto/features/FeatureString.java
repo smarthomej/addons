@@ -13,7 +13,7 @@
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
 /**
- * The {@link FeatureString} is responsible for
+ * The {@link FeatureString} provides string value of features
  *
  * @author Ronny Grun - Initial contribution
  */

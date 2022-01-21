@@ -13,7 +13,7 @@
 package org.smarthomej.binding.viessmann.internal.dto.installation;
 
 /**
- * The {@link Cursor} is responsible for
+ * The {@link Cursor} provides the cursor of the installation
  *
  * @author Ronny Grun - Initial contribution
  */

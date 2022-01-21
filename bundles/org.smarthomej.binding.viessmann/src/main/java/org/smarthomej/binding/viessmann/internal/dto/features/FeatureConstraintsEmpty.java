@@ -13,7 +13,7 @@
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
 /**
- * The {@link FeatureConstraintsEmpty} is responsible for
+ * The {@link FeatureConstraintsEmpty} provides constraints of features
  *
  * @author Ronny Grun - Initial contribution
  */

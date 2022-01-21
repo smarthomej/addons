@@ -13,7 +13,7 @@
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
 /**
- * The {@link FeatureEmptyParams} is responsible for
+ * The {@link FeatureEmptyParams} provides empty parameters of features
  *
  * @author Ronny Grun - Initial contribution
  */

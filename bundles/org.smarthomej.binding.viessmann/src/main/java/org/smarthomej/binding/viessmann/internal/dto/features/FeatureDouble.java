@@ -13,7 +13,7 @@
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
 /**
- * The {@link FeatureDouble} is responsible for
+ * The {@link FeatureDouble} provides values of double features
  *
  * @author Ronny Grun - Initial contribution
  */

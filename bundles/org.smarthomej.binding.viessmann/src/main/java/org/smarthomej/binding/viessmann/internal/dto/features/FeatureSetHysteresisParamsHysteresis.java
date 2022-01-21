@@ -13,7 +13,7 @@
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
 /**
- * The {@link FeatureSetHysteresisParamsHysteresis} is responsible for
+ * The {@link FeatureSetHysteresisParamsHysteresis} provides hysteresis parameters features
  *
  * @author Ronny Grun - Initial contribution
  */

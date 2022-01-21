@@ -15,7 +15,7 @@ package org.smarthomej.binding.viessmann.internal.dto.features;
 import java.util.ArrayList;
 
 /**
- * The {@link FeatureCommands} is responsible for
+ * The {@link FeatureCommands} provides command of features
  *
  * @author Ronny Grun - Initial contribution
  */

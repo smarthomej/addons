@@ -15,7 +15,7 @@ package org.smarthomej.binding.viessmann.internal.dto.oauth;
 import com.google.gson.annotations.SerializedName;
 
 /**
- * The {@link AuthorizeResponseDTO} is responsible for
+ * The {@link AuthorizeResponseDTO} provides the authorize response
  *
  * @author Ronny Grun - Initial contribution
  */

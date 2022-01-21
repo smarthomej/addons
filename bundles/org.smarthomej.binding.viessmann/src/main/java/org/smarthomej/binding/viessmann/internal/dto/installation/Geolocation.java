@@ -13,7 +13,7 @@
 package org.smarthomej.binding.viessmann.internal.dto.installation;
 
 /**
- * The {@link Geolocation} is responsible for
+ * The {@link Geolocation} provides the geolocation of the installation
  *
  * @author Ronny Grun - Initial contribution
  */

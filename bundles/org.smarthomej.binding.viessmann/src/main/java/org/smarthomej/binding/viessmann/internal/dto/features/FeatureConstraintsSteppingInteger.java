@@ -13,7 +13,7 @@
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
 /**
- * The {@link FeatureConstraintsSteppingInteger} is responsible for
+ * The {@link FeatureConstraintsSteppingInteger} provides integer stepping constraints of features
  *
  * @author Ronny Grun - Initial contribution
  */
