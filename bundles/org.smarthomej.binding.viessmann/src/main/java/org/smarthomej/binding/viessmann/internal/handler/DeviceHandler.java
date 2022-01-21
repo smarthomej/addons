@@ -140,13 +140,13 @@ public class DeviceHandler extends ViessmannThingHandler {
                                 thing.getChannel(channelUID.getId()));
                     } else if (command instanceof QuantityType<?>) {
                         QuantityType<?> value = (QuantityType<?>) command;
-                        Double f = value.doubleValue();
-                        String s = f.toString();
+                        double f = value.doubleValue();
+                        // String s = f.toString();
                         for (String str : com) {
                             if (str.contains("Temperature") || str.contains("setHysteresis") || str.contains("setMin")
                                     || str.contains("setMax")) {
                                 uri = prop.get(str + "Uri");
-                                param = "{\"" + prop.get(str + "Params") + "\":" + s + "}";
+                                param = "{\"" + prop.get(str + "Params") + "\":" + f + "}";
                                 break;
                             }
                         }
@@ -428,6 +428,10 @@ public class DeviceHandler extends ViessmannThingHandler {
                                 case "decimal":
                                 case "number":
                                 case "temperature":
+                                case "percent":
+                                case "minute":
+                                case "hours":
+                                case "kelvin":
                                     if (unit == null) {
                                         DecimalType state = DecimalType.valueOf(msg.getValue());
                                         updateState(msg.getChannelId(), state);
@@ -435,13 +439,6 @@ public class DeviceHandler extends ViessmannThingHandler {
                                         updateState(msg.getChannelId(),
                                                 new QuantityType<>(msg.getValue() + " " + unit));
                                     }
-                                    break;
-                                case "percent":
-                                case "minute":
-                                case "hours":
-                                case "kelvin":
-                                    updateState(msg.getChannelId(),
-                                            new QuantityType<>(Double.valueOf(msg.getValue()) + " " + unit));
                                     break;
                                 case "boolean":
                                     OnOffType state = bool ? OnOffType.ON : OnOffType.OFF;
