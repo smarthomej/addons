@@ -17,7 +17,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import com.google.gson.annotations.SerializedName;
 
 /**
- * The {@link DiscoveryMessage} is a
+ * The {@link DiscoveryMessage} represents the UDP discovery messages sent by Tuya devices
  *
  * @author Jan N. Klug - Initial contribution
  */
