@@ -285,13 +285,11 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
 
         updateStatus(ThingStatus.UNKNOWN);
         TuyaDevice tuyaDevice = this.tuyaDevice;
-        if (tuyaDevice == null) {
-            tuyaDevice = new TuyaDevice(gson, this, eventLoopGroup, configuration.deviceId,
-                    configuration.localKey.getBytes(StandardCharsets.UTF_8), deviceInfo.ip, deviceInfo.protocolVersion);
-            this.tuyaDevice = tuyaDevice;
-        } else {
-            tuyaDevice.setAddress(deviceInfo.ip);
+        if (tuyaDevice != null) {
+            tuyaDevice.dispose();
         }
+        this.tuyaDevice = new TuyaDevice(gson, this, eventLoopGroup, configuration.deviceId,
+                configuration.localKey.getBytes(StandardCharsets.UTF_8), deviceInfo.ip, deviceInfo.protocolVersion);
     }
 
     private void addChannels(Map<String, SchemaDp> schema) {

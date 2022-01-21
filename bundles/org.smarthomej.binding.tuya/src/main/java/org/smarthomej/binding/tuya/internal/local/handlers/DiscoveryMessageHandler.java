@@ -43,7 +43,8 @@ public class DiscoveryMessageHandler extends ChannelDuplexHandler {
     @Override
     public void channelRead(@NonNullByDefault({}) ChannelHandlerContext ctx, @NonNullByDefault({}) Object msg)
             throws Exception {
-        if (msg instanceof MessageWrapper<?> && CommandType.UDP_NEW.equals(((MessageWrapper<?>) msg).commandType)) {
+        if (msg instanceof MessageWrapper<?> && (CommandType.UDP_NEW.equals(((MessageWrapper<?>) msg).commandType)
+                || CommandType.UDP.equals((((MessageWrapper<?>) msg).commandType)))) {
             @SuppressWarnings("unchecked")
             DiscoveryMessage discoveryMessage = ((MessageWrapper<DiscoveryMessage>) msg).content;
             DeviceInfo deviceInfo = new DeviceInfo(discoveryMessage.ip, discoveryMessage.version);
