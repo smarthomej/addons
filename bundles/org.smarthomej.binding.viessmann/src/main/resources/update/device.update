@@ -25,4 +25,4 @@
 1;REMOVE_CHANNEL;heatingSensorsTemperatureOutside
 1;REMOVE_CHANNEL;heatingSolarSensorsTemperatureDhw
 1;REMOVE_CHANNEL;heatingSolarSensorsTemperatureCollector
-1;REMOVE_CHANNEL;heatingDhwTemperatureHysteresis
+2;REMOVE_CHANNEL;heatingDhwTemperatureHysteresis
