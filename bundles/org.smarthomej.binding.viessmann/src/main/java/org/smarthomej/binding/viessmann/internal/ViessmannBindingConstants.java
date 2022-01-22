@@ -72,7 +72,9 @@ public class ViessmannBindingConstants {
             "percent", Units.PERCENT.toString(), //
             "minute", Units.MINUTE.toString(), //
             "hour", Units.HOUR.toString(), //
-            "hours", Units.HOUR.toString());
+            "hours", Units.HOUR.toString(), //
+            "liter", Units.LITRE.toString(), //
+            "cubicMeter", SIUnits.CUBIC_METRE.toString());
 
     public static Map<String, String> readPropertiesFile(String filename) {
         InputStream resource = Thread.currentThread().getContextClassLoader().getResourceAsStream(filename);

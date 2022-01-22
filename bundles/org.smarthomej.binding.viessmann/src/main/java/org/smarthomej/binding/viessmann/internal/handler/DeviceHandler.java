@@ -212,7 +212,8 @@ public class DeviceHandler extends ViessmannThingHandler {
                             viUnit = prop.value.unit;
                             if ("celsius".equals(viUnit)) {
                                 typeEntry = "temperature";
-                            } else if ("percent".equals(viUnit) || "minute".equals(viUnit) || "kelvin".equals(viUnit)) {
+                            } else if ("percent".equals(viUnit) || "minute".equals(viUnit) || "kelvin".equals(viUnit)
+                                    || "liter".equals(viUnit)) {
                                 typeEntry = viUnit;
                             } else {
                                 typeEntry = prop.value.type;
@@ -366,14 +367,20 @@ public class DeviceHandler extends ViessmannThingHandler {
 
                     if (msg.getDeviceId().contains(config.deviceId) && !"unit".equals(entry)) {
                         if (!"[]".equals(valueEntry)) {
+                            logger.trace("Feature: {} Type:{} Entry: {}={}", featureDataDTO.feature, typeEntry, entry,
+                                    valueEntry);
+
                             if (viUnit != null) {
                                 if (!viUnit.isEmpty()) {
                                     msg.setUnit(viUnit);
                                     unit = UNIT_MAP.get(viUnit);
+                                    if (unit == null) {
+                                        logger.warn(
+                                                "Unknown unit. Could not parse the unit: {} of the Feature: {} Please report an issue on github",
+                                                viUnit, featureDataDTO.feature);
+                                    }
                                 }
                             }
-                            logger.trace("Feature: {} Type:{} Entry: {}={}", featureDataDTO.feature, typeEntry, entry,
-                                    valueEntry);
 
                             if (thing.getChannel(msg.getChannelId()) == null) {
                                 createChannel(msg);
@@ -432,13 +439,8 @@ public class DeviceHandler extends ViessmannThingHandler {
                                 case "minute":
                                 case "hours":
                                 case "kelvin":
-                                    if (unit == null) {
-                                        DecimalType state = DecimalType.valueOf(msg.getValue());
-                                        updateState(msg.getChannelId(), state);
-                                    } else {
-                                        updateState(msg.getChannelId(),
-                                                new QuantityType<>(msg.getValue() + " " + unit));
-                                    }
+                                case "liter":
+                                    updateChannelState(msg.getChannelId(), msg.getValue(), unit);
                                     break;
                                 case "boolean":
                                     OnOffType state = bool ? OnOffType.ON : OnOffType.OFF;
@@ -455,38 +457,30 @@ public class DeviceHandler extends ViessmannThingHandler {
                                             case "day":
                                                 subMsg.setSuffix("today");
                                                 subMsg.setChannelType("type-energy");
-                                                updateState(subMsg.getChannelId(),
-                                                        new QuantityType<>(parts[0] + " " + unit));
+                                                updateChannelState(subMsg.getChannelId(), parts[0], unit);
                                                 subMsg.setSuffix("yesterday");
-                                                updateState(subMsg.getChannelId(),
-                                                        new QuantityType<>(parts[1] + " " + unit));
+                                                updateChannelState(subMsg.getChannelId(), parts[1], unit);
                                                 break;
                                             case "week":
                                                 subMsg.setSuffix("thisWeek");
                                                 subMsg.setChannelType("type-energy");
-                                                updateState(subMsg.getChannelId(),
-                                                        new QuantityType<>(parts[0] + " " + unit));
+                                                updateChannelState(subMsg.getChannelId(), parts[0], unit);
                                                 subMsg.setSuffix("lastWeek");
-                                                updateState(subMsg.getChannelId(),
-                                                        new QuantityType<>(parts[1] + " " + unit));
+                                                updateChannelState(subMsg.getChannelId(), parts[1], unit);
                                                 break;
                                             case "month":
                                                 subMsg.setSuffix("thisMonth");
                                                 subMsg.setChannelType("type-number");
-                                                updateState(subMsg.getChannelId(),
-                                                        new QuantityType<>(parts[0] + " " + unit));
+                                                updateChannelState(subMsg.getChannelId(), parts[0], unit);
                                                 subMsg.setSuffix("lastMonth");
-                                                updateState(subMsg.getChannelId(),
-                                                        new QuantityType<>(parts[1] + " " + unit));
+                                                updateChannelState(subMsg.getChannelId(), parts[1], unit);
                                                 break;
                                             case "year":
                                                 subMsg.setSuffix("thisYear");
                                                 subMsg.setChannelType("type-number");
-                                                updateState(subMsg.getChannelId(),
-                                                        new QuantityType<>(parts[0] + " " + unit));
+                                                updateChannelState(subMsg.getChannelId(), parts[0], unit);
                                                 subMsg.setSuffix("lastYear");
-                                                updateState(subMsg.getChannelId(),
-                                                        new QuantityType<>(parts[1] + " " + unit));
+                                                updateChannelState(subMsg.getChannelId(), parts[1], unit);
                                                 break;
                                             default:
                                                 break;
@@ -737,6 +731,15 @@ public class DeviceHandler extends ViessmannThingHandler {
             return inputParser.parse(time);
         } catch (java.text.ParseException e) {
             return new Date(0);
+        }
+    }
+
+    private void updateChannelState(String channelId, String stateAsString, @Nullable String unit) {
+        if (unit != null) {
+            updateState(channelId, new QuantityType<>(stateAsString + " " + unit));
+        } else {
+            DecimalType s = DecimalType.valueOf(stateAsString);
+            updateState(channelId, s);
         }
     }
 }

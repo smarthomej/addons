@@ -172,6 +172,14 @@
 		</state>
 	</channel-type>
 
+	<channel-type id="type-liter">
+		<item-type>Number:Time</item-type>
+		<label>Liter</label>
+		<category>Number</category>
+		<state pattern="%d %unit%" readOnly="true">
+		</state>
+	</channel-type>
+
 	<channel-type id="type-string">
 		<item-type>String</item-type>
 		<label>String</label>
