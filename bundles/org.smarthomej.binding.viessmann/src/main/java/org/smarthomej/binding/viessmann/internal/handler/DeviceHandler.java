@@ -376,7 +376,7 @@ public class DeviceHandler extends ViessmannThingHandler {
                                     unit = UNIT_MAP.get(viUnit);
                                     if (unit == null) {
                                         logger.warn(
-                                                "Unknown unit. Could not parse the unit: {} of the Feature: {} Please report an issue on github",
+                                                "Unknown unit. Could not parse unit: {} of Feature: {} - Please open an issue on GitHub.",
                                                 viUnit, featureDataDTO.feature);
                                     }
                                 }
