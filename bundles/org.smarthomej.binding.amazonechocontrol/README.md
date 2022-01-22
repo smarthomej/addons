@@ -409,6 +409,8 @@ The reason for this low interval is, that the polling causes a big server load f
 | smartHomeDevice      | Smart Home Device                     |
 | smartHomeDeviceGroup | Smart Home Device group               |
 
+Discovered smart home devices show a `deviceIdentifierList` in their thing properties, containing one or more serial numbers.
+You can check if any of these serial numbers is associated with another device and use this to identify devices with similar/same names.
 
 ### Thing configuration of smartHomeDevice, smartHomeDeviceGroup
 

@@ -17,8 +17,6 @@ import java.util.stream.Collectors;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.library.types.HSBType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.smarthomej.commons.util.ResourceUtil;
 
 /**
@@ -28,8 +26,6 @@ import org.smarthomej.commons.util.ResourceUtil;
  */
 @NonNullByDefault
 public class AlexaColor {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AlexaColor.class);
-
     public static final List<AlexaColor> ALEXA_COLORS = getColors();
 
     public final String colorName;

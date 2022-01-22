@@ -43,6 +43,7 @@ public class JsonSmartHomeDevice implements SmartHomeBaseDevice {
     public @Nullable List<JsonSmartHomeDeviceAlias> aliases;
     public @Nullable List<JsonSmartHomeDevice> groupDevices;
     public @Nullable String connectedVia;
+    public @Nullable List<DeviceIdentifier> alexaDeviceIdentifierList;
     public @Nullable DriverIdentity driverIdentity;
     public @Nullable List<String> mergedApplianceIds;
     public @Nullable List<JsonSmartHomeDevice> smarthomeDevices;
@@ -63,14 +64,15 @@ public class JsonSmartHomeDevice implements SmartHomeBaseDevice {
 
     @Override
     public String toString() {
-        return "SmartHomeDevice{" + "updateIntervalInSeconds=" + updateIntervalInSeconds + ", applianceId='"
-                + applianceId + '\'' + ", manufacturerName='" + manufacturerName + '\'' + ", friendlyDescription='"
-                + friendlyDescription + '\'' + ", modelName='" + modelName + '\'' + ", friendlyName='" + friendlyName
-                + '\'' + ", reachability='" + reachability + '\'' + ", entityId='" + entityId + '\''
+        return "JsonSmartHomeDevice{" + "updateIntervalInSeconds=" + updateIntervalInSeconds + ", applianceId='"
+                + applianceId + "'" + ", manufacturerName='" + manufacturerName + "'" + ", friendlyDescription='"
+                + friendlyDescription + "'" + ", modelName='" + modelName + "'" + ", friendlyName='" + friendlyName
+                + "'" + ", reachability='" + reachability + "'" + ", entityId='" + entityId + "'"
                 + ", applianceNetworkState=" + applianceNetworkState + ", capabilities=" + capabilities + ", tags="
                 + tags + ", applianceTypes=" + applianceTypes + ", aliases=" + aliases + ", groupDevices="
-                + groupDevices + ", connectedVia='" + connectedVia + '\'' + ", driverIdentity=" + driverIdentity
-                + ", mergedApplianceIds=" + mergedApplianceIds + ", smarthomeDevices=" + smarthomeDevices + '}';
+                + groupDevices + ", connectedVia='" + connectedVia + "'" + ", alexaDeviceIdentifierList="
+                + alexaDeviceIdentifierList + ", driverIdentity=" + driverIdentity + ", mergedApplianceIds="
+                + mergedApplianceIds + ", smarthomeDevices=" + smarthomeDevices + "}";
     }
 
     public static class DriverIdentity {
@@ -80,6 +82,17 @@ public class JsonSmartHomeDevice implements SmartHomeBaseDevice {
         @Override
         public String toString() {
             return "DriverIdentity{" + "namespace='" + namespace + '\'' + ", identifier='" + identifier + '\'' + '}';
+        }
+    }
+
+    public static class DeviceIdentifier {
+        public @Nullable String dmsDeviceSerialNumber;
+        public @Nullable String dmsDeviceTypeId;
+
+        @Override
+        public String toString() {
+            return "DeviceIdentifier{" + "dmsDeviceSerialNumber='" + dmsDeviceSerialNumber + "'" + ", dmsDeviceTypeId='"
+                    + dmsDeviceTypeId + "'" + "}";
         }
     }
 }
