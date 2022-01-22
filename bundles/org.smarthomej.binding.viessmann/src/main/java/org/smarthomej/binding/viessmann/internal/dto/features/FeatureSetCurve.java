@@ -13,7 +13,7 @@
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
 /**
- * The {@link FeatureSetCurve} is responsible for
+ * The {@link FeatureSetCurve} provides set curve of features
  *
  * @author Ronny Grun - Initial contribution
  */

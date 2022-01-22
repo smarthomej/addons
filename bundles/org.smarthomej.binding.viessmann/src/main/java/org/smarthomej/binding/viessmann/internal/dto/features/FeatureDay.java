@@ -13,7 +13,7 @@
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
 /**
- * The {@link FeatureDay} is responsible for
+ * The {@link FeatureDay} provides day of features
  *
  * @author Ronny Grun - Initial contribution
  */

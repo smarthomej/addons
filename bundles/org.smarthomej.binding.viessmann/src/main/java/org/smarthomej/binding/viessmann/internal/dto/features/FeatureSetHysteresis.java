@@ -13,10 +13,13 @@
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
 /**
- * The {@link FeatureSetScheduleParams} provides set schedule parameters of features
+ * The {@link FeatureSetHysteresis} provides set hysteresis of features
  *
  * @author Ronny Grun - Initial contribution
  */
-public class FeatureSetScheduleParams {
-    public FeatureNewSchedule newSchedule;
+public class FeatureSetHysteresis {
+    public String uri;
+    public String name;
+    public Boolean isExecutable;
+    public FeatureSetHeatingCurve params;
 }

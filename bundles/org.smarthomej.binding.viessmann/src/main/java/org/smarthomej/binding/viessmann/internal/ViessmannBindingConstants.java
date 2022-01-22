@@ -67,10 +67,14 @@ public class ViessmannBindingConstants {
 
     public static final Map<String, String> UNIT_MAP = Map.of( //
             "celsius", SIUnits.CELSIUS.getSymbol(), //
+            "kelvin", Units.KELVIN.toString(), //
             "kilowattHour", Units.KILOWATT_HOUR.toString(), //
             "percent", Units.PERCENT.toString(), //
             "minute", Units.MINUTE.toString(), //
-            "hour", Units.HOUR.toString());
+            "hour", Units.HOUR.toString(), //
+            "hours", Units.HOUR.toString(), //
+            "liter", Units.LITRE.toString(), //
+            "cubicMeter", SIUnits.CUBIC_METRE.toString());
 
     public static Map<String, String> readPropertiesFile(String filename) {
         InputStream resource = Thread.currentThread().getContextClassLoader().getResourceAsStream(filename);

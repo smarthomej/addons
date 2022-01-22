@@ -15,7 +15,7 @@ package org.smarthomej.binding.viessmann.internal.dto.device;
 import java.util.List;
 
 /**
- * The {@link DeviceData} is responsible for
+ * The {@link DeviceData} provides all data of a device
  *
  * @author Ronny Grun - Initial contribution
  */

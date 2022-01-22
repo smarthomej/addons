@@ -15,7 +15,7 @@ package org.smarthomej.binding.viessmann.internal.dto.installation;
 import java.util.List;
 
 /**
- * The {@link InstallationDTO} is responsible for
+ * The {@link InstallationDTO} provides all data of the installation
  *
  * @author Ronny Grun - Initial contribution
  */

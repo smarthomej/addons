@@ -13,7 +13,7 @@
 package org.smarthomej.binding.viessmann.internal.dto.schedule;
 
 /**
- * The {@link DaySchedule} is responsible for
+ * The {@link DaySchedule} provides the schedule of each day
  *
  * @author Ronny Grun - Initial contribution
  */

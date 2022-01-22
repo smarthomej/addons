@@ -13,7 +13,7 @@
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
 /**
- * The {@link FeatureChangeEndDateParams} is responsible for
+ * The {@link FeatureChangeEndDateParams} provides parameters of change end date features
  *
  * @author Ronny Grun - Initial contribution
  */

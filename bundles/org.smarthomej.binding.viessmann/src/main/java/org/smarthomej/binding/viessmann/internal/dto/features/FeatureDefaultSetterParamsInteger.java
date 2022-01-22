@@ -13,10 +13,12 @@
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
 /**
- * The {@link FeatureSetScheduleParams} provides set schedule parameters of features
+ * The {@link FeatureDefaultSetterParamsInteger} provides default parameters of integer features
  *
  * @author Ronny Grun - Initial contribution
  */
-public class FeatureSetScheduleParams {
-    public FeatureNewSchedule newSchedule;
+public class FeatureDefaultSetterParamsInteger {
+    Boolean required;
+    String type;
+    public FeatureConstraintsSteppingInteger constraints;
 }

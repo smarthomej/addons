@@ -13,7 +13,7 @@
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
 /**
- * The {@link FeatureSlope} is responsible for
+ * The {@link FeatureSlope} provides slope of features
  *
  * @author Ronny Grun - Initial contribution
  */

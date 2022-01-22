@@ -15,9 +15,12 @@ package org.smarthomej.binding.viessmann.internal.dto.error;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Objects;
+
+import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
- * The {@link ExtendedPayload} is responsible for
+ * The {@link ExtendedPayload} provides the extended payload of a viessmann error message
  *
  * @author Ronny Grun - Initial contribution
  */
@@ -28,6 +31,8 @@ public class ExtendedPayload {
     private String clientId;
     private String userId;
     private Long limitReset;
+    public String code;
+    public String details;
 
     public String getReason() {
         return reason;
@@ -80,5 +85,18 @@ public class ExtendedPayload {
 
     public void setLimitReset(Long limitReset) {
         this.limitReset = limitReset;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public String getDetails() {
+        return details;
+    }
+
+    @Override
+    public @NonNullByDefault String toString() {
+        return Objects.requireNonNullElse(reason, "") + " " + Objects.requireNonNullElse(details, "");
     }
 }

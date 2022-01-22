@@ -15,7 +15,7 @@ package org.smarthomej.binding.viessmann.internal.dto.installation;
 import java.util.List;
 
 /**
- * The {@link Gateway} is responsible for
+ * The {@link Gateway} provides all data of the gateway
  *
  * @author Ronny Grun - Initial contribution
  */

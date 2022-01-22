@@ -13,10 +13,13 @@
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
 /**
- * The {@link FeatureSetScheduleParams} provides set schedule parameters of features
+ * The {@link FeatureSetLevels} provides set levels of features
  *
  * @author Ronny Grun - Initial contribution
  */
-public class FeatureSetScheduleParams {
-    public FeatureNewSchedule newSchedule;
+public class FeatureSetLevels {
+    public String uri;
+    public String name;
+    public Boolean isExecutable;
+    public FeatureSetLevelsParams params;
 }

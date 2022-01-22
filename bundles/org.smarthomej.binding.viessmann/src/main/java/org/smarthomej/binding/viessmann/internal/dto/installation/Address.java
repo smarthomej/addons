@@ -13,7 +13,7 @@
 package org.smarthomej.binding.viessmann.internal.dto.installation;
 
 /**
- * The {@link Address} is responsible for
+ * The {@link Address} provides address data of the installation
  *
  * @author Ronny Grun - Initial contribution
  */

@@ -13,7 +13,7 @@
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
 /**
- * The {@link FeatureShift} is responsible for
+ * The {@link FeatureShift} provides shift of features
  *
  * @author Ronny Grun - Initial contribution
  */

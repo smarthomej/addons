@@ -13,7 +13,7 @@
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
 /**
- * The {@link FeatureSetName} is responsible for
+ * The {@link FeatureSetName} provides set name of features
  *
  * @author Ronny Grun - Initial contribution
  */

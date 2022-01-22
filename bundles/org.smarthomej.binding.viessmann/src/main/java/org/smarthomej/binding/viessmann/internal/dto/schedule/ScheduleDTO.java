@@ -15,7 +15,7 @@ package org.smarthomej.binding.viessmann.internal.dto.schedule;
 import java.util.List;
 
 /**
- * The {@link ScheduleDTO} is responsible for
+ * The {@link ScheduleDTO} provides the schedule of a scheduled feature
  *
  * @author Ronny Grun - Initial contribution
  */

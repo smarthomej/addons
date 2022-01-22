@@ -15,7 +15,7 @@ package org.smarthomej.binding.viessmann.internal.dto.features;
 import java.util.List;
 
 /**
- * The {@link FeatureWeekDays} is responsible for
+ * The {@link FeatureWeekDays} provides weekdays for feature
  *
  * @author Ronny Grun - Initial contribution
  */

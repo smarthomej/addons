@@ -15,7 +15,7 @@ package org.smarthomej.binding.viessmann.internal.dto.features;
 import java.util.ArrayList;
 
 /**
- * The {@link FeatureProperties} is responsible for
+ * The {@link FeatureProperties} provides properties of features
  *
  * @author Ronny Grun - Initial contribution
  */
@@ -41,6 +41,13 @@ public class FeatureProperties {
     public FeatureString unit;
     public FeatureDouble hours;
     public FeatureInteger starts;
+    public FeatureInteger hoursLoadClassOne;
+    public FeatureInteger hoursLoadClassTwo;
+    public FeatureInteger hoursLoadClassThree;
+    public FeatureInteger hoursLoadClassFour;
+    public FeatureInteger hoursLoadClassFive;
+    public FeatureInteger min;
+    public FeatureInteger max;
 
     public ArrayList<String> getUsedEntries() {
         ArrayList<String> list = new ArrayList<String>();
@@ -107,6 +114,27 @@ public class FeatureProperties {
         }
         if (starts != null) {
             list.add("starts");
+        }
+        if (hoursLoadClassOne != null) {
+            list.add("hoursLoadClassOne");
+        }
+        if (hoursLoadClassOne != null) {
+            list.add("hoursLoadClassTwo");
+        }
+        if (hoursLoadClassOne != null) {
+            list.add("hoursLoadClassThree");
+        }
+        if (hoursLoadClassOne != null) {
+            list.add("hoursLoadClassFour");
+        }
+        if (hoursLoadClassOne != null) {
+            list.add("hoursLoadClassFive");
+        }
+        if (min != null) {
+            list.add("min");
+        }
+        if (max != null) {
+            list.add("max");
         }
 
         return list;

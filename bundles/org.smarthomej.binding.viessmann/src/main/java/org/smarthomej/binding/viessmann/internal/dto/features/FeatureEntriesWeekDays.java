@@ -13,7 +13,7 @@
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
 /**
- * The {@link FeatureEntriesWeekDays} is responsible for
+ * The {@link FeatureEntriesWeekDays} provides weekday entries of features
  *
  * @author Ronny Grun - Initial contribution
  */

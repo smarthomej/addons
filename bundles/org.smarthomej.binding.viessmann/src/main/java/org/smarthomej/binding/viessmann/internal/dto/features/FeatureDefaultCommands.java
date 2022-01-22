@@ -13,7 +13,7 @@
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
 /**
- * The {@link FeatureDefaultCommands} is responsible for
+ * The {@link FeatureDefaultCommands} provides default command of features
  *
  * @author Ronny Grun - Initial contribution
  */

@@ -15,7 +15,7 @@ package org.smarthomej.binding.viessmann.internal.dto.installation;
 import java.util.List;
 
 /**
- * The {@link Device} is responsible for
+ * The {@link Device} provides a device on the installation
  *
  * @author Ronny Grun - Initial contribution
  */

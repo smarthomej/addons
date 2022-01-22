@@ -13,7 +13,7 @@
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
 /**
- * The {@link FeatureSetDate} is responsible for
+ * The {@link FeatureSetDate} provides set date of features
  *
  * @author Ronny Grun - Initial contribution
  */

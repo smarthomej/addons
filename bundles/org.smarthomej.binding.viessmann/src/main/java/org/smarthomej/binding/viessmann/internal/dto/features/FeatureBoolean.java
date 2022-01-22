@@ -13,7 +13,7 @@
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
 /**
- * The {@link FeatureBoolean} is responsible for
+ * The {@link FeatureBoolean} provides values of boolean features
  *
  * @author Ronny Grun - Initial contribution
  */
