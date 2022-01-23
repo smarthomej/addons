@@ -135,7 +135,7 @@ public class FlashBriefingProfileHandler extends BaseThingHandler {
                 String deviceSerialOrName = command.toFullString();
                 String currentConfigurationJson = this.currentConfigurationJson;
                 if (!currentConfigurationJson.isEmpty()) {
-                    String old = accountHandler.getEnabledFlashBriefingsJson();
+                    String old = accountHandler.updateAndGetEnabledFlashBriefingsJson();
                     accountHandler.setEnabledFlashBriefingsJson(currentConfigurationJson);
                     Device device = accountHandler.findDeviceJsonBySerialOrName(deviceSerialOrName);
                     if (device == null) {
@@ -160,7 +160,7 @@ public class FlashBriefingProfileHandler extends BaseThingHandler {
             }
         }
         if (waitForUpdate >= 0) {
-            this.updateStateJob = scheduler.schedule(() -> accountHandler.updateFlashBriefingHandlers(), waitForUpdate,
+            this.updateStateJob = scheduler.schedule(() -> accountHandler.getFlashBriefingHandlers(), waitForUpdate,
                     TimeUnit.MILLISECONDS);
         }
     }
@@ -195,7 +195,7 @@ public class FlashBriefingProfileHandler extends BaseThingHandler {
 
     private String saveCurrentProfile(AccountHandler connection) {
         String configurationJson = "";
-        configurationJson = connection.getEnabledFlashBriefingsJson();
+        configurationJson = connection.updateAndGetEnabledFlashBriefingsJson();
         this.currentConfigurationJson = configurationJson;
         if (!configurationJson.isEmpty()) {
             this.stateStorage.put("configurationJson", configurationJson);

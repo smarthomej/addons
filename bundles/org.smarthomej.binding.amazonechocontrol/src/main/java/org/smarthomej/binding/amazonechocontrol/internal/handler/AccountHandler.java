@@ -273,7 +273,7 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
         Connection connection = this.connection;
         if (connection != null && connection.getIsLoggedIn()) {
             if (currentFlashBriefingJson.isEmpty()) {
-                updateFlashBriefingProfiles(connection);
+                currentFlashBriefingJson = getFlashBriefingProfiles(connection);
             }
             flashBriefingProfileHandler.initialize(this, currentFlashBriefingJson);
         }
@@ -421,7 +421,7 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
         if (connection != null) {
             updateDeviceList();
             updateSmartHomeDeviceList(false);
-            updateFlashBriefingHandlers();
+            getFlashBriefingHandlers();
             updateStatus(ThingStatus.ONLINE);
             scheduleUpdate();
             checkData();
@@ -513,7 +513,7 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
                 // get all devices registered in the account
                 updateDeviceList();
                 updateSmartHomeDeviceList(false);
-                updateFlashBriefingHandlers();
+                getFlashBriefingHandlers();
 
                 JsonDocument deviceNotificationStates = currentConnection
                         .alexaGetRequest("/api/device-notification-state");
@@ -659,28 +659,29 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
                 logger.warn("Set flashbriefing profile failed", e);
             }
         }
-        updateFlashBriefingHandlers();
+        getFlashBriefingHandlers();
     }
 
-    public String getNewCurrentFlashbriefingConfiguration() {
-        return updateFlashBriefingHandlers();
-    }
-
-    public String updateFlashBriefingHandlers() {
+    public String getFlashBriefingHandlers() {
         Connection currentConnection = connection;
         if (currentConnection != null) {
-            return updateFlashBriefingHandlers(currentConnection);
+            return getFlashBriefingHandlers(currentConnection);
         }
         return "";
     }
 
-    private String updateFlashBriefingHandlers(Connection currentConnection) {
+    private String getFlashBriefingHandlers(Connection currentConnection) {
         if (!flashBriefingProfileHandlers.isEmpty() || currentFlashBriefingJson.isEmpty()) {
-            updateFlashBriefingProfiles(currentConnection);
+            String flashBriefingProfiles = getFlashBriefingProfiles(currentConnection);
+            if (!flashBriefingProfiles.isEmpty()) {
+                this.currentFlashBriefingJson = flashBriefingProfiles;
+            }
         }
         boolean flashBriefingProfileFound = false;
         for (FlashBriefingProfileHandler child : flashBriefingProfileHandlers) {
-            flashBriefingProfileFound |= child.initialize(this, currentFlashBriefingJson);
+            if (child.initialize(this, currentFlashBriefingJson)) {
+                flashBriefingProfileFound = true;
+            }
         }
         if (flashBriefingProfileFound) {
             return "";
@@ -692,24 +693,28 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
         return this.connection;
     }
 
-    public String getEnabledFlashBriefingsJson() {
+    public String updateAndGetEnabledFlashBriefingsJson() {
         Connection currentConnection = this.connection;
         if (currentConnection == null) {
             return "";
         }
-        updateFlashBriefingProfiles(currentConnection);
+        String flashBriefingJson = getFlashBriefingProfiles(currentConnection);
+        if (!flashBriefingJson.isEmpty()) {
+            this.currentFlashBriefingJson = flashBriefingJson;
+        }
         return this.currentFlashBriefingJson;
     }
 
-    private void updateFlashBriefingProfiles(Connection currentConnection) {
+    private String getFlashBriefingProfiles(Connection currentConnection) {
         try {
             // Make a copy and remove changeable parts
             JsonFeed[] forSerializer = currentConnection.getEnabledFlashBriefings().stream()
                     .map(source -> new JsonFeed(source.feedId, source.skillId)).toArray(JsonFeed[]::new);
-            this.currentFlashBriefingJson = gson.toJson(forSerializer);
+             return Objects.requireNonNull(gson.toJson(forSerializer));
         } catch (JsonSyntaxException | ConnectionException e) {
             logger.warn("get flash briefing profiles fails", e);
         }
+        return "";
     }
 
     @Override

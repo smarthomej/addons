@@ -93,7 +93,7 @@ public class AmazonEchoDiscovery extends AbstractDiscoveryService implements Thi
         }
         setDevices(accountHandler.updateDeviceList());
 
-        String currentFlashBriefingConfiguration = accountHandler.getNewCurrentFlashbriefingConfiguration();
+        String currentFlashBriefingConfiguration = accountHandler.getFlashBriefingHandlers();
         discoverFlashBriefingProfiles(currentFlashBriefingConfiguration);
     }
 
