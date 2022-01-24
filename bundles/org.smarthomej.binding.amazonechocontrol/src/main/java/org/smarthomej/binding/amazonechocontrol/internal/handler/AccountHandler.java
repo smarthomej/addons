@@ -225,25 +225,6 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
         return new ArrayList<>(jsonIdSmartHomeDeviceMapping.values());
     }
 
-    public void addEchoHandler(EchoHandler echoHandler) {
-        if (echoHandlers.add(echoHandler)) {
-            forceCheckData();
-        }
-    }
-
-    public void removeEchoHandler(EchoHandler echoHandler) {
-        echoHandlers.remove(echoHandler);
-    }
-
-    public void addSmartHomeDeviceHandler(SmartHomeDeviceHandler smartHomeDeviceHandler) {
-        if (smartHomeDeviceHandlers.add(smartHomeDeviceHandler)) {
-            forceCheckData();
-        }
-    }
-
-    public void removeSmartHomeDeviceHandler(SmartHomeDeviceHandler smartHomeDeviceHandler) {
-        smartHomeDeviceHandlers.remove(smartHomeDeviceHandler);
-    }
 
     public void forceCheckData() {
         if (forceCheckDataJob == null) {
@@ -268,19 +249,6 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
         return null;
     }
 
-    public void addFlashBriefingProfileHandler(FlashBriefingProfileHandler flashBriefingProfileHandler) {
-        flashBriefingProfileHandlers.add(flashBriefingProfileHandler);
-        Connection connection = this.connection;
-        if (connection != null && connection.getIsLoggedIn()) {
-            if (currentFlashBriefingJson.isEmpty()) {
-                currentFlashBriefingJson = getFlashBriefingProfiles(connection);
-            }
-            flashBriefingProfileHandler.initialize(this, currentFlashBriefingJson);
-        }
-        // set flashbriefing description on echo handlers
-        echoHandlers.forEach(h -> h.createStartCommandCommandOptions(flashBriefingProfileHandlers));
-    }
-
     private void scheduleUpdate() {
         checkDataCounter = 999;
     }
@@ -288,6 +256,30 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
     @Override
     public void childHandlerInitialized(ThingHandler childHandler, Thing childThing) {
         super.childHandlerInitialized(childHandler, childThing);
+
+        if (childHandler instanceof EchoHandler) {
+            if (echoHandlers.add((EchoHandler) childHandler)) {
+                forceCheckData();
+            }
+        } else if (childHandler instanceof SmartHomeDeviceHandler) {
+                if (smartHomeDeviceHandlers.add((SmartHomeDeviceHandler) childHandler)) {
+                    forceCheckData();
+            }
+        } else if (childHandler instanceof FlashBriefingProfileHandler) {
+            FlashBriefingProfileHandler flashBriefingProfileHandler = (FlashBriefingProfileHandler)childHandler;
+            flashBriefingProfileHandlers.add(flashBriefingProfileHandler);
+            Connection connection = this.connection;
+            if (connection != null && connection.getIsLoggedIn()) {
+                if (currentFlashBriefingJson.isEmpty()) {
+                    currentFlashBriefingJson = getFlashBriefingProfiles(connection);
+                }
+                flashBriefingProfileHandler.initialize(this, currentFlashBriefingJson);
+            }
+            // set flashbriefing description on echo handlers
+            echoHandlers.forEach(h -> h.createStartCommandCommandOptions(flashBriefingProfileHandlers));
+        }
+
+
         scheduleUpdate();
     }
 
@@ -297,21 +289,18 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
         super.handleRemoval();
     }
 
+
     @Override
     public void childHandlerDisposed(ThingHandler childHandler, Thing childThing) {
-        // check for echo handler
         if (childHandler instanceof EchoHandler) {
             echoHandlers.remove(childHandler);
-        }
-        // check for flash briefing profile handler
-        if (childHandler instanceof FlashBriefingProfileHandler) {
+        } else if (childHandler instanceof FlashBriefingProfileHandler) {
             flashBriefingProfileHandlers.remove(childHandler);
             echoHandlers.forEach(h -> h.createStartCommandCommandOptions(flashBriefingProfileHandlers));
-        }
-        // check for flash briefing profile handler
-        if (childHandler instanceof SmartHomeDeviceHandler) {
+        } else if (childHandler instanceof SmartHomeDeviceHandler) {
             smartHomeDeviceHandlers.remove(childHandler);
         }
+
         super.childHandlerDisposed(childHandler, childThing);
     }
 

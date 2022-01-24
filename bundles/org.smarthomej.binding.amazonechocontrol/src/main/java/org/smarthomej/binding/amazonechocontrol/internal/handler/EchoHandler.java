@@ -144,14 +144,12 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
 
     @Override
     public void initialize() {
-        logger.debug("Amazon Echo Control Binding initialized");
         Bridge bridge = this.getBridge();
         if (bridge != null) {
             AccountHandler account = (AccountHandler) bridge.getHandler();
             if (account != null) {
                 setDeviceAndUpdateThingState(account, this.device, null);
                 createStartCommandCommandOptions(account.getFlashBriefingProfileHandlers());
-                account.addEchoHandler(this);
             }
         }
     }
@@ -178,13 +176,6 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
 
     @Override
     public void dispose() {
-        Bridge bridge = this.getBridge();
-        if (bridge != null) {
-            AccountHandler account = (AccountHandler) bridge.getHandler();
-            if (account != null) {
-                account.removeEchoHandler(this);
-            }
-        }
         stopCurrentNotification();
         ScheduledFuture<?> updateStateJob = this.updateStateJob;
         this.updateStateJob = null;
@@ -532,7 +523,6 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
                 if (command instanceof StringType) {
                     String text = command.toFullString();
                     if (!text.isEmpty()) {
-                        waitForUpdate = 1000;
                         updateTextToSpeech = true;
                         startTextToSpeech(connection, device, text);
                     }
@@ -561,7 +551,6 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
                 if (command instanceof StringType) {
                     String text = command.toFullString();
                     if (!text.isEmpty()) {
-                        waitForUpdate = 1000;
                         updateTextCommand = true;
                         startTextCommand(connection, device, text);
                     }
@@ -598,7 +587,6 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
                             if (!commandText.startsWith("Alexa.")) {
                                 commandText = "Alexa." + commandText + ".Play";
                             }
-                            waitForUpdate = 1000;
                             connection.executeSequenceCommand(device, commandText, Map.of());
                         }
                     }
@@ -608,7 +596,6 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
                 if (command instanceof StringType) {
                     String utterance = command.toFullString();
                     if (!utterance.isEmpty()) {
-                        waitForUpdate = 1000;
                         updateRoutine = true;
                         connection.startRoutine(device, utterance);
                     }

@@ -65,10 +65,6 @@ public class FlashBriefingProfileHandler extends BaseThingHandler {
         this.stateStorage = storage;
     }
 
-    public @Nullable AccountHandler findAccountHandler() {
-        return this.accountHandler;
-    }
-
     @Override
     public void initialize() {
         updatePlayOnDevice = true;
@@ -77,13 +73,6 @@ public class FlashBriefingProfileHandler extends BaseThingHandler {
             updateStatus(ThingStatus.ONLINE);
         } else {
             updateStatus(ThingStatus.UNKNOWN);
-            Bridge bridge = this.getBridge();
-            if (bridge != null) {
-                AccountHandler account = (AccountHandler) bridge.getHandler();
-                if (account != null) {
-                    account.addFlashBriefingProfileHandler(this);
-                }
-            }
         }
     }
 
@@ -160,7 +149,7 @@ public class FlashBriefingProfileHandler extends BaseThingHandler {
             }
         }
         if (waitForUpdate >= 0) {
-            this.updateStateJob = scheduler.schedule(() -> accountHandler.getFlashBriefingHandlers(), waitForUpdate,
+            this.updateStateJob = scheduler.schedule(accountHandler::getFlashBriefingHandlers, waitForUpdate,
                     TimeUnit.MILLISECONDS);
         }
     }

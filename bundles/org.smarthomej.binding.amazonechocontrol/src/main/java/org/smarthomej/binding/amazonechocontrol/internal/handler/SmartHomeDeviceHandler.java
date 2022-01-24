@@ -179,7 +179,6 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
 
         AccountHandler accountHandler = getAccountHandler();
         if (accountHandler != null) {
-            accountHandler.addSmartHomeDeviceHandler(this);
             setDeviceAndUpdateThingState(accountHandler, smartHomeBaseDevice);
         } else {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "Bridgehandler not found");
@@ -188,11 +187,6 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
 
     @Override
     public void dispose() {
-        AccountHandler accountHandler = getAccountHandler();
-        if (accountHandler != null) {
-            accountHandler.removeSmartHomeDeviceHandler(this);
-        }
-
         dynamicCommandDescriptionProvider.removeCommandDescriptionForThing(thing.getUID());
         dynamicStateDescriptionProvider.removeDescriptionsForThing(thing.getUID());
     }
