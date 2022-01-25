@@ -15,7 +15,6 @@ package org.smarthomej.binding.amazonechocontrol.internal.handler;
 
 import static com.jayway.jsonpath.Criteria.where;
 
-import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -69,7 +68,6 @@ import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStat
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates.BluetoothState;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCommandPayloadPushDevice;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCommandPayloadPushDevice.DopplerId;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCommandPayloadPushNotificationChange;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCustomerHistoryRecords.CustomerHistoryRecord;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDevices.Device;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonFeed;
@@ -162,14 +160,9 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
         checkLoginJob = scheduler.scheduleWithFixedDelay(this::checkLogin, 0, 60, TimeUnit.SECONDS);
         checkDataJob = scheduler.scheduleWithFixedDelay(this::checkData, 4, 60, TimeUnit.SECONDS);
 
-        int pollingIntervalAlexa = handlerConfig.pollingIntervalSmartHomeAlexa;
-        if (pollingIntervalAlexa < 10) {
-            pollingIntervalAlexa = 10;
-        }
-        int pollingIntervalSkills = handlerConfig.pollingIntervalSmartSkills;
-        if (pollingIntervalSkills < 60) {
-            pollingIntervalSkills = 60;
-        }
+        int pollingIntervalAlexa = Math.max(10, handlerConfig.pollingIntervalSmartHomeAlexa);
+        int pollingIntervalSkills = Math.max(60, handlerConfig.pollingIntervalSmartSkills);
+
         smartHomeDeviceStateGroupUpdateCalculator = new SmartHomeDeviceStateGroupUpdateCalculator(pollingIntervalAlexa,
                 pollingIntervalSkills);
         updateSmartHomeStateJob = scheduler.scheduleWithFixedDelay(() -> updateSmartHomeState(null), 20, 10,
@@ -206,7 +199,7 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
 
     @Override
     public void startAnnouncement(Device device, String speak, String bodyText, @Nullable String title,
-            @Nullable Integer volume) throws IOException, URISyntaxException {
+            @Nullable Integer volume) {
         EchoHandler echoHandler = findEchoHandlerBySerialNumber(device.serialNumber);
         if (echoHandler != null) {
             echoHandler.startAnnouncement(device, speak, bodyText, title, volume);
@@ -225,7 +218,6 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
         return new ArrayList<>(jsonIdSmartHomeDeviceMapping.values());
     }
 
-
     public void forceCheckData() {
         if (forceCheckDataJob == null) {
             forceCheckDataJob = scheduler.schedule(this::checkData, 1000, TimeUnit.MILLISECONDS);
@@ -241,12 +233,11 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
     }
 
     public @Nullable EchoHandler findEchoHandlerBySerialNumber(@Nullable String deviceSerialNumber) {
-        for (EchoHandler echoHandler : echoHandlers) {
-            if (deviceSerialNumber != null && deviceSerialNumber.equals(echoHandler.findSerialNumber())) {
-                return echoHandler;
-            }
+        if (deviceSerialNumber == null) {
+            return null;
         }
-        return null;
+        return echoHandlers.stream().filter(echoHandler -> deviceSerialNumber.equals(echoHandler.findSerialNumber()))
+                .findAny().orElse(null);
     }
 
     private void scheduleUpdate() {
@@ -262,11 +253,11 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
                 forceCheckData();
             }
         } else if (childHandler instanceof SmartHomeDeviceHandler) {
-                if (smartHomeDeviceHandlers.add((SmartHomeDeviceHandler) childHandler)) {
-                    forceCheckData();
+            if (smartHomeDeviceHandlers.add((SmartHomeDeviceHandler) childHandler)) {
+                forceCheckData();
             }
         } else if (childHandler instanceof FlashBriefingProfileHandler) {
-            FlashBriefingProfileHandler flashBriefingProfileHandler = (FlashBriefingProfileHandler)childHandler;
+            FlashBriefingProfileHandler flashBriefingProfileHandler = (FlashBriefingProfileHandler) childHandler;
             flashBriefingProfileHandlers.add(flashBriefingProfileHandler);
             Connection connection = this.connection;
             if (connection != null && connection.getIsLoggedIn()) {
@@ -279,7 +270,6 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
             echoHandlers.forEach(h -> h.createStartCommandCommandOptions(flashBriefingProfileHandlers));
         }
 
-
         scheduleUpdate();
     }
 
@@ -288,7 +278,6 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
         cleanup();
         super.handleRemoval();
     }
-
 
     @Override
     public void childHandlerDisposed(ThingHandler childHandler, Thing childThing) {
@@ -468,7 +457,7 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
         }
     }
 
-    private void refreshNotifications(@Nullable JsonCommandPayloadPushNotificationChange pushPayload) {
+    private void refreshNotifications() {
         Connection currentConnection = this.connection;
         if (currentConnection == null) {
             return;
@@ -481,8 +470,8 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
         try {
             List<JsonNotificationResponse> notifications = currentConnection.notifications();
             ZonedDateTime timeStampNow = ZonedDateTime.now();
-            echoHandlers.forEach(echoHandler -> echoHandler.updateNotifications(timeStamp, timeStampNow, pushPayload,
-                    notifications));
+            echoHandlers
+                    .forEach(echoHandler -> echoHandler.updateNotifications(timeStamp, timeStampNow, notifications));
         } catch (ConnectionException e) {
             logger.debug("refreshNotifications failed", e);
         }
@@ -567,7 +556,7 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
                 }
 
                 // refresh notifications
-                refreshNotifications(null);
+                refreshNotifications();
 
                 // update account state
                 updateStatus(ThingStatus.ONLINE);
@@ -699,7 +688,7 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
             // Make a copy and remove changeable parts
             JsonFeed[] forSerializer = currentConnection.getEnabledFlashBriefings().stream()
                     .map(source -> new JsonFeed(source.feedId, source.skillId)).toArray(JsonFeed[]::new);
-             return Objects.requireNonNull(gson.toJson(forSerializer));
+            return Objects.requireNonNull(gson.toJson(forSerializer));
         } catch (JsonSyntaxException | ConnectionException e) {
             logger.warn("get flash briefing profiles fails", e);
         }
@@ -729,13 +718,10 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
                     if (refreshDataDelayed != null) {
                         refreshDataDelayed.cancel(false);
                     }
-                    this.refreshAfterCommandJob = scheduler.schedule(this::refreshAfterCommand, 700,
-                            TimeUnit.MILLISECONDS);
+                    this.refreshAfterCommandJob = scheduler.schedule(this::refreshData, 700, TimeUnit.MILLISECONDS);
                     break;
                 case "PUSH_NOTIFICATION_CHANGE":
-                    JsonCommandPayloadPushNotificationChange pushPayload = gson.fromJson(pushCommand.payload,
-                            JsonCommandPayloadPushNotificationChange.class);
-                    refreshNotifications(pushPayload);
+                    refreshNotifications();
                     break;
                 default:
                     String payload = pushCommand.payload;
@@ -796,10 +782,6 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
                 }
             }
         }
-    }
-
-    void refreshAfterCommand() {
-        refreshData();
     }
 
     private @Nullable SmartHomeBaseDevice findSmartHomeDeviceJson(SmartHomeDeviceHandler handler) {

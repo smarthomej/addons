@@ -65,7 +65,6 @@ import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.ChannelH
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates.BluetoothState;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates.PairedDevice;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCommandPayloadPushNotificationChange;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCommandPayloadPushVolumeChange;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCustomerHistoryRecords.CustomerHistoryRecord;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCustomerHistoryRecords.CustomerHistoryRecord.VoiceHistoryRecordItem;
@@ -1269,7 +1268,6 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
     }
 
     public void updateNotifications(ZonedDateTime currentTime, ZonedDateTime now,
-            @Nullable JsonCommandPayloadPushNotificationChange pushPayload,
             List<JsonNotificationResponse> notifications) {
         Device device = this.device;
         if (device == null) {
