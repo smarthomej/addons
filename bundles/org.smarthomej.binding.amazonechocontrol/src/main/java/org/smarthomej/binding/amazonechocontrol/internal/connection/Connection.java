@@ -318,13 +318,15 @@ public class Connection {
                     && contentType.toLowerCase().startsWith("application/json")) {
                 String bootstrapResultJson = convertStream(connection);
                 JsonBootstrapResult result = parseJson(bootstrapResultJson, JsonBootstrapResult.class);
-                Authentication authentication = result.authentication;
-                if (authentication != null && authentication.authenticated) {
-                    this.customerName = authentication.customerName;
-                    if (this.loginData.accountCustomerId == null) {
-                        this.loginData.accountCustomerId = authentication.customerId;
+                if (result != null) {
+                    Authentication authentication = result.authentication;
+                    if (authentication != null && authentication.authenticated) {
+                        this.customerName = authentication.customerName;
+                        if (this.loginData.accountCustomerId == null) {
+                            this.loginData.accountCustomerId = authentication.customerId;
+                        }
+                        return authentication;
                     }
-                    return authentication;
                 }
             }
         } catch (JsonSyntaxException | IllegalStateException e) {
@@ -558,6 +560,9 @@ public class Connection {
                 registerAppRequestJson, true, Map.of("x-amzn-identity-auth-domain", "api.amazon.com"));
         JsonRegisterAppResponse registerAppResponse = parseJson(registerAppResultJson, JsonRegisterAppResponse.class);
 
+        if (registerAppResponse == null) {
+            throw new ConnectionException("Error: No response received from register application");
+        }
         Response response = registerAppResponse.response;
         if (response == null) {
             throw new ConnectionException("Error: No response received from register application");
@@ -588,6 +593,9 @@ public class Connection {
             String usersMeResponseJson = makeRequestAndReturnString("GET",
                     "https://alexa.amazon.com/api/users/me?platform=ios&version=2.2.443692.0", null, false, Map.of());
             JsonUsersMeResponse usersMeResponse = parseJson(usersMeResponseJson, JsonUsersMeResponse.class);
+            if (usersMeResponse == null) {
+                throw new IllegalStateException();
+            }
             URI uri = new URI(usersMeResponse.marketPlaceDomainName);
             String host = uri.getHost();
 
@@ -668,6 +676,9 @@ public class Connection {
                     renewTokenPostData, false, Map.of());
             if (this.macDms == null) {
                 JsonRenewTokenResponse tokenResponse = parseJson(renewTokenResponseJson, JsonRenewTokenResponse.class);
+                if (tokenResponse == null) {
+                    return false;
+                }
                 reRegisterConnectionAsApp(tokenResponse.accessToken);
             } else {
                 exchangeToken();
@@ -763,10 +774,10 @@ public class Connection {
     }
 
     // parser
-    private <T> T parseJson(String json, Class<T> type) throws JsonSyntaxException, IllegalStateException {
+    private <T> @Nullable T parseJson(String json, Class<T> type) throws JsonSyntaxException, IllegalStateException {
         try {
-            // gson.fromJson is always non-null if json is non-null
-            return Objects.requireNonNull(gson.fromJson(json, type));
+            // gson.fromJson is non-null if json is non-null and not empty
+            return gson.fromJson(json, type);
         } catch (JsonParseException | IllegalStateException e) {
             logger.warn("Parsing json failed: {}", json, e);
             throw e;
@@ -779,6 +790,9 @@ public class Connection {
         try {
             json = makeRequestAndReturnString(alexaServer + "/api/wake-word?cached=true");
             JsonWakeWords wakeWords = parseJson(json, JsonWakeWords.class);
+            if (wakeWords == null) {
+                return List.of();
+            }
             return Objects.requireNonNullElse(wakeWords.wakeWords, List.of());
         } catch (ConnectionException e) {
             logger.info("getting wakewords failed", e);
@@ -792,6 +806,9 @@ public class Connection {
             logger.debug("getSmartHomeDevices result: {}", json);
 
             JsonNetworkDetails networkDetails = parseJson(json, JsonNetworkDetails.class);
+            if (networkDetails == null) {
+                return List.of();
+            }
             Object jsonObject = gson.fromJson(networkDetails.networkDetail, Object.class);
             List<SmartHomeBaseDevice> result = new ArrayList<>();
             searchSmartHomeDevicesRecursive(jsonObject, result);
@@ -811,11 +828,15 @@ public class Connection {
                 // device node found, create type element and add it to the results
                 JsonElement element = gson.toJsonTree(jsonNode);
                 JsonSmartHomeDevice shd = parseJson(element.toString(), JsonSmartHomeDevice.class);
-                devices.add(shd);
+                if (shd != null) {
+                    devices.add(shd);
+                }
             } else if (map.containsKey("applianceGroupName")) {
                 JsonElement element = gson.toJsonTree(jsonNode);
                 SmartHomeGroup shg = parseJson(element.toString(), SmartHomeGroup.class);
-                devices.add(shg);
+                if (shg != null) {
+                    devices.add(shg);
+                }
             } else {
                 map.values().forEach(value -> searchSmartHomeDevicesRecursive(value, devices));
             }
@@ -897,13 +918,13 @@ public class Connection {
         return result;
     }
 
-    public JsonPlayerState getPlayer(Device device) throws ConnectionException {
+    public @Nullable JsonPlayerState getPlayer(Device device) throws ConnectionException {
         String json = makeRequestAndReturnString(alexaServer + "/api/np/player?deviceSerialNumber="
                 + device.serialNumber + "&deviceType=" + device.deviceType + "&screenWidth=1440");
         return parseJson(json, JsonPlayerState.class);
     }
 
-    public JsonMediaState getMediaState(Device device) throws ConnectionException {
+    public @Nullable JsonMediaState getMediaState(Device device) throws ConnectionException {
         String json = makeRequestAndReturnString(alexaServer + "/api/media/state?deviceSerialNumber="
                 + device.serialNumber + "&deviceType=" + device.deviceType);
         return parseJson(json, JsonMediaState.class);
@@ -916,6 +937,9 @@ public class Connection {
                             + (startTime != null ? startTime : "") + "&endTime=" + (endTime != null ? endTime : "")
                             + "&maxRecordSize=1");
             JsonCustomerHistoryRecords customerHistoryRecords = parseJson(json, JsonCustomerHistoryRecords.class);
+            if (customerHistoryRecords == null) {
+                return List.of();
+            }
             return Objects.requireNonNullElse(customerHistoryRecords.customerHistoryRecords, List.of());
         } catch (ConnectionException e) {
             logger.info("getting activities failed", e);
@@ -926,14 +950,14 @@ public class Connection {
     public JsonBluetoothStates getBluetoothConnectionStates() {
         try {
             String json = makeRequestAndReturnString(alexaServer + "/api/bluetooth?cached=true");
-            return parseJson(json, JsonBluetoothStates.class);
+            return Objects.requireNonNullElse(parseJson(json, JsonBluetoothStates.class), new JsonBluetoothStates());
         } catch (ConnectionException e) {
             logger.debug("failed to get bluetooth state: {}", e.getMessage());
             return new JsonBluetoothStates();
         }
     }
 
-    public JsonPlaylists getPlaylists(Device device) throws ConnectionException {
+    public @Nullable JsonPlaylists getPlaylists(Device device) throws ConnectionException {
         String json = makeRequestAndReturnString(
                 alexaServer + "/api/cloudplayer/playlists?deviceSerialNumber=" + device.serialNumber + "&deviceType="
                         + device.deviceType + "&mediaOwnerCustomerId=" + getCustomerId(device.deviceOwnerCustomerId));
@@ -995,6 +1019,9 @@ public class Connection {
             String resultBody = makeRequestAndReturnString("PUT", url, requestBody, true, Map.of());
             logger.trace("Request '{}' resulted in '{}", requestBody, resultBody);
             JsonObject result = parseJson(resultBody, JsonObject.class);
+            if (result == null) {
+                return;
+            }
             JsonElement errors = result.get("errors");
             if (errors != null && errors.isJsonArray()) {
                 JsonArray errorList = errors.getAsJsonArray();
@@ -1029,6 +1056,9 @@ public class Connection {
         try {
             String json = makeRequestAndReturnString(alexaServer + "/api/device-notification-state");
             JsonDeviceNotificationState result = parseJson(json, JsonDeviceNotificationState.class);
+            if (result == null) {
+                return List.of();
+            }
             return Objects.requireNonNullElse(result.deviceNotificationStates, List.of());
         } catch (ConnectionException e) {
             logger.info("Error getting device notification states", e);
@@ -1040,6 +1070,9 @@ public class Connection {
         try {
             String json = makeRequestAndReturnString(alexaServer + "/api/ascending-alarm");
             JsonAscendingAlarm result = parseJson(json, JsonAscendingAlarm.class);
+            if (result == null) {
+                return List.of();
+            }
             return Objects.requireNonNullElse(result.ascendingAlarmModelList, List.of());
         } catch (ConnectionException e) {
             logger.info("Error getting device notification states", e);
@@ -1671,12 +1704,18 @@ public class Connection {
     public List<JsonAutomation> getRoutines() throws ConnectionException {
         String json = makeRequestAndReturnString(alexaServer + "/api/behaviors/v2/automations?limit=2000");
         JsonAutomation[] result = parseJson(json, JsonAutomation[].class);
-        return Arrays.asList(Objects.requireNonNullElse(result, new JsonAutomation[0]));
+        if (result == null) {
+            return List.of();
+        }
+        return Arrays.asList(result);
     }
 
     public List<JsonFeed> getEnabledFlashBriefings() throws ConnectionException {
         String json = makeRequestAndReturnString(alexaServer + "/api/content-skills/enabled-feeds");
         JsonEnabledFeeds result = parseJson(json, JsonEnabledFeeds.class);
+        if (result == null) {
+            return List.of();
+        }
         return Objects.requireNonNullElse(result.enabledFeeds, List.of());
     }
 
@@ -1692,12 +1731,18 @@ public class Connection {
                 alexaServer + "/api/notification/sounds?deviceSerialNumber=" + device.serialNumber + "&deviceType="
                         + device.deviceType + "&softwareVersion=" + device.softwareVersion);
         JsonNotificationSounds result = parseJson(json, JsonNotificationSounds.class);
+        if (result == null) {
+            return List.of();
+        }
         return Objects.requireNonNullElse(result.notificationSounds, List.of());
     }
 
     public List<JsonNotificationResponse> notifications() throws ConnectionException {
         String response = makeRequestAndReturnString(alexaServer + "/api/notifications");
         JsonNotificationsResponse result = parseJson(response, JsonNotificationsResponse.class);
+        if (result == null) {
+            return List.of();
+        }
         return Objects.requireNonNullElse(result.notifications, List.of());
     }
 
@@ -1780,10 +1825,12 @@ public class Connection {
 
         if (!validateResultJson.isEmpty()) {
             JsonPlayValidationResult validationResult = parseJson(validateResultJson, JsonPlayValidationResult.class);
-            JsonPlaySearchPhraseOperationPayload validatedOperationPayload = validationResult.operationPayload;
-            if (validatedOperationPayload != null) {
-                payload.sanitizedSearchPhrase = validatedOperationPayload.sanitizedSearchPhrase;
-                payload.searchPhrase = validatedOperationPayload.searchPhrase;
+            if (validationResult != null) {
+                JsonPlaySearchPhraseOperationPayload validatedOperationPayload = validationResult.operationPayload;
+                if (validatedOperationPayload != null) {
+                    payload.sanitizedSearchPhrase = validatedOperationPayload.sanitizedSearchPhrase;
+                    payload.searchPhrase = validatedOperationPayload.searchPhrase;
+                }
             }
         }
 

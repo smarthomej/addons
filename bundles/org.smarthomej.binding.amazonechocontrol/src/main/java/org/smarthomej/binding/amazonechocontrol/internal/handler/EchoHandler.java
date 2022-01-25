@@ -893,38 +893,40 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
             Progress progress = null;
             try {
                 JsonPlayerState playerState = connection.getPlayer(device);
-                playerInfo = playerState.playerInfo;
-                if (playerInfo != null) {
-                    infoText = playerInfo.infoText;
-                    if (infoText == null) {
-                        infoText = playerInfo.miniInfoText;
-                    }
-                    mainArt = playerInfo.mainArt;
-                    provider = playerInfo.provider;
-                    if (provider != null) {
-                        musicProviderId = provider.providerName;
-                        // Map the music provider id to the one used for starting music with voice command
-                        if (musicProviderId != null) {
-                            musicProviderId = musicProviderId.toUpperCase();
+                if (playerState != null) {
+                    playerInfo = playerState.playerInfo;
+                    if (playerInfo != null) {
+                        infoText = playerInfo.infoText;
+                        if (infoText == null) {
+                            infoText = playerInfo.miniInfoText;
+                        }
+                        mainArt = playerInfo.mainArt;
+                        provider = playerInfo.provider;
+                        if (provider != null) {
+                            musicProviderId = provider.providerName;
+                            // Map the music provider id to the one used for starting music with voice command
+                            if (musicProviderId != null) {
+                                musicProviderId = musicProviderId.toUpperCase();
 
-                            if ("AMAZON MUSIC".equals(musicProviderId)) {
-                                musicProviderId = "AMAZON_MUSIC";
-                            }
-                            if ("CLOUD_PLAYER".equals(musicProviderId)) {
-                                musicProviderId = "AMAZON_MUSIC";
-                            }
-                            if (musicProviderId.startsWith("TUNEIN")) {
-                                musicProviderId = "TUNEIN";
-                            }
-                            if (musicProviderId.startsWith("IHEARTRADIO")) {
-                                musicProviderId = "I_HEART_RADIO";
-                            }
-                            if (musicProviderId.startsWith("APPLE") && musicProviderId.contains("MUSIC")) {
-                                musicProviderId = "APPLE_MUSIC";
+                                if ("AMAZON MUSIC".equals(musicProviderId)) {
+                                    musicProviderId = "AMAZON_MUSIC";
+                                }
+                                if ("CLOUD_PLAYER".equals(musicProviderId)) {
+                                    musicProviderId = "AMAZON_MUSIC";
+                                }
+                                if (musicProviderId.startsWith("TUNEIN")) {
+                                    musicProviderId = "TUNEIN";
+                                }
+                                if (musicProviderId.startsWith("IHEARTRADIO")) {
+                                    musicProviderId = "I_HEART_RADIO";
+                                }
+                                if (musicProviderId.startsWith("APPLE") && musicProviderId.contains("MUSIC")) {
+                                    musicProviderId = "APPLE_MUSIC";
+                                }
                             }
                         }
+                        progress = playerInfo.progress;
                     }
-                    progress = playerInfo.progress;
                 }
             } catch (ConnectionException e) {
                 logger.info("Failed to get player queue");
