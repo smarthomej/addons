@@ -20,13 +20,14 @@ const http = require('https');
 const fs = require('fs');
 const rewire = require('rewire');
 
-const mapperJs = fs.createWriteStream("../../../target/mapper.js");
-http.get("https://raw.githubusercontent.com/Apollon77/ioBroker.tuya/master/lib/mapper.js", function(response) {
-    response.pipe(mapperJs);
-    mapperJs.on('finish', () => {
-        mapperJs.close();
+const schemaJson = fs.createWriteStream("../../../target/in-schema.json");
+http.get("https://raw.githubusercontent.com/Apollon77/ioBroker.tuya/master/lib/schema.json", function(response) {
+    response.setEncoding('utf8');
+    response.pipe(schemaJson);
+    schemaJson.on('finish', () => {
+        schemaJson.close();
 
-        const knownSchemas = rewire('../../../target/mapper').__get__('knownSchemas');
+        const knownSchemas = require('../../../target/in-schema.json');
 
         let productKey, value;
         let convertedSchemas = {};

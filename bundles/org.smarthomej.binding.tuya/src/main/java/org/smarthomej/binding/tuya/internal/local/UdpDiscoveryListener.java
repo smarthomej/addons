@@ -72,7 +72,7 @@ public class UdpDiscoveryListener {
                                     new TuyaDecoder(gson, "udpListener", TUYA_UDP_KEY, "3.1"));
                             pipeline.addLast("discoveryHandler",
                                     new DiscoveryMessageHandler(deviceInfos, deviceListeners));
-                            pipeline.addLast("userEventHandler", new UserEventHandler());
+                            pipeline.addLast("userEventHandler", new UserEventHandler("udpListener"));
                         }
                     });
 
