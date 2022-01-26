@@ -18,7 +18,6 @@
  */
 const http = require('https');
 const fs = require('fs');
-const rewire = require('rewire');
 
 const schemaJson = fs.createWriteStream("../../../target/in-schema.json");
 http.get("https://raw.githubusercontent.com/Apollon77/ioBroker.tuya/master/lib/schema.json", function(response) {
