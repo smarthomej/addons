@@ -617,6 +617,18 @@
 		<label>Temperature</label>
 		<state readOnly="true" pattern="%.1f %unit%"/>
 	</channel-type>
+	<!-- Alexa.MotionSensor -->
+	<channel-type id="motionDetected">
+		<item-type>Switch</item-type>
+		<label>Motion Detected</label>
+		<state readOnly="true"/>
+	</channel-type>
+	<!-- Alexa.ContactSensor -->
+	<channel-type id="contact">
+		<item-type>Contact</item-type>
+		<label>Contact</label>
+		<state readOnly="true"/>
+	</channel-type>
 	<!-- Alexa.ThermostatController -->
 	<channel-type id="targetSetpoint">
 		<item-type>Number:Temperature</item-type>
