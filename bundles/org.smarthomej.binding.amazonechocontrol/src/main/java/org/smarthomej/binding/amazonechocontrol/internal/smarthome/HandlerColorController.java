@@ -13,14 +13,11 @@
  */
 package org.smarthomej.binding.amazonechocontrol.internal.smarthome;
 
-import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Constants.CONFIG_MATCH_COLORS;
-
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -166,8 +163,7 @@ public class HandlerColorController extends AbstractInterfaceHandler {
     public @Nullable StateDescription getStateDescription(Channel channel) {
         String channelId = channel.getUID().getId();
         if (COLOR.channelId.equals(channelId)) {
-            matchColors = Objects.requireNonNullElse((boolean) channel.getConfiguration().get(CONFIG_MATCH_COLORS),
-                    false);
+            matchColors = channel.getConfiguration().as(ColorChannelConfig.class).matchColors;
             return StateDescriptionFragmentBuilder.create().withReadOnly(!matchColors).build().toStateDescription();
         }
         return null;

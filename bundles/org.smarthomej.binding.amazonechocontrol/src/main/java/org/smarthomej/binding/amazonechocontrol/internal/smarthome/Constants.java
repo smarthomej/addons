@@ -44,8 +44,6 @@ public class Constants {
 
     public static final Set<String> SUPPORTED_INTERFACES = HANDLER_FACTORY.keySet();
 
-    public static final String CONFIG_MATCH_COLORS = "matchColors";
-
     // channel types
     public static final ChannelTypeUID CHANNEL_TYPE_TEMPERATURE = new ChannelTypeUID(
             AmazonEchoControlBindingConstants.BINDING_ID, "temperature");
