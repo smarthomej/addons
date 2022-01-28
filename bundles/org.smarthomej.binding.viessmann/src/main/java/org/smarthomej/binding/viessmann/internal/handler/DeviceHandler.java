@@ -141,7 +141,6 @@ public class DeviceHandler extends ViessmannThingHandler {
                     } else if (command instanceof QuantityType<?>) {
                         QuantityType<?> value = (QuantityType<?>) command;
                         double f = value.doubleValue();
-                        // String s = f.toString();
                         for (String str : com) {
                             if (str.contains("Temperature") || str.contains("setHysteresis") || str.contains("setMin")
                                     || str.contains("setMax")) {
@@ -156,7 +155,7 @@ public class DeviceHandler extends ViessmannThingHandler {
                         for (String str : com) {
                             String s = command.toString();
                             uri = prop.get(str + "Uri");
-                            param = "{\"" + prop.get(str + "Params") + "\":" + s + "}";
+                            param = "{\"" + prop.get(str + "Params") + "\":\"" + s + "\"}";
                             break;
                         }
                         logger.trace("Received StringType Command for Channel {}",
