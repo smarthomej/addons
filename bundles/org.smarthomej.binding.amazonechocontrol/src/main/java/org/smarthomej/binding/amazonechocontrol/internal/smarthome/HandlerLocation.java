@@ -18,14 +18,16 @@ import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.core.library.types.DecimalType;
+import org.openhab.core.library.types.PointType;
 import org.openhab.core.types.Command;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.openhab.core.types.UnDefType;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDeviceHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapability;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevice;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 /**
@@ -39,8 +41,6 @@ public class HandlerLocation extends AbstractInterfaceHandler {
 
     private static final ChannelInfo GEOLOCATION_STATE = new ChannelInfo("geolocation", "geoLocation",
             Constants.CHANNEL_TYPE_GEOLOCATION);
-
-    private final Logger logger = LoggerFactory.getLogger(HandlerLocation.class);
 
     public HandlerLocation(SmartHomeDeviceHandler smartHomeDeviceHandler) {
         super(smartHomeDeviceHandler, List.of(INTERFACE));
@@ -58,7 +58,22 @@ public class HandlerLocation extends AbstractInterfaceHandler {
     public void updateChannels(String interfaceName, List<JsonObject> stateList, UpdateChannelResult result) {
         for (JsonObject state : stateList) {
             if (GEOLOCATION_STATE.propertyName.equals(state.get("name").getAsString())) {
-                logger.error("geoLocation: {}", state);
+                JsonElement coordinateElement = state.get("value").getAsJsonObject().get("coordinate");
+                if (coordinateElement != null) {
+                    JsonObject coordinate = coordinateElement.getAsJsonObject();
+                    Double latitude = coordinate.has("latitudeInDegrees")
+                            ? coordinate.get("latitudeInDegrees").getAsDouble()
+                            : null;
+                    Double longitude = coordinate.has("longitudeInDegrees")
+                            ? coordinate.get("longitudeInDegrees").getAsDouble()
+                            : null;
+                    if (latitude != null && longitude != null) {
+                        updateState(GEOLOCATION_STATE.channelId,
+                                new PointType(new DecimalType(latitude), new DecimalType(longitude)));
+                    } else {
+                        updateState(GEOLOCATION_STATE.channelId, UnDefType.UNDEF);
+                    }
+                }
             }
         }
     }
