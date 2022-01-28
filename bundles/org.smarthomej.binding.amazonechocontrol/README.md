@@ -447,7 +447,7 @@ Check in the UI thing configurations, which channels are created.
 | thermostatMode           | String             | R/W         | smartHomeDevice                       | Thermostat Mode (`AUTO`, `COOL`, `HEAT`, `OFF`, `ECO`)                                                                      |
 | motionDetected           | Switch             | R           | smartHomeDevice                       | A motion was detected if ON                                                                                                 |
 | contact                  | Contact            | R           | smartHomeDevice                       | A contact sensor OPEN if detected, CLOSED if NOT_DETECTED                                                                   |
-| location                 | Location           | R           | smartHomeDevice                       | The location (e.g. of a Tile)                                                                                               |
+| geoLocation              | Location           | R           | smartHomeDevice                       | The location (e.g. of a Tile)                                                                                               |
 
 *Note*: The `color` channel is read-only by default because Alexa does only support setting colors by their name.
 It has a configuration parameter `matchColors` which enables writing to that channel and tries to find the closes available color when sending a command to Alexa.
