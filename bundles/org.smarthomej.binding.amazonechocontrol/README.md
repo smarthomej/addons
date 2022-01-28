@@ -423,9 +423,10 @@ You can use that id  if you want to define the thing in a file.
 
 ### Channels
 
-The channels of the smarthome devices will be generated at runtime. Check in the UI thing configurations, which channels are created.
+The channels of the smarthome devices will be generated at runtime.
+Check in the UI thing configurations, which channels are created.
 
-| Channel Type ID          | Item Type          | Access Mode | Thing Type                            | Description                                                                                                                 |                                                                                   
+| Channel ID               | Item Type          | Access Mode | Thing Type                            | Description                                                                                                                 |                                                                                   
 |--------------------------|--------------------|-------------|---------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|
 | powerState               | Switch             | R/W         | smartHomeDevice, smartHomeDeviceGroup | Shows and changes the state (ON/OFF) of your device                                                                         |
 | brightness               | Dimmer             | R/W         | smartHomeDevice, smartHomeDeviceGroup | Shows and changes the brightness of your lamp                                                                               |
@@ -446,6 +447,7 @@ The channels of the smarthome devices will be generated at runtime. Check in the
 | thermostatMode           | String             | R/W         | smartHomeDevice                       | Thermostat Mode (`AUTO`, `COOL`, `HEAT`, `OFF`, `ECO`)                                                                      |
 | motionDetected           | Switch             | R           | smartHomeDevice                       | A motion was detected if ON                                                                                                 |
 | contact                  | Contact            | R           | smartHomeDevice                       | A contact sensor OPEN if detected, CLOSED if NOT_DETECTED                                                                   |
+| geoLocation              | Location           | R           | smartHomeDevice                       | The location (e.g. of a Tile)                                                                                               |
 
 *Note*: The `color` channel is read-only by default because Alexa does only support setting colors by their name.
 It has a configuration parameter `matchColors` which enables writing to that channel and tries to find the closes available color when sending a command to Alexa.
@@ -505,6 +507,17 @@ sitemap smarthome label="Smart Home Devices"
             Selection item=Arm_State mappings=[ 'ARMED_AWAY'='Active', 'ARMED_STAY'='Present', 'ARMED_NIGHT'='Night', 'DISARMED'='Deactivated' ]
         }
 }
+```
+
+#### Rule for calculating the distance of a Tile from your home
+
+Link the `geoLocation` channel of the Tile thing to a `Location` item named `CarLocation`.
+Add a second item of type `Number:Length` with the name `CarDistance` (adjust state description to your needs, e.g. miles or km as unit).
+Create a rule that triggers on change of that item with the DSL script as action:
+
+```
+var homeLocation = new PointType("50.273448, 8.409950")
+CarDistance.postUpdate(homeLocation.distanceFrom(CarLocation.state as PointType).toString + " m")
 ```
 
 ## How To Get IDs 

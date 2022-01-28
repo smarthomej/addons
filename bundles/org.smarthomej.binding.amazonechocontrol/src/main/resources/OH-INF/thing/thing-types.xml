@@ -629,6 +629,11 @@
 		<label>Contact</label>
 		<state readOnly="true"/>
 	</channel-type>
+	<channel-type id="geoLocation">
+		<item-type>Location</item-type>
+		<label>Location</label>
+		<state readOnly="true"/>
+	</channel-type>
 	<!-- Alexa.ThermostatController -->
 	<channel-type id="targetSetpoint">
 		<item-type>Number:Temperature</item-type>
