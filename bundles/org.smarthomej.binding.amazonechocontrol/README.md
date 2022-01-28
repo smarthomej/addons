@@ -509,6 +509,17 @@ sitemap smarthome label="Smart Home Devices"
 }
 ```
 
+#### Rule for calculating the distance of a Tile from your home
+
+Link the `geoLocation` channel of the Tile thing to a `Location` item named `CarLocation`.
+Add a second item of type `Number:Length` with the name `CarDistance` (adjust state description to your needs, e.g. miles or km as unit).
+Create a rule that triggers on change of that item with the DSL script as action:
+
+```
+var homeLocation = new PointType("50.273448, 8.409950")
+CarDistance.postUpdate(homeLocation.distanceFrom(CarLocation.state as PointType).toString + " m")
+```
+
 ## How To Get IDs 
 
 1) Open the url YOUR_OPENHAB/amazonechocontrol in your browser (e.g. http://openhab:8080/amazonechocontrol/)
