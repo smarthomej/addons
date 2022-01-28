@@ -37,7 +37,7 @@ import com.google.gson.JsonObject;
 public class HandlerLocation extends AbstractInterfaceHandler {
     public static final String INTERFACE = "Alexa.Location";
 
-    private static final ChannelInfo GEOLOCATION_STATE = new ChannelInfo("geoLocation", "geoLocation",
+    private static final ChannelInfo GEOLOCATION_STATE = new ChannelInfo("geolocation", "geoLocation",
             Constants.CHANNEL_TYPE_GEOLOCATION);
 
     private final Logger logger = LoggerFactory.getLogger(HandlerLocation.class);
