@@ -12,11 +12,13 @@
  */
 package org.smarthomej.binding.amazonechocontrol.internal.smarthome;
 
-import com.google.gson.JsonObject;
+import java.io.IOException;
+import java.util.List;
+import java.util.Set;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.thing.DefaultSystemChannelTypeProvider;
-import org.openhab.core.thing.type.ChannelType;
 import org.openhab.core.types.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,9 +27,7 @@ import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDevice
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapability;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevice;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Set;
+import com.google.gson.JsonObject;
 
 /**
  * The {@link HandlerBatteryLevelSensor} is responsible for the Alexa.BatteryLevelSensor interface
