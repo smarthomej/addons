@@ -47,7 +47,8 @@ public enum TelenotMsgType {
     USED_SB_CONTACTS_INFO,
     USED_MB_CONTACTS_INFO,
     UNKNOWN,
-    INVALID;
+    INVALID,
+    NOT_USED_CONTACT;
 
     /** hash map from protocol message heading to type */
     private static final Map<String, TelenotMsgType> START_TO_MSG_TYPE = Map.of("682C2C687302050201001001",
@@ -55,7 +56,7 @@ public enum TelenotMsgType {
             "681A1A687302050200001501", TelenotMsgType.POWER_OUTAGE, "681A1A687302050200001301",
             TelenotMsgType.OPTICAL_FLASHER_MALFUNCTION, "681A1A687302050200001101", TelenotMsgType.HORN_1_MALFUNCTION,
             "681A1A687302050200001201", TelenotMsgType.HORN_2_MALFUNCTION, "681A1A687302050200001701",
-            TelenotMsgType.COM_FAULT);
+            TelenotMsgType.COM_FAULT, "68060668730202110019A116", TelenotMsgType.NOT_USED_CONTACT);
 
     /**
      * Extract message type from message. Relies on static map startToMsgType.
