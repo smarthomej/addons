@@ -301,7 +301,8 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
                         case NOT_USED_CONTACT:
                             logger.debug("Received {} MsgType | hexString: {}", msgType, message);
                             if (!usedInputContact.isEmpty()) {
-                                logger.info("Contact {} not used. Discovery will skip this contact.", usedInputContact.get(0));
+                                logger.info("Contact {} not used. Discovery will skip this contact.",
+                                        usedInputContact.get(0));
                                 usedInputContact.remove(0);
                             }
                             sendTelenotCommand(TelenotCommand.confirmACK());
