@@ -298,6 +298,16 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
                             TelenotThingHandler.readyToSendData.set(true);
                             logger.trace("Ready to send data");
                             break;
+                        case NOT_USED_CONTACT:
+                            logger.debug("Received {} MsgType | hexString: {}", msgType, message);
+                            if (!usedInputContact.isEmpty()) {
+                                logger.warn("Contact {} not used", usedInputContact.get(0));
+                                usedInputContact.remove(0);
+                            }
+                            sendTelenotCommand(TelenotCommand.confirmACK());
+                            TelenotThingHandler.readyToSendData.set(true);
+                            logger.trace("Ready to send data");
+                            break;
                         default:
                             break;
                     }
