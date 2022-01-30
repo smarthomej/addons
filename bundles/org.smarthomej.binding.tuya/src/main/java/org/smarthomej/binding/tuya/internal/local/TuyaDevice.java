@@ -75,7 +75,7 @@ public class TuyaDevice implements ChannelFutureListener {
                 pipeline.addLast("messageDecoder", new TuyaDecoder(gson, deviceId, deviceKey, protocolVersion));
                 pipeline.addLast("heartbeatHandler", new HeartbeatHandler(deviceId));
                 pipeline.addLast("deviceHandler", new TuyaMessageHandler(deviceId, deviceStatusListener));
-                pipeline.addLast("userEventHandler", new UserEventHandler());
+                pipeline.addLast("userEventHandler", new UserEventHandler(deviceId));
             }
         });
         connect();
