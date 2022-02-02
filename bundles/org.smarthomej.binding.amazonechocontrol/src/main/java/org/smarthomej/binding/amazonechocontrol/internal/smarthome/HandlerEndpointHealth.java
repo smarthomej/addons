@@ -19,9 +19,12 @@ import java.util.Set;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.OnOffType;
+import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.library.types.StringType;
+import org.openhab.core.library.unit.Units;
 import org.openhab.core.thing.DefaultSystemChannelTypeProvider;
 import org.openhab.core.types.Command;
+import org.openhab.core.types.State;
 import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,8 +45,10 @@ import com.google.gson.JsonObject;
 public class HandlerEndpointHealth extends AbstractInterfaceHandler {
     public static final String INTERFACE = "Alexa.EndpointHealth";
 
-    private static final ChannelInfo LOW_BATTERY_STATE = new ChannelInfo("batteryState", "batteryState",
+    private static final ChannelInfo LOW_BATTERY_STATE = new ChannelInfo("batteryState", "lowBattery",
             DefaultSystemChannelTypeProvider.SYSTEM_CHANNEL_TYPE_UID_LOW_BATTERY);
+    private static final ChannelInfo BATTERY_LEVEL_STATE = new ChannelInfo("batteryState", "batteryLevel",
+            DefaultSystemChannelTypeProvider.SYSTEM_CHANNEL_TYPE_UID_BATTERY_LEVEL);
     private static final ChannelInfo CONNECTIVITY_STATE = new ChannelInfo("connectivity", "connectivity",
             Constants.CHANNEL_TYPE_CONNECTIVITY);
 
@@ -56,7 +61,7 @@ public class HandlerEndpointHealth extends AbstractInterfaceHandler {
     @Override
     protected Set<ChannelInfo> findChannelInfos(JsonSmartHomeCapability capability, @Nullable String property) {
         if (LOW_BATTERY_STATE.propertyName.equals(property)) {
-            return Set.of(LOW_BATTERY_STATE);
+            return Set.of(LOW_BATTERY_STATE, BATTERY_LEVEL_STATE);
         } else if (CONNECTIVITY_STATE.propertyName.equals(property)) {
             return Set.of(CONNECTIVITY_STATE);
         }
@@ -70,21 +75,24 @@ public class HandlerEndpointHealth extends AbstractInterfaceHandler {
             if (LOW_BATTERY_STATE.propertyName.equals(stateName)) {
                 JsonObject batteryHealthObject = state.getAsJsonObject("value");
                 if (batteryHealthObject != null) {
+                    State lowBattery = UnDefType.UNDEF;
+                    State batteryLevel = UnDefType.UNDEF;
                     // first try if we have health
                     JsonObject healthObject = batteryHealthObject.getAsJsonObject("health");
                     if (healthObject != null) {
                         String status = healthObject.get("state").getAsString();
-                        updateState(LOW_BATTERY_STATE.channelId, OnOffType.from("OK".equals(status)));
-                        continue;
+                        lowBattery = OnOffType.from("OK".equals(status));
                     }
                     // try if we know the percentage
                     JsonElement levelPercentage = batteryHealthObject.get("levelPercentage");
                     if (levelPercentage != null) {
-                        updateState(LOW_BATTERY_STATE.channelId, OnOffType.from(levelPercentage.getAsInt() < 10));
-                        continue;
+                        batteryLevel = new QuantityType<>(levelPercentage.getAsDouble(), Units.PERCENT);
+                        if (UnDefType.UNDEF.equals(lowBattery)) {
+                            lowBattery = OnOffType.from(levelPercentage.getAsInt() < 10);
+                        }
                     }
-                    // we don't know the state
-                    updateState(LOW_BATTERY_STATE.channelId, UnDefType.UNDEF);
+                    updateState(LOW_BATTERY_STATE.channelId, lowBattery);
+                    updateState(BATTERY_LEVEL_STATE.channelId, batteryLevel);
                 }
             } else if (CONNECTIVITY_STATE.propertyName.equals(stateName)) {
                 JsonObject connectivityValueObject = state.get("value").getAsJsonObject();
