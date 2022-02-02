@@ -1102,12 +1102,12 @@ public class Connection {
         if (stationId == null || stationId.isEmpty()) {
             command(device, "{\"type\":\"PauseCommand\"}");
         } else {
-            makeRequest("POST",
-                    alexaServer + "/api/tunein/queue-and-play?deviceSerialNumber=" + device.serialNumber
-                            + "&deviceType=" + device.deviceType + "&guideId=" + stationId
-                            + "&contentType=station&callSign=&mediaOwnerCustomerId="
-                            + getCustomerId(device.deviceOwnerCustomerId),
-                    "", true, true, Map.of(), 0);
+            String content = "[\"music/tuneIn/stationId\",\"" + stationId + "\"]|{\"previousPageId\":null}";
+            String contentToken = new String(
+                    Base64.getEncoder().encode(Base64.getEncoder().encode(content.getBytes(StandardCharsets.UTF_8))));
+            String body = "{\"contentToken\":\"music:" + contentToken + "\"}";
+            makeRequest("PUT", alexaServer + "/api/entertainment/v1/player/queue?deviceSerialNumber="
+                    + device.serialNumber + "&deviceType=" + device.deviceType, body, true, true, Map.of(), 0);
         }
     }
 

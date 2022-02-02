@@ -152,8 +152,8 @@ You will find the serial number in the Alexa app or on the webpage YOUR_OPENHAB/
 | bluetoothMAC              | String      | R/W         | echo, echoshow, echospot      | Bluetooth device MAC. Used to connect to a specific device or disconnect if an empty string was provided                                                                                                                                |
 | bluetooth                 | Switch      | R/W         | echo, echoshow, echospot      | Connect/Disconnect to the last used bluetooth device (works after a bluetooth connection was established after the openHAB start)                                                                                                       |
 | bluetoothDeviceName       | String      | R           | echo, echoshow, echospot      | User friendly name of the connected bluetooth device                                                                                                                                                                                    |
-| radioStationId (*)        | String      | R/W         | echo, echoshow, echospot, wha | Start playing of a TuneIn radio station by specifying its id or stops playing if an empty string was provided                                                                                                                           |
-| radio (*)                 | Switch      | R/W         | echo, echoshow, echospot, wha | Start playing of the last used TuneIn radio station (works after the radio station started after the openHAB start)                                                                                                                     |
+| radioStationId            | String      | R/W         | echo, echoshow, echospot, wha | Start playing of a TuneIn radio station by specifying its id or stops playing if an empty string was provided                                                                                                                           |
+| radio                     | Switch      | R/W         | echo, echoshow, echospot, wha | Start playing of the last used TuneIn radio station (works after the radio station started after the openHAB start)                                                                                                                     |
 | amazonMusicTrackId (*)    | String      | R/W         | echo, echoshow, echospot, wha | Start playing of an Amazon Music track by its id or stops playing if an empty string was provided                                                                                                                                       |
 | amazonMusicPlayListId (*) | String      | W           | echo, echoshow, echospot, wha | Write Only! Start playing of an Amazon Music playlist by specifying its id or stops playing if an empty string was provided.                                                                                                            |
 | amazonMusic (*)           | Switch      | R/W         | echo, echoshow, echospot, wha | Start playing of the last used Amazon Music song (works after at least one song was started after the openHAB start)                                                                                                                    |
@@ -185,7 +185,7 @@ You will find the serial number in the Alexa app or on the webpage YOUR_OPENHAB/
 
 **Attention:** Channels marked with (*) are deprecated and will be removed in the future.
 Amazon already started to remove some of that functionality.
-You can use the `textCommand` channel with a value of `Play Radio XYZ on TuneIn` or `Play playlist CrazyMusic on AmazonMusic` instead.
+You can use the `textCommand` channel with a value of `Play playlist CrazyMusic on AmazonMusic` instead.
 
 ## Advanced Feature Technically Experienced Users
 
