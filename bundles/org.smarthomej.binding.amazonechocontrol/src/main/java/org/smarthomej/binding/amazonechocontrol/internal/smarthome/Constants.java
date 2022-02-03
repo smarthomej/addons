@@ -41,7 +41,8 @@ public class Constants {
             Map.entry(HandlerRangeController.INTERFACE, HandlerRangeController::new),
             Map.entry(HandlerMotionSensor.INTERFACE, HandlerMotionSensor::new),
             Map.entry(HandlerContactSensor.INTERFACE, HandlerContactSensor::new),
-            Map.entry(HandlerLocation.INTERFACE, HandlerLocation::new));
+            Map.entry(HandlerLocation.INTERFACE, HandlerLocation::new),
+            Map.entry(HandlerEndpointHealth.INTERFACE, HandlerEndpointHealth::new));
 
     public static final Set<String> SUPPORTED_INTERFACES = HANDLER_FACTORY.keySet();
 
@@ -100,4 +101,6 @@ public class Constants {
             AmazonEchoControlBindingConstants.BINDING_ID, "contact");
     public static final ChannelTypeUID CHANNEL_TYPE_GEOLOCATION = new ChannelTypeUID(
             AmazonEchoControlBindingConstants.BINDING_ID, "geoLocation");
+    public static final ChannelTypeUID CHANNEL_TYPE_CONNECTIVITY = new ChannelTypeUID(
+            AmazonEchoControlBindingConstants.BINDING_ID, "connectivity");
 }
