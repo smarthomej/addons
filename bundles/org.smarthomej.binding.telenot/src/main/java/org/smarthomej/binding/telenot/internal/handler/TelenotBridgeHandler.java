@@ -185,7 +185,7 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
      */
     private void readerThread() {
         logger.debug("Message reader thread started");
-        String message = null;
+        String message = "";
         try {
             // read from the stream
             if (discovery) {
@@ -204,126 +204,11 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
                 baos.reset();
                 baos.write(content, 0, bytesRead);
 
-                message = HexUtils.bytesToHex(baos.toByteArray());
-
-                TelenotMsgType msgType = TelenotMsgType.getMsgType(message);
-                if (msgType != TelenotMsgType.INVALID) {
-                    logger.debug("Received {} message", msgType);
-                    lastReceivedTime = new Date();
+                message += HexUtils.bytesToHex(baos.toByteArray());
+                if (message.matches("^68(.*)16")) {
+                    processMessage(message);
+                    message = "";
                 }
-
-                try {
-                    switch (msgType) {
-                        case SEND_NORM:
-                            // Check for new channel and description
-                            if (!usedInputContact.isEmpty() && TelenotThingHandler.readyToSendData.get()) {
-                                String address = usedInputContact.get(0);
-                                sendTelenotCommand(TelenotCommand.getContactInfo(address));
-                            } else if (!usedReportingArea.isEmpty() && TelenotThingHandler.readyToSendData.get()) {
-                                String address = usedReportingArea.get(0);
-                                sendTelenotCommand(TelenotCommand.getContactInfo(address));
-                            } else {
-                                if (TelenotThingHandler.readyToSendData.get()) {
-                                    TelenotThingHandler.readyToSendData.set(false);
-                                    logger.trace("Disable send data");
-                                }
-                                sendTelenotCommand(TelenotCommand.confirmACK());
-                            }
-                            break;
-                        case CONF_ACK:
-                            TelenotThingHandler.readyToSendData.set(false);
-                            break;
-                        case MP:
-                            parseMpMessage(msgType, message);
-                            sendTelenotCommand(TelenotCommand.confirmACK());
-                            break;
-                        case SB:
-                            parseSbMessage(msgType, message);
-                            sendTelenotCommand(TelenotCommand.confirmACK());
-                            TelenotThingHandler.readyToSendData.set(true);
-                            refresh = false;
-                            logger.trace("Ready to send data");
-                            break;
-                        case SYS_INT_ARMED:
-                        case SYS_EXT_ARMED:
-                        case SYS_DISARMED:
-                        case ALARM:
-                            parseSbStateMessage(msgType, message);
-                            sendTelenotCommand(TelenotCommand.confirmACK());
-                            break;
-                        case INTRUSION:
-                        case BATTERY_MALFUNCTION:
-                        case POWER_OUTAGE:
-                        case OPTICAL_FLASHER_MALFUNCTION:
-                        case HORN_1_MALFUNCTION:
-                        case HORN_2_MALFUNCTION:
-                        case COM_FAULT:
-                            parseEmaStateMessage(msgType, message);
-                            sendTelenotCommand(TelenotCommand.confirmACK());
-                            TelenotThingHandler.readyToSendData.set(true);
-                            logger.trace("Ready to send data");
-                            break;
-                        case USED_INPUTS:
-                            parseUsedInputsMessage(msgType, message);
-                            sendTelenotCommand(TelenotCommand.confirmACK());
-                            break;
-                        case USED_OUTPUTS:
-                            parseUsedOutputsMessage(msgType, message);
-                            sendTelenotCommand(TelenotCommand.confirmACK());
-                            TelenotThingHandler.readyToSendData.set(true);
-                            logger.trace("Ready to send data");
-                            break;
-                        case USED_CONTACTS_INFO:
-                        case USED_OUTPUT_CONTACTS_INFO:
-                        case USED_SB_CONTACTS_INFO:
-                        case USED_MB_CONTACTS_INFO:
-                            parseUsedContactInfoMessage(msgType, message);
-                            sendTelenotCommand(TelenotCommand.confirmACK());
-                            TelenotThingHandler.readyToSendData.set(true);
-                            break;
-                        case RESTART:
-                            sendTelenotCommand(TelenotCommand.confirmACK());
-                            TelenotThingHandler.readyToSendData.set(true);
-                            logger.trace("Ready to send data");
-                            break;
-                        case UNKNOWN:
-                            logger.warn("Received {} MsgType | hexString: {}", msgType, message);
-                            sendTelenotCommand(TelenotCommand.confirmACK());
-                            TelenotThingHandler.readyToSendData.set(true);
-                            logger.trace("Ready to send data");
-                            break;
-                        case INVALID:
-                            logger.debug("Received {} MsgType | hexString: {}", msgType, message);
-                            sendTelenotCommand(TelenotCommand.confirmACK());
-                            TelenotThingHandler.readyToSendData.set(true);
-                            logger.trace("Ready to send data");
-                            break;
-                        case NOT_USED_CONTACT:
-                            logger.debug("Received {} MsgType | hexString: {}", msgType, message);
-                            if (!usedInputContact.isEmpty()) {
-                                logger.info("Contact {} not used. Discovery will skip this contact.",
-                                        usedInputContact.get(0));
-                                usedInputContact.remove(0);
-                            }
-                            sendTelenotCommand(TelenotCommand.confirmACK());
-                            TelenotThingHandler.readyToSendData.set(true);
-                            logger.trace("Ready to send data");
-                            break;
-                        default:
-                            break;
-                    }
-                } catch (MessageParseException e) {
-                    logger.warn("Error {} while parsing message {}. Please report bug.", e.getMessage(), message);
-                }
-                if (discoveryStarted && usedInputContact.isEmpty() && usedReportingArea.isEmpty()) {
-                    discoveryStarted = false;
-                    logger.info("Discovery job completed");
-                }
-            }
-
-            if (message == null) {
-                logger.info("End of input stream detected");
-                // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, "Connection lost");
             }
         } catch (IOException e) {
             logger.debug("I/O error while reading from stream: {}", e.getMessage());
@@ -333,6 +218,120 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
         } finally {
             logger.debug("Message reader thread exiting");
+        }
+    }
+
+    private void processMessage(String message) {
+        TelenotMsgType msgType = TelenotMsgType.getMsgType(message);
+        if (msgType != TelenotMsgType.INVALID) {
+            logger.debug("Received {} message", msgType);
+            lastReceivedTime = new Date();
+        }
+        try {
+            switch (msgType) {
+                case SEND_NORM:
+                    // Check for new channel and description
+                    if (!usedInputContact.isEmpty() && TelenotThingHandler.readyToSendData.get()) {
+                        String address = usedInputContact.get(0);
+                        sendTelenotCommand(TelenotCommand.getContactInfo(address));
+                    } else if (!usedReportingArea.isEmpty() && TelenotThingHandler.readyToSendData.get()) {
+                        String address = usedReportingArea.get(0);
+                        sendTelenotCommand(TelenotCommand.getContactInfo(address));
+                    } else {
+                        if (TelenotThingHandler.readyToSendData.get()) {
+                            TelenotThingHandler.readyToSendData.set(false);
+                            logger.trace("Disable send data");
+                        }
+                        sendTelenotCommand(TelenotCommand.confirmACK());
+                    }
+                    break;
+                case CONF_ACK:
+                    TelenotThingHandler.readyToSendData.set(false);
+                    break;
+                case MP:
+                    parseMpMessage(msgType, message);
+                    sendTelenotCommand(TelenotCommand.confirmACK());
+                    break;
+                case SB:
+                    parseSbMessage(msgType, message);
+                    sendTelenotCommand(TelenotCommand.confirmACK());
+                    TelenotThingHandler.readyToSendData.set(true);
+                    refresh = false;
+                    logger.trace("Ready to send data");
+                    break;
+                case SYS_INT_ARMED:
+                case SYS_EXT_ARMED:
+                case SYS_DISARMED:
+                case ALARM:
+                    parseSbStateMessage(msgType, message);
+                    sendTelenotCommand(TelenotCommand.confirmACK());
+                    break;
+                case INTRUSION:
+                case BATTERY_MALFUNCTION:
+                case POWER_OUTAGE:
+                case OPTICAL_FLASHER_MALFUNCTION:
+                case HORN_1_MALFUNCTION:
+                case HORN_2_MALFUNCTION:
+                case COM_FAULT:
+                    parseEmaStateMessage(msgType, message);
+                    sendTelenotCommand(TelenotCommand.confirmACK());
+                    TelenotThingHandler.readyToSendData.set(true);
+                    logger.trace("Ready to send data");
+                    break;
+                case USED_INPUTS:
+                    parseUsedInputsMessage(msgType, message);
+                    sendTelenotCommand(TelenotCommand.confirmACK());
+                    break;
+                case USED_OUTPUTS:
+                    parseUsedOutputsMessage(msgType, message);
+                    sendTelenotCommand(TelenotCommand.confirmACK());
+                    TelenotThingHandler.readyToSendData.set(true);
+                    logger.trace("Ready to send data");
+                    break;
+                case USED_CONTACTS_INFO:
+                case USED_OUTPUT_CONTACTS_INFO:
+                case USED_SB_CONTACTS_INFO:
+                case USED_MB_CONTACTS_INFO:
+                    parseUsedContactInfoMessage(msgType, message);
+                    sendTelenotCommand(TelenotCommand.confirmACK());
+                    TelenotThingHandler.readyToSendData.set(true);
+                    break;
+                case RESTART:
+                    sendTelenotCommand(TelenotCommand.confirmACK());
+                    TelenotThingHandler.readyToSendData.set(true);
+                    logger.trace("Ready to send data");
+                    break;
+                case UNKNOWN:
+                    logger.warn("Received {} MsgType | hexString: {}", msgType, message);
+                    sendTelenotCommand(TelenotCommand.confirmACK());
+                    TelenotThingHandler.readyToSendData.set(true);
+                    logger.trace("Ready to send data");
+                    break;
+                case INVALID:
+                    logger.debug("Received {} MsgType | hexString: {}", msgType, message);
+                    sendTelenotCommand(TelenotCommand.confirmACK());
+                    TelenotThingHandler.readyToSendData.set(true);
+                    logger.trace("Ready to send data");
+                    break;
+                case NOT_USED_CONTACT:
+                    logger.debug("Received {} MsgType | hexString: {}", msgType, message);
+                    if (!usedInputContact.isEmpty()) {
+                        logger.info("Contact {} not used. Discovery will skip this contact.", usedInputContact.get(0));
+                        usedInputContact.remove(0);
+                    }
+                    sendTelenotCommand(TelenotCommand.confirmACK());
+                    TelenotThingHandler.readyToSendData.set(true);
+                    logger.trace("Ready to send data");
+                    break;
+                default:
+                    break;
+            }
+        } catch (MessageParseException e) {
+            logger.warn("Error {} while parsing message {}. Please report bug.", e.getMessage(), message);
+        }
+        if (discoveryStarted && usedInputContact.isEmpty() && usedReportingArea.isEmpty()) {
+            discoveryStarted = false;
+            logger.info("Discovery job completed");
         }
     }
 

@@ -60,10 +60,47 @@
 		</config-description>
 	</bridge-type>
 
+	<bridge-type id="serialbridge">
+		<label>Telenot Serial Bridge</label>
+		<description>Telenot Complex 400 Bridge</description>
+		<properties>
+			<property name="vendor">Telenot</property>
+		</properties>
+
+		<config-description>
+			<parameter name="serialPort" type="text" required="true">
+				<label>Serial Or USB Port</label>
+				<context>serial-port</context>
+				<limitToOptions>false</limitToOptions>
+				<description>The name of the serial port used to connect to the Telenot device</description>
+			</parameter>
+			<parameter name="discovery" type="boolean">
+				<label>Enable Discovery</label>
+				<description>Enable automatic discovery. After saving this, it goes to off and the discovery will start. </description>
+				<default>false</default>
+			</parameter>
+			<parameter name="updateClock" type="integer" min="0" max="24" unit="h">
+				<label>Update Telenot's clock</label>
+				<description>The period in hours that the binding updates the Telenot system clock. Set 0 to disable.</description>
+				<unitLabel>hours</unitLabel>
+				<default>0</default>
+				<advanced>true</advanced>
+			</parameter>
+			<parameter name="refreshData" type="integer" min="0" max="60" unit="min">
+				<label>Refresh Data Interval</label>
+				<description>The period in minutes that the handler will refresh the data to eventbus</description>
+				<unitLabel>minutes</unitLabel>
+				<default>10</default>
+				<advanced>true</advanced>
+			</parameter>
+		</config-description>
+	</bridge-type>
+
 	<!-- Sicherungsbereiche Thing Type -->
 	<thing-type id="sb">
 		<supported-bridge-type-refs>
 			<bridge-type-ref id="ipbridge"/>
+			<bridge-type-ref id="serialbridge"/>
 		</supported-bridge-type-refs>
 
 		<label>Telenot security area</label>
@@ -148,6 +185,7 @@
 	<thing-type id="mb">
 		<supported-bridge-type-refs>
 			<bridge-type-ref id="ipbridge"/>
+			<bridge-type-ref id="serialbridge"/>
 		</supported-bridge-type-refs>
 
 		<label>Telenot MB-Number</label>
@@ -175,6 +213,7 @@
 	<thing-type id="mp">
 		<supported-bridge-type-refs>
 			<bridge-type-ref id="ipbridge"/>
+			<bridge-type-ref id="serialbridge"/>
 		</supported-bridge-type-refs>
 
 		<label>Telenot reporting point</label>
@@ -198,6 +237,7 @@
 	<thing-type id="emaState">
 		<supported-bridge-type-refs>
 			<bridge-type-ref id="ipbridge"/>
+			<bridge-type-ref id="serialbridge"/>
 		</supported-bridge-type-refs>
 
 		<label>Telenot EMA State</label>
@@ -280,6 +320,7 @@
 	<thing-type id="input">
 		<supported-bridge-type-refs>
 			<bridge-type-ref id="ipbridge"/>
+			<bridge-type-ref id="serialbridge"/>
 		</supported-bridge-type-refs>
 
 		<label>Telenot Reporting Group</label>
@@ -292,6 +333,7 @@
 	<thing-type id="output">
 		<supported-bridge-type-refs>
 			<bridge-type-ref id="ipbridge"/>
+			<bridge-type-ref id="serialbridge"/>
 		</supported-bridge-type-refs>
 
 		<label>Telenot Reporting Area</label>
