@@ -130,7 +130,7 @@ public class TuyaDecoder extends ByteToMessageDecoder {
                 // Remove 3.3 header
                 payload = Arrays.copyOfRange(payload, 15, payload.length);
             } else {
-                payload = Base64.getDecoder().decode(Arrays.copyOfRange(payload, 19, payload.length - 4));
+                payload = Base64.getDecoder().decode(Arrays.copyOfRange(payload, 19, payload.length));
             }
         }
 
@@ -159,7 +159,7 @@ public class TuyaDecoder extends ByteToMessageDecoder {
             }
         }
 
-        logger.debug("{}{}: Received {}", deviceId, Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""), m);
+        logger.error("{}{}: Received {}", deviceId, Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""), m);
         out.add(m);
     }
 }
