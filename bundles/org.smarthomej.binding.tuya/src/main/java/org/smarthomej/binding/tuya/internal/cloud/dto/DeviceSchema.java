@@ -51,8 +51,8 @@ public class DeviceSchema {
     }
 
     public static class NumericRange {
-        public int min = Integer.MIN_VALUE;
-        public int max = Integer.MAX_VALUE;
+        public double min = Double.MIN_VALUE;
+        public double max = Double.MAX_VALUE;
     }
 
     public boolean hasFunction(String fcn) {
