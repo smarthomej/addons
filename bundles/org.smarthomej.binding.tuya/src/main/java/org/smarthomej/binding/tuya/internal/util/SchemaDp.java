@@ -38,8 +38,8 @@ public class SchemaDp {
     public int id = 0;
     public String code = "";
     public String type = "";
-    public @Nullable Integer min;
-    public @Nullable Integer max;
+    public @Nullable Double min;
+    public @Nullable Double max;
     public @Nullable List<String> range;
 
     public static SchemaDp fromRemoteSchema(Gson gson, DeviceSchema.Description function) {
