@@ -136,7 +136,7 @@ public class TuyaDecoder extends ByteToMessageDecoder {
 
         MessageWrapper<?> m;
         if (CommandType.UDP.equals(commandType)) {
-            // UDP is unencrpyted
+            // UDP is unencrypted
             m = new MessageWrapper<>(commandType,
                     Objects.requireNonNull(gson.fromJson(new String(payload), DiscoveryMessage.class)));
         } else {
@@ -159,7 +159,7 @@ public class TuyaDecoder extends ByteToMessageDecoder {
             }
         }
 
-        logger.error("{}{}: Received {}", deviceId, Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""), m);
+        logger.debug("{}{}: Received {}", deviceId, Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""), m);
         out.add(m);
     }
 }
