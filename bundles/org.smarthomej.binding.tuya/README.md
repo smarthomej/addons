@@ -6,7 +6,10 @@ Cloud access is only needed for discovery and initial connection.
 
 Devices need to be connected to a Tuya account (Tuya App or SmartLife App).
 Each device has a unique "local key" (password/secret) which needs to be added during thing creation.
-It is highly recommended to use the discovery feature for that but you can also sniff the local key with a MITM proxy during pairing.
+It is highly recommended to use the discovery feature for that, but you can also sniff the local key with a MITM proxy during pairing.
+
+Please note that only one local connection is allowed per device.
+Using the app (or other tools like tuya-mqtt) and the binding in parallel is not possible.
 
 ## Supported Things
 
