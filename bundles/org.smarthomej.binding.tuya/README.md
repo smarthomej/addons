@@ -9,7 +9,8 @@ Each device has a unique "local key" (password/secret) which needs to be added d
 It is highly recommended to use the discovery feature for that, but you can also sniff the local key with a MITM proxy during pairing.
 
 Please note that only one local connection is allowed per device.
-Using the app (or other tools like tuya-mqtt) and the binding in parallel is not possible.
+Using the app (or other tools like tuya-mqtt) and the binding in parallel is not supported by Tuya devices and will cause problems such as inability to discover the IP address and/or inability to control the devices.
+The other app (and/or tuya-mqtt) must be closed in order for this binding to operate properly.
 
 ## Supported Things
 
