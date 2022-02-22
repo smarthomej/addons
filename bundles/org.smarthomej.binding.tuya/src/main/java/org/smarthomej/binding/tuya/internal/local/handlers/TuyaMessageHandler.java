@@ -64,9 +64,11 @@ public class TuyaMessageHandler extends ChannelDuplexHandler {
             if (CommandType.DP_QUERY.equals(m.commandType) || CommandType.STATUS.equals(m.commandType)) {
                 @SuppressWarnings("unchecked")
                 Map<Integer, Object> stateMap = (Map<Integer, Object>) m.content;
-                if (stateMap != null) {
+                if (stateMap != null && !stateMap.isEmpty()) {
                     deviceStatusListener.processDeviceStatus(stateMap);
                 }
+            } else if (CommandType.DP_QUERY_NOT_SUPPORTED.equals(m.commandType)) {
+                deviceStatusListener.processDeviceStatus(Map.of());
             }
         }
     }

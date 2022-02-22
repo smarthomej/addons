@@ -106,6 +106,20 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
     public void processDeviceStatus(Map<Integer, Object> deviceStatus) {
         logger.trace("'{}' received status message '{}'", thing.getUID(), deviceStatus);
 
+        if (deviceStatus.isEmpty()) {
+            // if status is empty -> need to use control method to request device status
+            Map<Integer, @Nullable Object> commandRequest = new HashMap<>();
+            dpToChannelId.keySet().forEach(dp -> commandRequest.put(dp, null));
+            dp2ToChannelId.keySet().forEach(dp -> commandRequest.put(dp, null));
+
+            TuyaDevice tuyaDevice = this.tuyaDevice;
+            if (tuyaDevice != null) {
+                tuyaDevice.set(commandRequest);
+            }
+
+            return;
+        }
+
         deviceStatus.forEach((dp, value) -> {
             String channelId = dpToChannelId.get(dp);
             if (channelId != null) {
@@ -158,7 +172,7 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
-        Map<Integer, Object> commandRequest = new HashMap<>();
+        Map<Integer, @Nullable Object> commandRequest = new HashMap<>();
 
         ChannelTypeUID channelTypeUID = channelIdToChannelTypeUID.get(channelUID.getId());
         ChannelConfiguration configuration = channelIdToConfiguration.get(channelUID.getId());

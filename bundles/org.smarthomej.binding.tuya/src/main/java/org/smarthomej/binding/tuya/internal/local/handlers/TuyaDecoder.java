@@ -147,7 +147,11 @@ public class TuyaDecoder extends ByteToMessageDecoder {
             logger.trace("{}/{}: Decoded raw payload: {}", deviceId,
                     Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""), decodedMessage);
 
-            if (CommandType.STATUS.equals(commandType) || CommandType.DP_QUERY.equals(commandType)) {
+            if (CommandType.DP_QUERY.equals(commandType) && "json obj data unvalid".equals(decodedMessage)) {
+                logger.info("{}/{}: DP_QUERY not supported. Trying to request with CONTROL.", deviceId,
+                        Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""));
+                m = new MessageWrapper<>(CommandType.DP_QUERY_NOT_SUPPORTED, Map.of());
+            } else if (CommandType.STATUS.equals(commandType) || CommandType.DP_QUERY.equals(commandType)) {
                 Type type = TypeToken.getParameterized(TcpPayload.class, INTEGER_OBJECT_MAP_TYPE).getType();
                 m = new MessageWrapper<>(commandType,
                         Objects.requireNonNull((TcpPayload<?>) gson.fromJson(decodedMessage, type)).dps);
@@ -159,7 +163,7 @@ public class TuyaDecoder extends ByteToMessageDecoder {
             }
         }
 
-        logger.debug("{}{}: Received {}", deviceId, Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""), m);
+        logger.debug("{}/{}: Received {}", deviceId, Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""), m);
         out.add(m);
     }
 }
