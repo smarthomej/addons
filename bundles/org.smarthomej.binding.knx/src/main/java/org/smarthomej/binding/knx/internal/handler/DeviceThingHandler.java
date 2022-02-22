@@ -222,7 +222,7 @@ public class DeviceThingHandler extends BaseThingHandler implements GroupAddress
                             // always remember, otherwise we might send an old state
                             groupAddressesRespondingSpec.put(destination, commandSpec);
                         }
-                        if (groupAddressesWriteBlocked.get(destination) == null) {
+                        if (groupAddressesWriteBlocked.get(destination) != null) {
                             logger.debug("Write to {} blocked for 1s/one call after read.", destination);
                             groupAddressesWriteBlocked.invalidate(destination);
                         } else {
