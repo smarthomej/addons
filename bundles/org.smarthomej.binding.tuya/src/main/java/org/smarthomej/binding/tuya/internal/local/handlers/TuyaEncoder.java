@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.jose4j.base64url.Base64;
 import org.openhab.core.util.HexUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,11 +99,11 @@ public class TuyaEncoder extends MessageToByteEncoder<MessageWrapper<?>> {
             if (encryptedPayload == null) {
                 return;
             }
-            String payloadStr = HexUtils.bytesToHex(encryptedPayload);
-            String hash = CryptoUtil.md5("data=" + payloadStr + "||lpv=" + version + "||" + HexUtils.bytesToHex(key));
+            String payloadStr = Base64.encode(encryptedPayload);
+            String hash = CryptoUtil.md5("data=" + payloadStr + "||lpv=" + version + "||" + new String(key));
 
             // Create byte buffer from hex data
-            payloadBytes = (version + hash + payloadStr).getBytes(StandardCharsets.UTF_8);
+            payloadBytes = (version + hash.substring(8, 24) + payloadStr).getBytes(StandardCharsets.UTF_8);
         }
 
         // Allocate buffer with room for payload + 24 bytes for
