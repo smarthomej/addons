@@ -32,6 +32,7 @@ import org.smarthomej.binding.tuya.internal.local.dto.TcpPayload;
 import org.smarthomej.binding.tuya.internal.util.CryptoUtil;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 
 import io.netty.buffer.ByteBuf;
@@ -49,6 +50,8 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 public class TuyaDecoder extends ByteToMessageDecoder {
     private static final Type INTEGER_OBJECT_MAP_TYPE = TypeToken
             .getParameterized(Map.class, Integer.class, Object.class).getType();
+    private static final Type STATUS_PAYLOAD_TYPE = TypeToken
+            .getParameterized(TcpPayload.class, INTEGER_OBJECT_MAP_TYPE).getType();
 
     private final Logger logger = LoggerFactory.getLogger(TuyaDecoder.class);
 
@@ -147,19 +150,27 @@ public class TuyaDecoder extends ByteToMessageDecoder {
             logger.trace("{}/{}: Decoded raw payload: {}", deviceId,
                     Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""), decodedMessage);
 
-            if (CommandType.DP_QUERY.equals(commandType) && "json obj data unvalid".equals(decodedMessage)) {
-                logger.info("{}/{}: DP_QUERY not supported. Trying to request with CONTROL.", deviceId,
-                        Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""));
-                m = new MessageWrapper<>(CommandType.DP_QUERY_NOT_SUPPORTED, Map.of());
-            } else if (CommandType.STATUS.equals(commandType) || CommandType.DP_QUERY.equals(commandType)) {
-                Type type = TypeToken.getParameterized(TcpPayload.class, INTEGER_OBJECT_MAP_TYPE).getType();
-                m = new MessageWrapper<>(commandType,
-                        Objects.requireNonNull((TcpPayload<?>) gson.fromJson(decodedMessage, type)).dps);
-            } else if (CommandType.UDP_NEW.equals(commandType)) {
-                m = new MessageWrapper<>(commandType,
-                        Objects.requireNonNull(gson.fromJson(decodedMessage, DiscoveryMessage.class)));
-            } else {
-                m = new MessageWrapper<>(commandType, decodedMessage);
+            try {
+                if (CommandType.DP_QUERY.equals(commandType) && "json obj data unvalid".equals(decodedMessage)) {
+                    // "json obj data unvalid" would also result in a JSONSyntaxException but is a known error when
+                    // DP_QUERY is not supported by the device. Using a CONTROL message with null values is a known
+                    // workaround, cf. https://github.com/codetheweb/tuyapi/blob/master/index.js#L156
+                    logger.info("{}/{}: DP_QUERY not supported. Trying to request with CONTROL.", deviceId,
+                            Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""));
+                    m = new MessageWrapper<>(CommandType.DP_QUERY_NOT_SUPPORTED, Map.of());
+                } else if (CommandType.STATUS.equals(commandType) || CommandType.DP_QUERY.equals(commandType)) {
+                    m = new MessageWrapper<>(commandType, Objects
+                            .requireNonNull((TcpPayload<?>) gson.fromJson(decodedMessage, STATUS_PAYLOAD_TYPE)).dps);
+                } else if (CommandType.UDP_NEW.equals(commandType)) {
+                    m = new MessageWrapper<>(commandType,
+                            Objects.requireNonNull(gson.fromJson(decodedMessage, DiscoveryMessage.class)));
+                } else {
+                    m = new MessageWrapper<>(commandType, decodedMessage);
+                }
+            } catch (JsonSyntaxException e) {
+                logger.warn("{}/{} failed to parse JSON: {}", deviceId,
+                        Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""), e.getMessage());
+                return;
             }
         }
 
