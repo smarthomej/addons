@@ -110,19 +110,35 @@ public class TuyaOpenAPITest extends JavaTest {
     }
 
     @Test
-    public void hexColorDecodeTest() {
+    public void hexColorDecodeTest33() {
         String hex = "00b403e803e8";
-        HSBType hsb = ConversionUtil.hexColorDecode(hex);
+        HSBType hsb = ConversionUtil.hexColorDecode(hex, "3.3");
 
         Assertions.assertEquals(new HSBType("180,100,100"), hsb);
     }
 
     @Test
-    public void hexColorEncodeTest() {
+    public void hexColorDecodeTest31() {
+        String hex = "00008000f0ff8b";
+        HSBType hsb = ConversionUtil.hexColorDecode(hex, "3.1");
+
+        Assertions.assertEquals(new HSBType("240,100,50"), hsb);
+    }
+
+    @Test
+    public void hexColorEncodeTest33() {
         HSBType hsb = new HSBType("180,100,100");
-        String hex = ConversionUtil.hexColorEncode(hsb);
+        String hex = ConversionUtil.hexColorEncode(hsb, "3.3");
 
         Assertions.assertEquals("00b403e803e8", hex);
+    }
+
+    @Test
+    public void hexColorEncodeTest31() {
+        HSBType hsb = new HSBType("240,100,50");
+        String hex = ConversionUtil.hexColorEncode(hsb, "3.1");
+
+        Assertions.assertEquals("00007f00f0fe7f", hex);
     }
 
     @Test

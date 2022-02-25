@@ -120,7 +120,7 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
                 }
 
                 if (CHANNEL_TYPE_UID_COLOR.equals(channelTypeUID)) {
-                    updateState(channelId, ConversionUtil.hexColorDecode((String) value));
+                    updateState(channelId, ConversionUtil.hexColorDecode((String) value, this.configuration.protocol));
                 } else if (CHANNEL_TYPE_UID_STRING.equals(channelTypeUID)) {
                     updateState(channelId, new StringType((String) value));
                 } else if (CHANNEL_TYPE_UID_DIMMER.equals(channelTypeUID)) {
@@ -170,7 +170,8 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
 
         if (CHANNEL_TYPE_UID_COLOR.equals(channelTypeUID)) {
             if (command instanceof HSBType) {
-                commandRequest.put(configuration.dp, ConversionUtil.hexColorEncode((HSBType) command));
+                commandRequest.put(configuration.dp,
+                        ConversionUtil.hexColorEncode((HSBType) command, this.configuration.protocol));
                 ChannelConfiguration workModeConfig = channelIdToConfiguration.get("work_mode");
                 if (workModeConfig != null) {
                     commandRequest.put(workModeConfig.dp, "colour");
@@ -288,6 +289,7 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
         if (tuyaDevice != null) {
             tuyaDevice.dispose();
         }
+        configuration.protocol = deviceInfo.protocolVersion;
         this.tuyaDevice = new TuyaDevice(gson, this, eventLoopGroup, configuration.deviceId,
                 configuration.localKey.getBytes(StandardCharsets.UTF_8), deviceInfo.ip, deviceInfo.protocolVersion);
     }
