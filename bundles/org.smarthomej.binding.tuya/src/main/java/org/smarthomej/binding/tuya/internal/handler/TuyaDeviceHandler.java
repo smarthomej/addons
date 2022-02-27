@@ -82,6 +82,7 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
     private DeviceConfiguration configuration = new DeviceConfiguration();
     private @Nullable TuyaDevice tuyaDevice;
     private final List<SchemaDp> schemaDps;
+    private boolean oldColorMode = false;
 
     private @Nullable ScheduledFuture<?> reconnectFuture;
     private boolean disposing = false;
@@ -134,7 +135,8 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
                 }
 
                 if (CHANNEL_TYPE_UID_COLOR.equals(channelTypeUID)) {
-                    updateState(channelId, ConversionUtil.hexColorDecode((String) value, this.configuration.protocol));
+                    oldColorMode = ((String) value).length() == 14;
+                    updateState(channelId, ConversionUtil.hexColorDecode((String) value));
                 } else if (CHANNEL_TYPE_UID_STRING.equals(channelTypeUID)) {
                     updateState(channelId, new StringType((String) value));
                 } else if (CHANNEL_TYPE_UID_DIMMER.equals(channelTypeUID)) {
@@ -184,8 +186,7 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
 
         if (CHANNEL_TYPE_UID_COLOR.equals(channelTypeUID)) {
             if (command instanceof HSBType) {
-                commandRequest.put(configuration.dp,
-                        ConversionUtil.hexColorEncode((HSBType) command, this.configuration.protocol));
+                commandRequest.put(configuration.dp, ConversionUtil.hexColorEncode((HSBType) command, oldColorMode));
                 ChannelConfiguration workModeConfig = channelIdToConfiguration.get("work_mode");
                 if (workModeConfig != null) {
                     commandRequest.put(workModeConfig.dp, "colour");
@@ -303,7 +304,6 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
         if (tuyaDevice != null) {
             tuyaDevice.dispose();
         }
-        configuration.protocol = deviceInfo.protocolVersion;
         this.tuyaDevice = new TuyaDevice(gson, this, eventLoopGroup, configuration.deviceId,
                 configuration.localKey.getBytes(StandardCharsets.UTF_8), deviceInfo.ip, deviceInfo.protocolVersion);
     }
