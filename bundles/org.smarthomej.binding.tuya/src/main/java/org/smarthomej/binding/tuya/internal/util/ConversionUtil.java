@@ -37,8 +37,8 @@ public class ConversionUtil {
      * @param hexColor the input string
      * @return the corresponding state
      */
-    public static HSBType hexColorDecode(String hexColor, String version) {
-        if ("3.3".equals(version)) {
+    public static HSBType hexColorDecode(String hexColor) {
+        if (hexColor.length() == 12) {
             // 2 bytes H: 0-360, 2 bytes each S,B, 0-1000
             double h = Integer.parseInt(hexColor.substring(0, 4), 16);
             double s = Integer.parseInt(hexColor.substring(4, 8), 16) / 10.0;
@@ -49,13 +49,15 @@ public class ConversionUtil {
 
             return new HSBType(new DecimalType(h), new PercentType(new BigDecimal(s)),
                     new PercentType(new BigDecimal(b)));
-        } else {
+        } else if (hexColor.length() == 14) {
             // 1 byte each RGB: 0-255, 2 byte H: 0-360, 1 byte each SB: 0-255
             int r = Integer.parseInt(hexColor.substring(0, 2), 16);
             int g = Integer.parseInt(hexColor.substring(2, 4), 16);
             int b = Integer.parseInt(hexColor.substring(4, 6), 16);
 
             return HSBType.fromRGB(r, g, b);
+        } else {
+            throw new IllegalArgumentException("Unknown color format");
         }
     }
 
@@ -65,8 +67,8 @@ public class ConversionUtil {
      * @param hsb The input state
      * @return the corresponding hexadecimal String
      */
-    public static String hexColorEncode(HSBType hsb, String protocol) {
-        if ("3.3".equals(protocol)) {
+    public static String hexColorEncode(HSBType hsb, boolean oldColorMode) {
+        if (!oldColorMode) {
             return String.format("%04x%04x%04x", hsb.getHue().intValue(),
                     (int) (hsb.getSaturation().doubleValue() * 10), (int) (hsb.getBrightness().doubleValue() * 10));
         } else {
