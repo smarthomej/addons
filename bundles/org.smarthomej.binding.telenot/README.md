@@ -4,12 +4,14 @@ _The Telenot binding connects the Telenot Complex 400 to openHAB or compatible s
 
 _It is able to read the states of the contacts and the security areas._
 
-## Hardware
+## Requirement
+
+You have to enable the GMS-Protocol in the CompasX Software.
+
+## Hardware for ipbridge
 
 To get the serial data to the ethernet bus use the following converter or another like this: USR-TCP232-302 Tiny - RS232 to Ethernet TCP-IP-Server-Modul. 
 Connect this module to the GMS-Port (Serial).
-You have to enable the GMS-Protocol in the CompasX Software.
-
 
 Adapter Config:
 
@@ -30,15 +32,15 @@ While we will not use those functions in our integration, someone that knows the
 Especially if you have a clause in your theft protection policy, that you are only covered if the alarm system is turned on, I can only strongly discourage you from enabling the building management protocol on your alarm system.
 You have been warned! Take care that you protect your home installation, and make sure that you have locked down external access properly. 
 At the very least, I’d recommend using a proper firewall and VPN server rather than just drilling holes into your NAT and exposing ports.
-Assuming that you have adressed those issues successfully, let me explain the setup, shown in the picture below.
 
 ## Supported Things
 
 The binding supports the following thing types:
 
 * `ipbridge` - Supports TCP connection to the serial tcp adapter.
+* `serialbridge` - Supports serial/USB connection to the Telenot.
 * `input` - Telenot reporting group (Discovery)
-* `output` - Telenot reporting rrea (Discovery)
+* `output` - Telenot reporting area (Discovery)
 * `mb` - Reports the reporting area.
 * `mp` - Reports the inputs (contacts).
 * `sb` - Reports the security area.
@@ -46,22 +48,28 @@ The binding supports the following thing types:
 
 ## Discovery
 
-You have to enable discovery in the ipbridge thing.
-After turning on the discovery will start and the switch goes to off
+You have to enable discovery in the bridge thing.
+After turning on the discovery will start and the switch goes to off.
+The discovery takes about 5 minutes.
+
+* 1. Add `input` and `output` things.
+* 2. Enable discovery in the bridge thing.
+* 3. All available channel will be added automatically.
 
 ## Thing Configuration
 
 ### ipbridge
 
-The `ipbridge` thing supports a TCP/IP connection to an RS323 to LAN adapter.
+The `ipbridge` thing supports a TCP/IP connection to a RS323 to LAN adapter.
 
 * `hostname` (required) The hostname or IP address of the serial to LAN adapter
 * `tcpPort` (default = 4116) TCP port number for the serial to LAN adapter connection
 * `discovery` Enables the discovery
-* `updateClock` The period in hours for updating the clock on the telenot system.
+* `updateClock` The period in hours for updating the clock on the Telenot system.
 Set to 0 to disable.
 * `reconnect` (1-60, default = 2) The period in minutes that the handler will wait between connection checks and connection attempts
 * `timeout` (0-60, default = 5) The period in minutes after which the connection will be reset if no valid messages have been received. Set to 0 to disable.
+* `refreshData` The period in minutes that the handler will refresh the data to eventbus.
 
 Thing config file example:
 
@@ -72,15 +80,24 @@ Bridge telenot:ipbridge:device [ hostname="xxx.xxx.xxx.xxx", tcpPort=4116 ] {
 }
 ```
 
-### `input` and `output`
+### serialbridge
+
+The `serialbridge` thing supports a serial or USB connection to a Telenot alarm system.
+
+* `serialPort` (required) The name of the serial port used to connect to the Telenot system.
+* `discovery` Enables the discovery
+* `updateClock` The period in hours for updating the clock on the Telenot alarm system.
+Set to 0 to disable.
+* `refreshData` The period in minutes that the handler will refresh the data to eventbus.
+
+
+### `input`
 
 The `input` thing provides all channels with the state of each single reporting group.
-The `output` thing provides all channels with the state of each single reporting area.
 
-* 1. Add things.
-* 2. Enable discovery in the `ipbridge` thing.
-* 3. All available channel will be added automatically.
-     The discovery takes about 5 minutes.
+### `output`
+
+The `output` thing provides all channels with the state of each single reporting area.
 
 ### `mb`
 
@@ -174,6 +191,6 @@ The Telenot things expose the following channels:
 
 ## Actions
 
-The `ipbridge` thing exposes the following action to the automation engine:
+The `ipbridge` and  the `serialbridge` thing exposes the following action to the automation engine:
 *setDateTime* - Send the date and time to Telenot device. 
 Accepts no parameters.

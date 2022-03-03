@@ -96,7 +96,7 @@ public final class TelenotCommand {
         strSecond = (strSecond.length() == 1 ? "0" + strSecond : strSecond);
 
         String msg = "680B0B6873010750" + strYear + strDayOfWeek + strMonth + strDay + strHour + strMinute + strSecond;
-        msg = msg + checksum(msg) + "16";
+        msg = msg + buildChecksum(msg) + "16";
 
         return new TelenotCommand(msg, "set date/time msg: " + msg);
     }
@@ -141,7 +141,7 @@ public final class TelenotCommand {
         }
         String hex = Integer.toHexString(1320 + (address * 8));
         String msg = COMMAND_SB_STATE_ON + "0" + hex + "02E1";
-        msg = msg + checksum(msg) + "16";
+        msg = msg + buildChecksum(msg) + "16";
         return new TelenotCommand(msg, "DISARM security area msg: " + msg);
     }
 
@@ -158,7 +158,7 @@ public final class TelenotCommand {
         }
         String hex = Integer.toHexString(1321 + (address * 8));
         String msg = COMMAND_SB_STATE_ON + "0" + hex + "0262";
-        msg = msg + checksum(msg) + "16";
+        msg = msg + buildChecksum(msg) + "16";
         return new TelenotCommand(msg, "INT_ARM security area msg: " + msg);
     }
 
@@ -175,7 +175,7 @@ public final class TelenotCommand {
         }
         String hex = Integer.toHexString(1322 + (address * 8));
         String msg = COMMAND_SB_STATE_ON + "0" + hex + "0261";
-        msg = msg + checksum(msg) + "16";
+        msg = msg + buildChecksum(msg) + "16";
         return new TelenotCommand(msg, "EXT_ARM security area msg: " + msg);
     }
 
@@ -193,7 +193,7 @@ public final class TelenotCommand {
         }
         String hex = Integer.toHexString(1323 + (address * 8));
         String msg = COMMAND_SB_STATE_ON + "0" + hex + "0252";
-        msg = msg + checksum(msg) + "16";
+        msg = msg + buildChecksum(msg) + "16";
         return new TelenotCommand(msg, "RESET_ALARM security area msg: " + msg);
     }
 
@@ -214,11 +214,11 @@ public final class TelenotCommand {
         String logString = "";
         if (state == 1) {
             msg = COMMAND_SB_STATE_OFF + "0" + hex + "0251";
-            msg = msg + checksum(msg) + "16";
+            msg = msg + buildChecksum(msg) + "16";
             logString = "DISABLE_REPORTING_POINT msg: " + msg;
         } else if (state == 0) {
             msg = COMMAND_SB_STATE_ON + "0" + hex + "02D1";
-            msg = msg + checksum(msg) + "16";
+            msg = msg + buildChecksum(msg) + "16";
             logString = "ENABLE_REPORTING_POINT msg: " + msg;
         }
         return new TelenotCommand(msg, logString);
@@ -237,11 +237,11 @@ public final class TelenotCommand {
         String logString = "";
         if (state == 1) {
             msg = COMMAND_SB_STATE_OFF + address + "0251";
-            msg = msg + checksum(msg) + "16";
+            msg = msg + buildChecksum(msg) + "16";
             logString = "DISABLE_REPORTING_POINT msg: " + msg;
         } else if (state == 0) {
             msg = COMMAND_SB_STATE_ON + address + "02D1";
-            msg = msg + checksum(msg) + "16";
+            msg = msg + buildChecksum(msg) + "16";
             logString = "ENABLE_REPORTING_POINT msg: " + msg;
         }
         return new TelenotCommand(msg, logString);
@@ -256,14 +256,14 @@ public final class TelenotCommand {
     public static TelenotCommand getContactInfo(String address) {
         String hex = address.substring(2, 6);
         String msg = "680909687302051000" + hex + "730C";
-        msg = msg + checksum(msg) + "16";
+        msg = msg + buildChecksum(msg) + "16";
         return new TelenotCommand(msg, "GET_CONTACT_INFO msg: " + msg);
     }
 
     /**
-     * Converts String into checksum
+     * Builds checksum for commands
      */
-    public static String checksum(String s) {
+    public static String buildChecksum(String s) {
         String sum = "";
         int x = 0;
         int dataLength = Integer.parseInt(s.substring(2, 4), 16);
@@ -276,5 +276,28 @@ public final class TelenotCommand {
         sum = Integer.toHexString(x);
         sum = sum.substring(1, 3);
         return sum;
+    }
+
+    /**
+     * Calculate the checksum from received telenot message
+     */
+    public static String calculateChecksum(String s) {
+        String sum = "";
+        int x = 0;
+        int dataLength = Integer.parseInt(s.substring(2, 4), 16);
+        int a = 8;
+
+        for (int i = 0; i < dataLength; i++) {
+            x = x + Integer.parseInt(s.substring(a, a + 2), 16);
+            a = a + 2;
+        }
+        sum = Integer.toHexString(x);
+        sum = sum.substring(sum.length() - 2, sum.length());
+        return sum;
+    }
+
+    public static boolean isValid(String s) {
+        String sum = s.substring(s.length() - 4, s.length() - 2);
+        return sum.equals(calculateChecksum(s).toUpperCase());
     }
 }

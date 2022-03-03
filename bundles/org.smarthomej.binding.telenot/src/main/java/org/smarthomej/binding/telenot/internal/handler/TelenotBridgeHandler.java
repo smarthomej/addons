@@ -199,16 +199,25 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             byte[] content = new byte[2048];
             int bytesRead = -1;
+            int count = 0;
             InputStream is = this.inputStream;
             while (!Thread.interrupted() && is != null && (bytesRead = is.read(content)) != -1) {
                 baos.reset();
                 baos.write(content, 0, bytesRead);
 
                 message += HexUtils.bytesToHex(baos.toByteArray());
-                if (message.matches("^68(.*)16")) {
-                    processMessage(message);
+                if (message.matches("^68\\w\\w\\w\\w68(.*)16")) {
+                    if (TelenotCommand.isValid(message)) {
+                        processMessage(message);
+                    }
                     message = "";
+                    count = 0;
                 }
+                if (count >= 100) {
+                    message = "";
+                    count = 0;
+                }
+                count++;
             }
         } catch (IOException e) {
             logger.debug("I/O error while reading from stream: {}", e.getMessage());
