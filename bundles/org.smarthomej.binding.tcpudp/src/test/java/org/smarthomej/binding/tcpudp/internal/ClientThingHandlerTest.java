@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.smarthomej.binding.tcpudp.internal.TcpUdpBindingConstants.BINDING_ID;
 import static org.smarthomej.binding.tcpudp.internal.TcpUdpBindingConstants.THING_TYPE_UID_CLIENT;
@@ -126,13 +126,10 @@ public class ClientThingHandlerTest extends JavaTest {
 
         // wait until we have at least three calls and stop the thing handler
         waitForAssert(() -> assertEquals(3, echoServer.getReceivedValues().size()));
-        clientThingHandler.dispose();
-
-        // get the exact number of calls and check if the channel was updated the same number of times
-        int calls = echoServer.getReceivedValues().size();
-        verify(thingHandlerCallback, times(calls)).stateUpdated(eq(TEST_CHANNEL_UID),
+        verify(thingHandlerCallback, timeout(200).times(3)).stateUpdated(eq(TEST_CHANNEL_UID),
                 eq(new StringType(TEST_STATE_CONTENT)));
 
+        clientThingHandler.dispose();
         echoServer.stop();
     }
 

@@ -63,7 +63,7 @@ import org.smarthomej.commons.transform.ValueTransformationProvider;
 public class ClientThingHandler extends BaseThingHandler {
     private final Logger logger = LoggerFactory.getLogger(ClientThingHandler.class);
     private final ScheduledExecutorService scheduler = ThreadPoolManager.getScheduledPool("SHJ-tcpudp");
-    
+
     private final SimpleDynamicStateDescriptionProvider dynamicStateDescriptionProvider;
     private final Map<ChannelUID, ItemValueConverter> channels = new HashMap<>();
     private final Map<ChannelUID, String> readCommands = new HashMap<>();
@@ -250,7 +250,7 @@ public class ClientThingHandler extends BaseThingHandler {
                 if (len != -1) {
                     outputByteArrayStream.write(buffer, 0, len);
                 }
-                if (len<buffer.length) {
+                if (len < buffer.length) {
                     Thread.sleep(100);
                 }
             } while (in.available() > 0);
