@@ -15,6 +15,7 @@ package org.smarthomej.binding.deconz.internal.discovery;
 
 import static org.smarthomej.binding.deconz.internal.BindingConstants.*;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -75,7 +76,6 @@ public class ThingDiscoveryService extends AbstractDiscoveryService implements D
         if (handler != null) {
             handler.getBridgeFullState().thenAccept(fullState -> {
                 stopScan();
-                removeOlderResults(getTimestampOfLastScan());
                 fullState.ifPresent(state -> {
                     state.sensors.forEach(this::addSensor);
                     state.lights.forEach(this::addLight);
@@ -84,6 +84,12 @@ public class ThingDiscoveryService extends AbstractDiscoveryService implements D
 
             });
         }
+    }
+
+    @Override
+    protected synchronized void stopScan() {
+        removeOlderResults(getTimestampOfLastScan());
+        super.stopScan();
     }
 
     @Override
@@ -317,6 +323,7 @@ public class ThingDiscoveryService extends AbstractDiscoveryService implements D
 
     @Override
     public void deactivate() {
+        removeOlderResults(new Date().getTime());
         super.deactivate();
     }
 }
