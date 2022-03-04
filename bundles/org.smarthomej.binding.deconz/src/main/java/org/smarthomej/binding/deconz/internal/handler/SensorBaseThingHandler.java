@@ -133,6 +133,13 @@ public abstract class SensorBaseThingHandler extends DeconzBaseThingHandler {
             }
         }
 
+        if (sensorState.lowbattery != null && sensorConfig.battery == null) {
+            // if sensorConfig.battery != null the channel is already added
+            if (createChannel(thingBuilder, CHANNEL_BATTERY_LOW, ChannelKind.STATE)) {
+                thingEdited = true;
+            }
+        }
+
         if (createTypeSpecificChannels(thingBuilder, sensorConfig, sensorState)) {
             thingEdited = true;
         }
@@ -193,6 +200,9 @@ public abstract class SensorBaseThingHandler extends DeconzBaseThingHandler {
                 if (lastUpdated != null && !"none".equals(lastUpdated)) {
                     updateState(channelUID, Util.convertTimestampToDateTime(lastUpdated));
                 }
+                break;
+            case CHANNEL_BATTERY_LOW:
+                updateSwitchChannel(channelUID, newState.lowbattery);
                 break;
             default:
                 // other cases covered by sub-class
