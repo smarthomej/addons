@@ -26,12 +26,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.core.common.ThreadPoolManager;
 import org.openhab.core.thing.Channel;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
@@ -60,6 +62,7 @@ import org.smarthomej.commons.transform.ValueTransformationProvider;
 @NonNullByDefault
 public class ClientThingHandler extends BaseThingHandler {
     private final Logger logger = LoggerFactory.getLogger(ClientThingHandler.class);
+    private final ScheduledExecutorService scheduler = ThreadPoolManager.getScheduledPool("SHJ-tcpudp");
 
     private final SimpleDynamicStateDescriptionProvider dynamicStateDescriptionProvider;
     private final Map<ChannelUID, ItemValueConverter> channels = new HashMap<>();
@@ -247,7 +250,11 @@ public class ClientThingHandler extends BaseThingHandler {
                 if (len != -1) {
                     outputByteArrayStream.write(buffer, 0, len);
                 }
-            } while (len == config.bufferSize);
+                if (len < buffer.length) {
+                    Thread.sleep(100);
+                }
+            } while (in.available() > 0);
+
             outputByteArrayStream.flush();
 
             ContentWrapper contentWrapper = new ContentWrapper(outputByteArrayStream.toByteArray(),
