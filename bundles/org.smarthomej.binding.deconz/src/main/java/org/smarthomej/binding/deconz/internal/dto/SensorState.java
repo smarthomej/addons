@@ -64,6 +64,8 @@ public class SensorState {
     /** Batttery sensors provide this value */
     public @Nullable Integer battery;
     /** Consumption sensors provide this value in Watts/hour. */
+    public @Nullable Boolean lowbattery;
+    /** Consumption sensors provide this value in Watts/hour. */
     public @Nullable Float consumption;
     /** Power sensors provide this value in Volt. */
     public @Nullable Float voltage;
@@ -93,10 +95,10 @@ public class SensorState {
                 + lux + ", temperature=" + temperature + ", humidity=" + humidity + ", open=" + open + ", fire=" + fire
                 + ", water=" + water + ", alarm=" + alarm + ", tampered=" + tampered + ", vibration=" + vibration
                 + ", carbonmonoxide=" + carbonmonoxide + ", pressure=" + pressure + ", presence=" + presence
-                + ", power=" + power + ", battery=" + battery + ", consumption=" + consumption + ", voltage=" + voltage
-                + ", current=" + current + ", status=" + status + ", buttonevent=" + buttonevent + ", gesture="
-                + gesture + ", valve=" + valve + ", airquality='" + airquality + "'" + ", airqualityppb="
-                + airqualityppb + ", windowopen='" + windowopen + "'" + ", lastupdated='" + lastupdated + "'" + ", xy="
-                + Arrays.toString(xy) + "}";
+                + ", power=" + power + ", battery=" + battery + ", lowbattery=" + lowbattery + ", consumption="
+                + consumption + ", voltage=" + voltage + ", current=" + current + ", status=" + status
+                + ", buttonevent=" + buttonevent + ", gesture=" + gesture + ", valve=" + valve + ", airquality='"
+                + airquality + "'" + ", airqualityppb=" + airqualityppb + ", windowopen='" + windowopen + "'"
+                + ", lastupdated='" + lastupdated + "'" + ", xy=" + Arrays.toString(xy) + "}";
     }
 }
