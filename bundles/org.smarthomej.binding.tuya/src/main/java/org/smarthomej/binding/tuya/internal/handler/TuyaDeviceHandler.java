@@ -71,7 +71,8 @@ import io.netty.channel.EventLoopGroup;
 @NonNullByDefault
 public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSubscriber, DeviceStatusListener {
     private static final List<String> COLOUR_CHANNEL_CODES = List.of("colour_data");
-    private static final List<String> DIMMER_CHANNEL_CODES = List.of("bright_value", "bright_value", "temp_value");
+    private static final List<String> DIMMER_CHANNEL_CODES = List.of("bright_value", "bright_value_1", "bright_value_2",
+            "temp_value");
 
     private final Logger logger = LoggerFactory.getLogger(TuyaDeviceHandler.class);
 
