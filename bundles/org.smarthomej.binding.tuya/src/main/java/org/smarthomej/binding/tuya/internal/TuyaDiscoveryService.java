@@ -79,8 +79,9 @@ public class TuyaDiscoveryService extends AbstractDiscoveryService implements Th
 
         TuyaOpenAPI api = bridgeHandler.getApi();
         if (!api.isConnected()) {
-            logger.warn("Tried to start scan but API for bridge '{}' is not connected.",
+            logger.debug("Tried to start scan but API for bridge '{}' is not connected.",
                     bridgeHandler.getThing().getUID());
+            return;
         }
 
         bridgeHandler.getAllDevices()
