@@ -40,6 +40,7 @@ jobs:
           path: |
             ~/.m2/repository
             !~/.m2/repository/org/openhab
+            !~/.m2/repository/org/smarthomej
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
