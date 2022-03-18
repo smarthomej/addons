@@ -16,7 +16,6 @@ package org.smarthomej.binding.knx.internal.dpt;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -75,10 +74,21 @@ public class DPTTest {
         HSBType hsbType = (HSBType) ValueDecoder.decode("232.60000", data, HSBType.class);
 
         Assertions.assertNotNull(hsbType);
-        Objects.requireNonNull(hsbType);
         assertEquals(173.6, hsbType.getHue().doubleValue(), 0.1);
         assertEquals(17.6, hsbType.getSaturation().doubleValue(), 0.1);
         assertEquals(26.3, hsbType.getBrightness().doubleValue(), 0.1);
+    }
+
+    @Test
+    public void dpt252EncoderTest() {
+        // input data
+        byte[] data = new byte[] { 0x26, 0x2b, 0x31, 0x00, 0x00, 0x0e };
+        HSBType hsbType = (HSBType) ValueDecoder.decode("251.600", data, HSBType.class);
+
+        assertNotNull(hsbType);
+        assertEquals(207, hsbType.getHue().doubleValue(), 0.1);
+        assertEquals(22, hsbType.getSaturation().doubleValue(), 0.1);
+        assertEquals(18, hsbType.getBrightness().doubleValue(), 0.1);
     }
 
     @SuppressWarnings("unused")
