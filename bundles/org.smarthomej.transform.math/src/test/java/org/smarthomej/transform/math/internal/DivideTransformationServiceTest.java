@@ -57,4 +57,9 @@ class DivideTransformationServiceTest {
     public void testTransformDivideByZero() {
         assertThrows(TransformationException.class, () -> subject.transform("0", "1"));
     }
+
+    @Test
+    public void zeroValueReturnsAParsableValue() throws TransformationException {
+        assertEquals("0", subject.transform("8.0", "0"));
+    }
 }

@@ -53,8 +53,9 @@ abstract class AbstractMathTransformationService implements TransformationServic
             throw new TransformationException("Math Transformation can only be used with numeric inputs");
         }
         try {
-            String result = performCalculation(source, value).toString();
-            return sourceString.replace(extractedNumericString, result);
+            BigDecimal result = performCalculation(source, value);
+            String resultString = BigDecimal.ZERO.compareTo(result) == 0 ? "0" : result.toString();
+            return sourceString.replace(extractedNumericString, resultString);
         } catch (ArithmeticException e) {
             throw new TransformationException("ArithmeticException: " + e.getMessage());
         }
