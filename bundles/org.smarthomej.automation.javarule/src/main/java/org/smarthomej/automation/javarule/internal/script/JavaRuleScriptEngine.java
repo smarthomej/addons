@@ -58,7 +58,11 @@ public class JavaRuleScriptEngine extends JavaScriptEngine implements Invocable 
     public @Nullable Object eval(@Nullable String script, @Nullable Bindings bindings) throws ScriptException {
         if (bindings != null) {
             ScriptDependencyListener depListener = (ScriptDependencyListener) bindings.get("oh.dependency-listener");
-            depListener.accept(JAVARULE_DEPENDENCY_JAR.toString());
+            if (depListener != null) {
+                depListener.accept(JAVARULE_DEPENDENCY_JAR.toString());
+            } else {
+                logger.warn("Could not get script dependency listener, dependency tracking might fail.");
+            }
         }
 
         JavaRuleCompiledScript compiledScript = (JavaRuleCompiledScript) this.compile(script);
