@@ -1,8 +1,7 @@
 # Smarthome/J Add-ons
 
 [![EPL-2.0](https://img.shields.io/badge/license-EPL%202-green.svg)](https://opensource.org/licenses/EPL-2.0)
-[![Build Status 3.1.x](https://jenkins.smarthomej.org/job/SmartHomeJ%203.1.x%20Snapshot/badge/icon?subject=build%20status%203.1.x)](https://jenkins.smarthomej.org/job/SmartHomeJ%203.1.x%20Snapshot/)
-[![Build Status 3.2.x](https://jenkins.smarthomej.org/job/SmartHomeJ%203.2.x%20Snapshot/badge/icon?subject=build%20status%203.2.x)](https://jenkins.smarthomej.org/job/SmartHomeJ%203.2.x%20Snapshot/)
+[![Build Status](https://github.com/smarthomej/addons/actions/workflows/ci-build.yml/badge.svg?branch=3.2.x)](https://github.com/smarthomej/addons/actions/workflows/ci-build.yml)
 
 This repository contains the add-ons that are implemented on top of [openHAB Core APIs](https://github.com/openhab/openhab-core).
 Some parts of this repository are forked from [openHAB Addons](https://github.com/openhab/openhab-addons).
