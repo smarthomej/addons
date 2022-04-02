@@ -238,7 +238,9 @@ import org.smarthomej.automation.javarule.annotation.Rule;
 
 public class TestRule extends JavaRule {
 
-    @Rule(name = "Hello World") @GenericCronTrigger(cronExpression = "0 0/1 * * * *") public void helloWorld() {
+    @Rule(name = "Hello World") 
+    @GenericCronTrigger(cronExpression = "0 0/1 * * * *") 
+    public void helloWorld() {
         Log.logInfo("Test Rule", "Hello World!");
     }
 
