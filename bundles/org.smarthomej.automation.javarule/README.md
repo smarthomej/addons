@@ -30,6 +30,7 @@ In IntelliJ IDEA this is named `Add as Library`.
 ## Rule Development
 
 All scripts need to provide a class that inherits from `org.smarthomej.automation.javarule.rules.JavaRule`.
+Please note that you need to `import` this class if your rule is not residing in the same package (which is the case in the examples below).
 
 If the script is evaluated, the `runScript` method is executed.
 The default implementation of `runScript` scans all methods in the class for annotations and creates corresponding triggers, conditions and rules (see below).
@@ -229,7 +230,7 @@ public class TestRule extends JavaRule {
 The following `TestRule.java` logs the "Hello World!" message every minute at INFO level using the core `Log` action.
 
 ```java
-package org.smarthomej.automation.javarule.rules.user;
+package org.smarthomej.automation.javarule;
 
 import org.openhab.core.model.script.actions.Log;
 import org.smarthomej.automation.javarule.annotation.GenericCronTrigger;
@@ -237,7 +238,9 @@ import org.smarthomej.automation.javarule.annotation.Rule;
 
 public class TestRule extends JavaRule {
 
-    @Rule(name = "Hello World") @GenericCronTrigger(cronExpression = "0 0/1 * * * *") public void helloWorld() {
+    @Rule(name = "Hello World") 
+    @GenericCronTrigger(cronExpression = "0 0/1 * * * *") 
+    public void helloWorld() {
         Log.logInfo("Test Rule", "Hello World!");
     }
 
