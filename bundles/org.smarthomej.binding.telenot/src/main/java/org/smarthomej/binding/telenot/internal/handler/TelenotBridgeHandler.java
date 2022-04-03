@@ -206,12 +206,17 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
                 baos.write(content, 0, bytesRead);
 
                 message += HexUtils.bytesToHex(baos.toByteArray());
-                if (message.matches("^68\\w\\w\\w\\w68(.*)16")) {
-                    if (TelenotCommand.isValid(message)) {
-                        processMessage(message);
+                if (message.matches("^68\\w\\w\\w\\w68(.*)")) {
+                    if (message.substring(2, 4).equals(message.substring(4, 6))) {
+                        Integer msgLength =  Integer.parseInt(message.substring(2, 4), 16) * 2 + 12;
+                        if (msgLength.equals(message.length())) {
+                            if (TelenotCommand.isValid(message)) {
+                                processMessage(message);
+                            }
+                            message = "";
+                            count = 0;
+                        }
                     }
-                    message = "";
-                    count = 0;
                 }
                 if (count >= 100) {
                     message = "";
@@ -272,6 +277,7 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
                 case SYS_EXT_ARMED:
                 case SYS_DISARMED:
                 case ALARM:
+                    logger.trace("MessageType: {} MSG: {}", msgType, message);
                     parseSbStateMessage(msgType, message);
                     sendTelenotCommand(TelenotCommand.confirmACK());
                     break;
@@ -281,7 +287,7 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
                 case OPTICAL_FLASHER_MALFUNCTION:
                 case HORN_1_MALFUNCTION:
                 case HORN_2_MALFUNCTION:
-                case COM_FAULT:
+                    // case COM_FAULT:
                     parseEmaStateMessage(msgType, message);
                     sendTelenotCommand(TelenotCommand.confirmACK());
                     TelenotThingHandler.readyToSendData.set(true);
@@ -332,6 +338,11 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
                     TelenotThingHandler.readyToSendData.set(true);
                     logger.trace("Ready to send data");
                     break;
+                case COM_FAULT:
+                    logger.debug("Received {} MsgType | hexString: {}", msgType, message);
+                    sendTelenotCommand(TelenotCommand.confirmACK());
+                    TelenotThingHandler.readyToSendData.set(true);
+                    logger.trace("Ready to send data");
                 default:
                     break;
             }
@@ -421,12 +432,12 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
      * @throws MessageParseException
      */
     private void parseSbStateMessage(TelenotMsgType mt, String msg) throws MessageParseException {
+        // logger.trace("MessageType: {} MSG: {}", mt, msg);
         SBStateMessage sbStateMessage;
         StringBuilder sb = new StringBuilder();
         sb.append(mt);
         sb.append(":");
         sb.append(msg);
-
         try {
             sbStateMessage = new SBStateMessage(sb.toString());
         } catch (TelenotMessageException e) {
