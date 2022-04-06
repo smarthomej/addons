@@ -155,7 +155,11 @@ public class DeviceHandler extends ViessmannThingHandler {
                         for (String str : com) {
                             String s = command.toString();
                             uri = prop.get(str + "Uri");
-                            param = "{\"" + prop.get(str + "Params") + "\":\"" + s + "\"}";
+                            if ("{".equals(s.substring(0, 1))) {
+                                param = "{\"" + prop.get(str + "Params") + "\":" + s + "}";
+                            } else {
+                                param = "{\"" + prop.get(str + "Params") + "\":\"" + s + "\"}";
+                            }
                             break;
                         }
                         logger.trace("Received StringType Command for Channel {}",
