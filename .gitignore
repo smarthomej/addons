@@ -8,6 +8,7 @@ npm-debug.log
 package-lock.json
 package.json
 .build.log
+.gradle
 
 .metadata/
 bin/
