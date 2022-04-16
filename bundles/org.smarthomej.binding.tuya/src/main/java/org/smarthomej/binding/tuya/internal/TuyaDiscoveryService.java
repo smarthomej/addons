@@ -84,8 +84,17 @@ public class TuyaDiscoveryService extends AbstractDiscoveryService implements Th
             return;
         }
 
-        bridgeHandler.getAllDevices()
-                .thenAccept(deviceList -> deviceList.forEach(device -> processDevice(device, api)));
+        processDeviceResponse(List.of(), api, bridgeHandler, 0);
+    }
+
+    private void processDeviceResponse(List<DeviceListInfo> deviceList, TuyaOpenAPI api, ProjectHandler bridgeHandler,
+            int page) {
+        deviceList.forEach(device -> processDevice(device, api));
+        if (page == 0 || deviceList.size() == 100) {
+            int nextPage = page + 1;
+            bridgeHandler.getAllDevices(nextPage)
+                    .thenAccept(nextDeviceList -> processDeviceResponse(nextDeviceList, api, bridgeHandler, nextPage));
+        }
     }
 
     private void processDevice(DeviceListInfo device, TuyaOpenAPI api) {

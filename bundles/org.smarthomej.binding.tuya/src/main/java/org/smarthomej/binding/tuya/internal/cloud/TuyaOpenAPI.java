@@ -149,10 +149,10 @@ public class TuyaOpenAPI {
                 s -> processResponse(s, TypeToken.getParameterized(List.class, FactoryInformation.class).getType()));
     }
 
-    public CompletableFuture<List<DeviceListInfo>> getDeviceList() {
+    public CompletableFuture<List<DeviceListInfo>> getDeviceList(int page) {
         Map<String, String> params = Map.of(//
                 "from", "", //
-                "page_no", "1", //
+                "page_no", String.valueOf(page), //
                 "page_size", "100");
         return request(HttpMethod.GET, "/v1.0/users/" + token.uid + "/devices", params, null).thenCompose(
                 s -> processResponse(s, TypeToken.getParameterized(List.class, DeviceListInfo.class).getType()));
