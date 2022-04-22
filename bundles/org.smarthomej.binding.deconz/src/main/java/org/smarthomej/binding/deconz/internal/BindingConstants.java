@@ -78,6 +78,7 @@ public class BindingConstants {
     public static final String CHANNEL_LAST_SEEN = "last_seen";
     public static final String CHANNEL_POWER = "power";
     public static final String CHANNEL_CONSUMPTION = "consumption";
+    public static final String CHANNEL_CONSUMPTION_2 = "consumption2";
     public static final String CHANNEL_VOLTAGE = "voltage";
     public static final String CHANNEL_CURRENT = "current";
     public static final String CHANNEL_VALUE = "value";
