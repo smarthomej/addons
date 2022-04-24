@@ -204,6 +204,9 @@ public abstract class DeconzBaseThingHandler extends UpdatingBaseThingHandler im
             case CHANNEL_BATTERY_LOW:
                 channelTypeUID = new ChannelTypeUID("system:low-battery");
                 break;
+            case CHANNEL_CONSUMPTION_2:
+                channelTypeUID = new ChannelTypeUID("deconz:consumption");
+                break;
             default:
                 channelTypeUID = new ChannelTypeUID(BINDING_ID, channelId);
                 break;

@@ -247,6 +247,10 @@ public class SensorThingHandler extends SensorBaseThingHandler {
         if (sensorState.power != null && createChannel(thingBuilder, CHANNEL_POWER, ChannelKind.STATE)) {
             thingEdited = true;
         }
+        // ZHAConsumption - e.g. Linky devices second channel
+        if (sensorState.consumption2 != null && createChannel(thingBuilder, CHANNEL_CONSUMPTION_2, ChannelKind.STATE)) {
+            thingEdited = true;
+        }
 
         // ZHAPower - e.g. Heiman SmartPlug
         if (sensorState.voltage != null && createChannel(thingBuilder, CHANNEL_VOLTAGE, ChannelKind.STATE)) {
