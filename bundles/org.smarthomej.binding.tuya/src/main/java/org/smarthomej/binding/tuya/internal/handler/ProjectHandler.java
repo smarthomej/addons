@@ -97,9 +97,9 @@ public class ProjectHandler extends BaseThingHandler implements ApiStatusCallbac
         return storage;
     }
 
-    public CompletableFuture<List<DeviceListInfo>> getAllDevices() {
+    public CompletableFuture<List<DeviceListInfo>> getAllDevices(int page) {
         if (api.isConnected()) {
-            return api.getDeviceList();
+            return api.getDeviceList(page);
         }
         return CompletableFuture.failedFuture(new IllegalStateException("not connected"));
     }
