@@ -292,7 +292,11 @@ public final class TelenotCommand {
             a = a + 2;
         }
         sum = Integer.toHexString(x);
-        sum = sum.substring(sum.length() - 2, sum.length());
+        if (sum.length() > 1) {
+            sum = sum.substring(sum.length() - 2, sum.length());
+        } else {
+            sum = "0" + sum;
+        }
         return sum;
     }
 

@@ -207,10 +207,11 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
 
                 message += HexUtils.bytesToHex(baos.toByteArray());
                 if (message.matches("^68\\w\\w\\w\\w68(.*)")) {
+                    logger.trace("HEX String: {}", message);
                     if (message.substring(2, 4).equals(message.substring(4, 6))) {
-                        Integer msgLength =  Integer.parseInt(message.substring(2, 4), 16) * 2 + 12;
-                        if (msgLength.equals(message.length())) {
-                            if (TelenotCommand.isValid(message)) {
+                        Integer msgLength = Integer.parseInt(message.substring(2, 4), 16) * 2 + 12;
+                        if (message.length() >= msgLength) {
+                            if (TelenotCommand.isValid(message.substring(0, msgLength))) {
                                 processMessage(message);
                             }
                             message = "";
