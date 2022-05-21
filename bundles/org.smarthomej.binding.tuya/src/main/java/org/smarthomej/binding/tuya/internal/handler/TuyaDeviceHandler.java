@@ -167,7 +167,8 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
         } else {
             updateStatus(ThingStatus.OFFLINE);
             TuyaDevice tuyaDevice = this.tuyaDevice;
-            if (tuyaDevice != null && !disposing) {
+            // only re-connect if a device is present, we are not disposing the thing and either the reconnectFuture is empty or already done
+            if (tuyaDevice != null && !disposing && (reconnectFuture == null || reconnectFuture.isDone())) {
                 reconnectFuture = scheduler.schedule(tuyaDevice::connect, 5000, TimeUnit.MILLISECONDS);
             }
         }
@@ -300,11 +301,12 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
     public void deviceInfoChanged(DeviceInfo deviceInfo) {
         logger.info("Configuring IP address '{}' for thing '{}'.", deviceInfo, thing.getUID());
 
-        updateStatus(ThingStatus.UNKNOWN);
         TuyaDevice tuyaDevice = this.tuyaDevice;
         if (tuyaDevice != null) {
             tuyaDevice.dispose();
         }
+        updateStatus(ThingStatus.UNKNOWN);
+
         this.tuyaDevice = new TuyaDevice(gson, this, eventLoopGroup, configuration.deviceId,
                 configuration.localKey.getBytes(StandardCharsets.UTF_8), deviceInfo.ip, deviceInfo.protocolVersion);
     }
