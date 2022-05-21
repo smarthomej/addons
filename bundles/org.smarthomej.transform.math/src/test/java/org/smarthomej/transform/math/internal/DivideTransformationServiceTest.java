@@ -37,6 +37,13 @@ class DivideTransformationServiceTest {
     }
 
     @Test
+    public void testTransform2() throws TransformationException {
+        String result = subject.transform("3", "1");
+
+        assertEquals("0.3333333333333333333333333333333333", result);
+    }
+
+    @Test
     public void testTransformInsideString() throws TransformationException {
         String result = subject.transform("60", "90 watts");
 
