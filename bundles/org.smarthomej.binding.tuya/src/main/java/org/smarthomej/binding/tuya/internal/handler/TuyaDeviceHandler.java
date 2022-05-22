@@ -167,10 +167,11 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
         } else {
             updateStatus(ThingStatus.OFFLINE);
             TuyaDevice tuyaDevice = this.tuyaDevice;
+            ScheduledFuture<?> reconnectFuture = this.reconnectFuture;
             // only re-connect if a device is present, we are not disposing the thing and either the reconnectFuture is
             // empty or already done
             if (tuyaDevice != null && !disposing && (reconnectFuture == null || reconnectFuture.isDone())) {
-                reconnectFuture = scheduler.schedule(tuyaDevice::connect, 5000, TimeUnit.MILLISECONDS);
+                this.reconnectFuture = scheduler.schedule(tuyaDevice::connect, 5000, TimeUnit.MILLISECONDS);
             }
         }
     }
