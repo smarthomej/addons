@@ -13,10 +13,7 @@
  */
 package org.smarthomej.binding.knx.internal;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -24,6 +21,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.thing.ThingTypeUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smarthomej.commons.util.ResourceUtil;
 
 /**
  * The {@link KNXBindingConstants} class defines common constants, which are
@@ -108,26 +106,10 @@ public class KNXBindingConstants {
     public static final String SWITCH_GA = "switch";
     public static final String UP_DOWN_GA = "upDown";
 
-    public static final Map<Integer, String> MANUFACTURER_MAP = readPropertiesFile("manufacturer.properties").entrySet()
-            .stream().collect(Collectors.toMap(e -> Integer.parseInt(e.getKey()), Map.Entry::getValue));
-    public static final Map<Integer, String> FIRMWARE_MAP = readPropertiesFile("firmware.properties").entrySet()
-            .stream().collect(Collectors.toMap(e -> Integer.parseInt(e.getKey()), Map.Entry::getValue));
-
-    public static Map<String, String> readPropertiesFile(String filename) {
-        InputStream resource = Thread.currentThread().getContextClassLoader().getResourceAsStream(filename);
-        if (resource == null) {
-            LOGGER.warn("Could not read resource file '{}', binding will probably fail: resource is null", filename);
-            return Map.of();
-        }
-
-        try {
-            Properties properties = new Properties();
-            properties.load(resource);
-            return properties.entrySet().stream()
-                    .collect(Collectors.toMap(e -> (String) e.getKey(), e -> (String) e.getValue()));
-        } catch (IOException e) {
-            LOGGER.warn("Could not read resource file '{}', binding will probably fail: {}", filename, e.getMessage());
-            return Map.of();
-        }
-    }
+    public static final Map<Integer, String> MANUFACTURER_MAP = ResourceUtil
+            .readProperties(KNXBindingConstants.class, "manufacturer.properties").entrySet().stream()
+            .collect(Collectors.toMap(e -> Integer.parseInt(e.getKey()), Map.Entry::getValue));
+    public static final Map<Integer, String> FIRMWARE_MAP = ResourceUtil
+            .readProperties(KNXBindingConstants.class, "firmware.properties").entrySet().stream()
+            .collect(Collectors.toMap(e -> Integer.parseInt(e.getKey()), Map.Entry::getValue));
 }
