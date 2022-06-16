@@ -12,12 +12,8 @@
  */
 package org.smarthomej.binding.viessmann.internal;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.library.unit.SIUnits;
@@ -25,6 +21,7 @@ import org.openhab.core.library.unit.Units;
 import org.openhab.core.thing.ThingTypeUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smarthomej.commons.util.ResourceUtil;
 
 /**
  * The {@link ViessmannBindingConstants} class defines common constants, which are
@@ -60,10 +57,11 @@ public class ViessmannBindingConstants {
     public static final int API_TIMEOUT_MS = 20000;
     public static final String PROPERTY_ID = "deviceId";
 
-    public static final Map<String, String> FEATURES_MAP = readPropertiesFile("features.properties");
+    public static final Map<String, String> FEATURES_MAP = ResourceUtil.readProperties(ViessmannBindingConstants.class,
+            "features.properties");
 
-    public static final Map<String, String> FEATURE_DESCRIPTION_MAP = readPropertiesFile(
-            "featuresDescription.properties");
+    public static final Map<String, String> FEATURE_DESCRIPTION_MAP = ResourceUtil
+            .readProperties(ViessmannBindingConstants.class, "featuresDescription.properties");
 
     public static final Map<String, String> UNIT_MAP = Map.of( //
             "celsius", SIUnits.CELSIUS.getSymbol(), //
@@ -75,22 +73,4 @@ public class ViessmannBindingConstants {
             "hours", Units.HOUR.toString(), //
             "liter", Units.LITRE.toString(), //
             "cubicMeter", SIUnits.CUBIC_METRE.toString());
-
-    public static Map<String, String> readPropertiesFile(String filename) {
-        InputStream resource = Thread.currentThread().getContextClassLoader().getResourceAsStream(filename);
-        if (resource == null) {
-            LOGGER.warn("Could not read resource file '{}', binding will probably fail: resource is null", filename);
-            return Map.of();
-        }
-
-        try {
-            Properties properties = new Properties();
-            properties.load(resource);
-            return properties.entrySet().stream()
-                    .collect(Collectors.toMap(e -> (String) e.getKey(), e -> (String) e.getValue()));
-        } catch (IOException e) {
-            LOGGER.warn("Could not read resource file '{}', binding will probably fail: {}", filename, e.getMessage());
-            return Map.of();
-        }
-    }
 }
