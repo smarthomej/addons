@@ -25,6 +25,7 @@ import org.openhab.core.thing.ThingTypeUID;
 import org.openhab.core.thing.type.ChannelTypeUID;
 import org.smarthomej.binding.onewire.internal.device.OwChannelConfig;
 import org.smarthomej.binding.onewire.internal.device.OwSensorType;
+import org.smarthomej.commons.util.ResourceUtil;
 
 /**
  * The {@link OneWireBinding} class defines common constants, which are
@@ -145,7 +146,7 @@ public class OwBindingConstants {
     public static final Map<OwSensorType, Set<OwChannelConfig>> SENSOR_TYPE_CHANNEL_MAP;
 
     static {
-        Map<String, String> properties = Util.readPropertiesFile("sensor.properties");
+        Map<String, String> properties = ResourceUtil.readProperties(OwBindingConstants.class, "sensor.properties");
         THING_TYPE_MAP = properties.entrySet().stream().filter(e -> e.getKey().endsWith(".thingtype"))
                 .collect(Collectors.toConcurrentMap(e -> OwSensorType.valueOf(e.getKey().split("\\.")[0]),
                         e -> new ThingTypeUID(BINDING_ID, e.getValue())));

@@ -13,12 +13,6 @@
  */
 package org.smarthomej.binding.onewire.internal;
 
-import java.io.IOException;
-import java.net.URL;
-import java.util.Map;
-import java.util.Properties;
-import java.util.stream.Collectors;
-
 import javax.measure.quantity.Dimensionless;
 import javax.measure.quantity.Temperature;
 
@@ -27,8 +21,6 @@ import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.library.unit.SIUnits;
 import org.openhab.core.library.unit.Units;
 import org.openhab.core.types.State;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * The {@link Util} is a set of helper functions
@@ -37,8 +29,6 @@ import org.slf4j.LoggerFactory;
  */
 @NonNullByDefault
 public class Util {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Util.class);
-
     /**
      * calculate absolute humidity in g/m³ from measured values
      *
@@ -85,22 +75,5 @@ public class Util {
                 / (((17.62 * 243.12) / (243.12 + theta) - Math.log(rH))));
         State dewPoint = new QuantityType<>(dP, SIUnits.CELSIUS);
         return dewPoint;
-    }
-
-    public static Map<String, String> readPropertiesFile(String filename) {
-        URL resource = Thread.currentThread().getContextClassLoader().getResource(filename);
-        if (resource == null) {
-            LOGGER.warn("Could not read resource file {}, binding will probably fail: resource is null", filename);
-            return Map.of();
-        }
-        Properties properties = new Properties();
-        try {
-            properties.load(resource.openStream());
-            return properties.entrySet().stream()
-                    .collect(Collectors.toMap(e -> (String) e.getKey(), e -> (String) e.getValue()));
-        } catch (IOException e) {
-            LOGGER.warn("Could not read resource file {}, binding will probably fail: {}", filename, e.getMessage());
-            return Map.of();
-        }
     }
 }
