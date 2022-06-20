@@ -57,7 +57,7 @@ import org.smarthomej.binding.onewire.internal.handler.OwserverBridgeHandler;
  * @author Jan N. Klug - Initial contribution
  */
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.WARN)
+@MockitoSettings(strictness = Strictness.LENIENT)
 @NonNullByDefault
 public abstract class AbstractThingHandlerTest extends JavaTest {
 
