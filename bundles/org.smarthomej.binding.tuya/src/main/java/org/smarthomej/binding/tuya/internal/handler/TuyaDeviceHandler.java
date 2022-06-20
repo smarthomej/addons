@@ -178,6 +178,11 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
+        if (getThing().getStatus() != ThingStatus.ONLINE) {
+            logger.warn("Channel '{}' received a command but device is not ONLINE. Discarding command.", channelUID);
+            return;
+        }
+
         Map<Integer, @Nullable Object> commandRequest = new HashMap<>();
 
         ChannelTypeUID channelTypeUID = channelIdToChannelTypeUID.get(channelUID.getId());
