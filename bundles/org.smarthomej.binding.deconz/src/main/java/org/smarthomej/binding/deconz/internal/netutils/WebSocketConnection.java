@@ -136,6 +136,7 @@ public class WebSocketConnection {
             logger.debug("{} encountered an error while closing connection", socketName, e);
         }
         client.destroy();
+        connectionState = ConnectionState.DISCONNECTED;
     }
 
     public void registerListener(ResourceType resourceType, String sensorID, WebSocketMessageListener listener) {

@@ -37,6 +37,7 @@ import org.openhab.core.config.core.Configuration;
 import org.openhab.core.io.net.http.WebSocketFactory;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.ChannelUID;
+import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.ThingTypeUID;
@@ -120,6 +121,15 @@ public class DeconzBridgeHandler extends BaseBridgeHandler implements WebSocketC
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
+    }
+
+    @Override
+    public void thingUpdated(Thing thing) {
+        dispose();
+        this.thing = thing;
+        // we need to create a new websocket connection, because it can't be restarted
+        webSocketConnection = createNewWebSocketConnection();
+        initialize();
     }
 
     /**
