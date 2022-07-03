@@ -14,6 +14,7 @@ package org.smarthomej.binding.amazonechocontrol.internal.smarthome;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -73,10 +74,10 @@ public class HandlerLock extends AbstractInterfaceHandler {
         if (channelId.equals(LOCK_STATE.channelId)) {
             if (containsCapabilityProperty(capabilities, LOCK_STATE.propertyName)) {
                 if (command.equals(OnOffType.ON)) {
-                    connection.smartHomeCommand(entityId, "Lock");
+                    connection.smartHomeCommand(entityId, "lockAction", Map.of("targetLockState.value", "LOCKED"));
                     return true;
                 } else if (command.equals(OnOffType.OFF)) {
-                    connection.smartHomeCommand(entityId, "Unlock");
+                    connection.smartHomeCommand(entityId, "lockAction", Map.of("targetLockState.value", "UNLOCKED"));
                     return true;
                 }
             }
