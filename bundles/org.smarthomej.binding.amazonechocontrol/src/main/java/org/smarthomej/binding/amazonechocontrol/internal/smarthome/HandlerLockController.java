@@ -30,18 +30,18 @@ import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevi
 import com.google.gson.JsonObject;
 
 /**
- * The {@link HandlerLock} is responsible for the Alexa.LockController interface
+ * The {@link HandlerLockController} is responsible for the Alexa.LockController interface
  *
  * @author Jan N. Klug - Initial contribution
  */
 @NonNullByDefault
-public class HandlerLock extends AbstractInterfaceHandler {
+public class HandlerLockController extends AbstractInterfaceHandler {
     public static final String INTERFACE = "Alexa.LockController";
 
     private static final ChannelInfo LOCK_STATE = new ChannelInfo("lockState", "lockState",
             Constants.CHANNEL_TYPE_LOCK_STATE);
 
-    public HandlerLock(SmartHomeDeviceHandler smartHomeDeviceHandler) {
+    public HandlerLockController(SmartHomeDeviceHandler smartHomeDeviceHandler) {
         super(smartHomeDeviceHandler, List.of(INTERFACE));
     }
 

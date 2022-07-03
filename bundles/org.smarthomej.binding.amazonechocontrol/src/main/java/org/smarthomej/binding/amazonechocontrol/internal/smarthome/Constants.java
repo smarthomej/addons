@@ -43,7 +43,7 @@ public class Constants {
             Map.entry(HandlerContactSensor.INTERFACE, HandlerContactSensor::new),
             Map.entry(HandlerLocation.INTERFACE, HandlerLocation::new),
             Map.entry(HandlerEndpointHealth.INTERFACE, HandlerEndpointHealth::new),
-            Map.entry(HandlerLock.INTERFACE, HandlerLock::new));
+            Map.entry(HandlerLockController.INTERFACE, HandlerLockController::new));
 
     public static final Set<String> SUPPORTED_INTERFACES = HANDLER_FACTORY.keySet();
 
