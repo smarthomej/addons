@@ -42,7 +42,8 @@ public class Constants {
             Map.entry(HandlerMotionSensor.INTERFACE, HandlerMotionSensor::new),
             Map.entry(HandlerContactSensor.INTERFACE, HandlerContactSensor::new),
             Map.entry(HandlerLocation.INTERFACE, HandlerLocation::new),
-            Map.entry(HandlerEndpointHealth.INTERFACE, HandlerEndpointHealth::new));
+            Map.entry(HandlerEndpointHealth.INTERFACE, HandlerEndpointHealth::new),
+            Map.entry(HandlerLock.INTERFACE, HandlerLock::new));
 
     public static final Set<String> SUPPORTED_INTERFACES = HANDLER_FACTORY.keySet();
 
@@ -69,6 +70,8 @@ public class Constants {
             AmazonEchoControlBindingConstants.BINDING_ID, "voc");
     public static final ChannelTypeUID CHANNEL_TYPE_POWER_STATE = new ChannelTypeUID(
             AmazonEchoControlBindingConstants.BINDING_ID, "powerState");
+    public static final ChannelTypeUID CHANNEL_TYPE_LOCK_STATE = new ChannelTypeUID(
+            AmazonEchoControlBindingConstants.BINDING_ID, "lockState");
     public static final ChannelTypeUID CHANNEL_TYPE_UID_ACOUSTIC_EVENT_DETECTION = new ChannelTypeUID(
             AmazonEchoControlBindingConstants.BINDING_ID, "acousticEventDetectionState");
     public static final ChannelTypeUID CHANNEL_TYPE_BRIGHTNESS = new ChannelTypeUID(
