@@ -17,6 +17,7 @@ import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Consta
 import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Constants.CHANNEL_TYPE_AIR_QUALITY_INDOOR_AIR_QUALITY;
 import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Constants.CHANNEL_TYPE_AIR_QUALITY_PM25;
 import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Constants.CHANNEL_TYPE_AIR_QUALITY_VOC;
+import static org.smarthomej.binding.amazonechocontrol.internal.smarthome.Constants.CHANNEL_TYPE_FAN_SPEED;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -53,6 +54,9 @@ public class HandlerRangeController extends AbstractInterfaceHandler {
 
     private final Logger logger = LoggerFactory.getLogger(HandlerRangeController.class);
 
+    private static final ChannelInfo FAN_SPEED = new ChannelInfo("Alexa.Setting.FanSpeed", "fanSpeed",
+            CHANNEL_TYPE_FAN_SPEED);
+
     private static final Map<String, ChannelInfo> CHANNEL_INFO_MAP = Map.ofEntries(
             Map.entry("Alexa.AirQuality.IndoorAirQuality",
                     new ChannelInfo("Alexa.AirQuality.IndoorAirQuality", "indoorAirQuality",
@@ -64,7 +68,8 @@ public class HandlerRangeController extends AbstractInterfaceHandler {
             Map.entry("Alexa.AirQuality.VolatileOrganicCompounds",
                     new ChannelInfo("Alexa.AirQuality.VolatileOrganicCompounds", "voc", CHANNEL_TYPE_AIR_QUALITY_VOC)),
             Map.entry("Alexa.AirQuality.CarbonMonoxide", new ChannelInfo("Alexa.AirQuality.CarbonMonoxide",
-                    "carbonMonoxide", CHANNEL_TYPE_AIR_QUALITY_CARBON_MONOXIDE)));
+                    "carbonMonoxide", CHANNEL_TYPE_AIR_QUALITY_CARBON_MONOXIDE)),
+            Map.entry("Alexa.Setting.FanSpeed", FAN_SPEED));
 
     private static final Map<String, Unit<?>> ALEXA_UNITS_TO_SMART_HOME_UNITS = Map.of( //
             "Alexa.Unit.Percent", Units.PERCENT, //
@@ -151,6 +156,13 @@ public class HandlerRangeController extends AbstractInterfaceHandler {
     public boolean handleCommand(Connection connection, JsonSmartHomeDevice shd, String entityId,
             List<JsonSmartHomeCapability> capabilities, String channelId, Command command)
             throws IOException, InterruptedException {
+        if (FAN_SPEED.channelId.equals(channelId) && command instanceof DecimalType) {
+            Double value = ((DecimalType) command).doubleValue();
+            JsonObject valueElement = new JsonObject();
+            valueElement.addProperty("value", value);
+            connection.smartHomeCommand(entityId, "setRangeValue",
+                    Map.of("instance", "FanSpeed", "rangeValue", valueElement));
+        }
         return false;
     }
 }
