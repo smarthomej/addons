@@ -68,6 +68,8 @@ public class Constants {
             AmazonEchoControlBindingConstants.BINDING_ID, "carbonMonoxide");
     public static final ChannelTypeUID CHANNEL_TYPE_AIR_QUALITY_VOC = new ChannelTypeUID(
             AmazonEchoControlBindingConstants.BINDING_ID, "voc");
+    public static final ChannelTypeUID CHANNEL_TYPE_FAN_SPEED = new ChannelTypeUID(
+            AmazonEchoControlBindingConstants.BINDING_ID, "fanSpeed");
     public static final ChannelTypeUID CHANNEL_TYPE_POWER_STATE = new ChannelTypeUID(
             AmazonEchoControlBindingConstants.BINDING_ID, "powerState");
     public static final ChannelTypeUID CHANNEL_TYPE_LOCK_STATE = new ChannelTypeUID(

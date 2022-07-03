@@ -702,6 +702,10 @@
 		<label>VOC</label>
 		<state readOnly="true"/>
 	</channel-type>
+	<channel-type id="fanSpeed">
+		<item-type>Number</item-type>
+		<label>Fan speed</label>
+	</channel-type>
 
 
 </thing:thing-descriptions>
