@@ -34,6 +34,7 @@ public class Constants {
             Map.entry(HandlerColorTemperatureController.INTERFACE, HandlerColorTemperatureController::new),
             Map.entry(HandlerSecurityPanelController.INTERFACE, HandlerSecurityPanelController::new),
             Map.entry(HandlerAcousticEventSensor.INTERFACE, HandlerAcousticEventSensor::new),
+            Map.entry(HandlerHumiditySensor.INTERFACE, HandlerHumiditySensor::new),
             Map.entry(HandlerTemperatureSensor.INTERFACE, HandlerTemperatureSensor::new),
             Map.entry(HandlerThermostatController.INTERFACE, HandlerThermostatController::new),
             Map.entry(HandlerPercentageController.INTERFACE, HandlerPercentageController::new),
