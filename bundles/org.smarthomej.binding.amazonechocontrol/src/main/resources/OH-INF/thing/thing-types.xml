@@ -580,6 +580,11 @@
 		<item-type>Switch</item-type>
 		<label>Power State</label>
 	</channel-type>
+	<!-- Alexa.LockController -->
+	<channel-type id="lockState">
+		<item-type>Switch</item-type>
+		<label>Lock State</label>
+	</channel-type>
 	<!-- Alexa.PowerLevelController -->
 	<channel-type id="powerLevel">
 		<item-type>Dimmer</item-type>
@@ -635,6 +640,7 @@
 		<label>Contact</label>
 		<state readOnly="true"/>
 	</channel-type>
+	<!-- Alexa.Location -->
 	<channel-type id="geoLocation">
 		<item-type>Location</item-type>
 		<label>Location</label>
