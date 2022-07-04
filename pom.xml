@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -11,7 +10,7 @@
 
   <groupId>org.smarthomej.addons</groupId>
   <artifactId>org.smarthomej.addons.reactor</artifactId>
-  <version>3.2.13-SNAPSHOT</version>
+  <version>3.2.13</version>
 
   <packaging>pom</packaging>
 
@@ -43,7 +42,7 @@
   <scm>
     <connection>scm:git:git@github.com:smarthomej/addons.git</connection>
     <developerConnection>scm:git:git@github.com:smarthomej/addons.git</developerConnection>
-    <tag>HEAD</tag>
+    <tag>v3.2.13</tag>
     <url>https://github.com/smarthomej/addons</url>
   </scm>
 
@@ -87,9 +86,9 @@
     <slf4j.version>1.7.21</slf4j.version>
     <spotless.version>2.0.3</spotless.version>
 
-    <bnd.importpackage/>
-    <bnd.exportpackage/>
-    <bnd.fixupmessages/>
+    <bnd.importpackage />
+    <bnd.exportpackage />
+    <bnd.fixupmessages />
     <bnd.includeresource>-${.}/NOTICE, -${.}/*.xsd</bnd.includeresource>
     <!-- The commons bundle is not following semver, even micro versions must be at least identical: strategy is [===,=+) -->
     <bnd.smarthomejversion>[${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion},${parsedVersion.majorVersion}.${parsedVersion.nextMinorVersion})</bnd.smarthomejversion>
@@ -247,7 +246,7 @@ Import-Package: \\
           <version>${bnd.version}</version>
           <configuration>
             <failOnChanges>false</failOnChanges>
-            <bndruns/>
+            <bndruns />
           </configuration>
           <executions>
             <execution>
@@ -478,7 +477,7 @@ Import-Package: \\
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <ignore/>
+                    <ignore />
                   </action>
                 </pluginExecution>
                 <pluginExecution>
@@ -491,7 +490,7 @@ Import-Package: \\
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <ignore/>
+                    <ignore />
                   </action>
                 </pluginExecution>
                 <pluginExecution>
@@ -505,7 +504,7 @@ Import-Package: \\
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <ignore/>
+                    <ignore />
                   </action>
                 </pluginExecution>
                 <pluginExecution>
@@ -518,7 +517,7 @@ Import-Package: \\
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <ignore/>
+                    <ignore />
                   </action>
                 </pluginExecution>
                 <pluginExecution>
@@ -532,7 +531,7 @@ Import-Package: \\
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <execute/>
+                    <execute />
                   </action>
                 </pluginExecution>
               </pluginExecutions>
@@ -572,11 +571,11 @@ Import-Package: \\
                 <file>openhab_codestyle.xml</file>
                 <version>4.13.0</version>
               </eclipse>
-              <removeUnusedImports/>
+              <removeUnusedImports />
               <importOrder>
                 <file>openhab.importorder</file>
               </importOrder>
-              <endWithNewline/>
+              <endWithNewline />
             </java>
             <formats>
               <format>
@@ -600,8 +599,8 @@ Import-Package: \\
                   </files>
                   <version>4.13.0</version>
                 </eclipseWtp>
-                <trimTrailingWhitespace/>
-                <endWithNewline/>
+                <trimTrailingWhitespace />
+                <endWithNewline />
               </format>
               <format>
                 <!-- feature.xml -->
@@ -615,8 +614,8 @@ Import-Package: \\
                   </files>
                   <version>4.13.0</version>
                 </eclipseWtp>
-                <trimTrailingWhitespace/>
-                <endWithNewline/>
+                <trimTrailingWhitespace />
+                <endWithNewline />
               </format>
               <format>
                 <!-- pom.xml -->
@@ -630,8 +629,8 @@ Import-Package: \\
                   </files>
                   <version>4.13.0</version>
                 </eclipseWtp>
-                <trimTrailingWhitespace/>
-                <endWithNewline/>
+                <trimTrailingWhitespace />
+                <endWithNewline />
               </format>
             </formats>
           </configuration>
