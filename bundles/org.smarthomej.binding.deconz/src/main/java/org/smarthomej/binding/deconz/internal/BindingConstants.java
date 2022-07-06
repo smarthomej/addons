@@ -52,6 +52,7 @@ public class BindingConstants {
     public static final ThingTypeUID THING_TYPE_CARBONMONOXIDE_SENSOR = new ThingTypeUID(BINDING_ID,
             "carbonmonoxidesensor");
     public static final ThingTypeUID THING_TYPE_AIRQUALITY_SENSOR = new ThingTypeUID(BINDING_ID, "airqualitysensor");
+    public static final ThingTypeUID THING_TYPE_MOISTURE_SENSOR = new ThingTypeUID(BINDING_ID, "moisturesensor");
 
     // Special sensor - Thermostat
     public static final ThingTypeUID THING_TYPE_THERMOSTAT = new ThingTypeUID(BINDING_ID, "thermostat");
@@ -105,6 +106,7 @@ public class BindingConstants {
     public static final String CHANNEL_CARBONMONOXIDE = "carbonmonoxide";
     public static final String CHANNEL_AIRQUALITY = "airquality";
     public static final String CHANNEL_AIRQUALITYPPB = "airqualityppb";
+    public static final String CHANNEL_MOISTURE = "moisture";
     public static final String CHANNEL_HEATSETPOINT = "heatsetpoint";
     public static final String CHANNEL_THERMOSTAT_MODE = "mode";
     public static final String CHANNEL_THERMOSTAT_LOCKED = "locked";

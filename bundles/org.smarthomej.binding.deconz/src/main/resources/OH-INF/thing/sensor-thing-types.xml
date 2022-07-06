@@ -531,6 +531,29 @@
 		<state readOnly="true"/>
 	</channel-type>
 
+	<thing-type id="moisturesensor">
+		<supported-bridge-type-refs>
+			<bridge-type-ref id="deconz"/>
+		</supported-bridge-type-refs>
+		<label>Moisture Sensor</label>
+		<description>A moisture sensor</description>
+		<channels>
+			<channel typeId="moisture" id="moisture"></channel>
+			<channel typeId="last_updated" id="last_updated"></channel>
+		</channels>
+
+		<representation-property>uid</representation-property>
+
+		<config-description-ref uri="thing-type:deconz:sensor"/>
+	</thing-type>
+
+	<channel-type id="moisture">
+		<item-type>Number:Dimensionless</item-type>
+		<label>Moisture</label>
+		<description>Current moisture</description>
+		<state readOnly="true" pattern="%.1f %unit%"></state>
+	</channel-type>
+
 	<thing-type id="thermostat">
 		<supported-bridge-type-refs>
 			<bridge-type-ref id="deconz"/>

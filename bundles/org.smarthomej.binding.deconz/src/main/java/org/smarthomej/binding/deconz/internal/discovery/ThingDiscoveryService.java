@@ -288,6 +288,8 @@ public class ThingDiscoveryService extends AbstractDiscoveryService implements D
             thingTypeUID = THING_TYPE_VIBRATION_SENSOR; // ZHAVibration
         } else if (sensor.type.contains("ZHABattery")) {
             thingTypeUID = THING_TYPE_BATTERY_SENSOR; // ZHABattery
+        } else if (sensor.type.contains("ZHAMoisture")) {
+            thingTypeUID = THING_TYPE_MOISTURE_SENSOR; // ZHAMoisture
         } else if (sensor.type.contains("ZHAThermostat")) {
             thingTypeUID = THING_TYPE_THERMOSTAT; // ZHAThermostat
         } else {
