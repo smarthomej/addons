@@ -38,9 +38,9 @@ public class SensorState {
     /** Light sensors provide a lux value. */
     public @Nullable Integer lux;
     /** Temperature sensors provide a degrees value. */
-    public @Nullable Float temperature;
+    public @Nullable Double temperature;
     /** Humidity sensors provide a percent value. */
-    public @Nullable Float humidity;
+    public @Nullable Double humidity;
     /** OpenClose sensors provide a boolean value. */
     public @Nullable Boolean open;
     /** fire sensors provide a boolean value. */
@@ -60,18 +60,18 @@ public class SensorState {
     /** Presence sensors provide this boolean. */
     public @Nullable Boolean presence;
     /** Power sensors provide this value in Watts. */
-    public @Nullable Float power;
+    public @Nullable Double power;
     /** Batttery sensors provide this value */
     public @Nullable Integer battery;
     /** Consumption sensors provide this value in Watts/hour. */
     public @Nullable Boolean lowbattery;
     /** Consumption sensors provide this value in Watts/hour. */
-    public @Nullable Float consumption;
-    public @Nullable Float consumption2;
+    public @Nullable Double consumption;
+    public @Nullable Double consumption2;
     /** Power sensors provide this value in Volt. */
-    public @Nullable Float voltage;
+    public @Nullable Double voltage;
     /** Power sensors provide this value in Milliampere. */
-    public @Nullable Float current;
+    public @Nullable Double current;
     /** Light sensors and the daylight sensor provide a status integer that can have various semantics. */
     public @Nullable Integer status;
     /** Switches provide this value. */
@@ -83,6 +83,8 @@ public class SensorState {
     /** air quality sensors provide this value */
     public @Nullable String airquality;
     public @Nullable Integer airqualityppb;
+    /** moisture sensors provide this value */
+    public @Nullable Integer moisture;
     /** Thermostats may provide this value */
     public @Nullable String windowopen;
     /** deCONZ sends a last update string with every event. */

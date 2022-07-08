@@ -27,6 +27,7 @@ These sensors are supported:
 | deCONZ Artificial Daylight Sensor | deCONZ specific: simulated sensor | `daylightsensor`       |
 | Carbon-Monoxide Sensor            | ZHACarbonmonoxide                 | `carbonmonoxidesensor` |
 | Airquality Sensor                 | ZHAAirquality                     | `airqualitysensor`     |
+| Moisture Sensor                   | ZHAMoisture                       | `moisturesensor`       |
 | Color Controller                  | ZBT-Remote-ALL-RGBW               | `colorcontrol`         |
 
 Additionally, lights, window coverings (blinds), door locks and thermostats are supported:
@@ -158,7 +159,8 @@ The sensor devices support some of the following channels:
 | externalwindowopen | Contact                  | R/W         | forward a status to a theromastat (some devices)                                          | thermostat                                        |
 | locked             | Switch                   | R/W         | reports/sets the childlock on some thermostats                                            | thermostat                                        |
 | airquality         | String                   | R           | Airquality as string                                                                      | airqualitysensor                                  |
-| airtqualityppb     | Number:Dimensionless     | R           | Airquality (in parts-per-billion)                                                         | airqualitysensor                                  |
+| airqualityppb      | Number:Dimensionless     | R           | Airquality (in parts-per-billion)                                                         | airqualitysensor                                  |
+| moisture           | Number:Dimensionless     | R           | Moisture                                                                                  | moisturesensor                                    |
 
 **NOTE:** Beside other non-mandatory channels, the `battery_level` and `battery_low` channels will be added to the Thing during runtime if the sensor is battery-powered.
 The specification of your sensor depends on the deCONZ capabilities.
