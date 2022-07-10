@@ -9,6 +9,12 @@
 			<label>Addend</label>
 			<description>Value to be added to the Item State.</description>
 		</parameter>
+		<parameter name="itemName" type="text">
+			<context>item</context>
+			<label>Item</label>
+			<description>Name of an alternative Item which State to be added to the linked Item State (will be prioritized if
+				given).</description>
+		</parameter>
 	</config-description>
 
 	<config-description uri="profile:transform:MULTIPLY">
@@ -16,12 +22,25 @@
 			<label>Multiplicand</label>
 			<description>Value to be multiplied by the Item State.</description>
 		</parameter>
+		<parameter name="itemName" type="text">
+			<context>item</context>
+			<label>Item</label>
+			<description>Name of an alternative Item which State to be multiplied by the linked Item State (will be prioritized
+				if
+				given).</description>
+		</parameter>
 	</config-description>
 
 	<config-description uri="profile:transform:DIVIDE">
 		<parameter name="divisor" type="decimal" required="true">
 			<label>Divisor</label>
 			<description>Value by which the Item State is divided.</description>
+		</parameter>
+		<parameter name="itemName" type="text">
+			<context>item</context>
+			<label>Item</label>
+			<description>Name of an alternative Item by which State the linked Item State is divided (will be prioritized if
+				given).</description>
 		</parameter>
 	</config-description>
 

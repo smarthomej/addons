@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.i18n.LocalizedKey;
+import org.openhab.core.items.ItemRegistry;
 import org.openhab.core.library.CoreItemFactory;
 import org.openhab.core.thing.profiles.Profile;
 import org.openhab.core.thing.profiles.ProfileCallback;
@@ -81,6 +82,7 @@ public class MathTransformationProfileFactory implements ProfileFactory, Profile
 
     private final Map<LocalizedKey, ProfileType> localizedProfileTypeCache = new ConcurrentHashMap<>();
 
+    private final ItemRegistry itemRegistry;
     private final ProfileTypeI18nLocalizationService profileTypeI18nLocalizationService;
     private final Bundle bundle;
 
@@ -93,9 +95,10 @@ public class MathTransformationProfileFactory implements ProfileFactory, Profile
     private @NonNullByDefault({}) TransformationService bitXorTransformationService;
 
     @Activate
-    public MathTransformationProfileFactory(
-            final @Reference ProfileTypeI18nLocalizationService profileTypeI18nLocalizationService,
+    public MathTransformationProfileFactory(final @Reference ItemRegistry itemRegistry, //
+            final @Reference ProfileTypeI18nLocalizationService profileTypeI18nLocalizationService, //
             final @Reference BundleResolver bundleResolver) {
+        this.itemRegistry = itemRegistry;
         this.profileTypeI18nLocalizationService = profileTypeI18nLocalizationService;
         this.bundle = bundleResolver.resolveBundle(MathTransformationProfileFactory.class);
     }
@@ -115,11 +118,12 @@ public class MathTransformationProfileFactory implements ProfileFactory, Profile
     public @Nullable Profile createProfile(ProfileTypeUID profileTypeUID, ProfileCallback callback,
             ProfileContext profileContext) {
         if (AddTransformationProfile.PROFILE_TYPE_UID.equals(profileTypeUID)) {
-            return new AddTransformationProfile(callback, profileContext, addTransformationService);
+            return new AddTransformationProfile(callback, profileContext, addTransformationService, itemRegistry);
         } else if (MultiplyTransformationProfile.PROFILE_TYPE_UID.equals(profileTypeUID)) {
-            return new MultiplyTransformationProfile(callback, profileContext, multiplyTransformationService);
+            return new MultiplyTransformationProfile(callback, profileContext, multiplyTransformationService,
+                    itemRegistry);
         } else if (DivideTransformationProfile.PROFILE_TYPE_UID.equals(profileTypeUID)) {
-            return new DivideTransformationProfile(callback, profileContext, divideTransformationService);
+            return new DivideTransformationProfile(callback, profileContext, divideTransformationService, itemRegistry);
         } else if (BitwiseAndTransformationProfile.PROFILE_TYPE_UID.equals(profileTypeUID)) {
             return new BitwiseAndTransformationProfile(callback, profileContext, bitAndTransformationService);
         } else if (BitwiseOrTransformationProfile.PROFILE_TYPE_UID.equals(profileTypeUID)) {

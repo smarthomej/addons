@@ -17,6 +17,7 @@ import org.openhab.core.thing.profiles.ProfileCallback;
 import org.openhab.core.thing.profiles.ProfileContext;
 import org.openhab.core.thing.profiles.ProfileTypeUID;
 import org.openhab.core.transform.TransformationService;
+import org.smarthomej.transform.math.internal.BitwiseOrTransformationService;
 
 /**
  * Profile to offer the {@link BitwiseOrTransformationService} on a ItemChannelLink.

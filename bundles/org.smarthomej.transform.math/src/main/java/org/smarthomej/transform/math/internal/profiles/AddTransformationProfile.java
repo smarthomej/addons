@@ -14,6 +14,7 @@ package org.smarthomej.transform.math.internal.profiles;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.core.items.ItemRegistry;
 import org.openhab.core.thing.profiles.ProfileCallback;
 import org.openhab.core.thing.profiles.ProfileContext;
 import org.openhab.core.thing.profiles.ProfileTypeUID;
@@ -28,7 +29,7 @@ import org.smarthomej.transform.math.internal.AddTransformationService;
  * @author Christoph Weitkamp - Initial contribution
  */
 @NonNullByDefault
-public class AddTransformationProfile extends AbstractMathTransformationProfile {
+public class AddTransformationProfile extends AbstractArithmeticMathTransformationProfile {
 
     public static final ProfileTypeUID PROFILE_TYPE_UID = new ProfileTypeUID(
             TransformationService.TRANSFORM_PROFILE_SCOPE, "ADD");
@@ -37,15 +38,16 @@ public class AddTransformationProfile extends AbstractMathTransformationProfile 
 
     private final @Nullable String addend;
 
-    public AddTransformationProfile(ProfileCallback callback, ProfileContext context, TransformationService service) {
-        super(callback, service, PROFILE_TYPE_UID);
+    public AddTransformationProfile(ProfileCallback callback, ProfileContext context, TransformationService service,
+            ItemRegistry itemRegistry) {
+        super(callback, context, service, itemRegistry, PROFILE_TYPE_UID);
 
         addend = getParam(context, ADDEND_PARAM);
     }
 
     @Override
     public void onCommandFromHandler(Command command) {
-        String localAddend = addend;
+        String localAddend = getItemStateOrElse(addend);
         if (localAddend == null) {
             logger.warn(
                     "Please specify an addend for this Profile in the '{}' parameter. Returning the original command now.",
@@ -58,7 +60,7 @@ public class AddTransformationProfile extends AbstractMathTransformationProfile 
 
     @Override
     public void onStateUpdateFromHandler(State state) {
-        String localAddend = addend;
+        String localAddend = getItemStateOrElse(addend);
         if (localAddend == null) {
             logger.warn(
                     "Please specify an addend for this Profile in the '{}' parameter. Returning the original state now.",

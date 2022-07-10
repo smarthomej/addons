@@ -14,6 +14,7 @@ package org.smarthomej.transform.math.internal.profiles;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.core.items.ItemRegistry;
 import org.openhab.core.thing.profiles.ProfileCallback;
 import org.openhab.core.thing.profiles.ProfileContext;
 import org.openhab.core.thing.profiles.ProfileTypeUID;
@@ -28,7 +29,7 @@ import org.smarthomej.transform.math.internal.MultiplyTransformationService;
  * @author Christoph Weitkamp - Initial contribution
  */
 @NonNullByDefault
-public class MultiplyTransformationProfile extends AbstractMathTransformationProfile {
+public class MultiplyTransformationProfile extends AbstractArithmeticMathTransformationProfile {
 
     public static final ProfileTypeUID PROFILE_TYPE_UID = new ProfileTypeUID(
             TransformationService.TRANSFORM_PROFILE_SCOPE, "MULTIPLY");
@@ -38,15 +39,15 @@ public class MultiplyTransformationProfile extends AbstractMathTransformationPro
     private final @Nullable String multiplicand;
 
     public MultiplyTransformationProfile(ProfileCallback callback, ProfileContext context,
-            TransformationService service) {
-        super(callback, service, PROFILE_TYPE_UID);
+            TransformationService service, ItemRegistry itemRegistry) {
+        super(callback, context, service, itemRegistry, PROFILE_TYPE_UID);
 
         multiplicand = getParam(context, MUTLIPLICAND_PARAM);
     }
 
     @Override
     public void onCommandFromHandler(Command command) {
-        String localMultiplicand = multiplicand;
+        String localMultiplicand = getItemStateOrElse(multiplicand);
         if (localMultiplicand == null) {
             logger.warn(
                     "Please specify a multiplicand for this Profile in the '{}' parameter. Returning the original command now.",
@@ -59,7 +60,7 @@ public class MultiplyTransformationProfile extends AbstractMathTransformationPro
 
     @Override
     public void onStateUpdateFromHandler(State state) {
-        String localMultiplicand = multiplicand;
+        String localMultiplicand = getItemStateOrElse(multiplicand);
         if (localMultiplicand == null) {
             logger.warn(
                     "Please specify a multiplicand for this Profile in the '{}' parameter. Returning the original state now.",
