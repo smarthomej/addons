@@ -13,13 +13,13 @@
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
 /**
- * The {@link FeatureSetTemperature} provides set temperature of features
+ * The {@link FeatureTargetTemperature} provides set temperature of features
  *
  * @author Ronny Grun - Initial contribution
  */
-public class FeatureSetTemperature {
+public class FeatureTargetTemperature {
     public String uri;
     public String name;
     public Boolean isExecutable;
-    public FeatureTargetTemperatureParams params;
+    public FeatureSetTemperatureParams params;
 }
