@@ -396,7 +396,6 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
 
         int addr = 1;
         try {
-            // for (int i = 0; i < msgReverseBinaryArraySb.size() / 8; i++) {
             for (int i = 0; i < msgReverseBinaryArraySb.length() / 8; i++) {
                 // iterate over bytes instead of bits
                 int startBit = i * 8;
@@ -433,7 +432,7 @@ public abstract class TelenotBridgeHandler extends BaseBridgeHandler {
      * @throws MessageParseException
      */
     private void parseSbStateMessage(TelenotMsgType mt, String msg) throws MessageParseException {
-        // logger.trace("MessageType: {} MSG: {}", mt, msg);
+        logger.trace("MessageType: {} MSG: {}", mt, msg);
         SBStateMessage sbStateMessage;
         StringBuilder sb = new StringBuilder();
         sb.append(mt);
