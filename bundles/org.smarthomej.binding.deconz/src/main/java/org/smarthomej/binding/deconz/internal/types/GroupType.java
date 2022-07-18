@@ -30,6 +30,9 @@ import org.slf4j.LoggerFactory;
 @NonNullByDefault
 public enum GroupType {
     LIGHT_GROUP("LightGroup"),
+    LUMINAIRE("Luminaire"),
+    ROOM("Room"),
+    LIGHT_SOURCE("Lightsource"),
     UNKNOWN("");
 
     private static final Map<String, GroupType> MAPPING = Arrays.stream(GroupType.values())
