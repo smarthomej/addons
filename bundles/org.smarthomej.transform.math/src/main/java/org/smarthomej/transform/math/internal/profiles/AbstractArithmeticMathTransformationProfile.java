@@ -17,7 +17,6 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.items.Item;
 import org.openhab.core.items.ItemNotFoundException;
 import org.openhab.core.items.ItemRegistry;
-import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.thing.profiles.ProfileCallback;
 import org.openhab.core.thing.profiles.ProfileContext;
 import org.openhab.core.thing.profiles.ProfileTypeUID;
@@ -48,6 +47,13 @@ public abstract class AbstractArithmeticMathTransformationProfile extends Abstra
         itemName = getParam(context, ITEM_NAME_PARAM, false);
     }
 
+    /**
+     * Returns the Item State as String if the Item exists and its State is not {@link UnDefType} or otherwise the given
+     * default value.
+     *
+     * @param defaultValue the default value
+     * @return the Item State as String
+     */
     public @Nullable String getItemStateOrElse(@Nullable String defaultValue) {
         String localItemName = itemName;
         if (localItemName != null) {
@@ -55,10 +61,7 @@ public abstract class AbstractArithmeticMathTransformationProfile extends Abstra
                 Item item = itemRegistry.getItem(localItemName);
                 State state = item.getState();
                 if (!(state instanceof UnDefType)) {
-                    DecimalType decimalState = state.as(DecimalType.class);
-                    if (decimalState != null) {
-                        return decimalState.toString();
-                    }
+                    return state.toString();
                 }
             } catch (ItemNotFoundException e) {
                 // do nothing

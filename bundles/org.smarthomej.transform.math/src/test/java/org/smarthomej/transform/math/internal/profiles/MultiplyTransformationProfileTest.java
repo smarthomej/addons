@@ -24,6 +24,7 @@ import javax.measure.quantity.Temperature;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -56,12 +57,18 @@ class MultiplyTransformationProfileTest {
     private static final String UNKNOWN_ITEM_NAME = "unknownItem";
     private static final String TEST_ITEM_NAME = "testItem";
 
-    private static Stream<Arguments> configurations() {
-        return Stream.of(Arguments.of(2, null, null, 46.666), //
-                Arguments.of(2, null, DecimalType.valueOf("3"), 46.666), //
-                Arguments.of(2, TEST_ITEM_NAME, UnDefType.UNDEF, 46.666), //
-                Arguments.of(2, UNKNOWN_ITEM_NAME, DecimalType.valueOf("3"), 46.666),
-                Arguments.of(2, TEST_ITEM_NAME, DecimalType.valueOf("3"), 69.999));
+    private static final Stream<Arguments> configurations() {
+        return Stream.of(Arguments.of(2, DecimalType.valueOf("23.333"), null, null, DecimalType.valueOf("46.666")), //
+                Arguments.of(2, DecimalType.valueOf("23.333"), null, DecimalType.valueOf("3"),
+                        DecimalType.valueOf("46.666")), //
+                Arguments.of(2, DecimalType.valueOf("23.333"), TEST_ITEM_NAME, UnDefType.UNDEF,
+                        DecimalType.valueOf("46.666")), //
+                Arguments.of(2, DecimalType.valueOf("23.333"), UNKNOWN_ITEM_NAME, DecimalType.valueOf("3"),
+                        DecimalType.valueOf("46.666")), //
+                Arguments.of(2, DecimalType.valueOf("23.333"), TEST_ITEM_NAME, DecimalType.valueOf("3"),
+                        DecimalType.valueOf("69.999")), //
+                Arguments.of(2, QuantityType.valueOf("230 V"), TEST_ITEM_NAME, QuantityType.valueOf("6 A"),
+                        QuantityType.valueOf("1380 W")));
     }
 
     @BeforeEach
@@ -73,41 +80,38 @@ class MultiplyTransformationProfileTest {
 
     @ParameterizedTest
     @MethodSource("configurations")
-    public void testDecimalTypeOnCommandFromHandler(Integer multiplicand, @Nullable String itemName,
-            @Nullable State itemState, double expectedResult) throws ItemNotFoundException {
+    public void testDecimalTypeOnCommandFromHandler(Integer multiplicand, Command cmd, @Nullable String itemName,
+            @Nullable State itemState, Command expectedResult) throws ItemNotFoundException {
         ProfileCallback callback = mock(ProfileCallback.class);
         MultiplyTransformationProfile profile = createProfile(callback, multiplicand, itemName, itemState);
 
-        Command cmd = new DecimalType(23.333);
         profile.onCommandFromHandler(cmd);
 
         ArgumentCaptor<Command> capture = ArgumentCaptor.forClass(Command.class);
         verify(callback, times(1)).sendCommand(capture.capture());
 
         Command result = capture.getValue();
-        DecimalType dtResult = (DecimalType) result;
-        assertThat(dtResult.doubleValue(), is(expectedResult));
+        assertThat(result, is(expectedResult));
     }
 
     @ParameterizedTest
     @MethodSource("configurations")
-    public void testDecimalTypeOnStateUpdateFromHandler(Integer multiplicand, @Nullable String itemName,
-            @Nullable State itemState, double expectedResult) throws ItemNotFoundException {
+    public void testDecimalTypeOnStateUpdateFromHandler(Integer multiplicand, State state, @Nullable String itemName,
+            @Nullable State itemState, State expectedResult) throws ItemNotFoundException {
         ProfileCallback callback = mock(ProfileCallback.class);
         MultiplyTransformationProfile profile = createProfile(callback, multiplicand, itemName, itemState);
 
-        State state = new DecimalType(23.333);
         profile.onStateUpdateFromHandler(state);
 
         ArgumentCaptor<State> capture = ArgumentCaptor.forClass(State.class);
         verify(callback, times(1)).sendUpdate(capture.capture());
 
         State result = capture.getValue();
-        DecimalType dtResult = (DecimalType) result;
-        assertThat(dtResult.doubleValue(), is(expectedResult));
+        assertThat(result, is(expectedResult));
     }
 
     @Test
+    @Disabled
     public void testQuantityTypeOnCommandFromHandler() throws ItemNotFoundException {
         ProfileCallback callback = mock(ProfileCallback.class);
         MultiplyTransformationProfile profile = createProfile(callback, 2);
@@ -126,6 +130,7 @@ class MultiplyTransformationProfileTest {
     }
 
     @Test
+    @Disabled
     public void testQuantityTypeOnStateUpdateFromHandler() throws ItemNotFoundException {
         ProfileCallback callback = mock(ProfileCallback.class);
         MultiplyTransformationProfile profile = createProfile(callback, 2);

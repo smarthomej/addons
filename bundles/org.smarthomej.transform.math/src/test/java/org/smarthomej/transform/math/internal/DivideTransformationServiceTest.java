@@ -14,8 +14,13 @@ package org.smarthomej.transform.math.internal;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.stream.Stream;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.openhab.core.transform.TransformationException;
 import org.openhab.core.transform.TransformationService;
 
@@ -27,27 +32,20 @@ import org.openhab.core.transform.TransformationService;
  */
 @NonNullByDefault
 class DivideTransformationServiceTest {
+
+    private static final Stream<Arguments> configurations() {
+        return Stream.of(Arguments.of("100", "-2000", "-20"), //
+                Arguments.of("0.3333333333333333333333333333333333", "1", "3"), //
+                Arguments.of("0", "0", "8.0"), //
+                Arguments.of("6 W/V", "1380 W", "230 V"));
+    }
+
     private final TransformationService subject = new DivideTransformationService();
 
-    @Test
-    public void testTransform() throws TransformationException {
-        String result = subject.transform("-20", "-2000");
-
-        assertEquals("100", result);
-    }
-
-    @Test
-    public void testTransform2() throws TransformationException {
-        String result = subject.transform("3", "1");
-
-        assertEquals("0.3333333333333333333333333333333333", result);
-    }
-
-    @Test
-    public void testTransformInsideString() throws TransformationException {
-        String result = subject.transform("60", "90 watts");
-
-        assertEquals("1.5 watts", result);
+    @ParameterizedTest
+    @MethodSource("configurations")
+    public void testTransform(String expected, String source, String value) throws TransformationException {
+        assertEquals(expected, subject.transform(value, source));
     }
 
     @Test
@@ -63,10 +61,5 @@ class DivideTransformationServiceTest {
     @Test
     public void testTransformDivideByZero() {
         assertThrows(TransformationException.class, () -> subject.transform("0", "1"));
-    }
-
-    @Test
-    public void zeroValueReturnsAParsableValue() throws TransformationException {
-        assertEquals("0", subject.transform("8.0", "0"));
     }
 }
