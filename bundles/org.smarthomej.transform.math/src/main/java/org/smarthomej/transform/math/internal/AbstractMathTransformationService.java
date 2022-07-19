@@ -13,11 +13,10 @@
 package org.smarthomej.transform.math.internal;
 
 import java.math.BigDecimal;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.transform.TransformationException;
 import org.openhab.core.transform.TransformationService;
 import org.slf4j.Logger;
@@ -33,42 +32,37 @@ abstract class AbstractMathTransformationService implements TransformationServic
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private static final Pattern NUMBER_PATTERN = Pattern.compile(".*?(-?((0)|([1-9][0-9]*))(\\.[0-9]*)?).*?");
-
     @Override
     public @Nullable String transform(String valueString, String sourceString) throws TransformationException {
-        BigDecimal source;
-        String extractedNumericString = extractNumericString(sourceString);
+        QuantityType<?> source;
         try {
-            source = new BigDecimal(extractedNumericString);
-        } catch (NumberFormatException e) {
-            logger.warn("Input value '{}' could not converted to a valid number", extractedNumericString);
+            source = new QuantityType<>(sourceString);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Input value '{}' could not be converted to a valid number", sourceString);
             throw new TransformationException("Math Transformation can only be used with numeric inputs");
         }
-        BigDecimal value;
+        QuantityType<?> value;
         try {
-            value = new BigDecimal(extractNumericString(valueString));
-        } catch (NumberFormatException e) {
-            logger.warn("Input value '{}' could not converted to a valid number", extractNumericString(valueString));
+            value = new QuantityType<>(valueString);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Input value '{}' could not be converted to a valid number", valueString);
             throw new TransformationException("Math Transformation can only be used with numeric inputs");
         }
         try {
-            BigDecimal result = performCalculation(source, value);
-            String resultString = BigDecimal.ZERO.compareTo(result) == 0 ? "0" : result.toString();
-            return sourceString.replace(extractedNumericString, resultString);
-        } catch (ArithmeticException e) {
+            QuantityType<?> result = performCalculation(source, value);
+            return BigDecimal.ZERO.compareTo(result.toBigDecimal()) == 0 ? "0" : result.toString();
+        } catch (IllegalArgumentException e) {
             throw new TransformationException("ArithmeticException: " + e.getMessage());
         }
     }
 
-    private String extractNumericString(String sourceString) throws TransformationException {
-        Matcher matcher = NUMBER_PATTERN.matcher(sourceString);
-        if (matcher.matches()) {
-            return matcher.group(1);
-        } else {
-            throw new TransformationException("Math Transformation can only be used with numeric inputs");
-        }
-    }
-
-    abstract BigDecimal performCalculation(BigDecimal source, BigDecimal value);
+    /**
+     * Perform the mathematical calculation.
+     *
+     * @param source the source
+     * @param value the value
+     * @return the result of the mathematical calculation
+     * @throws IllegalArgumentException in case of invalid inputs for calculations
+     */
+    abstract QuantityType<?> performCalculation(QuantityType<?> source, QuantityType<?> value);
 }

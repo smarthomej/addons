@@ -12,9 +12,8 @@
  */
 package org.smarthomej.transform.math.internal;
 
-import java.math.BigDecimal;
-
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.transform.TransformationService;
 import org.osgi.service.component.annotations.Component;
 
@@ -28,7 +27,10 @@ import org.osgi.service.component.annotations.Component;
 public class AddTransformationService extends AbstractMathTransformationService {
 
     @Override
-    BigDecimal performCalculation(BigDecimal source, BigDecimal value) {
-        return source.add(value);
+    QuantityType<?> performCalculation(QuantityType<?> source, QuantityType<?> value) {
+        if (source.getUnit().isCompatible(value.getUnit())) {
+            return new QuantityType<>(source.toBigDecimal().add(value.toBigDecimal()), source.getUnit());
+        }
+        throw new IllegalArgumentException("Units are not compatible for operation.");
     }
 }

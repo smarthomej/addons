@@ -54,6 +54,10 @@ public abstract class AbstractMathTransformationProfile implements StateProfile 
     }
 
     protected @Nullable String getParam(ProfileContext context, String param) {
+        return getParam(context, param, true);
+    }
+
+    protected @Nullable String getParam(ProfileContext context, String param, boolean logError) {
         Object paramValue = context.getConfiguration().get(param);
         logger.debug("Profile configured with '{}'='{}'", param, paramValue);
         if (paramValue instanceof String) {
@@ -62,7 +66,9 @@ public abstract class AbstractMathTransformationProfile implements StateProfile 
             final BigDecimal value = (BigDecimal) paramValue;
             return value.toPlainString();
         } else {
-            logger.error("Parameter '{}' has to be a BigDecimal or a String. Profile will be inactive.", param);
+            if (logError) {
+                logger.error("Parameter '{}' has to be a BigDecimal or a String. Profile will be inactive.", param);
+            }
             return null;
         }
     }

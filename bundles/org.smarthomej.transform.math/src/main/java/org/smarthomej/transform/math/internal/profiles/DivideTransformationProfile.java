@@ -14,6 +14,7 @@ package org.smarthomej.transform.math.internal.profiles;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.core.items.ItemRegistry;
 import org.openhab.core.thing.profiles.ProfileCallback;
 import org.openhab.core.thing.profiles.ProfileContext;
 import org.openhab.core.thing.profiles.ProfileTypeUID;
@@ -28,7 +29,7 @@ import org.smarthomej.transform.math.internal.DivideTransformationService;
  * @author Christoph Weitkamp - Initial contribution
  */
 @NonNullByDefault
-public class DivideTransformationProfile extends AbstractMathTransformationProfile {
+public class DivideTransformationProfile extends AbstractArithmeticMathTransformationProfile {
 
     public static final ProfileTypeUID PROFILE_TYPE_UID = new ProfileTypeUID(
             TransformationService.TRANSFORM_PROFILE_SCOPE, "DIVIDE");
@@ -37,16 +38,16 @@ public class DivideTransformationProfile extends AbstractMathTransformationProfi
 
     private final @Nullable String divisor;
 
-    public DivideTransformationProfile(ProfileCallback callback, ProfileContext context,
-            TransformationService service) {
-        super(callback, service, PROFILE_TYPE_UID);
+    public DivideTransformationProfile(ProfileCallback callback, ProfileContext context, TransformationService service,
+            ItemRegistry itemRegistry) {
+        super(callback, context, service, itemRegistry, PROFILE_TYPE_UID);
 
         divisor = getParam(context, DIVISOR_PARAM);
     }
 
     @Override
     public void onCommandFromHandler(Command command) {
-        String localDivisor = divisor;
+        String localDivisor = getItemStateOrElse(divisor);
         if (localDivisor == null) {
             logger.warn(
                     "Please specify a divisor for this Profile in the '{}' parameter. Returning the original command now.",
@@ -59,7 +60,7 @@ public class DivideTransformationProfile extends AbstractMathTransformationProfi
 
     @Override
     public void onStateUpdateFromHandler(State state) {
-        String localDivisor = divisor;
+        String localDivisor = getItemStateOrElse(divisor);
         if (localDivisor == null) {
             logger.warn(
                     "Please specify a divisor for this Profile in the '{}' parameter. Returning the original state now.",
