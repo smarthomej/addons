@@ -26,8 +26,7 @@
 			<context>item</context>
 			<label>Item</label>
 			<description>Name of an alternative Item which State to be multiplied by the linked Item State (will be prioritized
-				if
-				given).</description>
+				if given).</description>
 		</parameter>
 	</config-description>
 
