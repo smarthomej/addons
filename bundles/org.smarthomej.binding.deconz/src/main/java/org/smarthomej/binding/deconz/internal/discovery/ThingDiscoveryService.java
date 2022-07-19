@@ -137,6 +137,11 @@ public class ThingDiscoveryService extends AbstractDiscoveryService implements D
             case LIGHT_GROUP:
                 thingTypeUID = THING_TYPE_LIGHTGROUP;
                 break;
+            case LUMINAIRE:
+            case LIGHT_SOURCE:
+            case ROOM:
+                logger.debug("Group {} ({}), type {} ignored.", group.id, group.name, group.type);
+                return;
             default:
                 logger.debug(
                         "Found group: {} ({}), type {} but no thing type defined for that type. This should be reported.",
