@@ -15,7 +15,7 @@ package org.smarthomej.transform.math.internal.profiles;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.util.Collection;
 import java.util.Map;
@@ -29,6 +29,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.openhab.core.config.core.Configuration;
+import org.openhab.core.items.ItemRegistry;
 import org.openhab.core.thing.profiles.ProfileCallback;
 import org.openhab.core.thing.profiles.ProfileContext;
 import org.openhab.core.thing.profiles.ProfileType;
@@ -65,7 +66,8 @@ public class MathTransformationProfileFactoryTest {
 
     @BeforeEach
     public void setup() {
-        profileFactory = new MathTransformationProfileFactory(mockLocalizationService, mockBundleResolver);
+        profileFactory = new MathTransformationProfileFactory(mock(ItemRegistry.class), mockLocalizationService,
+                mockBundleResolver);
 
         when(mockContext.getConfiguration()).thenReturn(CONFIG);
     }

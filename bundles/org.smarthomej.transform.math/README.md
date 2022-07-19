@@ -14,6 +14,9 @@ The available transformations are
 The values need to be either decimals or strings.
 For bit-wise operations hexadecimal notation (e.g. `0x67`) or binary notation (e.g. `0b00010000`) are supported for both, value and state.
 
+Arithmetic math Profiles have an optional configuration parameter `itemName` which allows to use an alternative Item State as value for the transformation.
+The Item State will be prioritized if given and different from `UnDefType` and interpretable as a decimal number.
+
 ## Full Example
 
 Example Items:
@@ -27,7 +30,7 @@ Number bitand "Value bitor [BITOR(0x27):%s]" { channel="<channelUID>" }
 
 // Usage as a Profile
 Number multiply "Value multiplied by [%.1f]" { channel="<channelUID>" [profile="transform:MULTIPLY", multiplicand=1000] }
-Number add "Value added [%.1f]" { channel="<channelUID>" [profile="transform:ADD", addend=5.1] }
+Number add "Value added [%.1f]" { channel="<channelUID>" [profile="transform:ADD", addend=5.1, itemName="multiply"] }
 Number secondsToMinutes "Time [%d]" { channel="<channelUID>" [profile="transform:DIVIDE, divisor=60] }
 Number subtracted "Value subtracted [%.1f]" { channel="<channelUID>" [profile="transform:ADD", addend=-1] }
 Number bitand "Value bitand [%s]" { channel="<channelUID>" [profile="transform:BITAND", mask="0b00010000"] }

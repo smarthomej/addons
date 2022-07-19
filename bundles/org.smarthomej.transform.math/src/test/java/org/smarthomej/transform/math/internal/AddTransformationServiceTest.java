@@ -14,8 +14,13 @@ package org.smarthomej.transform.math.internal;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.stream.Stream;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.openhab.core.transform.TransformationException;
 import org.openhab.core.transform.TransformationService;
 
@@ -26,20 +31,20 @@ import org.openhab.core.transform.TransformationService;
  */
 @NonNullByDefault
 class AddTransformationServiceTest {
-    private final TransformationService subject = new AddTransformationService();
 
-    @Test
-    public void testTransform() throws TransformationException {
-        String result = subject.transform("20", "100");
-
-        assertEquals("120", result);
+    private static final Stream<Arguments> configurations() {
+        return Stream.of(Arguments.of("120", "100", "20"), //
+                Arguments.of("80", "100", "-20"), //
+                Arguments.of("0", "0", "0.0"), //
+                Arguments.of("23 °C", "21 °C", "2 °C"));
     }
 
-    @Test
-    public void testTransformInsideString() throws TransformationException {
-        String result = subject.transform("20", "100 watt");
+    private final TransformationService subject = new AddTransformationService();
 
-        assertEquals("120 watt", result);
+    @ParameterizedTest
+    @MethodSource("configurations")
+    public void testTransform(String expected, String source, String value) throws TransformationException {
+        assertEquals(expected, subject.transform(value, source));
     }
 
     @Test
@@ -50,5 +55,10 @@ class AddTransformationServiceTest {
     @Test
     public void testTransformInvalidFunction() {
         assertThrows(TransformationException.class, () -> subject.transform("*", "90"));
+    }
+
+    @Test
+    public void testTransformInvalidUnits() {
+        assertThrows(TransformationException.class, () -> subject.transform("2 m", "5 g"));
     }
 }
