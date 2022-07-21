@@ -25,6 +25,7 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -56,6 +57,7 @@ import javax.net.ssl.HttpsURLConnection;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.core.cache.ExpiringCacheMap;
 import org.openhab.core.common.ThreadPoolManager;
 import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.library.types.StringType;
@@ -166,6 +168,8 @@ public class Connection {
 
     private final Map<TimerType, ScheduledFuture<?>> timers = new ConcurrentHashMap<>();
     private final Map<TimerType, Lock> locks = new ConcurrentHashMap<>();
+
+    private final ExpiringCacheMap<String, String> requestCache = new ExpiringCacheMap<>(Duration.ofSeconds(10));
 
     private enum TimerType {
         ANNOUNCEMENT,
@@ -377,7 +381,21 @@ public class Connection {
     }
 
     public String makeRequestAndReturnString(String url) throws ConnectionException {
-        return makeRequestAndReturnString("GET", url, null, false, Map.of());
+        try {
+            return Objects.requireNonNull(requestCache.putIfAbsentAndGet(url, () -> {
+                try {
+                    return makeRequestAndReturnString("GET", url, null, false, Map.of());
+                } catch (ConnectionException e) {
+                    throw new IllegalStateException(e);
+                }
+            }));
+        } catch (IllegalStateException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof ConnectionException) {
+                throw (ConnectionException) cause;
+            }
+            throw e;
+        }
     }
 
     public String makeRequestAndReturnString(String requestMethod, String url, @Nullable String postData, boolean json,
@@ -510,6 +528,9 @@ public class Connection {
                         continue; // repeat with new location
                     }
                     return connection;
+                } else if (code == 400 && "QUEUE_EXPIRED".equals(connection.getHeaderField("x-amzn-error"))) {
+                    // handle queue expired
+                    throw new ConnectionException("Queue expired");
                 } else {
                     logger.debug("Retry call to {}", url);
                     retryCounter++;
@@ -590,8 +611,8 @@ public class Connection {
         try {
             exchangeToken();
             // Check which is the owner domain
-            String usersMeResponseJson = makeRequestAndReturnString("GET",
-                    "https://alexa.amazon.com/api/users/me?platform=ios&version=2.2.443692.0", null, false, Map.of());
+            String usersMeResponseJson = makeRequestAndReturnString(
+                    "https://alexa.amazon.com/api/users/me?platform=ios&version=2.2.443692.0");
             JsonUsersMeResponse usersMeResponse = parseJson(usersMeResponseJson, JsonUsersMeResponse.class);
             if (usersMeResponse == null) {
                 throw new IllegalStateException();
@@ -1781,8 +1802,7 @@ public class Connection {
 
     public @Nullable JsonNotificationResponse getNotificationState(JsonNotificationResponse notification)
             throws ConnectionException {
-        String response = makeRequestAndReturnString("GET", alexaServer + "/api/notifications/" + notification.id, null,
-                true, Map.of());
+        String response = makeRequestAndReturnString(alexaServer + "/api/notifications/" + notification.id);
         JsonNotificationResponse result = parseJson(response, JsonNotificationResponse.class);
         return result;
     }
