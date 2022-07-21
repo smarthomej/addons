@@ -73,6 +73,7 @@ import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCommandPayloa
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCustomerHistoryRecords.CustomerHistoryRecord;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDeviceNotificationState.DeviceNotificationState;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDevices.Device;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDoNotDisturb.DoNotDisturbDeviceStatus;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonFeed;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonMusicProvider;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonNotificationResponse;
@@ -524,6 +525,7 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
 
                 List<DeviceNotificationState> deviceNotificationStates = List.of();
                 List<AscendingAlarmModel> ascendingAlarmModels = List.of();
+                List<DoNotDisturbDeviceStatus> doNotDisturbDeviceStatuses = List.of();
                 JsonBluetoothStates states = null;
                 List<JsonMusicProvider> musicProviders = null;
                 if (currentConnection.getIsLoggedIn()) {
@@ -532,6 +534,9 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
 
                     // update ascending alarm
                     ascendingAlarmModels = currentConnection.getAscendingAlarm();
+
+                    // update do not disturb
+                    doNotDisturbDeviceStatuses = currentConnection.getDoNotDisturb();
 
                     // update bluetooth states
                     states = currentConnection.getBluetoothConnectionStates();
@@ -572,6 +577,7 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
                     }
                     DeviceNotificationState deviceNotificationState = null;
                     AscendingAlarmModel ascendingAlarmModel = null;
+                    DoNotDisturbDeviceStatus doNotDisturbDeviceStatus = null;
                     if (device != null) {
                         final String serialNumber = device.serialNumber;
                         if (serialNumber != null) {
@@ -581,10 +587,13 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
                             deviceNotificationState = deviceNotificationStates.stream()
                                     .filter(current -> serialNumber.equals(current.deviceSerialNumber)).findFirst()
                                     .orElse(null);
+                            doNotDisturbDeviceStatus = doNotDisturbDeviceStatuses.stream()
+                                    .filter(current -> serialNumber.equals(current.deviceSerialNumber)).findFirst()
+                                    .orElse(null);
                         }
                     }
-                    child.updateState(this, device, state, deviceNotificationState, ascendingAlarmModel, playlists,
-                            notificationSounds, musicProviders);
+                    child.updateState(this, device, state, deviceNotificationState, ascendingAlarmModel,
+                            doNotDisturbDeviceStatus, playlists, notificationSounds, musicProviders);
                 }
 
                 // refresh notifications
