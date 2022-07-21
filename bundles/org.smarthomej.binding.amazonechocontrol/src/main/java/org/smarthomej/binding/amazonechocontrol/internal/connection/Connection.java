@@ -25,7 +25,6 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -57,7 +56,6 @@ import javax.net.ssl.HttpsURLConnection;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.core.cache.ExpiringCacheMap;
 import org.openhab.core.common.ThreadPoolManager;
 import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.library.types.StringType;
@@ -168,8 +166,6 @@ public class Connection {
 
     private final Map<TimerType, ScheduledFuture<?>> timers = new ConcurrentHashMap<>();
     private final Map<TimerType, Lock> locks = new ConcurrentHashMap<>();
-
-    private final ExpiringCacheMap<String, String> requestCache = new ExpiringCacheMap<>(Duration.ofSeconds(10));
 
     private enum TimerType {
         ANNOUNCEMENT,
@@ -381,21 +377,7 @@ public class Connection {
     }
 
     public String makeRequestAndReturnString(String url) throws ConnectionException {
-        try {
-            return Objects.requireNonNull(requestCache.putIfAbsentAndGet(url, () -> {
-                try {
-                    return makeRequestAndReturnString("GET", url, null, false, Map.of());
-                } catch (ConnectionException e) {
-                    throw new IllegalStateException(e);
-                }
-            }));
-        } catch (IllegalStateException e) {
-            Throwable cause = e.getCause();
-            if (cause instanceof ConnectionException) {
-                throw (ConnectionException) cause;
-            }
-            throw e;
-        }
+        return makeRequestAndReturnString("GET", url, null, false, Map.of());
     }
 
     public String makeRequestAndReturnString(String requestMethod, String url, @Nullable String postData, boolean json,
