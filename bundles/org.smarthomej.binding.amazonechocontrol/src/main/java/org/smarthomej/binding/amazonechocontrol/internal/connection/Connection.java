@@ -78,6 +78,8 @@ import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDeviceNotific
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDeviceNotificationState.DeviceNotificationState;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDevices;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDevices.Device;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDoNotDisturb;
+import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDoNotDisturb.DoNotDisturbDeviceStatus;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonEnabledFeeds;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonEqualizer;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonExchangeTokenResponse;
@@ -1052,6 +1054,13 @@ public class Connection {
         makeRequest("PUT", url, command, true, true, Map.of(), 0);
     }
 
+    public void doNotDisturb(Device device, boolean doNotDisturb) throws ConnectionException {
+        String url = alexaServer + "/api/dnd/status";
+        String command = "{\"enabled\":" + (doNotDisturb ? "true" : "false") + ",\"deviceSerialNumber\":\""
+                + device.serialNumber + "\",\"deviceType\":\"" + device.deviceType + "\",\"deviceAccountId\":null}";
+        makeRequest("PUT", url, command, true, true, Map.of(), 0);
+    }
+
     public List<DeviceNotificationState> getDeviceNotificationStates() {
         try {
             String json = makeRequestAndReturnString(alexaServer + "/api/device-notification-state");
@@ -1075,7 +1084,21 @@ public class Connection {
             }
             return Objects.requireNonNullElse(result.ascendingAlarmModelList, List.of());
         } catch (ConnectionException e) {
-            logger.info("Error getting device notification states", e);
+            logger.info("Error getting ascending alarm states", e);
+        }
+        return List.of();
+    }
+
+    public List<DoNotDisturbDeviceStatus> getDoNotDisturb() {
+        try {
+            String json = makeRequestAndReturnString(alexaServer + "/api/dnd/device-status-list");
+            JsonDoNotDisturb result = parseJson(json, JsonDoNotDisturb.class);
+            if (result == null) {
+                return List.of();
+            }
+            return Objects.requireNonNullElse(result.doNotDisturbDeviceStatusList, List.of());
+        } catch (ConnectionException e) {
+            logger.info("Error getting do not disturb status list", e);
         }
         return List.of();
     }
