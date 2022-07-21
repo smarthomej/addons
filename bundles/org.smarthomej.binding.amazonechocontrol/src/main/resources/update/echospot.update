@@ -1,1 +1,2 @@
 1;ADD_CHANNEL;lastSpokenText,String,amazonechocontrol:lastSpokenText
+2;ADD_CHANNEL;doNotDisturb,Switch,amazonechocontrol:doNotDisturb

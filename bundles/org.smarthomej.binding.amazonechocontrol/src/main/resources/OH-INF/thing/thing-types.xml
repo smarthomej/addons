@@ -88,9 +88,10 @@
 			<channel id="lastSpokenText" typeId="lastSpokenText"/>
 			<channel id="notificationVolume" typeId="notificationVolume"/>
 			<channel id="ascendingAlarm" typeId="ascendingAlarm"/>
+			<channel id="doNotDisturb" typeId="doNotDisturb"/>
 		</channels>
 		<properties>
-			<property name="thingTypeVersion">1</property>
+			<property name="thingTypeVersion">2</property>
 		</properties>
 		<representation-property>serialNumber</representation-property>
 		<config-description>
@@ -147,9 +148,10 @@
 			<channel id="lastSpokenText" typeId="lastSpokenText"/>
 			<channel id="notificationVolume" typeId="notificationVolume"/>
 			<channel id="ascendingAlarm" typeId="ascendingAlarm"/>
+			<channel id="doNotDisturb" typeId="doNotDisturb"/>
 		</channels>
 		<properties>
-			<property name="thingTypeVersion">1</property>
+			<property name="thingTypeVersion">2</property>
 		</properties>
 		<representation-property>serialNumber</representation-property>
 		<config-description>
@@ -206,9 +208,10 @@
 			<channel id="lastSpokenText" typeId="lastSpokenText"/>
 			<channel id="notificationVolume" typeId="notificationVolume"/>
 			<channel id="ascendingAlarm" typeId="ascendingAlarm"/>
+			<channel id="doNotDisturb" typeId="doNotDisturb"/>
 		</channels>
 		<properties>
-			<property name="thingTypeVersion">1</property>
+			<property name="thingTypeVersion">2</property>
 		</properties>
 		<representation-property>serialNumber</representation-property>
 		<config-description>
@@ -509,6 +512,11 @@
 		<item-type>Switch</item-type>
 		<label>Ascending Alarm</label>
 		<description>Ascending alarm up to the configured volume</description>
+	</channel-type>
+	<channel-type id="doNotDisturb">
+		<item-type>Switch</item-type>
+		<label>Do Not Disturb</label>
+		<description>Do Not Disturb mode enabled</description>
 	</channel-type>
 	<channel-type id="nextReminder" advanced="true">
 		<item-type>DateTime</item-type>
