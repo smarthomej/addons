@@ -512,6 +512,9 @@ public class Connection {
                         continue; // repeat with new location
                     }
                     return connection;
+                } else if (code == 400 && "QUEUE_EXPIRED".equals(connection.getHeaderField("x-amzn-error"))) {
+                    // handle queue expired
+                    throw new ConnectionException("Queue expired");
                 } else {
                     logger.debug("Retry call to {}", url);
                     retryCounter++;
@@ -592,8 +595,8 @@ public class Connection {
         try {
             exchangeToken();
             // Check which is the owner domain
-            String usersMeResponseJson = makeRequestAndReturnString("GET",
-                    "https://alexa.amazon.com/api/users/me?platform=ios&version=2.2.443692.0", null, false, Map.of());
+            String usersMeResponseJson = makeRequestAndReturnString(
+                    "https://alexa.amazon.com/api/users/me?platform=ios&version=2.2.443692.0");
             JsonUsersMeResponse usersMeResponse = parseJson(usersMeResponseJson, JsonUsersMeResponse.class);
             if (usersMeResponse == null) {
                 throw new IllegalStateException();
@@ -1804,8 +1807,7 @@ public class Connection {
 
     public @Nullable JsonNotificationResponse getNotificationState(JsonNotificationResponse notification)
             throws ConnectionException {
-        String response = makeRequestAndReturnString("GET", alexaServer + "/api/notifications/" + notification.id, null,
-                true, Map.of());
+        String response = makeRequestAndReturnString(alexaServer + "/api/notifications/" + notification.id);
         JsonNotificationResponse result = parseJson(response, JsonNotificationResponse.class);
         return result;
     }

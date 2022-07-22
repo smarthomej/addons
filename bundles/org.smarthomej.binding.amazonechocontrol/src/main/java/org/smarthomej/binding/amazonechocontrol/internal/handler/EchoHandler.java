@@ -15,6 +15,7 @@ package org.smarthomej.binding.amazonechocontrol.internal.handler;
 
 import static org.smarthomej.binding.amazonechocontrol.internal.AmazonEchoControlBindingConstants.*;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -31,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.core.cache.ExpiringCacheMap;
 import org.openhab.core.library.types.DateTimeType;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.IncreaseDecreaseType;
@@ -137,6 +139,8 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
     long mediaProgressMs;
     long mediaStartMs;
 
+    private final ExpiringCacheMap<String, State> stateCache = new ExpiringCacheMap<>(Duration.ofSeconds(30));
+
     public EchoHandler(Thing thing, Gson gson,
             SimpleDynamicCommandDescriptionProvider dynamicCommandDescriptionProvider,
             SimpleDynamicStateDescriptionProvider dynamicStateDescriptionProvider) {
@@ -230,6 +234,15 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
+        if (command instanceof RefreshType) {
+            State state = stateCache.get(channelUID.getId());
+            if (state != null) {
+                // if we have cached value use that and return
+                // call the original update method to prevent prolonging the same value in cache
+                super.updateState(channelUID, state);
+                return;
+            }
+        }
         try {
             logger.trace("Command '{}' received for channel '{}'", command, channelUID);
             int waitForUpdate = 1000;
@@ -857,6 +870,7 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
             @Nullable DoNotDisturbDeviceStatus doNotDisturbDeviceStatus, @Nullable JsonPlaylists playlists,
             @Nullable List<JsonNotificationSound> alarmSounds, @Nullable List<JsonMusicProvider> musicProviders) {
         try {
+
             this.logger.debug("Handle updateState {}", this.getThing().getUID());
 
             if (deviceNotificationState != null) {
@@ -1378,5 +1392,11 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
     @Override
     public void updateChannelState(String channelId, State state) {
         updateState(channelId, state);
+    }
+
+    @Override
+    protected void updateState(String channelId, State state) {
+        stateCache.put(channelId, () -> state);
+        super.updateState(channelId, state);
     }
 }
