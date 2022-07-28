@@ -71,7 +71,7 @@
 		</supported-bridge-type-refs>
 		<label>Viessmann Device</label>
 		<properties>
-			<property name="thingTypeVersion">2</property>
+			<property name="thingTypeVersion">3</property>
 		</properties>
 		<representation-property>deviceId</representation-property>
 		<config-description>

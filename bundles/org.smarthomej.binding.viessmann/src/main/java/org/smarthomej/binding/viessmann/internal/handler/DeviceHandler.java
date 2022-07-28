@@ -122,7 +122,8 @@ public class DeviceHandler extends ViessmannThingHandler {
         try {
             Channel ch = thing.getChannel(channelUID.getId());
             if (ch != null) {
-                logger.trace("ChannelUID: {}", ch.getProperties());
+                // String channel = ch.getUID().toString();
+                logger.trace("ChannelUID: {} | Properties: {}", ch.getUID(), ch.getProperties());
                 Map<String, String> prop = ch.getProperties();
                 String commands = prop.get("command");
                 if (commands != null) {
@@ -138,12 +139,37 @@ public class DeviceHandler extends ViessmannThingHandler {
                     } else if (command instanceof DecimalType) {
                         logger.trace("Received DecimalType Command for Channel {}",
                                 thing.getChannel(channelUID.getId()));
+                        for (String str : com) {
+                            if (str.contains("setCurve")) {
+                                uri = prop.get(str + "Uri");
+                                String value = command.toString();
+                                if (ch.getUID().toString().contains("shift")) {
+                                    // read slope from channel property
+                                    String channelId = ch.getUID().toString().replace("#shift", "#slope");
+                                    Channel c = thing.getChannel(new ChannelUID(channelId));
+                                    if (c != null) {
+                                        Map<String, String> p = c.getProperties();
+                                        String params = "{\"slope\":" + p.get("slope") + ", \"shift\":" + value + "}";
+                                        logger.trace("PARAMs: {}", params);
+                                    }
+                                } else if (ch.getUID().toString().contains("slope")) {
+                                    // read shift from channel property
+                                    String channelId = ch.getUID().toString().replace("#slope", "#shift");
+                                    Channel c = thing.getChannel(new ChannelUID(channelId));
+                                    if (c != null) {
+                                        Map<String, String> p = c.getProperties();
+                                        String params = "{\"slope\":" + value + ", \"shift\":" + p.get("slope") + "}";
+                                        logger.trace("PARAMs: {}", params);
+                                    }
+                                }
+                            }
+                        }
                     } else if (command instanceof QuantityType<?>) {
                         QuantityType<?> value = (QuantityType<?>) command;
                         double f = value.doubleValue();
                         for (String str : com) {
                             if (str.contains("Temperature") || str.contains("setHysteresis") || str.contains("setMin")
-                                    || str.contains("setMax")) {
+                                    || str.contains("setMax") || str.contains("temperature")) {
                                 uri = prop.get(str + "Uri");
                                 param = "{\"" + prop.get(str + "Params") + "\":" + f + "}";
                                 break;
@@ -247,10 +273,14 @@ public class DeviceHandler extends ViessmannThingHandler {
                         case "shift":
                             typeEntry = prop.shift.type;
                             valueEntry = prop.shift.value.toString();
+                            msg.setProperties("slope", prop.slope.value.toString());
+                            msg.setProperties("shift", prop.shift.value.toString());
                             break;
                         case "slope":
                             typeEntry = "decimal";
                             valueEntry = prop.slope.value.toString();
+                            msg.setProperties("shift", prop.shift.value.toString());
+                            msg.setProperties("slope", prop.slope.value.toString());
                             break;
                         case "entries":
                             msg.setSuffix("schedule");
@@ -444,6 +474,11 @@ public class DeviceHandler extends ViessmannThingHandler {
                                 case "kelvin":
                                 case "liter":
                                     updateChannelState(msg.getChannelId(), msg.getValue(), unit);
+                                    if (msg.getProperties() != null) {
+                                        // updateChannelProperties(msg.getChannelId(), msg.getProperties(),
+                                        // msg.getCommands());
+                                        updateChannelProperties(msg);
+                                    }
                                     break;
                                 case "boolean":
                                     OnOffType state = bool ? OnOffType.ON : OnOffType.OFF;
@@ -518,108 +553,9 @@ public class DeviceHandler extends ViessmannThingHandler {
             return;
         }
 
-        Map<String, String> prop = new HashMap<>();
-        prop.put("feature", msg.getFeatureClear());
-        String channelType = msg.getChannelType();
+        Map<String, String> prop = buildProperties(msg);
+        String channelType = convertChannelType(msg);
 
-        FeatureCommands commands = msg.getCommands();
-        if (commands != null) {
-            List<String> com = commands.getUsedCommands();
-            if (!com.isEmpty()) {
-                for (String command : com) {
-                    switch (command) {
-                        case "setName":
-                            channelType = msg.getChannelType();
-                            prop.put("setNameUri", commands.setName.uri);
-                            prop.put("command", "setName");
-                            prop.put("setNameParams", "name");
-                            break;
-                        case "setCurve":
-                            channelType = msg.getChannelType();
-                            prop.put("setCurveUri", commands.setCurve.uri);
-                            prop.put("command", "setCurve");
-                            prop.put("setCurveParams", "slope,shift");
-                            break;
-                        case "setSchedule":
-                            channelType = msg.getChannelType();
-                            prop.put("setScheduleUri", commands.setSchedule.uri);
-                            prop.put("command", "setSchedule");
-                            prop.put("setScheduleParams", "newSchedule");
-                            break;
-                        case "setMode":
-                            channelType = msg.getChannelType();
-                            prop.put("setModeUri", commands.setMode.uri);
-                            prop.put("command", "setMode");
-                            prop.put("setModeParams", "mode");
-                            break;
-                        case "setTemperature":
-                            if (!"type-boolean".equals(channelType)) {
-                                channelType = "type-settemperature";
-                            }
-                            prop.put("setTemperatureUri", commands.setTemperature.uri);
-                            prop.put("command", "setTemperature");
-                            prop.put("setTemperatureParams", "targetTemperature");
-                            break;
-                        case "activate":
-                            channelType = msg.getChannelType();
-                            prop.put("activateUri", commands.activate.uri);
-                            prop.put("command", "activate,deactivate");
-                            prop.put("activateParams", "{}");
-                            prop.put("deactivateParams", "{}");
-                            break;
-                        case "deactivate":
-                            channelType = msg.getChannelType();
-                            prop.put("deactivateUri", commands.deactivate.uri);
-                            prop.put("command", "activate,deactivate");
-                            prop.put("activateParams", "{}");
-                            prop.put("deactivateParams", "{}");
-                            break;
-                        case "changeEndDate":
-                            channelType = msg.getChannelType();
-                            prop.put("changeEndDateUri", commands.changeEndDate.uri);
-                            prop.put("command", "changeEndDate,schedule,unschedule");
-                            prop.put("changeEndDatepParams", "end");
-                            prop.put("scheduleParams", "start,end");
-                            prop.put("unscheduleParams", "{}");
-                            break;
-                        case "schedule":
-                            channelType = msg.getChannelType();
-                            prop.put("scheduleUri", commands.schedule.uri);
-                            prop.put("scheduleParams", "start,end");
-                            break;
-                        case "unschedule":
-                            channelType = msg.getChannelType();
-                            prop.put("unscheduleUri", commands.unschedule.uri);
-                            prop.put("unscheduleParams", "{}");
-                            break;
-                        case "setMin":
-                            if (msg.getSuffix().contains("min")) {
-                                channelType = "type-setMin";
-                                prop.put("setMinUri", commands.setMin.uri);
-                                prop.put("command", "setMin");
-                                prop.put("setMinParams", "temperature");
-                            }
-                            break;
-                        case "setMax":
-                            if (msg.getSuffix().contains("max")) {
-                                channelType = "type-setMax";
-                                prop.put("setMaxUri", commands.setMax.uri);
-                                prop.put("command", "setMax");
-                                prop.put("setMaxParams", "temperature");
-                            }
-                            break;
-                        case "setHysteresis":
-                            channelType = "type-setTargetHysteresis";
-                            prop.put("setHysteresisUri", commands.setHysteresis.uri);
-                            prop.put("command", "setHysteresis");
-                            prop.put("setHysteresisParams", "hysteresis");
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            }
-        }
         ChannelTypeUID channelTypeUID = new ChannelTypeUID(BINDING_ID, channelType);
         if (msg.getFeatureName().contains("active")) {
             logger.trace("Feature: {} ChannelType: {}", msg.getFeatureClear(), channelType);
@@ -744,5 +680,214 @@ public class DeviceHandler extends ViessmannThingHandler {
             DecimalType s = DecimalType.valueOf(stateAsString);
             updateState(channelId, s);
         }
+    }
+
+    private void updateChannelProperties(ThingMessageDTO msg) {
+        String channelId = msg.getChannelId();
+        String channelType = msg.getChannelType();
+        Map<String, String> p = msg.getProperties();
+        FeatureCommands commands = msg.getCommands();
+        if (commands != null) {
+            List<String> com = commands.getUsedCommands();
+            if (!com.isEmpty()) {
+                for (String command : com) {
+                    switch (command) {
+                        case "setCurve":
+                            logger.trace("COMMAND: {}", command);
+                            logger.trace("P:", p);
+
+                            ChannelUID channelUID = new ChannelUID(thing.getUID(), channelId);
+                            ThingHandlerCallback callback = getCallback();
+                            if (callback == null) {
+                                logger.warn("Thing '{}'not initialized, could not get callback.", thing.getUID());
+                                return;
+                            }
+                            ChannelTypeUID channelTypeUID = new ChannelTypeUID(BINDING_ID, channelType);
+                            Channel channel = callback.createChannelBuilder(channelUID, channelTypeUID)
+                                    .withLabel(msg.getFeatureName()).withDescription(msg.getFeatureDescription())
+                                    .withProperties(p).build();
+                            // updateThing(editThing().withoutChannel(channelUID).withChannel(channel).build());
+                            break;
+                    }
+                }
+            }
+        }
+    }
+
+    private Map<String, String> buildProperties(ThingMessageDTO msg) {
+        Map<String, String> prop = new HashMap<>();
+        prop.put("feature", msg.getFeatureClear());
+        FeatureCommands commands = msg.getCommands();
+        if (commands != null) {
+            List<String> com = commands.getUsedCommands();
+            if (!com.isEmpty()) {
+                for (String command : com) {
+                    switch (command) {
+                        case "setName":
+                            prop.put("setNameUri", commands.setName.uri);
+                            prop.put("command", "setName");
+                            prop.put("setNameParams", "name");
+                            break;
+                        case "setCurve":
+                            prop.put("setCurveUri", commands.setCurve.uri);
+                            prop.put("command", "setCurve");
+                            prop.put("setCurveParams", "slope,shift");
+
+                            Map<String, String> p = msg.getProperties();
+                            if (p != null) {
+                                @Nullable
+                                String slope = p.get("slope");
+                                @Nullable
+                                String shift = p.get("shift");
+                                if (slope != null) {
+                                    logger.trace("CR SLOPE: {}", p.get("slope"));
+                                    String sl = slope;
+                                    prop.put("slope", sl);
+                                }
+                                if (shift != null) {
+                                    logger.trace("CR SHIFT: {}", p.get("shift"));
+                                    String sh = shift;
+                                    prop.put("shift", sh);
+                                }
+                            }
+                            break;
+                        case "setSchedule":
+                            prop.put("setScheduleUri", commands.setSchedule.uri);
+                            prop.put("command", "setSchedule");
+                            prop.put("setScheduleParams", "newSchedule");
+                            break;
+                        case "setMode":
+                            prop.put("setModeUri", commands.setMode.uri);
+                            prop.put("command", "setMode");
+                            prop.put("setModeParams", "mode");
+                            break;
+                        case "setTemperature":
+                            prop.put("setTemperatureUri", commands.setTemperature.uri);
+                            prop.put("command", "setTemperature");
+                            prop.put("setTemperatureParams", "targetTemperature");
+                            break;
+                        case "setTargetTemperature":
+                            prop.put("temperatureUri", commands.setTargetTemperature.uri);
+                            prop.put("command", "temperature");
+                            prop.put("temperatureParams", "temperature");
+                            break;
+                        case "activate":
+                            prop.put("activateUri", commands.activate.uri);
+                            prop.put("command", "activate,deactivate");
+                            prop.put("activateParams", "{}");
+                            prop.put("deactivateParams", "{}");
+                            break;
+                        case "deactivate":
+                            prop.put("deactivateUri", commands.deactivate.uri);
+                            prop.put("command", "activate,deactivate");
+                            prop.put("activateParams", "{}");
+                            prop.put("deactivateParams", "{}");
+                            break;
+                        case "changeEndDate":
+                            prop.put("changeEndDateUri", commands.changeEndDate.uri);
+                            prop.put("command", "changeEndDate,schedule,unschedule");
+                            prop.put("changeEndDatepParams", "end");
+                            prop.put("scheduleParams", "start,end");
+                            prop.put("unscheduleParams", "{}");
+                            break;
+                        case "schedule":
+                            prop.put("scheduleUri", commands.schedule.uri);
+                            prop.put("scheduleParams", "start,end");
+                            break;
+                        case "unschedule":
+                            prop.put("unscheduleUri", commands.unschedule.uri);
+                            prop.put("unscheduleParams", "{}");
+                            break;
+                        case "setMin":
+                            if (msg.getSuffix().contains("min")) {
+                                prop.put("setMinUri", commands.setMin.uri);
+                                prop.put("command", "setMin");
+                                prop.put("setMinParams", "temperature");
+                            }
+                            break;
+                        case "setMax":
+                            if (msg.getSuffix().contains("max")) {
+                                prop.put("setMaxUri", commands.setMax.uri);
+                                prop.put("command", "setMax");
+                                prop.put("setMaxParams", "temperature");
+                            }
+                            break;
+                        case "setHysteresis":
+                            prop.put("setHysteresisUri", commands.setHysteresis.uri);
+                            prop.put("command", "setHysteresis");
+                            prop.put("setHysteresisParams", "hysteresis");
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+        }
+        return prop;
+    }
+
+    private String convertChannelType(ThingMessageDTO msg) {
+        String channelType = msg.getChannelType();
+        FeatureCommands commands = msg.getCommands();
+        if (commands != null) {
+            List<String> com = commands.getUsedCommands();
+            if (!com.isEmpty()) {
+                for (String command : com) {
+                    switch (command) {
+                        case "setName":
+                            channelType = msg.getChannelType();
+                            break;
+                        case "setCurve":
+                            channelType = msg.getChannelType();
+                            break;
+                        case "setSchedule":
+                            channelType = msg.getChannelType();
+                        case "setMode":
+                            channelType = msg.getChannelType();
+                            break;
+                        case "setTemperature":
+                            if (!"type-boolean".equals(channelType)) {
+                                channelType = "type-settemperature";
+                            }
+                            break;
+                        case "setTargetTemperature":
+                            if (!"type-boolean".equals(channelType)) {
+                                channelType = "type-settemperature";
+                            }
+                            break;
+                        case "activate":
+                            channelType = msg.getChannelType();
+                            break;
+                        case "deactivate":
+                            channelType = msg.getChannelType();
+                            break;
+                        case "changeEndDate":
+                            channelType = msg.getChannelType();
+                            break;
+                        case "schedule":
+                            channelType = msg.getChannelType();
+                        case "unschedule":
+                            channelType = msg.getChannelType();
+                            break;
+                        case "setMin":
+                            if (msg.getSuffix().contains("min")) {
+                                channelType = "type-setMin";
+                            }
+                            break;
+                        case "setMax":
+                            if (msg.getSuffix().contains("max")) {
+                                channelType = "type-setMax";
+                            }
+                            break;
+                        case "setHysteresis":
+                            channelType = "type-setTargetHysteresis";
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+        }
+        return channelType;
     }
 }
