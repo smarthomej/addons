@@ -12,6 +12,9 @@
  */
 package org.smarthomej.binding.viessmann.internal.dto;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.smarthomej.binding.viessmann.internal.dto.features.FeatureCommands;
 
 /**
@@ -30,6 +33,7 @@ public class ThingMessageDTO {
     private String deviceId;
     private String suffix;
     private String unit;
+    private Map<String, String> properties = new HashMap<>();
     private FeatureCommands commands;
 
     public String getType() {
@@ -174,5 +178,15 @@ public class ThingMessageDTO {
         }
         sb.append("#" + suffix);
         return sb.toString();
+    }
+
+    public Map<String, String> getProperties() {
+        return properties;
+    }
+
+    public void setProperties(String key, String value) {
+        // if (key != null && value != null) {
+        this.properties.put(key, value);
+        // }
     }
 }
