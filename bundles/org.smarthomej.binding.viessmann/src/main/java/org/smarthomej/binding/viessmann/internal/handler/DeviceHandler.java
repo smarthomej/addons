@@ -122,8 +122,8 @@ public class DeviceHandler extends ViessmannThingHandler {
         try {
             Channel ch = thing.getChannel(channelUID.getId());
             if (ch != null) {
-                // String channel = ch.getUID().toString();
                 logger.trace("ChannelUID: {} | Properties: {}", ch.getUID(), ch.getProperties());
+                Boolean initState = false;
                 Map<String, String> prop = ch.getProperties();
                 String commands = prop.get("command");
                 if (commands != null) {
@@ -141,6 +141,7 @@ public class DeviceHandler extends ViessmannThingHandler {
                                 thing.getChannel(channelUID.getId()));
                         for (String str : com) {
                             if (str.contains("setCurve")) {
+                                initState = true;
                                 uri = prop.get(str + "Uri");
                                 String value = command.toString();
                                 if (ch.getUID().toString().contains("shift")) {
@@ -149,8 +150,7 @@ public class DeviceHandler extends ViessmannThingHandler {
                                     Channel c = thing.getChannel(new ChannelUID(channelId));
                                     if (c != null) {
                                         Map<String, String> p = c.getProperties();
-                                        String params = "{\"slope\":" + p.get("slope") + ", \"shift\":" + value + "}";
-                                        logger.trace("PARAMs: {}", params);
+                                        param = "{\"slope\":" + p.get("slope") + ", \"shift\":" + value + "}";
                                     }
                                 } else if (ch.getUID().toString().contains("slope")) {
                                     // read shift from channel property
@@ -158,10 +158,10 @@ public class DeviceHandler extends ViessmannThingHandler {
                                     Channel c = thing.getChannel(new ChannelUID(channelId));
                                     if (c != null) {
                                         Map<String, String> p = c.getProperties();
-                                        String params = "{\"slope\":" + value + ", \"shift\":" + p.get("slope") + "}";
-                                        logger.trace("PARAMs: {}", params);
+                                        param = "{\"slope\":" + value + ", \"shift\":" + p.get("shift") + "}";
                                     }
                                 }
+                                //@TODO: update Channel properties for both channels
                             }
                         }
                     } else if (command instanceof QuantityType<?>) {
@@ -196,7 +196,7 @@ public class DeviceHandler extends ViessmannThingHandler {
                         ViessmannBridgeHandler bridgeHandler = bridge == null ? null
                                 : (ViessmannBridgeHandler) bridge.getHandler();
                         if (bridgeHandler != null) {
-                            if (!bridgeHandler.setData(uri, param)) {
+                            if (!bridgeHandler.setData(uri, param) || initState) {
                                 initChannelState();
                             }
                         }
@@ -683,9 +683,6 @@ public class DeviceHandler extends ViessmannThingHandler {
     }
 
     private void updateChannelProperties(ThingMessageDTO msg) {
-        String channelId = msg.getChannelId();
-        String channelType = msg.getChannelType();
-        Map<String, String> p = msg.getProperties();
         FeatureCommands commands = msg.getCommands();
         if (commands != null) {
             List<String> com = commands.getUsedCommands();
@@ -693,20 +690,7 @@ public class DeviceHandler extends ViessmannThingHandler {
                 for (String command : com) {
                     switch (command) {
                         case "setCurve":
-                            logger.trace("COMMAND: {}", command);
-                            logger.trace("P:", p);
-
-                            ChannelUID channelUID = new ChannelUID(thing.getUID(), channelId);
-                            ThingHandlerCallback callback = getCallback();
-                            if (callback == null) {
-                                logger.warn("Thing '{}'not initialized, could not get callback.", thing.getUID());
-                                return;
-                            }
-                            ChannelTypeUID channelTypeUID = new ChannelTypeUID(BINDING_ID, channelType);
-                            Channel channel = callback.createChannelBuilder(channelUID, channelTypeUID)
-                                    .withLabel(msg.getFeatureName()).withDescription(msg.getFeatureDescription())
-                                    .withProperties(p).build();
-                            // updateThing(editThing().withoutChannel(channelUID).withChannel(channel).build());
+                            createChannel(msg);
                             break;
                     }
                 }
@@ -740,12 +724,10 @@ public class DeviceHandler extends ViessmannThingHandler {
                                 @Nullable
                                 String shift = p.get("shift");
                                 if (slope != null) {
-                                    logger.trace("CR SLOPE: {}", p.get("slope"));
                                     String sl = slope;
                                     prop.put("slope", sl);
                                 }
                                 if (shift != null) {
-                                    logger.trace("CR SHIFT: {}", p.get("shift"));
                                     String sh = shift;
                                     prop.put("shift", sh);
                                 }
