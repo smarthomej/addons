@@ -475,8 +475,6 @@ public class DeviceHandler extends ViessmannThingHandler {
                                 case "liter":
                                     updateChannelState(msg.getChannelId(), msg.getValue(), unit);
                                     if (msg.getProperties() != null) {
-                                        // updateChannelProperties(msg.getChannelId(), msg.getProperties(),
-                                        // msg.getCommands());
                                         updateChannelProperties(msg);
                                     }
                                     break;
@@ -816,6 +814,8 @@ public class DeviceHandler extends ViessmannThingHandler {
             if (!com.isEmpty()) {
                 for (String command : com) {
                     switch (command) {
+                        //@formatter:off
+                        /* 
                         case "setName":
                             channelType = msg.getChannelType();
                             break;
@@ -826,16 +826,6 @@ public class DeviceHandler extends ViessmannThingHandler {
                             channelType = msg.getChannelType();
                         case "setMode":
                             channelType = msg.getChannelType();
-                            break;
-                        case "setTemperature":
-                            if (!"type-boolean".equals(channelType)) {
-                                channelType = "type-settemperature";
-                            }
-                            break;
-                        case "setTargetTemperature":
-                            if (!"type-boolean".equals(channelType)) {
-                                channelType = "type-settemperature";
-                            }
                             break;
                         case "activate":
                             channelType = msg.getChannelType();
@@ -850,6 +840,17 @@ public class DeviceHandler extends ViessmannThingHandler {
                             channelType = msg.getChannelType();
                         case "unschedule":
                             channelType = msg.getChannelType();
+                            break;
+                        */
+                        case "setTemperature":
+                            if (!"type-boolean".equals(channelType)) {
+                                channelType = "type-settemperature";
+                            }
+                            break;
+                        case "setTargetTemperature":
+                            if (!"type-boolean".equals(channelType)) {
+                                channelType = "type-settemperature";
+                            }
                             break;
                         case "setMin":
                             if (msg.getSuffix().contains("min")) {
