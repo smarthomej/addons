@@ -58,6 +58,9 @@ import com.tananaev.adblib.AdbStream;
 @NonNullByDefault
 public class AndroidDebugBridgeDevice {
     public static final int ANDROID_MEDIA_STREAM = 3;
+    private static final String EXCEPTION_STREAM_OPEN_ACTIVELY_REJECTED_BY_REMOTE_PEER = "Stream open actively rejected by remote peer";
+    private static final String EXCEPTION_CONNECT_MUST_BE_CALLED_FIRST = "connect() must be called first";
+    private static final String EXCEPTION_STREAM_CLOSED = "Stream closed";
     private static final String ADB_FOLDER = OpenHAB.getUserDataFolder() + File.separator + ".adb";
     private static final Logger LOGGER = LoggerFactory.getLogger(AndroidDebugBridgeDevice.class);
     private static final Pattern VOLUME_PATTERN = Pattern
@@ -454,7 +457,9 @@ public class AndroidDebugBridgeDevice {
                     } while (!stream.isClosed());
                 } catch (IOException | IllegalStateException e) {
                     String message = e.getMessage();
-                    if (!"Stream closed".equals(message) && !"connect() must be called first".equals(message)) {
+                    if (!EXCEPTION_STREAM_CLOSED.equals(message) && //
+                    !EXCEPTION_CONNECT_MUST_BE_CALLED_FIRST.equals(message) && //
+                    !EXCEPTION_STREAM_OPEN_ACTIVELY_REJECTED_BY_REMOTE_PEER.equals(message)) {
                         throw e;
                     }
                 }
