@@ -122,42 +122,59 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
             return;
         }
 
-        deviceStatus.forEach((dp, value) -> {
-            String channelId = dpToChannelId.get(dp);
-            if (channelId != null) {
+        deviceStatus.forEach(this::processChannelStatus);
+    }
 
-                ChannelConfiguration configuration = channelIdToConfiguration.get(channelId);
-                ChannelTypeUID channelTypeUID = channelIdToChannelTypeUID.get(channelId);
+    private void processChannelStatus(Integer dp, Object value) {
+        String channelId = dpToChannelId.get(dp);
+        if (channelId != null) {
 
-                if (configuration == null || channelTypeUID == null) {
-                    logger.warn("Could not find configuration or type for channel '{}' in thing '{}'", channelId,
-                            thing.getUID());
-                    return;
-                }
+            ChannelConfiguration configuration = channelIdToConfiguration.get(channelId);
+            ChannelTypeUID channelTypeUID = channelIdToChannelTypeUID.get(channelId);
 
-                if (CHANNEL_TYPE_UID_COLOR.equals(channelTypeUID)) {
-                    oldColorMode = ((String) value).length() == 14;
-                    updateState(channelId, ConversionUtil.hexColorDecode((String) value));
-                } else if (CHANNEL_TYPE_UID_STRING.equals(channelTypeUID)) {
-                    updateState(channelId, new StringType((String) value));
-                } else if (CHANNEL_TYPE_UID_DIMMER.equals(channelTypeUID)) {
-                    updateState(channelId, ConversionUtil.brightnessDecode((double) value, 0, configuration.max));
-                } else if (CHANNEL_TYPE_UID_NUMBER.equals(channelTypeUID)) {
-                    updateState(channelId, new DecimalType((double) value));
-                } else if (CHANNEL_TYPE_UID_SWITCH.equals(channelTypeUID)) {
-                    updateState(channelId, OnOffType.from((boolean) value));
-                }
+            if (configuration == null || channelTypeUID == null) {
+                logger.warn("Could not find configuration or type for channel '{}' in thing '{}'", channelId,
+                        thing.getUID());
+                return;
+            }
+
+            if (value instanceof String && CHANNEL_TYPE_UID_COLOR.equals(channelTypeUID)) {
+                oldColorMode = ((String) value).length() == 14;
+                updateState(channelId, ConversionUtil.hexColorDecode((String) value));
+                return;
+            } else if (value instanceof String && CHANNEL_TYPE_UID_STRING.equals(channelTypeUID)) {
+                updateState(channelId, new StringType((String) value));
+                return;
+            } else if (Double.class.isAssignableFrom(value.getClass())
+                    && CHANNEL_TYPE_UID_DIMMER.equals(channelTypeUID)) {
+                updateState(channelId, ConversionUtil.brightnessDecode((double) value, 0, configuration.max));
+                return;
+            } else if (Double.class.isAssignableFrom(value.getClass())
+                    && CHANNEL_TYPE_UID_NUMBER.equals(channelTypeUID)) {
+                updateState(channelId, new DecimalType((double) value));
+                return;
+            } else if (Boolean.class.isAssignableFrom(value.getClass())
+                    && CHANNEL_TYPE_UID_SWITCH.equals(channelTypeUID)) {
+                updateState(channelId, OnOffType.from((boolean) value));
+                return;
+            }
+            logger.warn("Could not update channel '{}' of thing '{}' with value '{}'. Datatype incompatible.",
+                    channelId, getThing().getUID(), value);
+        } else {
+            // try additional channelDps, only OnOffType
+            List<String> channelIds = dp2ToChannelId.get(dp);
+            if (channelIds == null) {
+                logger.debug("Could not find channel for dp '{}' in thing '{}'", dp, thing.getUID());
             } else {
-                // try additional channelDps, only OnOffType
-                List<String> channelIds = dp2ToChannelId.get(dp);
-                if (channelIds == null) {
-                    logger.debug("Could not find channel for dp '{}' in thing '{}'", dp, thing.getUID());
-                } else {
+                if (Boolean.class.isAssignableFrom(value.getClass())) {
                     OnOffType state = OnOffType.from((boolean) value);
                     channelIds.forEach(ch -> updateState(ch, state));
+                    return;
                 }
+                logger.warn("Could not update channel '{}' of thing '{}' with value {}. Datatype incompatible.",
+                        channelIds, getThing().getUID(), value);
             }
-        });
+        }
     }
 
     @Override
