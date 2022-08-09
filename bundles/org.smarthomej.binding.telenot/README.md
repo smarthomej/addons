@@ -191,6 +191,6 @@ The Telenot things expose the following channels:
 
 ## Actions
 
-The `ipbridge` and  the `serialbridge` thing exposes the following action to the automation engine:
+The `ipbridge` and  the `serialbridge` thing expose the following action to the automation engine:
 *setDateTime* - Send the date and time to Telenot device. 
 Accepts no parameters.
