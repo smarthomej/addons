@@ -103,10 +103,8 @@ public class SerialBridgeHandler extends TelenotBridgeHandler {
                         TimeUnit.HOURS);
             }
         } catch (PortInUseException e) {
-            logger.debug("Cannot open serial port: {}, it is already in use", config.serialPort);
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, "Serial port already in use");
         } catch (UnsupportedCommOperationException | IOException | IllegalStateException e) {
-            logger.debug("Error connecting to serial port: {}", e.getMessage());
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
         }
     }
