@@ -116,10 +116,16 @@ public class SerialBridgeHandler extends TelenotBridgeHandler {
 
     protected synchronized void updateClock() {
         boolean wait = true;
+        long timeOut = System.currentTimeMillis() + 20 * 1000;
         while (!TelenotThingHandler.readyToSendData.get()) {
             if (wait) {
                 logger.debug("waiting for ready to send data");
                 wait = false;
+            }
+            if (System.currentTimeMillis() > timeOut) {
+                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
+                        "The bridge connection timed out");
+                return;
             }
         }
         logger.debug("Start updating Telenot system clock");
