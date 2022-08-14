@@ -87,16 +87,18 @@ public class EMAStateMessage extends TelenotMessage {
         String strDate = strBuilder.toString();
 
         strBuilder.setLength(0);
-
-        String contacthex = msg.substring(48, 82);
-        int contactHexLen = contacthex.length();
-        int b = 0;
-        while (b < contactHexLen) {
-            Integer charcode = Integer.parseInt(contacthex.substring(b, b + 2), 16);
-            strBuilder.append(String.valueOf(Character.toChars(charcode)));
-            b = b + 2;
+        String strcontact = "";
+        if ("54".equals(msg.substring(46, 48))) {
+            String contacthex = msg.substring(48, 82);
+            int contactHexLen = contacthex.length();
+            int b = 0;
+            while (b < contactHexLen) {
+                Integer charcode = Integer.parseInt(contacthex.substring(b, b + 2), 16);
+                strBuilder.append(String.valueOf(Character.toChars(charcode)));
+                b = b + 2;
+            }
+            strcontact = strBuilder.toString();
         }
-        String strcontact = strBuilder.toString();
 
         boolean bool = false;
         if ("22".equals(msg.substring(24, 26)) || "30".equals(msg.substring(24, 26))
