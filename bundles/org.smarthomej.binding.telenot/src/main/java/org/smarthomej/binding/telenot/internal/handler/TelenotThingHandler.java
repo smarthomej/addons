@@ -99,10 +99,16 @@ public abstract class TelenotThingHandler extends BaseThingHandler {
      */
     public void sendCommand(TelenotCommand command) {
         boolean wait = true;
+        long timeOut = System.currentTimeMillis() + 20 * 1000;
         while (!readyToSendData.get()) {
             if (wait) {
                 logger.debug("waiting for ready to send data");
                 wait = false;
+            }
+            if (System.currentTimeMillis() > timeOut) {
+                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
+                        "The bridge connection timed out");
+                return;
             }
         }
         Bridge bridge = getBridge();
