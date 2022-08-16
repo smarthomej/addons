@@ -28,9 +28,11 @@ import org.openhab.core.thing.type.ChannelTypeUID;
 public class TelenotBindingConstants {
 
     public static final String BINDING_ID = "telenot";
+    public static final int SERIAL_PORT_SPEED = 9600;
 
     // List of all Thing Type UIDs
     public static final ThingTypeUID THING_TYPE_IPBRIDGE = new ThingTypeUID(BINDING_ID, "ipbridge");
+    public static final ThingTypeUID THING_TYPE_SERIALBRIDGE = new ThingTypeUID(BINDING_ID, "serialbridge");
     public static final ThingTypeUID THING_TYPE_SB = new ThingTypeUID(BINDING_ID, "sb");
     public static final ThingTypeUID THING_TYPE_MP = new ThingTypeUID(BINDING_ID, "mp");
     public static final ThingTypeUID THING_TYPE_MB = new ThingTypeUID(BINDING_ID, "mb");
