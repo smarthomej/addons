@@ -66,6 +66,7 @@ public class AndroidDebugBridgeDevice {
     private static final Pattern VOLUME_PATTERN = Pattern
             .compile("volume is (?<current>\\d.*) in range \\[(?<min>\\d.*)\\.\\.(?<max>\\d.*)]");
     private static final Pattern TAP_EVENT_PATTERN = Pattern.compile("(?<x>\\d+),(?<y>\\d+)");
+    static final Pattern CURRENT_PACKAGE_PREFIX_FILTER_PATTERN = Pattern.compile("(\\d+:){0,1}(.+)");
     private static final Pattern PACKAGE_NAME_PATTERN = Pattern
             .compile("^([A-Za-z]{1}[A-Za-z\\d_\\/]*\\.)+[A-Za-z][A-Za-z\\d_]*$");
     private static final Pattern INTENT_STRING_PATTERN = Pattern
@@ -202,12 +203,14 @@ public class AndroidDebugBridgeDevice {
         String result = runAdbShell("dumpsys window windows", "|", "grep 'mFocusedApp'", "|", "cut -d '/' -f1", "|",
                 "sed 's/.* //g'");
         if (!result.isEmpty()) {
-            return result;
-        } else {
-            LOGGER.debug("set fallback {} for {}", FallbackModes.DUMPSYS_ACTIVITY_RECENTS, CURRENT_PACKAGE_CHANNEL);
-            channelFallbackMap.put(CURRENT_PACKAGE_CHANNEL, FallbackModes.DUMPSYS_ACTIVITY_RECENTS);
-            return getCurrentPackageWithDumpsysActivityRecents();
+            Matcher currentPackageMatcher = CURRENT_PACKAGE_PREFIX_FILTER_PATTERN.matcher(result);
+            if (currentPackageMatcher.find()) {
+                return currentPackageMatcher.group(2);
+            }
         }
+        LOGGER.debug("set fallback {} for {}", FallbackModes.DUMPSYS_ACTIVITY_RECENTS, CURRENT_PACKAGE_CHANNEL);
+        channelFallbackMap.put(CURRENT_PACKAGE_CHANNEL, FallbackModes.DUMPSYS_ACTIVITY_RECENTS);
+        return getCurrentPackageWithDumpsysActivityRecents();
     }
 
     public String getCurrentPackageWithDumpsysActivityRecents() throws AndroidDebugBridgeDeviceException,
