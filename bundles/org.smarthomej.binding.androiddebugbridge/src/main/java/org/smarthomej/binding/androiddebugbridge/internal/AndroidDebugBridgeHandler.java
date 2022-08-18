@@ -257,7 +257,7 @@ public class AndroidDebugBridgeHandler extends UpdatingBaseThingHandler {
         if (command instanceof RefreshType) {
             boolean playing;
             String lastCurrentPackage = (String) channelLastStateMap.getOrDefault(CURRENT_PACKAGE_CHANNEL, "");
-            String currentPackage = lastCurrentPackage.isEmpty() ? adbConnection.getCurrentPackage()
+            String currentPackage = lastCurrentPackage.isBlank() ? adbConnection.getCurrentPackage()
                     : lastCurrentPackage;
             AndroidDebugBridgeMediaStatePackageConfig currentPackageConfig = packageConfigs != null ? Arrays
                     .stream(packageConfigs).filter(pc -> pc.name.equals(currentPackage)).findFirst().orElse(null)
