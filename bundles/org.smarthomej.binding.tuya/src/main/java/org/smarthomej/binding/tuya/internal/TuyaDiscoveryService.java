@@ -19,6 +19,7 @@ import static org.smarthomej.binding.tuya.internal.TuyaBindingConstants.PROPERTY
 import static org.smarthomej.binding.tuya.internal.TuyaBindingConstants.PROPERTY_MAC;
 import static org.smarthomej.binding.tuya.internal.TuyaBindingConstants.THING_TYPE_TUYA_DEVICE;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -28,6 +29,7 @@ import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -114,7 +116,12 @@ public class TuyaDiscoveryService extends AbstractDiscoveryService implements Th
                     .withRepresentationProperty(CONFIG_DEVICE_ID).withProperties(properties).build();
 
             api.getDeviceSchema(device.id).thenAccept(schema -> {
-                List<SchemaDp> schemaDps = schema.functions.stream().map(fcn -> SchemaDp.fromRemoteSchema(gson, fcn))
+                List<SchemaDp> functionDps = schema.functions.stream().map(fcn -> SchemaDp.fromRemoteSchema(gson, fcn))
+                        .collect(Collectors.toList());
+                List<SchemaDp> statusDps = schema.status.stream()
+                        .filter(status -> functionDps.stream().noneMatch(functionDp -> functionDp.id == status.dp_id))
+                        .map(status -> SchemaDp.fromRemoteSchema(gson, status)).collect(Collectors.toList());
+                List<SchemaDp> schemaDps = Stream.of(functionDps, statusDps).flatMap(Collection::stream)
                         .collect(Collectors.toList());
                 storage.put(device.id, gson.toJson(schemaDps));
             });
