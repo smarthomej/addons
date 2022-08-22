@@ -141,7 +141,6 @@ public class DeviceHandler extends ViessmannThingHandler {
                                 thing.getChannel(channelUID.getId()));
                         for (String str : com) {
                             if (str.contains("setCurve")) {
-                                initState = true;
                                 uri = prop.get(str + "Uri");
                                 String value = command.toString();
                                 if (ch.getUID().toString().contains("shift")) {
@@ -151,6 +150,10 @@ public class DeviceHandler extends ViessmannThingHandler {
                                     if (c != null) {
                                         Map<String, String> p = c.getProperties();
                                         param = "{\"slope\":" + p.get("slope") + ", \"shift\":" + value + "}";
+                                        Map<String, String> properties = new HashMap<>();
+                                        properties.putAll(p);
+                                        properties.put("shift", value);
+                                        updateChannelProperties(new ChannelUID(channelId), properties);
                                     }
                                 } else if (ch.getUID().toString().contains("slope")) {
                                     // read shift from channel property
@@ -159,9 +162,12 @@ public class DeviceHandler extends ViessmannThingHandler {
                                     if (c != null) {
                                         Map<String, String> p = c.getProperties();
                                         param = "{\"slope\":" + value + ", \"shift\":" + p.get("shift") + "}";
+                                        Map<String, String> properties = new HashMap<>();
+                                        properties.putAll(p);
+                                        properties.put("slope", value);
+                                        updateChannelProperties(new ChannelUID(channelId), properties);
                                     }
                                 }
-                                //@TODO: update Channel properties for both channels
                             }
                         }
                     } else if (command instanceof QuantityType<?>) {
@@ -563,6 +569,23 @@ public class DeviceHandler extends ViessmannThingHandler {
         updateThing(editThing().withoutChannel(channelUID).withChannel(channel).build());
     }
 
+    private void updateChannelProperties(ChannelUID channelUID, Map<String, String> properties) {
+        ThingHandlerCallback callback = getCallback();
+        if (callback == null) {
+            logger.warn("Thing '{}'not initialized, could not get callback.", thing.getUID());
+            return;
+        }
+        if (properties != null) {
+            String channelType = properties.get("channelType");
+            if (channelType != null) {
+                ChannelTypeUID channelTypeUID = new ChannelTypeUID(BINDING_ID, channelType);
+                Channel channel = callback.createChannelBuilder(channelUID, channelTypeUID).withProperties(properties)
+                        .build();
+                updateThing(editThing().withoutChannel(channelUID).withChannel(channel).build());
+            }
+        }
+    }
+
     /**
      * Creates new sub channels for the thing.
      *
@@ -699,6 +722,7 @@ public class DeviceHandler extends ViessmannThingHandler {
     private Map<String, String> buildProperties(ThingMessageDTO msg) {
         Map<String, String> prop = new HashMap<>();
         prop.put("feature", msg.getFeatureClear());
+        prop.put("channelType", convertChannelType(msg));
         FeatureCommands commands = msg.getCommands();
         if (commands != null) {
             List<String> com = commands.getUsedCommands();
@@ -814,34 +838,6 @@ public class DeviceHandler extends ViessmannThingHandler {
             if (!com.isEmpty()) {
                 for (String command : com) {
                     switch (command) {
-                        //@formatter:off
-                        /* 
-                        case "setName":
-                            channelType = msg.getChannelType();
-                            break;
-                        case "setCurve":
-                            channelType = msg.getChannelType();
-                            break;
-                        case "setSchedule":
-                            channelType = msg.getChannelType();
-                        case "setMode":
-                            channelType = msg.getChannelType();
-                            break;
-                        case "activate":
-                            channelType = msg.getChannelType();
-                            break;
-                        case "deactivate":
-                            channelType = msg.getChannelType();
-                            break;
-                        case "changeEndDate":
-                            channelType = msg.getChannelType();
-                            break;
-                        case "schedule":
-                            channelType = msg.getChannelType();
-                        case "unschedule":
-                            channelType = msg.getChannelType();
-                            break;
-                        */
                         case "setTemperature":
                             if (!"type-boolean".equals(channelType)) {
                                 channelType = "type-settemperature";
