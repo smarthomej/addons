@@ -86,6 +86,8 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
     private boolean oldColorMode = false;
 
     private @Nullable ScheduledFuture<?> reconnectFuture;
+    private @Nullable ScheduledFuture<?> pollingJob;
+
     private boolean disposing = false;
 
     private final Map<Integer, String> dpToChannelId = new HashMap<>();
@@ -181,8 +183,19 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
     public void connectionStatus(boolean status) {
         if (status) {
             updateStatus(ThingStatus.ONLINE);
+            int pollingInterval = configuration.pollingInterval;
+            TuyaDevice tuyaDevice = this.tuyaDevice;
+            if (tuyaDevice != null && pollingInterval > 0) {
+                pollingJob = scheduler.scheduleWithFixedDelay(tuyaDevice::requestStatus, pollingInterval,
+                        pollingInterval, TimeUnit.SECONDS);
+            }
         } else {
             updateStatus(ThingStatus.OFFLINE);
+            ScheduledFuture pollingJob = this.pollingJob;
+            if (pollingJob != null) {
+                pollingJob.cancel(true);
+                this.pollingJob = null;
+            }
             TuyaDevice tuyaDevice = this.tuyaDevice;
             ScheduledFuture<?> reconnectFuture = this.reconnectFuture;
             // only re-connect if a device is present, we are not disposing the thing and either the reconnectFuture is
@@ -267,6 +280,10 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
     public void dispose() {
         disposing = true;
         ScheduledFuture<?> future = reconnectFuture;
+        if (future != null) {
+            future.cancel(true);
+        }
+        future = this.pollingJob;
         if (future != null) {
             future.cancel(true);
         }

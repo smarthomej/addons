@@ -103,6 +103,16 @@ public class TuyaDevice implements ChannelFutureListener {
         }
     }
 
+    public void requestStatus() {
+        MessageWrapper<?> m = new MessageWrapper<>(CommandType.DP_QUERY, Map.of("dps", Map.of()));
+        Channel channel = this.channel;
+        if (channel != null) {
+            channel.writeAndFlush(m);
+        } else {
+            logger.warn("{}: Querying status failed. Device is not connected.", deviceId);
+        }
+    }
+
     public void dispose() {
         disconnect();
     }
@@ -111,8 +121,7 @@ public class TuyaDevice implements ChannelFutureListener {
     public void operationComplete(@NonNullByDefault({}) ChannelFuture channelFuture) throws Exception {
         if (channelFuture.isSuccess()) {
             this.channel = channelFuture.channel();
-            MessageWrapper<?> m = new MessageWrapper<>(CommandType.DP_QUERY, Map.of("dps", Map.of()));
-            channelFuture.channel().writeAndFlush(m);
+            requestStatus();
         } else {
             logger.debug("{}{}: Failed to connect: {}", deviceId,
                     Objects.requireNonNullElse(channelFuture.channel().remoteAddress(), ""),
