@@ -116,10 +116,11 @@ public class TuyaDiscoveryService extends AbstractDiscoveryService implements Th
                     .withRepresentationProperty(CONFIG_DEVICE_ID).withProperties(properties).build();
 
             api.getDeviceSchema(device.id).thenAccept(schema -> {
-                List<SchemaDp> functionDps = schema.functions.stream().map(fcn -> SchemaDp.fromRemoteSchema(gson, fcn))
-                        .collect(Collectors.toList());
+                List<SchemaDp> functionDps = schema.functions.stream().filter(fcn -> fcn.dp_id != 0)
+                        .map(fcn -> SchemaDp.fromRemoteSchema(gson, fcn)).collect(Collectors.toList());
                 List<SchemaDp> statusDps = schema.status.stream()
-                        .filter(status -> functionDps.stream().noneMatch(functionDp -> functionDp.id == status.dp_id))
+                        .filter(status -> status.dp_id != 0
+                                && functionDps.stream().noneMatch(functionDp -> functionDp.id == status.dp_id))
                         .map(status -> SchemaDp.fromRemoteSchema(gson, status)).collect(Collectors.toList());
                 List<SchemaDp> schemaDps = Stream.of(functionDps, statusDps).flatMap(Collection::stream)
                         .collect(Collectors.toList());
