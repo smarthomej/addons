@@ -15,6 +15,7 @@ package org.smarthomej.binding.tuya.internal.handler;
 import static org.smarthomej.binding.tuya.internal.TuyaBindingConstants.*;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -27,6 +28,8 @@ import java.util.stream.Collectors;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.core.cache.ExpiringCache;
+import org.openhab.core.cache.ExpiringCacheMap;
 import org.openhab.core.config.core.Configuration;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.HSBType;
@@ -95,6 +98,9 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
     private final Map<String, ChannelTypeUID> channelIdToChannelTypeUID = new HashMap<>();
     private final Map<String, ChannelConfiguration> channelIdToConfiguration = new HashMap<>();
 
+    private final ExpiringCacheMap<Integer, @Nullable Object> deviceStatusCache = new ExpiringCacheMap<>(
+            Duration.ofSeconds(10));
+
     public TuyaDeviceHandler(Thing thing, @Nullable List<SchemaDp> schemaDps, Gson gson,
             SimpleDynamicCommandDescriptionProvider dynamicCommandDescriptionProvider, EventLoopGroup eventLoopGroup,
             UdpDiscoveryListener udpDiscoveryListener) {
@@ -124,6 +130,7 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
             return;
         }
 
+        deviceStatus.forEach(this::addSingleExpiringCache);
         deviceStatus.forEach(this::processChannelStatus);
     }
 
@@ -137,6 +144,12 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
             if (configuration == null || channelTypeUID == null) {
                 logger.warn("Could not find configuration or type for channel '{}' in thing '{}'", channelId,
                         thing.getUID());
+                return;
+            }
+
+            ChannelConfiguration channelConfiguration = channelIdToConfiguration.get(channelId);
+            if (channelConfiguration != null && Boolean.FALSE.equals(deviceStatusCache.get(channelConfiguration.dp2))) {
+                // skip update if the channel is off!
                 return;
             }
 
@@ -191,7 +204,7 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
             }
         } else {
             updateStatus(ThingStatus.OFFLINE);
-            ScheduledFuture pollingJob = this.pollingJob;
+            ScheduledFuture<?> pollingJob = this.pollingJob;
             if (pollingJob != null) {
                 pollingJob.cancel(true);
                 this.pollingJob = null;
@@ -460,5 +473,11 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
 
     private List<CommandOption> toCommandOptionList(List<String> options) {
         return options.stream().map(c -> new CommandOption(c, c)).collect(Collectors.toList());
+    }
+
+    private void addSingleExpiringCache(Integer key, Object value) {
+        ExpiringCache<@Nullable Object> expiringCache = new ExpiringCache<>(Duration.ofSeconds(10), () -> null);
+        expiringCache.putValue(value);
+        deviceStatusCache.put(key, expiringCache);
     }
 }
