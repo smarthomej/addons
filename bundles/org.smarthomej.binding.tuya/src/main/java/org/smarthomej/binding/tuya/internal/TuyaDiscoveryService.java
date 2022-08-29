@@ -19,7 +19,7 @@ import static org.smarthomej.binding.tuya.internal.TuyaBindingConstants.PROPERTY
 import static org.smarthomej.binding.tuya.internal.TuyaBindingConstants.PROPERTY_MAC;
 import static org.smarthomej.binding.tuya.internal.TuyaBindingConstants.THING_TYPE_TUYA_DEVICE;
 
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -28,8 +28,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -45,6 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.tuya.internal.cloud.TuyaOpenAPI;
 import org.smarthomej.binding.tuya.internal.cloud.dto.DeviceListInfo;
+import org.smarthomej.binding.tuya.internal.cloud.dto.DeviceSchema;
 import org.smarthomej.binding.tuya.internal.handler.ProjectHandler;
 import org.smarthomej.binding.tuya.internal.util.SchemaDp;
 
@@ -116,17 +115,30 @@ public class TuyaDiscoveryService extends AbstractDiscoveryService implements Th
                     .withRepresentationProperty(CONFIG_DEVICE_ID).withProperties(properties).build();
 
             api.getDeviceSchema(device.id).thenAccept(schema -> {
-                List<SchemaDp> functionDps = schema.functions.stream().map(fcn -> SchemaDp.fromRemoteSchema(gson, fcn))
-                        .collect(Collectors.toList());
-                List<SchemaDp> statusDps = schema.status.stream()
-                        .filter(status -> functionDps.stream().noneMatch(functionDp -> functionDp.id == status.dp_id))
-                        .map(status -> SchemaDp.fromRemoteSchema(gson, status)).collect(Collectors.toList());
-                List<SchemaDp> schemaDps = Stream.of(functionDps, statusDps).flatMap(Collection::stream)
-                        .collect(Collectors.toList());
+                List<SchemaDp> schemaDps = new ArrayList<>();
+                schema.functions.forEach(description -> addUniqueSchemaDp(description, schemaDps));
+                schema.status.forEach(description -> addUniqueSchemaDp(description, schemaDps));
                 storage.put(device.id, gson.toJson(schemaDps));
             });
+
             thingDiscovered(discoveryResult);
         });
+    }
+
+    private void addUniqueSchemaDp(DeviceSchema.Description description, List<SchemaDp> schemaDps) {
+        if (description.dp_id == 0 || schemaDps.stream().anyMatch(schemaDp -> schemaDp.id == description.dp_id)) {
+            // dp is missing or already present, skip it
+            return;
+        }
+        // some devices report the same function code for different dps
+        // we add an index only if this is the case
+        String originalCode = description.code;
+        int index = 1;
+        while (schemaDps.stream().anyMatch(schemaDp -> schemaDp.code.equals(description.code))) {
+            description.code = originalCode + "_" + index;
+        }
+
+        schemaDps.add(SchemaDp.fromRemoteSchema(gson, description));
     }
 
     @Override
