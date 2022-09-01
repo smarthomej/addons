@@ -14,6 +14,8 @@ package org.smarthomej.binding.viessmann.internal.dto;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.smarthomej.binding.viessmann.internal.dto.features.FeatureCommands;
 
@@ -184,9 +186,14 @@ public class ThingMessageDTO {
         return properties;
     }
 
-    public void setProperties(String key, String value) {
-        // if (key != null && value != null) {
-        this.properties.put(key, value);
-        // }
+    public String getCircuitId() {
+        String circuitId = "";
+        Pattern pattern = Pattern.compile("(\\.[0-3])");
+        Matcher matcher = pattern.matcher(featureClear);
+        if (matcher.find()) {
+            circuitId = matcher.group(0);
+            circuitId.replace(".", "");
+        }
+        return circuitId;
     }
 }

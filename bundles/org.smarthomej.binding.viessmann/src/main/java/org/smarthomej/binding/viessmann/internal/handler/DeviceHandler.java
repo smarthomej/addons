@@ -41,6 +41,7 @@ import org.openhab.core.types.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.viessmann.internal.config.ThingsConfig;
+import org.smarthomej.binding.viessmann.internal.dto.HeatingCircuit;
 import org.smarthomej.binding.viessmann.internal.dto.ThingMessageDTO;
 import org.smarthomej.binding.viessmann.internal.dto.ViessmannMessage;
 import org.smarthomej.binding.viessmann.internal.dto.features.FeatureCommands;
@@ -66,6 +67,8 @@ public class DeviceHandler extends ViessmannThingHandler {
     private static final Gson GSON = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
 
     private ThingsConfig config = new ThingsConfig();
+
+    private Map<String, HeatingCircuit> heatingCircuits = new HashMap<>();
 
     public DeviceHandler(Thing thing) {
         super(thing);
@@ -142,30 +145,21 @@ public class DeviceHandler extends ViessmannThingHandler {
                         for (String str : com) {
                             if (str.contains("setCurve")) {
                                 uri = prop.get(str + "Uri");
-                                String value = command.toString();
-                                if (ch.getUID().toString().contains("shift")) {
-                                    // read slope from channel property
-                                    String channelId = ch.getUID().toString().replace("#shift", "#slope");
-                                    Channel c = thing.getChannel(new ChannelUID(channelId));
-                                    if (c != null) {
-                                        Map<String, String> p = c.getProperties();
-                                        param = "{\"slope\":" + p.get("slope") + ", \"shift\":" + value + "}";
-                                        Map<String, String> properties = new HashMap<>();
-                                        properties.putAll(p);
-                                        properties.put("shift", value);
-                                        updateChannelProperties(new ChannelUID(channelId), properties);
+                                String circuitId = prop.get("circuitId");
+                                HeatingCircuit heatingCircuit = heatingCircuits.get(circuitId);
+                                if (heatingCircuit != null) {
+                                    String slope = heatingCircuit.getSlope();
+                                    String shift = heatingCircuit.getShift();
+                                    String value = command.toString();
+                                    if (ch.getUID().toString().contains("shift")) {
+                                        param = "{\"slope\":" + slope + ", \"shift\":" + value + "}";
+                                        heatingCircuit.setShift(value);
+                                    } else if (ch.getUID().toString().contains("slope")) {
+                                        param = "{\"slope\":" + value + ", \"shift\":" + shift + "}";
+                                        heatingCircuit.setSlope(value);
                                     }
-                                } else if (ch.getUID().toString().contains("slope")) {
-                                    // read shift from channel property
-                                    String channelId = ch.getUID().toString().replace("#slope", "#shift");
-                                    Channel c = thing.getChannel(new ChannelUID(channelId));
-                                    if (c != null) {
-                                        Map<String, String> p = c.getProperties();
-                                        param = "{\"slope\":" + value + ", \"shift\":" + p.get("shift") + "}";
-                                        Map<String, String> properties = new HashMap<>();
-                                        properties.putAll(p);
-                                        properties.put("slope", value);
-                                        updateChannelProperties(new ChannelUID(channelId), properties);
+                                    if (circuitId != null) {
+                                        heatingCircuits.put(circuitId, heatingCircuit);
                                     }
                                 }
                             }
@@ -240,6 +234,7 @@ public class DeviceHandler extends ViessmannThingHandler {
                     Boolean bool = false;
                     String viUnit = "";
                     String unit = null;
+                    HeatingCircuit heatingCircuit = new HeatingCircuit();
                     msg.setFeatureName(getFeatureName(featureDataDTO.feature));
                     msg.setSuffix(entry);
                     switch (entry) {
@@ -279,14 +274,21 @@ public class DeviceHandler extends ViessmannThingHandler {
                         case "shift":
                             typeEntry = prop.shift.type;
                             valueEntry = prop.shift.value.toString();
-                            msg.setProperties("slope", prop.slope.value.toString());
-                            msg.setProperties("shift", prop.shift.value.toString());
+                            // msg.setProperties("slope", prop.slope.value.toString());
+                            // msg.setProperties("shift", prop.shift.value.toString());
+                            heatingCircuit.setSlope(prop.slope.value.toString());
+                            heatingCircuit.setShift(prop.shift.value.toString());
+                            heatingCircuits.put(msg.getCircuitId(), heatingCircuit);
+
                             break;
                         case "slope":
                             typeEntry = "decimal";
                             valueEntry = prop.slope.value.toString();
-                            msg.setProperties("shift", prop.shift.value.toString());
-                            msg.setProperties("slope", prop.slope.value.toString());
+                            // msg.setProperties("shift", prop.shift.value.toString());
+                            // msg.setProperties("slope", prop.slope.value.toString());
+                            heatingCircuit.setSlope(prop.slope.value.toString());
+                            heatingCircuit.setShift(prop.shift.value.toString());
+                            heatingCircuits.put(msg.getCircuitId(), heatingCircuit);
                             break;
                         case "entries":
                             msg.setSuffix("schedule");
@@ -480,9 +482,6 @@ public class DeviceHandler extends ViessmannThingHandler {
                                 case "kelvin":
                                 case "liter":
                                     updateChannelState(msg.getChannelId(), msg.getValue(), unit);
-                                    if (msg.getProperties() != null) {
-                                        updateChannelProperties(msg);
-                                    }
                                     break;
                                 case "boolean":
                                     OnOffType state = bool ? OnOffType.ON : OnOffType.OFF;
@@ -567,23 +566,6 @@ public class DeviceHandler extends ViessmannThingHandler {
         Channel channel = callback.createChannelBuilder(channelUID, channelTypeUID).withLabel(msg.getFeatureName())
                 .withDescription(msg.getFeatureDescription()).withProperties(prop).build();
         updateThing(editThing().withoutChannel(channelUID).withChannel(channel).build());
-    }
-
-    private void updateChannelProperties(ChannelUID channelUID, Map<String, String> properties) {
-        ThingHandlerCallback callback = getCallback();
-        if (callback == null) {
-            logger.warn("Thing '{}'not initialized, could not get callback.", thing.getUID());
-            return;
-        }
-        if (properties != null) {
-            String channelType = properties.get("channelType");
-            if (channelType != null) {
-                ChannelTypeUID channelTypeUID = new ChannelTypeUID(BINDING_ID, channelType);
-                Channel channel = callback.createChannelBuilder(channelUID, channelTypeUID).withProperties(properties)
-                        .build();
-                updateThing(editThing().withoutChannel(channelUID).withChannel(channel).build());
-            }
-        }
     }
 
     /**
@@ -703,22 +685,6 @@ public class DeviceHandler extends ViessmannThingHandler {
         }
     }
 
-    private void updateChannelProperties(ThingMessageDTO msg) {
-        FeatureCommands commands = msg.getCommands();
-        if (commands != null) {
-            List<String> com = commands.getUsedCommands();
-            if (!com.isEmpty()) {
-                for (String command : com) {
-                    switch (command) {
-                        case "setCurve":
-                            createChannel(msg);
-                            break;
-                    }
-                }
-            }
-        }
-    }
-
     private Map<String, String> buildProperties(ThingMessageDTO msg) {
         Map<String, String> prop = new HashMap<>();
         prop.put("feature", msg.getFeatureClear());
@@ -735,25 +701,10 @@ public class DeviceHandler extends ViessmannThingHandler {
                             prop.put("setNameParams", "name");
                             break;
                         case "setCurve":
+                            prop.put("circuitId", msg.getCircuitId());
                             prop.put("setCurveUri", commands.setCurve.uri);
                             prop.put("command", "setCurve");
                             prop.put("setCurveParams", "slope,shift");
-
-                            Map<String, String> p = msg.getProperties();
-                            if (p != null) {
-                                @Nullable
-                                String slope = p.get("slope");
-                                @Nullable
-                                String shift = p.get("shift");
-                                if (slope != null) {
-                                    String sl = slope;
-                                    prop.put("slope", sl);
-                                }
-                                if (shift != null) {
-                                    String sh = shift;
-                                    prop.put("shift", sh);
-                                }
-                            }
                             break;
                         case "setSchedule":
                             prop.put("setScheduleUri", commands.setSchedule.uri);
