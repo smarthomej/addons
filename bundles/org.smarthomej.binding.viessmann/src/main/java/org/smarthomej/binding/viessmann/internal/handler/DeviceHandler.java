@@ -68,7 +68,7 @@ public class DeviceHandler extends ViessmannThingHandler {
 
     private ThingsConfig config = new ThingsConfig();
 
-    private Map<String, HeatingCircuit> heatingCircuits = new HashMap<>();
+    private final Map<String, HeatingCircuit> heatingCircuits = new HashMap<>();
 
     public DeviceHandler(Thing thing) {
         super(thing);
@@ -175,7 +175,7 @@ public class DeviceHandler extends ViessmannThingHandler {
                                 break;
                             }
                         }
-                        logger.trace("Received QuantityType Command for Channel {} Comamnd: {}",
+                        logger.trace("Received QuantityType Command for Channel {} Command: {}",
                                 thing.getChannel(channelUID.getId()), value.floatValue());
                     } else if (command instanceof StringType) {
                         for (String str : com) {
@@ -274,18 +274,13 @@ public class DeviceHandler extends ViessmannThingHandler {
                         case "shift":
                             typeEntry = prop.shift.type;
                             valueEntry = prop.shift.value.toString();
-                            // msg.setProperties("slope", prop.slope.value.toString());
-                            // msg.setProperties("shift", prop.shift.value.toString());
                             heatingCircuit.setSlope(prop.slope.value.toString());
                             heatingCircuit.setShift(prop.shift.value.toString());
                             heatingCircuits.put(msg.getCircuitId(), heatingCircuit);
-
                             break;
                         case "slope":
                             typeEntry = "decimal";
                             valueEntry = prop.slope.value.toString();
-                            // msg.setProperties("shift", prop.shift.value.toString());
-                            // msg.setProperties("slope", prop.slope.value.toString());
                             heatingCircuit.setSlope(prop.slope.value.toString());
                             heatingCircuit.setShift(prop.shift.value.toString());
                             heatingCircuits.put(msg.getCircuitId(), heatingCircuit);
@@ -694,31 +689,27 @@ public class DeviceHandler extends ViessmannThingHandler {
             List<String> com = commands.getUsedCommands();
             if (!com.isEmpty()) {
                 for (String command : com) {
+                    prop.put("command", addPropertiesCommands(prop, command));
                     switch (command) {
                         case "setName":
                             prop.put("setNameUri", commands.setName.uri);
-                            prop.put("command", "setName");
                             prop.put("setNameParams", "name");
                             break;
                         case "setCurve":
                             prop.put("circuitId", msg.getCircuitId());
                             prop.put("setCurveUri", commands.setCurve.uri);
-                            prop.put("command", "setCurve");
                             prop.put("setCurveParams", "slope,shift");
                             break;
                         case "setSchedule":
                             prop.put("setScheduleUri", commands.setSchedule.uri);
-                            prop.put("command", "setSchedule");
                             prop.put("setScheduleParams", "newSchedule");
                             break;
                         case "setMode":
                             prop.put("setModeUri", commands.setMode.uri);
-                            prop.put("command", "setMode");
                             prop.put("setModeParams", "mode");
                             break;
                         case "setTemperature":
                             prop.put("setTemperatureUri", commands.setTemperature.uri);
-                            prop.put("command", "setTemperature");
                             prop.put("setTemperatureParams", "targetTemperature");
                             break;
                         case "setTargetTemperature":
@@ -728,13 +719,11 @@ public class DeviceHandler extends ViessmannThingHandler {
                             break;
                         case "activate":
                             prop.put("activateUri", commands.activate.uri);
-                            prop.put("command", "activate,deactivate");
                             prop.put("activateParams", "{}");
                             prop.put("deactivateParams", "{}");
                             break;
                         case "deactivate":
                             prop.put("deactivateUri", commands.deactivate.uri);
-                            prop.put("command", "activate,deactivate");
                             prop.put("activateParams", "{}");
                             prop.put("deactivateParams", "{}");
                             break;
@@ -779,6 +768,15 @@ public class DeviceHandler extends ViessmannThingHandler {
             }
         }
         return prop;
+    }
+
+    private String addPropertiesCommands(Map<String, String> properties, String command) {
+        String commands = properties.get("command");
+        if (commands != null) {
+            commands = commands + "," + command;
+            return commands;
+        }
+        return command;
     }
 
     private String convertChannelType(ThingMessageDTO msg) {
