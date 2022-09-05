@@ -12,6 +12,11 @@
  */
 package org.smarthomej.binding.viessmann.internal.dto;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.smarthomej.binding.viessmann.internal.dto.features.FeatureCommands;
 
 /**
@@ -30,6 +35,7 @@ public class ThingMessageDTO {
     private String deviceId;
     private String suffix;
     private String unit;
+    private Map<String, String> properties = new HashMap<>();
     private FeatureCommands commands;
 
     public String getType() {
@@ -174,5 +180,20 @@ public class ThingMessageDTO {
         }
         sb.append("#" + suffix);
         return sb.toString();
+    }
+
+    public Map<String, String> getProperties() {
+        return properties;
+    }
+
+    public String getCircuitId() {
+        String circuitId = "";
+        Pattern pattern = Pattern.compile("(\\.[0-3])");
+        Matcher matcher = pattern.matcher(featureClear);
+        if (matcher.find()) {
+            circuitId = matcher.group(0);
+            circuitId.replace(".", "");
+        }
+        return circuitId;
     }
 }

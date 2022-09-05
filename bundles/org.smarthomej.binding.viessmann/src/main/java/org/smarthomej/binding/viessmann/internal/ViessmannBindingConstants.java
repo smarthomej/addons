@@ -19,8 +19,6 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.library.unit.SIUnits;
 import org.openhab.core.library.unit.Units;
 import org.openhab.core.thing.ThingTypeUID;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.smarthomej.commons.util.ResourceUtil;
 
 /**
@@ -31,8 +29,6 @@ import org.smarthomej.commons.util.ResourceUtil;
  */
 @NonNullByDefault
 public class ViessmannBindingConstants {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ViessmannBindingConstants.class);
-
     public static final String BINDING_ID = "viessmann";
     public static final String BINDING_NAME = "Viessmann API";
 
