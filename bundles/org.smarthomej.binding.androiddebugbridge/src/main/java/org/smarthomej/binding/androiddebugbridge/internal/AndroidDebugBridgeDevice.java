@@ -155,7 +155,7 @@ public class AndroidDebugBridgeDevice {
             throws InterruptedException, AndroidDebugBridgeDeviceException, TimeoutException, ExecutionException {
         String result = runAdbShell("monkey", "--pct-syskeys", "0", "-p", packageName, "-v", "1");
         if (result.contains("monkey aborted")) {
-            // use LEANBACK launcher if not successfull - see https://stackoverflow.com/a/54929232
+            // use LEANBACK launcher if not successful - see https://stackoverflow.com/a/54929232
             LOGGER.debug("set fallback {} for {}", FallbackModes.MONKEY_LEANBACK_LAUNCHER, START_PACKAGE_CHANNEL);
             channelFallbackMap.put(START_PACKAGE_CHANNEL, FallbackModes.MONKEY_LEANBACK_LAUNCHER);
             startPackageWithMonkeyLeanbackLauncher(packageName);
@@ -167,7 +167,7 @@ public class AndroidDebugBridgeDevice {
         String result = runAdbShell("monkey", "--pct-syskeys", "0", "-p", packageName, "-c",
                 "android.intent.category.LEANBACK_LAUNCHER", "1");
         if (result.contains("monkey aborted")) {
-            LOGGER.debug("removed fallback {}", START_PACKAGE_CHANNEL);
+            LOGGER.debug("remove fallback for {}", START_PACKAGE_CHANNEL);
             channelFallbackMap.remove(START_PACKAGE_CHANNEL);
         }
     }
@@ -219,10 +219,13 @@ public class AndroidDebugBridgeDevice {
         String result = runAdbShell("dumpsys activity recents", "|", "grep 'Recent #0'", "|", "cut -d= -f2", "|",
                 "sed 's/ .*//'", "|", "cut -d '/' -f1");
         if (!result.isEmpty()) {
-            return result;
+            Matcher currentPackageMatcher = CURRENT_PACKAGE_PREFIX_FILTER_PATTERN.matcher(result);
+            if (currentPackageMatcher.find()) {
+                return currentPackageMatcher.group(2);
+            }
         }
-        LOGGER.debug("removed fallback {}", HDMI_STATE_CHANNEL);
-        channelFallbackMap.remove(HDMI_STATE_CHANNEL);
+        LOGGER.debug("remove fallback for {}", CURRENT_PACKAGE_CHANNEL);
+        channelFallbackMap.remove(CURRENT_PACKAGE_CHANNEL);
         throw new AndroidDebugBridgeDeviceReadException(CURRENT_PACKAGE_CHANNEL, result);
     }
 
@@ -289,7 +292,7 @@ public class AndroidDebugBridgeDevice {
             // FIND A BETTER SOLUTION
             return Optional.empty();
         }
-        LOGGER.debug("removed fallback {}", HDMI_STATE_CHANNEL);
+        LOGGER.debug("remove fallback for {}", HDMI_STATE_CHANNEL);
         channelFallbackMap.remove(HDMI_STATE_CHANNEL);
         throw new AndroidDebugBridgeDeviceReadException(HDMI_STATE_CHANNEL, result);
     }
