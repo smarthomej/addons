@@ -15,6 +15,7 @@ package org.smarthomej.binding.tuya.internal.local;
 import static org.smarthomej.binding.tuya.internal.TuyaBindingConstants.TCP_CONNECTION_HEARTBEAT_INTERVAL;
 import static org.smarthomej.binding.tuya.internal.TuyaBindingConstants.TCP_CONNECTION_TIMEOUT;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -110,6 +111,17 @@ public class TuyaDevice implements ChannelFutureListener {
             channel.writeAndFlush(m);
         } else {
             logger.warn("{}: Querying status failed. Device is not connected.", deviceId);
+        }
+    }
+
+    public void refreshStatus() {
+        MessageWrapper<?> m = new MessageWrapper<>(CommandType.DP_REFRESH,
+                Map.of("dpId", List.of(4, 5, 6, 18, 19, 20)));
+        Channel channel = this.channel;
+        if (channel != null) {
+            channel.writeAndFlush(m);
+        } else {
+            logger.warn("{}: Refreshing status failed. Device is not connected.", deviceId);
         }
     }
 
