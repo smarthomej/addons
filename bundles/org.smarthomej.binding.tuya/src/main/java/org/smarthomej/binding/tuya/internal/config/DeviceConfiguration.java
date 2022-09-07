@@ -27,4 +27,6 @@ public class DeviceConfiguration {
 
     public String ip = "";
     public String protocol = "3.3";
+
+    public int pollingInterval = 0;
 }

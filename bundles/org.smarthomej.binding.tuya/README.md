@@ -75,7 +75,10 @@ Battery powered devices do not announce their presence at all.
 There is no clear rule how to determine if a device has protocol 3.3 or 3.1.
 It is recommended to start with 3.3 and watch the log file if it that works and use 3.1 otherwise.
 
-*Note:* Support for protocol 3.1 is considered experimental.
+Some devices do not automatically refresh channels (e.g. some power meters).
+The `pollingInterval` can be increased from the default value `0` (off) to a minimum of 10s or higher.
+The device is then requested to refresh its data channels and reports the status.
+
 In case something is not working, please open an issue on [GitHub](https://github.com/smarthomej/addons/issues) and add TRACE level logs.
 
 ## Channels
