@@ -12,6 +12,9 @@
 			<channel id="countApiCalls" typeId="type-number">
 				<label>Count API Calls</label>
 			</channel>
+			<channel id="lastErrorMessage" typeId="type-string">
+				<label>Last error message</label>
+			</channel>
 		</channels>
 
 		<config-description>

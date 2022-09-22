@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.viessmann.internal.dto.device.DeviceDTO;
 import org.smarthomej.binding.viessmann.internal.dto.error.ViErrorDTO;
+import org.smarthomej.binding.viessmann.internal.dto.events.EventsDTO;
 import org.smarthomej.binding.viessmann.internal.dto.features.FeaturesDTO;
 import org.smarthomej.binding.viessmann.internal.dto.installation.Data;
 import org.smarthomej.binding.viessmann.internal.dto.installation.Gateway;
@@ -215,6 +216,14 @@ public class ViessmannApi {
             return features;
         }
         return null;
+    }
+
+    public @Nullable EventsDTO getSelectedEvents(String eventType) {
+        // https://api.viessmann.com/iot/v1/events-history/events?gatewaySerial=7555115501845105&installationId=775&eventType=device-error
+        String response = executeGet(VIESSMANN_BASE_URL + "iot/v1/events-history/events?installationId="
+                + installationId + "&gatewaySerial=" + gatewaySerial + "&eventType=" + eventType);
+        EventsDTO events = GSON.fromJson(response, EventsDTO.class);
+        return events;
     }
 
     private void setInstallationAndGatewayId() {
