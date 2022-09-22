@@ -45,6 +45,7 @@ import org.smarthomej.binding.viessmann.internal.dto.device.DeviceDTO;
 import org.smarthomej.binding.viessmann.internal.dto.device.DeviceData;
 import org.smarthomej.binding.viessmann.internal.dto.features.FeatureDataDTO;
 import org.smarthomej.binding.viessmann.internal.dto.features.FeaturesDTO;
+import org.smarthomej.commons.UpdatingBaseBridgeHandler;
 
 import com.google.gson.JsonSyntaxException;
 
@@ -54,7 +55,7 @@ import com.google.gson.JsonSyntaxException;
  * @author Ronny Grun - Initial contribution
  */
 @NonNullByDefault
-public class ViessmannBridgeHandler extends BaseBridgeHandler {
+public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final HttpClient httpClient;
