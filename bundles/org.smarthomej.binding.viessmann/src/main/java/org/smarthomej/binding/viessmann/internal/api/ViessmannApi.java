@@ -219,7 +219,6 @@ public class ViessmannApi {
     }
 
     public @Nullable EventsDTO getSelectedEvents(String eventType) {
-        // https://api.viessmann.com/iot/v1/events-history/events?gatewaySerial=7555115501845105&installationId=775&eventType=device-error
         String response = executeGet(VIESSMANN_BASE_URL + "iot/v1/events-history/events?installationId="
                 + installationId + "&gatewaySerial=" + gatewaySerial + "&eventType=" + eventType);
         EventsDTO events = GSON.fromJson(response, EventsDTO.class);
