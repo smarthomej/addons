@@ -34,7 +34,6 @@ import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
-import org.openhab.core.thing.binding.BaseBridgeHandler;
 import org.openhab.core.thing.binding.ThingHandlerService;
 import org.openhab.core.types.Command;
 import org.slf4j.Logger;
@@ -74,7 +73,7 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
     private @Nullable String newGatewaySerial;
 
     private @Nullable ScheduledFuture<?> viessmannBridgePollingJob;
-    private @Nullable ScheduledFuture<?> viessmannEventsPollingJob;
+    private @Nullable ScheduledFuture<?> viessmannErrorsPollingJob;
     private @Nullable ScheduledFuture<?> viessmannBridgeLimitJob;
 
     public @Nullable List<DeviceData> devicesData;
@@ -131,7 +130,7 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
     @Override
     public void dispose() {
         stopViessmannBridgePolling();
-        stopViessmannEventsPolling();
+        stopViessmannErrorsPolling();
         stopViessmannBridgeLimitReset();
     }
 
@@ -159,7 +158,7 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
             updateBridgeStatus(ThingStatus.ONLINE);
             startViessmannBridgePolling(getPollingInterval());
         }
-        startViessmannEventsPolling(120);
+        startViessmannErrorsPolling(config.pollingIntervalErrors);
     }
 
     public void getAllDevices() {
@@ -184,11 +183,11 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
     }
 
     public void getDeviceError() {
-        logger.trace("Loading Events List from Viessmann Bridge");
-        EventsDTO events = api.getSelectedEvents("device-error");
-        logger.trace("Events:{}", events);
-        if (events != null) {
-            String state = events.data.get(0).body.errorDescription;
+        logger.trace("Loading error-list from Viessmann Bridge");
+        EventsDTO errors = api.getSelectedEvents("device-error");
+        logger.trace("Errors:{}", errors);
+        if (errors != null) {
+            String state = errors.data.get(0).body.errorDescription;
             updateState("lastErrorMessage", StringType.valueOf(state));
         }
     }
@@ -267,16 +266,13 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
         }
     }
 
-    private void startViessmannEventsPolling(Integer pollingInterval) {
-        ScheduledFuture<?> currentPollingJob = viessmannEventsPollingJob;
+    private void startViessmannErrorsPolling(Integer pollingInterval) {
+        ScheduledFuture<?> currentPollingJob = viessmannErrorsPollingJob;
         if (currentPollingJob == null) {
-            viessmannEventsPollingJob = scheduler.scheduleWithFixedDelay(() -> {
-                logger.debug("Refresh job scheduled to run every {} seconds for polling events", pollingInterval);
-                // api.checkExpiringToken();
-                // checkResetApiCalls();
-                // pollingFeatures();
+            viessmannErrorsPollingJob = scheduler.scheduleWithFixedDelay(() -> {
+                logger.debug("Refresh job scheduled to run every {} seconds for polling errors", pollingInterval);
                 getDeviceError();
-            }, 1, pollingInterval, TimeUnit.SECONDS);
+            }, 1, pollingInterval, TimeUnit.MINUTES);
         }
     }
 
@@ -305,11 +301,11 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
         }
     }
 
-    public void stopViessmannEventsPolling() {
-        ScheduledFuture<?> currentPollingJob = viessmannEventsPollingJob;
+    public void stopViessmannErrorsPolling() {
+        ScheduledFuture<?> currentPollingJob = viessmannErrorsPollingJob;
         if (currentPollingJob != null) {
             currentPollingJob.cancel(true);
-            viessmannEventsPollingJob = null;
+            viessmannErrorsPollingJob = null;
         }
     }
 
@@ -323,7 +319,7 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
 
     public void waitForApiCallLimitReset(Long resetLimitMillis) {
         stopViessmannBridgePolling();
-        stopViessmannEventsPolling();
+        stopViessmannErrorsPolling();
         Long delay = (resetLimitMillis - Instant.now().toEpochMilli()) / 1000;
         stopViessmannBridgeLimitReset();
         startViessmannBridgeLimitReset(delay);
