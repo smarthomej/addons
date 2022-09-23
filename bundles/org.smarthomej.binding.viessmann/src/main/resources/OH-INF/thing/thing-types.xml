@@ -64,6 +64,12 @@
 					calculated by the binding)</description>
 				<advanced>true</advanced>
 			</parameter>
+			<parameter name="pollingIntervalErrors" type="integer" required="false" unit="min">
+				<label>Polling Interval for Erros</label>
+				<description>How often the errors should be queried in minutes</description>
+				<default>60</default>
+				<advanced>true</advanced>
+			</parameter>
 		</config-description>
 	</bridge-type>
 
