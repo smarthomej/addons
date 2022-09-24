@@ -7,9 +7,6 @@
 	<bridge-type id="bridge">
 		<label>Viessmann Connect Bridge</label>
 		<description>The bridge to communicate with the Viessmann API</description>
-		<properties>
-			<property name="thingTypeVersion">3</property>
-		</properties>
 		<channels>
 			<channel id="countApiCalls" typeId="type-number">
 				<label>Count API Calls</label>
@@ -18,7 +15,9 @@
 				<label>Last error message</label>
 			</channel>
 		</channels>
-
+		<properties>
+			<property name="thingTypeVersion">3</property>
+		</properties>
 		<config-description>
 			<parameter name="apiKey" type="text" required="true">
 				<label>Client ID</label>
