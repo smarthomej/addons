@@ -14,6 +14,11 @@ package org.smarthomej.binding.viessmann.internal.dto.events;
 
 import java.util.List;
 
+/**
+ * The {@link EventsDTO} provides all data of a EventsDTO
+ *
+ * @author Ronny Grun - Initial contribution
+ */
 public class EventsDTO {
     public List<Datum> data = null;
     public Cursor cursor;

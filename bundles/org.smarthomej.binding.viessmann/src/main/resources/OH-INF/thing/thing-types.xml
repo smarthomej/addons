@@ -7,7 +7,9 @@
 	<bridge-type id="bridge">
 		<label>Viessmann Connect Bridge</label>
 		<description>The bridge to communicate with the Viessmann API</description>
-
+		<properties>
+			<property name="thingTypeVersion">3</property>
+		</properties>
 		<channels>
 			<channel id="countApiCalls" typeId="type-number">
 				<label>Count API Calls</label>
@@ -65,7 +67,7 @@
 				<advanced>true</advanced>
 			</parameter>
 			<parameter name="pollingIntervalErrors" type="integer" required="false" unit="min">
-				<label>Polling Interval for Erros</label>
+				<label>Polling Interval Erros</label>
 				<description>How often the errors should be queried in minutes</description>
 				<default>60</default>
 				<advanced>true</advanced>

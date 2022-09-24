@@ -12,6 +12,11 @@
  */
 package org.smarthomej.binding.viessmann.internal.dto.events;
 
+/**
+ * The {@link Cursor} provides all data Cursor
+ *
+ * @author Ronny Grun - Initial contribution
+ */
 public class Cursor {
     public String next;
 }

@@ -12,6 +12,11 @@
  */
 package org.smarthomej.binding.viessmann.internal.dto.events;
 
+/**
+ * The {@link CommandBody} provides all data of a CommandBody
+ *
+ * @author Ronny Grun - Initial contribution
+ */
 public class CommandBody {
     public Integer temperature;
     public String mode;

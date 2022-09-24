@@ -12,6 +12,11 @@
  */
 package org.smarthomej.binding.viessmann.internal.dto.events;
 
+/**
+ * The {@link Body} provides all data of a Body
+ *
+ * @author Ronny Grun - Initial contribution
+ */
 public class Body {
     public String errorCode;
     public String deviceId;
