@@ -270,7 +270,7 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
         ScheduledFuture<?> currentPollingJob = viessmannErrorsPollingJob;
         if (currentPollingJob == null) {
             viessmannErrorsPollingJob = scheduler.scheduleWithFixedDelay(() -> {
-                logger.debug("Refresh job scheduled to run every {} seconds for polling errors", pollingInterval);
+                logger.debug("Refresh job scheduled to run every {} minutes for polling errors", pollingInterval);
                 getDeviceError();
             }, 1, pollingInterval, TimeUnit.MINUTES);
         }
