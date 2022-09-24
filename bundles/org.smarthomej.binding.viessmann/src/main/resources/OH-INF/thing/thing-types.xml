@@ -11,7 +11,7 @@
 			<channel id="countApiCalls" typeId="type-number">
 				<label>Count API Calls</label>
 			</channel>
-			<channel id="lastErrorMessage" typeId="type-string">
+			<channel id="lastErrorMessage" typeId="lastErrorMessage">
 				<label>Last error message</label>
 			</channel>
 		</channels>
@@ -214,6 +214,14 @@
 		<item-type>Switch</item-type>
 		<label>Switch</label>
 		<category>Switch</category>
+	</channel-type>
+
+	<channel-type id="lastErrorMessage">
+		<item-type>String</item-type>
+		<label>Last error message</label>
+		<category>Text</category>
+		<state readOnly="false">
+		</state>
 	</channel-type>
 
 </thing:thing-descriptions>
