@@ -28,6 +28,7 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.client.HttpClient;
 import org.openhab.core.config.core.Configuration;
 import org.openhab.core.library.types.DecimalType;
+import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.ChannelUID;
@@ -188,7 +189,9 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
         logger.trace("Errors:{}", errors);
         if (errors != null) {
             String state = errors.data.get(0).body.errorDescription;
+            Boolean active = errors.data.get(0).body.active;
             updateState("lastErrorMessage", StringType.valueOf(state));
+            updateState("errorIsActive", OnOffType.from(active));
         }
     }
 
@@ -272,7 +275,7 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
             viessmannErrorsPollingJob = scheduler.scheduleWithFixedDelay(() -> {
                 logger.debug("Refresh job scheduled to run every {} minutes for polling errors", pollingInterval);
                 getDeviceError();
-            }, 1, pollingInterval, TimeUnit.MINUTES);
+            }, 0, pollingInterval, TimeUnit.MINUTES);
         }
     }
 

@@ -13,11 +13,11 @@
 package org.smarthomej.binding.viessmann.internal.dto.events;
 
 /**
- * The {@link Datum} provides all data of Datum
+ * The {@link EventsDataDTO} provides all data of Datum
  *
  * @author Ronny Grun - Initial contribution
  */
-public class Datum {
+public class EventsDataDTO {
     public String eventType;
     public String gatewaySerial;
     public Body body;

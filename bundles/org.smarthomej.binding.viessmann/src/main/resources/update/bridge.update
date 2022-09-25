@@ -1,1 +1,2 @@
-3;ADD_CHANNEL;lastErrorMessage,String,viessmann:type-string
+3;ADD_CHANNEL;errorIsActive,Switch,viessmann:errorIsActive
+3;ADD_CHANNEL;lastErrorMessage,String,viessmann:lastErrorMessage

@@ -11,6 +11,9 @@
 			<channel id="countApiCalls" typeId="type-number">
 				<label>Count API Calls</label>
 			</channel>
+			<channel id="errorIsActive" typeId="errorIsActive">
+				<label>Error is active</label>
+			</channel>
 			<channel id="lastErrorMessage" typeId="lastErrorMessage">
 				<label>Last error message</label>
 			</channel>
@@ -213,6 +216,12 @@
 	<channel-type id="type-boolean">
 		<item-type>Switch</item-type>
 		<label>Switch</label>
+		<category>Switch</category>
+	</channel-type>
+
+	<channel-type id="errorIsActive">
+		<item-type>Switch</item-type>
+		<label>Error is active</label>
 		<category>Switch</category>
 	</channel-type>
 

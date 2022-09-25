@@ -20,6 +20,6 @@ import java.util.List;
  * @author Ronny Grun - Initial contribution
  */
 public class EventsDTO {
-    public List<Datum> data = null;
+    public List<EventsDataDTO> data = null;
     public Cursor cursor;
 }
