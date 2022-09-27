@@ -59,6 +59,7 @@ _All configurations are made in the UI_
 | channel            | type   | RO/RW | description                                 |
 |--------------------|--------|-------|---------------------------------------------|
 | `countApiCalls`    | Number |   RO  | How often the API is called this day        |
+| `errorIsActive`    | Switch |   RO  | Indicates whether the error is set / unset  |
 | `lastErrorMessage` | String |   RO  | Last error message from the installation    |
 
 
