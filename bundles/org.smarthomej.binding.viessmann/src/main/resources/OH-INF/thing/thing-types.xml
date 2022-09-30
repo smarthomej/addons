@@ -222,15 +222,14 @@
 	<channel-type id="errorIsActive">
 		<item-type>Switch</item-type>
 		<label>Error is active</label>
-		<category>Switch</category>
+		<category>Error</category>
 	</channel-type>
 
 	<channel-type id="lastErrorMessage">
 		<item-type>String</item-type>
 		<label>Last error message</label>
 		<category>Text</category>
-		<state readOnly="false">
-		</state>
+		<state readOnly="false"/>
 	</channel-type>
 
 </thing:thing-descriptions>
