@@ -20,5 +20,5 @@ package org.smarthomej.binding.viessmann.internal.dto.features;
 public class FeatureMode {
     public Boolean required;
     public String type;
-    public FeatureConstraintsEnum constraints;
+    public FeatureConstraintsEnumValue constraints;
 }

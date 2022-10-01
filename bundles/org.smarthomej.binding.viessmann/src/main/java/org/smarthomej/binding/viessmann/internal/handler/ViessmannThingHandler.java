@@ -12,16 +12,20 @@
  */
 package org.smarthomej.binding.viessmann.internal.handler;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.thing.Bridge;
+import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.ThingStatusInfo;
+import org.openhab.core.types.CommandOption;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smarthomej.binding.viessmann.internal.ViessmannDynamicCommandDescriptionProvider;
 import org.smarthomej.binding.viessmann.internal.dto.ViessmannMessage;
 import org.smarthomej.binding.viessmann.internal.dto.features.FeatureDataDTO;
 import org.smarthomej.commons.UpdatingBaseThingHandler;
@@ -38,8 +42,11 @@ public abstract class ViessmannThingHandler extends UpdatingBaseThingHandler {
     protected final AtomicBoolean firstUpdateReceived = new AtomicBoolean(false);
     protected static AtomicBoolean readyToSendData = new AtomicBoolean(false);
 
-    public ViessmannThingHandler(Thing thing) {
+    private final ViessmannDynamicCommandDescriptionProvider commandDescriptionProvider;
+
+    public ViessmannThingHandler(Thing thing, ViessmannDynamicCommandDescriptionProvider commandDescriptionProvider) {
         super(thing);
+        this.commandDescriptionProvider = commandDescriptionProvider;
     }
 
     /**
@@ -91,5 +98,9 @@ public abstract class ViessmannThingHandler extends UpdatingBaseThingHandler {
         } else if (bridgeStatus == ThingStatus.OFFLINE) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.BRIDGE_OFFLINE);
         }
+    }
+
+    public void setChannelCommand(ChannelUID channelUid, List<CommandOption> commandOptions) {
+        commandDescriptionProvider.setCommandOptions(channelUid, commandOptions);
     }
 }

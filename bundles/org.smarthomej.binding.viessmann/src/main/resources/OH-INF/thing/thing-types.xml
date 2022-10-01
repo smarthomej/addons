@@ -206,4 +206,11 @@
 		<category>Switch</category>
 	</channel-type>
 
+	<channel-type id="type-setMode">
+		<item-type>String</item-type>
+		<label>Set Mode</label>
+		<category>Text</category>
+		<state readOnly="false"/>
+	</channel-type>
+
 </thing:thing-descriptions>

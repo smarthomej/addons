@@ -51,15 +51,18 @@ public class ViessmannHandlerFactory extends BaseThingHandlerFactory {
 
     private final HttpClient httpClient;
     private final BindingServlet bindingServlet;
+    private final ViessmannDynamicCommandDescriptionProvider commandDescriptionProvider;
 
     private @Nullable String callbackUrl;
 
     private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Set.of(THING_TYPE_BRIDGE, THING_TYPE_DEVICE);
 
     @Activate
-    public ViessmannHandlerFactory(@Reference HttpService httpService, @Reference HttpClientFactory httpClientFactory) {
+    public ViessmannHandlerFactory(@Reference HttpService httpService, @Reference HttpClientFactory httpClientFactory,
+            final @Reference ViessmannDynamicCommandDescriptionProvider stateDescriptionProvider) {
         this.httpClient = httpClientFactory.getCommonHttpClient();
         this.bindingServlet = new BindingServlet(httpService);
+        this.commandDescriptionProvider = stateDescriptionProvider;
     }
 
     @Override
@@ -88,7 +91,7 @@ public class ViessmannHandlerFactory extends BaseThingHandlerFactory {
             bindingServlet.addAccountThing(thing);
             return new ViessmannBridgeHandler((Bridge) thing, httpClient, createCallbackUrl());
         } else if (THING_TYPE_DEVICE.equals(thingTypeUID)) {
-            return new DeviceHandler(thing);
+            return new DeviceHandler(thing, commandDescriptionProvider);
         }
         return null;
     }

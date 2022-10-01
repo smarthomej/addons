@@ -15,6 +15,7 @@ package org.smarthomej.binding.viessmann.internal.handler;
 import static org.smarthomej.binding.viessmann.internal.ViessmannBindingConstants.*;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -38,8 +39,10 @@ import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.binding.ThingHandlerCallback;
 import org.openhab.core.thing.type.ChannelTypeUID;
 import org.openhab.core.types.Command;
+import org.openhab.core.types.CommandOption;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smarthomej.binding.viessmann.internal.ViessmannDynamicCommandDescriptionProvider;
 import org.smarthomej.binding.viessmann.internal.config.ThingsConfig;
 import org.smarthomej.binding.viessmann.internal.dto.HeatingCircuit;
 import org.smarthomej.binding.viessmann.internal.dto.ThingMessageDTO;
@@ -70,8 +73,9 @@ public class DeviceHandler extends ViessmannThingHandler {
 
     private final Map<String, HeatingCircuit> heatingCircuits = new HashMap<>();
 
-    public DeviceHandler(Thing thing) {
-        super(thing);
+    public DeviceHandler(Thing thing, ViessmannDynamicCommandDescriptionProvider commandDescriptionProvider) {
+        super(thing, commandDescriptionProvider);
+        // this.commandDescriptionProvider = commandDescriptionProvider;
     }
 
     @Override
@@ -420,6 +424,19 @@ public class DeviceHandler extends ViessmannThingHandler {
 
                             if (thing.getChannel(msg.getChannelId()) == null) {
                                 createChannel(msg);
+                            }
+
+                            if ("type-setMode".equals(convertChannelType(msg))) {
+                                List<String> modes = msg.commands.setMode.params.mode.constraints.enumValue;
+                                if (modes != null) {
+                                    List<CommandOption> commandOptions = new ArrayList<CommandOption>();
+                                    for (String command : modes) {
+                                        CommandOption commandOption = new CommandOption(command, null);
+                                        commandOptions.add(commandOption);
+                                    }
+                                    ChannelUID channelUID = new ChannelUID(thing.getUID(), msg.getChannelId());
+                                    setChannelCommand(channelUID, commandOptions);
+                                }
                             }
 
                             ThingMessageDTO subMsg = new ThingMessageDTO();
@@ -809,6 +826,9 @@ public class DeviceHandler extends ViessmannThingHandler {
                             break;
                         case "setHysteresis":
                             channelType = "type-setTargetHysteresis";
+                            break;
+                        case "setMode":
+                            channelType = "type-setMode";
                             break;
                         default:
                             break;
