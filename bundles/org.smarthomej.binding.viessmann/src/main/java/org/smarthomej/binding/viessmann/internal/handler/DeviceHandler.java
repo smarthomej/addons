@@ -40,9 +40,11 @@ import org.openhab.core.thing.binding.ThingHandlerCallback;
 import org.openhab.core.thing.type.ChannelTypeUID;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.CommandOption;
+import org.openhab.core.types.StateOption;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.viessmann.internal.ViessmannDynamicCommandDescriptionProvider;
+import org.smarthomej.binding.viessmann.internal.ViessmannDynamicStateDescriptionProvider;
 import org.smarthomej.binding.viessmann.internal.config.ThingsConfig;
 import org.smarthomej.binding.viessmann.internal.dto.HeatingCircuit;
 import org.smarthomej.binding.viessmann.internal.dto.ThingMessageDTO;
@@ -73,8 +75,9 @@ public class DeviceHandler extends ViessmannThingHandler {
 
     private final Map<String, HeatingCircuit> heatingCircuits = new HashMap<>();
 
-    public DeviceHandler(Thing thing, ViessmannDynamicCommandDescriptionProvider commandDescriptionProvider) {
-        super(thing, commandDescriptionProvider);
+    public DeviceHandler(Thing thing, ViessmannDynamicCommandDescriptionProvider commandDescriptionProvider,
+            ViessmannDynamicStateDescriptionProvider stateDescriptionProvider) {
+        super(thing, commandDescriptionProvider, stateDescriptionProvider);
         // this.commandDescriptionProvider = commandDescriptionProvider;
     }
 
@@ -426,18 +429,7 @@ public class DeviceHandler extends ViessmannThingHandler {
                                 createChannel(msg);
                             }
 
-                            if ("type-setMode".equals(convertChannelType(msg))) {
-                                List<String> modes = msg.commands.setMode.params.mode.constraints.enumValue;
-                                if (modes != null) {
-                                    List<CommandOption> commandOptions = new ArrayList<CommandOption>();
-                                    for (String command : modes) {
-                                        CommandOption commandOption = new CommandOption(command, null);
-                                        commandOptions.add(commandOption);
-                                    }
-                                    ChannelUID channelUID = new ChannelUID(thing.getUID(), msg.getChannelId());
-                                    setChannelCommand(channelUID, commandOptions);
-                                }
-                            }
+                            setStateDescriptionAndCommandOptions(msg);
 
                             ThingMessageDTO subMsg = new ThingMessageDTO();
                             subMsg.setDeviceId(featureDataDTO.deviceId);
@@ -837,5 +829,25 @@ public class DeviceHandler extends ViessmannThingHandler {
             }
         }
         return channelType;
+    }
+
+    private void setStateDescriptionAndCommandOptions(ThingMessageDTO msg) {
+        if ("type-setMode".equals(convertChannelType(msg))) {
+            List<String> modes = msg.commands.setMode.params.mode.constraints.enumValue;
+            if (modes != null) {
+                List<CommandOption> commandOptions = new ArrayList<CommandOption>();
+                List<StateOption> stateOptions = new ArrayList<StateOption>();
+                for (String command : modes) {
+                    CommandOption commandOption = new CommandOption(command, MODES_MAP.get(command));
+                    commandOptions.add(commandOption);
+
+                    StateOption stateOption = new StateOption(command, MODES_MAP.get(command));
+                    stateOptions.add(stateOption);
+                }
+                ChannelUID channelUID = new ChannelUID(thing.getUID(), msg.getChannelId());
+                setChannelCommand(channelUID, commandOptions);
+                setChannelStateDescription(channelUID, stateOptions);
+            }
+        }
     }
 }

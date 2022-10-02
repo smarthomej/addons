@@ -52,6 +52,7 @@ public class ViessmannHandlerFactory extends BaseThingHandlerFactory {
     private final HttpClient httpClient;
     private final BindingServlet bindingServlet;
     private final ViessmannDynamicCommandDescriptionProvider commandDescriptionProvider;
+    private final ViessmannDynamicStateDescriptionProvider stateDescriptionProvider;
 
     private @Nullable String callbackUrl;
 
@@ -59,10 +60,12 @@ public class ViessmannHandlerFactory extends BaseThingHandlerFactory {
 
     @Activate
     public ViessmannHandlerFactory(@Reference HttpService httpService, @Reference HttpClientFactory httpClientFactory,
-            final @Reference ViessmannDynamicCommandDescriptionProvider stateDescriptionProvider) {
+            final @Reference ViessmannDynamicCommandDescriptionProvider commandDescriptionProvider,
+            final @Reference ViessmannDynamicStateDescriptionProvider stateDescriptionProvider) {
         this.httpClient = httpClientFactory.getCommonHttpClient();
         this.bindingServlet = new BindingServlet(httpService);
-        this.commandDescriptionProvider = stateDescriptionProvider;
+        this.commandDescriptionProvider = commandDescriptionProvider;
+        this.stateDescriptionProvider = stateDescriptionProvider;
     }
 
     @Override
@@ -91,7 +94,7 @@ public class ViessmannHandlerFactory extends BaseThingHandlerFactory {
             bindingServlet.addAccountThing(thing);
             return new ViessmannBridgeHandler((Bridge) thing, httpClient, createCallbackUrl());
         } else if (THING_TYPE_DEVICE.equals(thingTypeUID)) {
-            return new DeviceHandler(thing, commandDescriptionProvider);
+            return new DeviceHandler(thing, commandDescriptionProvider, stateDescriptionProvider);
         }
         return null;
     }
