@@ -78,7 +78,6 @@ public class DeviceHandler extends ViessmannThingHandler {
     public DeviceHandler(Thing thing, ViessmannDynamicCommandDescriptionProvider commandDescriptionProvider,
             ViessmannDynamicStateDescriptionProvider stateDescriptionProvider) {
         super(thing, commandDescriptionProvider, stateDescriptionProvider);
-        // this.commandDescriptionProvider = commandDescriptionProvider;
     }
 
     @Override
