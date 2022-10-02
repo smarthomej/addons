@@ -222,7 +222,6 @@ public class DeviceHandler extends ViessmannThingHandler {
 
     @Override
     public void handleUpdate(FeatureDataDTO featureDataDTO) {
-        logger.trace("Device handler received update: {}", featureDataDTO);
         ThingMessageDTO msg = new ThingMessageDTO();
         if (featureDataDTO.properties != null) {
             msg.setDeviceId(featureDataDTO.deviceId);
@@ -564,9 +563,6 @@ public class DeviceHandler extends ViessmannThingHandler {
         String channelType = convertChannelType(msg);
 
         ChannelTypeUID channelTypeUID = new ChannelTypeUID(BINDING_ID, channelType);
-        if (msg.getFeatureName().contains("active")) {
-            logger.trace("Feature: {} ChannelType: {}", msg.getFeatureClear(), channelType);
-        }
         Channel channel = callback.createChannelBuilder(channelUID, channelTypeUID).withLabel(msg.getFeatureName())
                 .withDescription(msg.getFeatureDescription()).withProperties(prop).build();
         updateThing(editThing().withoutChannel(channelUID).withChannel(channel).build());
