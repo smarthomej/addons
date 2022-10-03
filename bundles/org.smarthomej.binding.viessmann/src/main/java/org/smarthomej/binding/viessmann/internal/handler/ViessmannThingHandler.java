@@ -22,11 +22,9 @@ import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.ThingStatusInfo;
-import org.openhab.core.types.CommandOption;
 import org.openhab.core.types.StateOption;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthomej.binding.viessmann.internal.ViessmannDynamicCommandDescriptionProvider;
 import org.smarthomej.binding.viessmann.internal.ViessmannDynamicStateDescriptionProvider;
 import org.smarthomej.binding.viessmann.internal.dto.ViessmannMessage;
 import org.smarthomej.binding.viessmann.internal.dto.features.FeatureDataDTO;
@@ -44,13 +42,10 @@ public abstract class ViessmannThingHandler extends UpdatingBaseThingHandler {
     protected final AtomicBoolean firstUpdateReceived = new AtomicBoolean(false);
     protected static AtomicBoolean readyToSendData = new AtomicBoolean(false);
 
-    private final ViessmannDynamicCommandDescriptionProvider commandDescriptionProvider;
     private final ViessmannDynamicStateDescriptionProvider stateDescriptionProvider;
 
-    public ViessmannThingHandler(Thing thing, ViessmannDynamicCommandDescriptionProvider commandDescriptionProvider,
-            ViessmannDynamicStateDescriptionProvider stateDescriptionProvider) {
+    public ViessmannThingHandler(Thing thing, ViessmannDynamicStateDescriptionProvider stateDescriptionProvider) {
         super(thing);
-        this.commandDescriptionProvider = commandDescriptionProvider;
         this.stateDescriptionProvider = stateDescriptionProvider;
     }
 
@@ -103,10 +98,6 @@ public abstract class ViessmannThingHandler extends UpdatingBaseThingHandler {
         } else if (bridgeStatus == ThingStatus.OFFLINE) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.BRIDGE_OFFLINE);
         }
-    }
-
-    public void setChannelCommand(ChannelUID channelUid, List<CommandOption> commandOptions) {
-        commandDescriptionProvider.setCommandOptions(channelUid, commandOptions);
     }
 
     public void setChannelStateDescription(ChannelUID channelUid, List<StateOption> stateOptions) {
