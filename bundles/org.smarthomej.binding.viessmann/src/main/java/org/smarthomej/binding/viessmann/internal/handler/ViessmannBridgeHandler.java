@@ -285,7 +285,7 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
         }
     }
 
-    protected synchronized void managePolling() {
+    protected synchronized void manageErrorPolling() {
         ScheduledFuture<?> errorPollingJob = viessmannErrorsPollingJob;
         if (errorChannelsLinked() && errorPollingJob == null) {
             stopViessmannBridgePolling();
@@ -383,13 +383,13 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
 
     @Override
     public void channelLinked(ChannelUID channelUID) {
-        managePolling();
+        manageErrorPolling();
         super.channelLinked(channelUID);
     }
 
     @Override
     public void channelUnlinked(ChannelUID channelUID) {
-        managePolling();
+        manageErrorPolling();
         super.channelUnlinked(channelUID);
     }
 }
