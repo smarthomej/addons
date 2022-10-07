@@ -63,7 +63,6 @@ import com.google.gson.GsonBuilder;
  * @author Ronny Grun - Initial contribution
  */
 @NonNullByDefault
-@SuppressWarnings("null")
 public class DeviceHandler extends ViessmannThingHandler {
 
     private final Logger logger = LoggerFactory.getLogger(DeviceHandler.class);
