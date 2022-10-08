@@ -42,6 +42,7 @@ The `bridge` thing supports the connection to the Viessmann API.
 * `apiCallLimit` (default = 1450) The limit how often call the API (*) 
 * `bufferApiCommands` (default = 450) The buffer for commands (*)
 * `pollingInterval` (default = 0) How often the available devices should be queried in seconds (**) 
+* `pollingIntervalErrors` (default = 60) How often the errors should be queried in minutes 
 
 
 (*) Used to calcuate refresh time in seconds.
@@ -55,9 +56,12 @@ _All configurations are made in the UI_
 
 ### `bridge`
 
-| channel         | type   | RO/RW | description                          |
-|-----------------|--------|-------|--------------------------------------|
-| `countApiCalls` | Number |   RO  | How often the API is called this day |
+| channel            | type   | RO/RW | description                                 |
+|--------------------|--------|-------|---------------------------------------------|
+| `countApiCalls`    | Number |   RO  | How often the API is called this day        |
+| `errorIsActive`    | Switch |   RO  | Indicates whether the error is set / unset  |
+| `lastErrorMessage` | String |   RO  | Last error message from the installation    |
+
 
 ### `device`
 

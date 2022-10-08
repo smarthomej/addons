@@ -7,13 +7,20 @@
 	<bridge-type id="bridge">
 		<label>Viessmann Connect Bridge</label>
 		<description>The bridge to communicate with the Viessmann API</description>
-
 		<channels>
 			<channel id="countApiCalls" typeId="type-number">
 				<label>Count API Calls</label>
 			</channel>
+			<channel id="errorIsActive" typeId="errorIsActive">
+				<label>Error is active</label>
+			</channel>
+			<channel id="lastErrorMessage" typeId="lastErrorMessage">
+				<label>Last error message</label>
+			</channel>
 		</channels>
-
+		<properties>
+			<property name="thingTypeVersion">3</property>
+		</properties>
 		<config-description>
 			<parameter name="apiKey" type="text" required="true">
 				<label>Client ID</label>
@@ -59,6 +66,12 @@
 				<description>How often the heating should be queried in seconds (If it's set to 0, then the interval will
 					be
 					calculated by the binding)</description>
+				<advanced>true</advanced>
+			</parameter>
+			<parameter name="pollingIntervalErrors" type="integer" required="false" unit="min">
+				<label>Polling Interval Erros</label>
+				<description>How often the errors should be queried in minutes</description>
+				<default>60</default>
 				<advanced>true</advanced>
 			</parameter>
 		</config-description>
@@ -204,6 +217,19 @@
 		<item-type>Switch</item-type>
 		<label>Switch</label>
 		<category>Switch</category>
+	</channel-type>
+
+	<channel-type id="errorIsActive">
+		<item-type>Switch</item-type>
+		<label>Error is active</label>
+		<category>Error</category>
+	</channel-type>
+
+	<channel-type id="lastErrorMessage">
+		<item-type>String</item-type>
+		<label>Last error message</label>
+		<category>Text</category>
+		<state readOnly="false"/>
 	</channel-type>
 
 </thing:thing-descriptions>
