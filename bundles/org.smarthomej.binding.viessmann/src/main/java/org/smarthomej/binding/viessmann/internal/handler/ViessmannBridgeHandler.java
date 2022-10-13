@@ -28,12 +28,13 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.client.HttpClient;
 import org.openhab.core.config.core.Configuration;
 import org.openhab.core.library.types.DecimalType;
+import org.openhab.core.library.types.OnOffType;
+import org.openhab.core.library.types.StringType;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
-import org.openhab.core.thing.binding.BaseBridgeHandler;
 import org.openhab.core.thing.binding.ThingHandlerService;
 import org.openhab.core.types.Command;
 import org.slf4j.Logger;
@@ -43,8 +44,10 @@ import org.smarthomej.binding.viessmann.internal.api.ViessmannApi;
 import org.smarthomej.binding.viessmann.internal.config.BridgeConfiguration;
 import org.smarthomej.binding.viessmann.internal.dto.device.DeviceDTO;
 import org.smarthomej.binding.viessmann.internal.dto.device.DeviceData;
+import org.smarthomej.binding.viessmann.internal.dto.events.EventsDTO;
 import org.smarthomej.binding.viessmann.internal.dto.features.FeatureDataDTO;
 import org.smarthomej.binding.viessmann.internal.dto.features.FeaturesDTO;
+import org.smarthomej.commons.UpdatingBaseBridgeHandler;
 
 import com.google.gson.JsonSyntaxException;
 
@@ -54,8 +57,10 @@ import com.google.gson.JsonSyntaxException;
  * @author Ronny Grun - Initial contribution
  */
 @NonNullByDefault
-public class ViessmannBridgeHandler extends BaseBridgeHandler {
+public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    private static final Set<String> ERROR_CHANNELS = Set.of("lastErrorMessage", "errorIsActive");
 
     private final HttpClient httpClient;
     private final @Nullable String callbackUrl;
@@ -71,6 +76,7 @@ public class ViessmannBridgeHandler extends BaseBridgeHandler {
     private @Nullable String newGatewaySerial;
 
     private @Nullable ScheduledFuture<?> viessmannBridgePollingJob;
+    private @Nullable ScheduledFuture<?> viessmannErrorsPollingJob;
     private @Nullable ScheduledFuture<?> viessmannBridgeLimitJob;
 
     public @Nullable List<DeviceData> devicesData;
@@ -119,6 +125,11 @@ public class ViessmannBridgeHandler extends BaseBridgeHandler {
         updateConfiguration(conf);
     }
 
+    private boolean errorChannelsLinked() {
+        return getThing().getChannels().stream()
+                .filter(c -> isLinked(c.getUID()) && ERROR_CHANNELS.contains(c.getUID().getId())).count() > 0;
+    }
+
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
         // Nothing to handle here currently
@@ -127,6 +138,7 @@ public class ViessmannBridgeHandler extends BaseBridgeHandler {
     @Override
     public void dispose() {
         stopViessmannBridgePolling();
+        stopViessmannErrorsPolling();
         stopViessmannBridgeLimitReset();
     }
 
@@ -149,10 +161,15 @@ public class ViessmannBridgeHandler extends BaseBridgeHandler {
         if (this.config.installationId.isEmpty() || this.config.gatewaySerial.isEmpty()) {
             setConfigInstallationGatewayId();
         }
+
+        if (errorChannelsLinked()) {
+            startViessmannErrorsPolling(config.pollingIntervalErrors);
+        }
+
         getAllDevices();
         if (!devicesList.isEmpty()) {
             updateBridgeStatus(ThingStatus.ONLINE);
-            startViessmannBridgePolling(getPollingInterval());
+            startViessmannBridgePolling(getPollingInterval(), 1);
         }
     }
 
@@ -177,6 +194,19 @@ public class ViessmannBridgeHandler extends BaseBridgeHandler {
         }
     }
 
+    public void getDeviceError() {
+        logger.trace("Loading error-list from Viessmann Bridge");
+        EventsDTO errors = api.getSelectedEvents("device-error");
+        countApiCalls();
+        logger.trace("Errors:{}", errors);
+        if (errors != null) {
+            String state = errors.data.get(0).body.errorDescription;
+            Boolean active = errors.data.get(0).body.active;
+            updateState("lastErrorMessage", StringType.valueOf(state));
+            updateState("errorIsActive", OnOffType.from(active));
+        }
+    }
+
     public boolean setData(@Nullable String url, @Nullable String json) {
         if (url != null && json != null) {
             countApiCalls();
@@ -189,8 +219,12 @@ public class ViessmannBridgeHandler extends BaseBridgeHandler {
         if (this.config.pollingInterval > 0) {
             return this.config.pollingInterval;
         } else {
-            Integer interval = (86400 / (this.config.apiCallLimit - this.config.bufferApiCommands) * devicesList.size())
-                    + 1;
+            int errorApiCalls = 0;
+            if (errorChannelsLinked()) {
+                errorApiCalls = 1440 / this.config.pollingIntervalErrors;
+            }
+            Integer interval = (86400 / (this.config.apiCallLimit - this.config.bufferApiCommands - errorApiCalls)
+                    * devicesList.size()) + 1;
             return interval;
         }
     }
@@ -238,7 +272,7 @@ public class ViessmannBridgeHandler extends BaseBridgeHandler {
         }
     }
 
-    private void startViessmannBridgePolling(Integer pollingIntervalS) {
+    private void startViessmannBridgePolling(Integer pollingIntervalS, Integer initialDelay) {
         ScheduledFuture<?> currentPollingJob = viessmannBridgePollingJob;
         if (currentPollingJob == null) {
             viessmannBridgePollingJob = scheduler.scheduleWithFixedDelay(() -> {
@@ -247,7 +281,32 @@ public class ViessmannBridgeHandler extends BaseBridgeHandler {
                 api.checkExpiringToken();
                 checkResetApiCalls();
                 pollingFeatures();
-            }, 1, pollingIntervalS, TimeUnit.SECONDS);
+            }, initialDelay, pollingIntervalS, TimeUnit.SECONDS);
+        }
+    }
+
+    protected synchronized void manageErrorPolling() {
+        ScheduledFuture<?> errorPollingJob = viessmannErrorsPollingJob;
+        if (errorChannelsLinked() && errorPollingJob == null) {
+            stopViessmannBridgePolling();
+            startViessmannBridgePolling(getPollingInterval(), getPollingInterval());
+            startViessmannErrorsPolling(config.pollingIntervalErrors);
+        } else {
+            if (!errorChannelsLinked() && errorPollingJob != null) {
+                stopViessmannErrorsPolling();
+                stopViessmannBridgePolling();
+                startViessmannBridgePolling(getPollingInterval(), getPollingInterval());
+            }
+        }
+    }
+
+    private void startViessmannErrorsPolling(Integer pollingInterval) {
+        ScheduledFuture<?> currentPollingJob = viessmannErrorsPollingJob;
+        if (currentPollingJob == null) {
+            viessmannErrorsPollingJob = scheduler.scheduleWithFixedDelay(() -> {
+                logger.debug("Refresh job scheduled to run every {} minutes for polling errors", pollingInterval);
+                getDeviceError();
+            }, 0, pollingInterval, TimeUnit.MINUTES);
         }
     }
 
@@ -261,7 +320,7 @@ public class ViessmannBridgeHandler extends BaseBridgeHandler {
                 getAllDevices();
                 if (!devicesList.isEmpty()) {
                     updateBridgeStatus(ThingStatus.ONLINE);
-                    startViessmannBridgePolling(getPollingInterval());
+                    startViessmannBridgePolling(getPollingInterval(), 1);
                     stopViessmannBridgeLimitReset();
                 }
             }, delay, 120, TimeUnit.SECONDS);
@@ -276,6 +335,14 @@ public class ViessmannBridgeHandler extends BaseBridgeHandler {
         }
     }
 
+    public void stopViessmannErrorsPolling() {
+        ScheduledFuture<?> currentPollingJob = viessmannErrorsPollingJob;
+        if (currentPollingJob != null) {
+            currentPollingJob.cancel(true);
+            viessmannErrorsPollingJob = null;
+        }
+    }
+
     public void stopViessmannBridgeLimitReset() {
         ScheduledFuture<?> currentPollingJob = viessmannBridgeLimitJob;
         if (currentPollingJob != null) {
@@ -286,6 +353,7 @@ public class ViessmannBridgeHandler extends BaseBridgeHandler {
 
     public void waitForApiCallLimitReset(Long resetLimitMillis) {
         stopViessmannBridgePolling();
+        stopViessmannErrorsPolling();
         Long delay = (resetLimitMillis - Instant.now().toEpochMilli()) / 1000;
         stopViessmannBridgeLimitReset();
         startViessmannBridgeLimitReset(delay);
@@ -311,5 +379,17 @@ public class ViessmannBridgeHandler extends BaseBridgeHandler {
 
     public void updateBridgeStatus(ThingStatus status, ThingStatusDetail statusDetail, String statusMessage) {
         updateStatus(status, statusDetail, statusMessage);
+    }
+
+    @Override
+    public void channelLinked(ChannelUID channelUID) {
+        manageErrorPolling();
+        super.channelLinked(channelUID);
+    }
+
+    @Override
+    public void channelUnlinked(ChannelUID channelUID) {
+        manageErrorPolling();
+        super.channelUnlinked(channelUID);
     }
 }
