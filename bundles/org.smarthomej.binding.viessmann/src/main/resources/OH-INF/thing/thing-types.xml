@@ -232,11 +232,11 @@
 		<state readOnly="false"/>
 	</channel-type>
 
-  <channel-type id="type-setMode">
+	<channel-type id="type-setMode">
 		<item-type>String</item-type>
 		<label>Set Mode</label>
 		<category>heating</category>
-    <state readOnly="false"/>
-  </channel-type
+		<state readOnly="false"/>
+	</channel-type>
 
 </thing:thing-descriptions>
