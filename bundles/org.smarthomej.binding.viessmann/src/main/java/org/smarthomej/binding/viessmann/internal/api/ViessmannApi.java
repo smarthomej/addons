@@ -212,6 +212,7 @@ public class ViessmannApi {
         String response = executeGet(VIESSMANN_BASE_URL + "iot/v1/equipment/installations/" + installationId
                 + "/gateways/" + gatewaySerial + "/devices/" + deviceId + "/features/");
         if (response != null) {
+            response = response.replace("enum", "enumValue");
             FeaturesDTO features = GSON.fromJson(response, FeaturesDTO.class);
             return features;
         }

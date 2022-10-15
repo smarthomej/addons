@@ -36,7 +36,7 @@ public class ThingMessageDTO {
     private String suffix;
     private String unit;
     private Map<String, String> properties = new HashMap<>();
-    private FeatureCommands commands;
+    public FeatureCommands commands;
 
     public String getType() {
         return type;

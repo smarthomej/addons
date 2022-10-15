@@ -15,10 +15,10 @@ package org.smarthomej.binding.viessmann.internal.dto.features;
 import java.util.List;
 
 /**
- * The {@link FeatureConstraintsEnum} provides enum constraints of features
+ * The {@link FeatureConstraintsEnumValue} provides enumValue constraints of features
  *
  * @author Ronny Grun - Initial contribution
  */
-public class FeatureConstraintsEnum {
-    public List<String> enum1 = null;
+public class FeatureConstraintsEnumValue {
+    public List<String> enumValue = null;
 }

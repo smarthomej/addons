@@ -15,6 +15,7 @@ package org.smarthomej.binding.viessmann.internal.handler;
 import static org.smarthomej.binding.viessmann.internal.ViessmannBindingConstants.*;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -38,8 +39,10 @@ import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.binding.ThingHandlerCallback;
 import org.openhab.core.thing.type.ChannelTypeUID;
 import org.openhab.core.types.Command;
+import org.openhab.core.types.StateOption;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smarthomej.binding.viessmann.internal.ViessmannDynamicStateDescriptionProvider;
 import org.smarthomej.binding.viessmann.internal.config.ThingsConfig;
 import org.smarthomej.binding.viessmann.internal.dto.HeatingCircuit;
 import org.smarthomej.binding.viessmann.internal.dto.ThingMessageDTO;
@@ -70,8 +73,8 @@ public class DeviceHandler extends ViessmannThingHandler {
 
     private final Map<String, HeatingCircuit> heatingCircuits = new HashMap<>();
 
-    public DeviceHandler(Thing thing) {
-        super(thing);
+    public DeviceHandler(Thing thing, ViessmannDynamicStateDescriptionProvider stateDescriptionProvider) {
+        super(thing, stateDescriptionProvider);
     }
 
     @Override
@@ -215,7 +218,6 @@ public class DeviceHandler extends ViessmannThingHandler {
 
     @Override
     public void handleUpdate(FeatureDataDTO featureDataDTO) {
-        logger.trace("Device handler received update: {}", featureDataDTO);
         ThingMessageDTO msg = new ThingMessageDTO();
         if (featureDataDTO.properties != null) {
             msg.setDeviceId(featureDataDTO.deviceId);
@@ -422,6 +424,8 @@ public class DeviceHandler extends ViessmannThingHandler {
                                 createChannel(msg);
                             }
 
+                            setStateDescriptionOptions(msg);
+
                             ThingMessageDTO subMsg = new ThingMessageDTO();
                             subMsg.setDeviceId(featureDataDTO.deviceId);
                             subMsg.setFeatureClear(featureDataDTO.feature);
@@ -555,9 +559,6 @@ public class DeviceHandler extends ViessmannThingHandler {
         String channelType = convertChannelType(msg);
 
         ChannelTypeUID channelTypeUID = new ChannelTypeUID(BINDING_ID, channelType);
-        if (msg.getFeatureName().contains("active")) {
-            logger.trace("Feature: {} ChannelType: {}", msg.getFeatureClear(), channelType);
-        }
         Channel channel = callback.createChannelBuilder(channelUID, channelTypeUID).withLabel(msg.getFeatureName())
                 .withDescription(msg.getFeatureDescription()).withProperties(prop).build();
         updateThing(editThing().withoutChannel(channelUID).withChannel(channel).build());
@@ -810,6 +811,9 @@ public class DeviceHandler extends ViessmannThingHandler {
                         case "setHysteresis":
                             channelType = "type-setTargetHysteresis";
                             break;
+                        case "setMode":
+                            channelType = "type-setMode";
+                            break;
                         default:
                             break;
                     }
@@ -817,5 +821,20 @@ public class DeviceHandler extends ViessmannThingHandler {
             }
         }
         return channelType;
+    }
+
+    private void setStateDescriptionOptions(ThingMessageDTO msg) {
+        if ("type-setMode".equals(convertChannelType(msg))) {
+            List<String> modes = msg.commands.setMode.params.mode.constraints.enumValue;
+            if (modes != null) {
+                List<StateOption> stateOptions = new ArrayList<StateOption>();
+                for (String command : modes) {
+                    StateOption stateOption = new StateOption(command, MODES_MAP.get(command));
+                    stateOptions.add(stateOption);
+                }
+                ChannelUID channelUID = new ChannelUID(thing.getUID(), msg.getChannelId());
+                setChannelStateDescription(channelUID, stateOptions);
+            }
+        }
     }
 }
