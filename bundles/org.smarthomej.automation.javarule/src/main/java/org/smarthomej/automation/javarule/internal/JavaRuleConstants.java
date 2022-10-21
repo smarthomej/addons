@@ -20,6 +20,7 @@ import java.util.function.Predicate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.OpenHAB;
 import org.smarthomej.automation.javarule.annotation.ChannelEventTrigger;
+import org.smarthomej.automation.javarule.annotation.DateTimeTrigger;
 import org.smarthomej.automation.javarule.annotation.DayOfWeekCondition;
 import org.smarthomej.automation.javarule.annotation.EphemerisDaysetCondition;
 import org.smarthomej.automation.javarule.annotation.EphemerisHolidayCondition;
@@ -78,6 +79,7 @@ public class JavaRuleConstants {
             Map.entry(GroupStateUpdateTrigger.class, "core.GroupStateUpdateTrigger"),
             Map.entry(ChannelEventTrigger.class, "core.ChannelEventTrigger"),
             Map.entry(GenericCronTrigger.class, "timer.GenericCronTrigger"),
+            Map.entry(DateTimeTrigger.class, "timer.DateTimeTrigger"),
             Map.entry(TimeOfDayTrigger.class, "timer.TimeOfDayTrigger"),
             Map.entry(GenericEventTrigger.class, "core.GenericEventTrigger"),
             Map.entry(ThingStatusUpdateTrigger.class, "core.ThingStatusUpdateTrigger"),
