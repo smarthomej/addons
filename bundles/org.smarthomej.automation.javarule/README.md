@@ -139,6 +139,7 @@ The default value is `false`.
 ### Time Based Triggers
 
 - `@GenericCronTrigger`: triggers the rule according to the `cronExpression` parameter.
+- `@DateTimeTrigger`: triggers when the current time is equivalent to the time in the `itemName` item (available in openHAB >3.3.0).
 - `@TimeOfDayTrigger`: triggers the rule at the given `time`.
 
 ### Other Triggers
