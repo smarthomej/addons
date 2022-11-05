@@ -27,6 +27,28 @@ During startup the bundle first compiles the dependency-bundle and then creates 
 If you use an IDE for development, you should add `core-dependency.jar` and `javarule-dependency.jar` to your class path.
 In IntelliJ IDEA this is named `Add as Library`.
 
+A full directory-setup could look like this:
+
+```
+automation
+  jsr223
+    java
+      org
+        smarthomej
+          automation
+            javarule
+              BedroomRules.java
+  lib
+    core-dependency.jar
+    javarule-dependency.jar
+    java
+      org
+        smarthomej
+          automation
+            javarule
+              PersonalRuleUtil.java
+```
+
 ## Rule Development
 
 All scripts need to provide a class that inherits from `org.smarthomej.automation.javarule.rules.JavaRule`.
