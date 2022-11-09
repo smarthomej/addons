@@ -263,8 +263,12 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
             countApiCalls();
             if (allFeatures != null) {
                 List<FeatureDataDTO> featuresData = allFeatures.data;
-                for (FeatureDataDTO featureDataDTO : featuresData) {
-                    notifyChildHandlers(featureDataDTO);
+                if (featuresData != null) {
+                    for (FeatureDataDTO featureDataDTO : featuresData) {
+                        notifyChildHandlers(featureDataDTO);
+                    }
+                } else {
+                    logger.warn("Features list is empty.");
                 }
             }
         } catch (JsonSyntaxException | IllegalStateException e) {
