@@ -21,6 +21,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -135,13 +138,28 @@ public class DeviceHandler extends ViessmannThingHandler {
                 if (commands != null) {
                     String uri = null;
                     String param = null;
+                    int initStateDelay = 0;
                     String com[] = commands.split(",");
                     if (OnOffType.ON.equals(command)) {
                         uri = prop.get("activateUri");
                         param = "{}";
+                        String feature = prop.get("feature");
+                        if (feature != null) {
+                            if (feature.contains("oneTimeCharge")) {
+                                initStateDelay = 2;
+                                initState = true;
+                            }
+                        }
                     } else if (OnOffType.OFF.equals(command)) {
                         uri = prop.get("deactivateUri");
                         param = "{}";
+                        String feature = prop.get("feature");
+                        if (feature != null) {
+                            if (feature.contains("oneTimeCharge")) {
+                                initStateDelay = 2;
+                                initState = true;
+                            }
+                        }
                     } else if (command instanceof DecimalType) {
                         logger.trace("Received DecimalType Command for Channel {}",
                                 thing.getChannel(channelUID.getId()));
@@ -200,7 +218,10 @@ public class DeviceHandler extends ViessmannThingHandler {
                                 : (ViessmannBridgeHandler) bridge.getHandler();
                         if (bridgeHandler != null) {
                             if (!bridgeHandler.setData(uri, param) || initState) {
-                                initChannelState();
+                                ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+                                executorService.schedule(() -> {
+                                    initChannelState();
+                                }, initStateDelay, TimeUnit.SECONDS);
                             }
                         }
                     }
@@ -467,6 +488,12 @@ public class DeviceHandler extends ViessmannThingHandler {
                                     subMsg.setSuffix("lastYear");
                                     createSubChannel(subMsg);
                                     break;
+                                case "active":
+                                    if (featureDataDTO.feature.contains("oneTimeCharge")) {
+                                        subMsg.setSuffix("status");
+                                        subMsg.setChannelType("type-boolean");
+                                        createSubChannel(subMsg);
+                                    }
                                 default:
                                     break;
                             }
@@ -485,6 +512,9 @@ public class DeviceHandler extends ViessmannThingHandler {
                                 case "boolean":
                                     OnOffType state = bool ? OnOffType.ON : OnOffType.OFF;
                                     updateState(msg.getChannelId(), state);
+                                    if (featureDataDTO.feature.contains("oneTimeCharge")) {
+                                        updateState(subMsg.getChannelId(), state);
+                                    }
                                     break;
                                 case "string":
                                 case "array":
