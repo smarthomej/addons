@@ -17,6 +17,12 @@
 			<channel id="lastErrorMessage" typeId="lastErrorMessage">
 				<label>Last error message</label>
 			</channel>
+			<channel id="runQueryOnce" typeId="runQueryOnce">
+				<label>Run device query once</label>
+			</channel>
+			<channel id="runErrorQueryOnce" typeId="runErrorQueryOnce">
+				<label>Run error query once</label>
+			</channel>
 		</channels>
 		<properties>
 			<property name="thingTypeVersion">3</property>
@@ -45,6 +51,12 @@
 			<parameter name="gatewaySerial" type="text" required="false">
 				<label>GatewaySerial ID</label>
 				<description>The gatewaySerial</description>
+				<advanced>true</advanced>
+			</parameter>
+			<parameter name="disablePolling" type="boolean" required="false">
+				<label>Disable polling</label>
+				<description>Deactivates the polling to carry out the manual poll using an item</description>
+				<default>false</default>
 				<advanced>true</advanced>
 			</parameter>
 			<parameter name="apiCallLimit" type="integer" required="false">
@@ -217,6 +229,18 @@
 		<item-type>Switch</item-type>
 		<label>Switch</label>
 		<category>Switch</category>
+	</channel-type>
+
+	<channel-type id="runQueryOnce" advanced="true">
+		<item-type>Switch</item-type>
+		<label>Run device query once</label>
+		<category>Switch</category>
+	</channel-type>
+
+	<channel-type id="runErrorQueryOnce" advanced="true">
+		<item-type>Switch</item-type>
+		<label>Run error query once</label>
+		<category>Error</category>
 	</channel-type>
 
 	<channel-type id="errorIsActive">

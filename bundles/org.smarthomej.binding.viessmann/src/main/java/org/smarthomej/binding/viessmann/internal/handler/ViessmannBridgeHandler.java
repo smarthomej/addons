@@ -132,7 +132,24 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
-        // Nothing to handle here currently
+        if (channelUID.getId().equals(CHANNEL_RUN_QUERY_ONCE)) {
+            if (command instanceof OnOffType) {
+                if (command == OnOffType.ON) {
+                    logger.debug("Received command: CHANNEL_RUN_QUERY_ONCE");
+                    pollingFeatures();
+                    updateState(CHANNEL_RUN_QUERY_ONCE, OnOffType.OFF);
+                }
+            }
+        }
+        if (channelUID.getId().equals(CHANNEL_RUN_ERROR_QUERY_ONCE)) {
+            if (command instanceof OnOffType) {
+                if (command == OnOffType.ON) {
+                    logger.debug("Received command: CHANNEL_RUN_ERROR_QUERY_ONCE");
+                    getDeviceError();
+                    updateState(CHANNEL_RUN_ERROR_QUERY_ONCE, OnOffType.OFF);
+                }
+            }
+        }
     }
 
     @Override
@@ -162,14 +179,16 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
             setConfigInstallationGatewayId();
         }
 
-        if (errorChannelsLinked()) {
+        if (errorChannelsLinked() && !config.disablePolling) {
             startViessmannErrorsPolling(config.pollingIntervalErrors);
         }
 
         getAllDevices();
         if (!devicesList.isEmpty()) {
             updateBridgeStatus(ThingStatus.ONLINE);
-            startViessmannBridgePolling(getPollingInterval(), 1);
+            if (!config.disablePolling) {
+                startViessmannBridgePolling(getPollingInterval(), 1);
+            }
         }
     }
 

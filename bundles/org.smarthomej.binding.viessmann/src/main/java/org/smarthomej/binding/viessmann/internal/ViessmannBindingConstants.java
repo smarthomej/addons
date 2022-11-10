@@ -72,4 +72,7 @@ public class ViessmannBindingConstants {
 
     public static final Map<String, String> MODES_MAP = ResourceUtil.readProperties(ViessmannBindingConstants.class,
             "modes.properties");
+
+    public static final String CHANNEL_RUN_QUERY_ONCE = "runQueryOnce";
+    public static final String CHANNEL_RUN_ERROR_QUERY_ONCE = "runErrorQueryOnce";
 }
