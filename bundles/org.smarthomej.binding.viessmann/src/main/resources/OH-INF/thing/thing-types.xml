@@ -231,6 +231,13 @@
 		<category>Switch</category>
 	</channel-type>
 
+	<channel-type id="type-boolean-readOnly">
+		<item-type>Switch</item-type>
+		<label>Switch</label>
+		<category>Switch</category>
+		<state readOnly="true"/>
+	</channel-type>
+
 	<channel-type id="runQueryOnce" advanced="true">
 		<item-type>Switch</item-type>
 		<label>Run device query once</label>

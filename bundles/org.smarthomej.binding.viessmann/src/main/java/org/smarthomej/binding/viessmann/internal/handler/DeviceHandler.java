@@ -132,14 +132,14 @@ public class DeviceHandler extends ViessmannThingHandler {
             Channel ch = thing.getChannel(channelUID.getId());
             if (ch != null) {
                 logger.trace("ChannelUID: {} | Properties: {}", ch.getUID(), ch.getProperties());
-                Boolean initState = false;
+                boolean initState = false;
                 Map<String, String> prop = ch.getProperties();
                 String commands = prop.get("command");
                 if (commands != null) {
                     String uri = null;
                     String param = null;
                     int initStateDelay = 0;
-                    String com[] = commands.split(",");
+                    String[] com = commands.split(",");
                     if (OnOffType.ON.equals(command)) {
                         uri = prop.get("activateUri");
                         param = "{}";
@@ -219,9 +219,7 @@ public class DeviceHandler extends ViessmannThingHandler {
                         if (bridgeHandler != null) {
                             if (!bridgeHandler.setData(uri, param) || initState) {
                                 ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-                                executorService.schedule(() -> {
-                                    initChannelState();
-                                }, initStateDelay, TimeUnit.SECONDS);
+                                executorService.schedule(this::initChannelState, initStateDelay, TimeUnit.SECONDS);
                             }
                         }
                     }
@@ -256,7 +254,7 @@ public class DeviceHandler extends ViessmannThingHandler {
                 for (String entry : entr) {
                     String valueEntry = "";
                     String typeEntry = "";
-                    Boolean bool = false;
+                    boolean bool = false;
                     String viUnit = "";
                     String unit = null;
                     HeatingCircuit heatingCircuit = new HeatingCircuit();
@@ -312,7 +310,7 @@ public class DeviceHandler extends ViessmannThingHandler {
                             break;
                         case "entries":
                             msg.setSuffix("schedule");
-                            typeEntry = prop.entries.type.toString();
+                            typeEntry = prop.entries.type;
                             valueEntry = new Gson().toJson(prop.entries.value);
                             break;
                         case "overlapAllowed":
@@ -321,7 +319,6 @@ public class DeviceHandler extends ViessmannThingHandler {
                             bool = prop.overlapAllowed.value;
                             break;
                         case "temperature":
-                            typeEntry = prop.temperature.type;
                             valueEntry = prop.temperature.value.toString();
                             typeEntry = "temperature";
                             viUnit = prop.temperature.unit;
@@ -459,7 +456,7 @@ public class DeviceHandler extends ViessmannThingHandler {
                             switch (entry) {
                                 case "entries":
                                     subMsg.setSuffix("produced");
-                                    subMsg.setChannelType("type-boolean");
+                                    subMsg.setChannelType("type-boolean-readOnly");
                                     createSubChannel(subMsg);
                                     break;
                                 case "day":
@@ -493,7 +490,7 @@ public class DeviceHandler extends ViessmannThingHandler {
                                 case "active":
                                     if (featureDataDTO.feature.contains("oneTimeCharge")) {
                                         subMsg.setSuffix("status");
-                                        subMsg.setChannelType("type-boolean");
+                                        subMsg.setChannelType("type-boolean-readOnly");
                                         createSubChannel(subMsg);
                                     }
                                 default:
@@ -522,7 +519,7 @@ public class DeviceHandler extends ViessmannThingHandler {
                                 case "array":
                                     updateState(msg.getChannelId(), StringType.valueOf(msg.getValue()));
 
-                                    String parts[] = msg.getValue().replace("[", "").replace("]", "").replace(" ", "")
+                                    String[] parts = msg.getValue().replace("[", "").replace("]", "").replace(" ", "")
                                             .split(",");
                                     if (parts.length > 1) {
                                         switch (entry) {
@@ -630,8 +627,7 @@ public class DeviceHandler extends ViessmannThingHandler {
         if (matcher.find()) {
             String circuit = matcher.group(0);
             feature = matcher.replaceAll(".N");
-            String name = FEATURES_MAP.getOrDefault(feature, feature) + " (Circuit: " + circuit.replace(".", "") + ")";
-            return name;
+            return FEATURES_MAP.getOrDefault(feature, feature) + " (Circuit: " + circuit.replace(".", "") + ")";
         }
         return FEATURES_MAP.getOrDefault(feature, feature);
     }
@@ -644,7 +640,7 @@ public class DeviceHandler extends ViessmannThingHandler {
     private OnOffType parseSchedule(String scheduleJson) {
         Calendar now = Calendar.getInstance();
 
-        int hour = now.get(Calendar.HOUR_OF_DAY); // Get hour in 24 hour format
+        int hour = now.get(Calendar.HOUR_OF_DAY); // Get hour in 24-hour format
         int minute = now.get(Calendar.MINUTE);
 
         Date currTime = parseTime(hour + ":" + minute);
@@ -763,7 +759,7 @@ public class DeviceHandler extends ViessmannThingHandler {
                         case "changeEndDate":
                             prop.put("changeEndDateUri", commands.changeEndDate.uri);
                             prop.put("command", "changeEndDate,schedule,unschedule");
-                            prop.put("changeEndDatepParams", "end");
+                            prop.put("changeEndDatParams", "end");
                             prop.put("scheduleParams", "start,end");
                             prop.put("unscheduleParams", "{}");
                             break;
@@ -817,14 +813,10 @@ public class DeviceHandler extends ViessmannThingHandler {
         FeatureCommands commands = msg.getCommands();
         if (commands != null) {
             List<String> com = commands.getUsedCommands();
-            if (!com.isEmpty()) {
+            if (!com.isEmpty() && !"type-boolean-readOnly".equals(channelType)) {
                 for (String command : com) {
                     switch (command) {
                         case "setTemperature":
-                            if (!"type-boolean".equals(channelType)) {
-                                channelType = "type-settemperature";
-                            }
-                            break;
                         case "setTargetTemperature":
                             if (!"type-boolean".equals(channelType)) {
                                 channelType = "type-settemperature";
@@ -846,11 +838,21 @@ public class DeviceHandler extends ViessmannThingHandler {
                         case "setMode":
                             channelType = "type-setMode";
                             break;
+                        case "setSchedule":
+                        case "setName":
+                            if (msg.getSuffix().contains("active")) {
+                                channelType = "type-boolean-readOnly";
+                            }
+                            break;
                         default:
                             break;
                     }
                 }
+            } else if ("type-boolean".equals(channelType)) {
+                channelType = channelType + "-readOnly";
             }
+        } else if ("type-boolean".equals(channelType)) {
+            channelType = channelType + "-readOnly";
         }
         return channelType;
     }
@@ -859,7 +861,7 @@ public class DeviceHandler extends ViessmannThingHandler {
         if ("type-setMode".equals(convertChannelType(msg))) {
             List<String> modes = msg.commands.setMode.params.mode.constraints.enumValue;
             if (modes != null) {
-                List<StateOption> stateOptions = new ArrayList<StateOption>();
+                List<StateOption> stateOptions = new ArrayList<>();
                 for (String command : modes) {
                     StateOption stateOption = new StateOption(command, MODES_MAP.get(command));
                     stateOptions.add(stateOption);
