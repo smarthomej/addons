@@ -186,9 +186,7 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
         getAllDevices();
         if (!devicesList.isEmpty()) {
             updateBridgeStatus(ThingStatus.ONLINE);
-            if (!config.disablePolling) {
-                startViessmannBridgePolling(getPollingInterval(), 1);
-            }
+            startViessmannBridgePolling(getPollingInterval(), 1);
         }
     }
 
@@ -295,11 +293,13 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
         ScheduledFuture<?> currentPollingJob = viessmannBridgePollingJob;
         if (currentPollingJob == null) {
             viessmannBridgePollingJob = scheduler.scheduleWithFixedDelay(() -> {
-                logger.debug("Refresh job scheduled to run every {} seconds for '{}'", pollingIntervalS,
-                        getThing().getUID());
                 api.checkExpiringToken();
                 checkResetApiCalls();
-                pollingFeatures();
+                if (!config.disablePolling) {
+                    logger.debug("Refresh job scheduled to run every {} seconds for '{}'", pollingIntervalS,
+                            getThing().getUID());
+                    pollingFeatures();
+                }
             }, initialDelay, pollingIntervalS, TimeUnit.SECONDS);
         }
     }
