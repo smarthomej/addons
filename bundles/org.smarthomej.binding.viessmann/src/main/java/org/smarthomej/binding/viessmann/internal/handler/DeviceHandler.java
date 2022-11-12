@@ -225,6 +225,8 @@ public class DeviceHandler extends ViessmannThingHandler {
                             }
                         }
                     }
+                } else {
+                    initChannelState();
                 }
             }
         } catch (IllegalArgumentException e) {
