@@ -253,9 +253,9 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
 
     private void checkResetApiCalls() {
         LocalTime time = LocalTime.now();
-        if (time.isAfter(LocalTime.of(00, 00, 01)) && (time.isBefore(LocalTime.of(01, 00, 00)))) {
+        if (time.isAfter(LocalTime.of(0, 0, 1)) && (time.isBefore(LocalTime.of(1, 0, 0)))) {
             if (countReset) {
-                logger.debug("Resettig API call counts");
+                logger.debug("Resetting API call counts");
                 apiCalls = 0;
                 countReset = false;
             }
@@ -268,7 +268,7 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
         List<String> devices = pollingDevicesList;
         if (devices != null) {
             for (String deviceId : devices) {
-                logger.debug("Loading featueres from Device ID: {}", deviceId);
+                logger.debug("Loading features from Device ID: {}", deviceId);
                 getAllFeaturesByDeviceId(deviceId);
             }
         }
@@ -379,7 +379,7 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
     }
 
     /**
-     * Notify appropriate child thing handlers of an Viessmann message by calling their handleUpdate() methods.
+     * Notify appropriate child thing handlers of a Viessmann message by calling their handleUpdate() methods.
      *
      * @param msg message to forward to child handler(s)
      */
