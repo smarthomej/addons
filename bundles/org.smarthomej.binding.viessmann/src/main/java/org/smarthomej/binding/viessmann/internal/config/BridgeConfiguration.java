@@ -31,5 +31,5 @@ public class BridgeConfiguration {
     public int bufferApiCommands = 450;
     public int pollingInterval = 0;
     public int pollingIntervalErrors = 60;
-    public Boolean disablePolling = false;
+    public boolean disablePolling = false;
 }
