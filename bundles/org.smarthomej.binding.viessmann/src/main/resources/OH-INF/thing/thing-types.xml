@@ -61,14 +61,14 @@
 			</parameter>
 			<parameter name="apiCallLimit" type="integer" required="false">
 				<label>API call limit</label>
-				<description>The limit how often call the API. For calcutating the time how often the data is queried in
+				<description>The limit how often call the API. For calculating the time how often the data is queried in
 					seconds</description>
 				<default>1450</default>
 				<advanced>true</advanced>
 			</parameter>
 			<parameter name="bufferApiCommands" type="integer" required="false">
 				<label>Buffer for API commands</label>
-				<description>The buffer for commands. For calcutating the time how often the data is queried in seconds</description>
+				<description>The buffer for commands. For calculating the time how often the data is queried in seconds</description>
 				<default>450</default>
 				<advanced>true</advanced>
 			</parameter>
@@ -81,7 +81,7 @@
 				<advanced>true</advanced>
 			</parameter>
 			<parameter name="pollingIntervalErrors" type="integer" required="false" unit="min">
-				<label>Polling Interval Erros</label>
+				<label>Polling Interval Errors</label>
 				<description>How often the errors should be queried in minutes</description>
 				<default>60</default>
 				<advanced>true</advanced>
