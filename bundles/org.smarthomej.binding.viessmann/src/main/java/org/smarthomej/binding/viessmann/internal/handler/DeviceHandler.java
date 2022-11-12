@@ -759,7 +759,7 @@ public class DeviceHandler extends ViessmannThingHandler {
                         case "changeEndDate":
                             prop.put("changeEndDateUri", commands.changeEndDate.uri);
                             prop.put("command", "changeEndDate,schedule,unschedule");
-                            prop.put("changeEndDatParams", "end");
+                            prop.put("changeEndDateParams", "end");
                             prop.put("scheduleParams", "start,end");
                             prop.put("unscheduleParams", "{}");
                             break;
