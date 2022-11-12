@@ -132,23 +132,15 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
-        if (channelUID.getId().equals(CHANNEL_RUN_QUERY_ONCE)) {
-            if (command instanceof OnOffType) {
-                if (command == OnOffType.ON) {
-                    logger.debug("Received command: CHANNEL_RUN_QUERY_ONCE");
-                    pollingFeatures();
-                    updateState(CHANNEL_RUN_QUERY_ONCE, OnOffType.OFF);
-                }
-            }
+        if (channelUID.getId().equals(CHANNEL_RUN_QUERY_ONCE) && OnOffType.ON.equals(command)) {
+            logger.debug("Received command: CHANNEL_RUN_QUERY_ONCE");
+            pollingFeatures();
+            updateState(CHANNEL_RUN_QUERY_ONCE, OnOffType.OFF);
         }
-        if (channelUID.getId().equals(CHANNEL_RUN_ERROR_QUERY_ONCE)) {
-            if (command instanceof OnOffType) {
-                if (command == OnOffType.ON) {
-                    logger.debug("Received command: CHANNEL_RUN_ERROR_QUERY_ONCE");
-                    getDeviceError();
-                    updateState(CHANNEL_RUN_ERROR_QUERY_ONCE, OnOffType.OFF);
-                }
-            }
+        if (channelUID.getId().equals(CHANNEL_RUN_ERROR_QUERY_ONCE) && OnOffType.ON.equals(command)) {
+            logger.debug("Received command: CHANNEL_RUN_ERROR_QUERY_ONCE");
+            getDeviceError();
+            updateState(CHANNEL_RUN_ERROR_QUERY_ONCE, OnOffType.OFF);
         }
     }
 
@@ -179,7 +171,7 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
             setConfigInstallationGatewayId();
         }
 
-        if (errorChannelsLinked() && !config.disablePolling) {
+        if (!config.disablePolling && errorChannelsLinked()) {
             startViessmannErrorsPolling(config.pollingIntervalErrors);
         }
 
