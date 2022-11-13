@@ -73,11 +73,10 @@ public abstract class ViessmannThingHandler extends UpdatingBaseThingHandler {
     public abstract void initChannelState();
 
     /**
-     * Notify handler of a message from the Viessmann via the bridge
+     * Notify handler of a feature from the Viessmann via the bridge
      *
-     * @param msg The ViessmannMessage to handle
+     * @param feature The FeatureDataDTO to handle
      */
-    // public abstract void handleUpdate(ViessmannMessage msg);
     public abstract void handleUpdate(FeatureDataDTO feature);
 
     /**

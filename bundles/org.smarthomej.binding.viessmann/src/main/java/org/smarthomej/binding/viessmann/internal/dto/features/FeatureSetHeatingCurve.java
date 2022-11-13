@@ -13,7 +13,7 @@
 package org.smarthomej.binding.viessmann.internal.dto.features;
 
 /**
- * The {@link FeatureSetHeatingCurve} provides set heatig curve of features
+ * The {@link FeatureSetHeatingCurve} provides set heating curve of features
  *
  * @author Ronny Grun - Initial contribution
  */

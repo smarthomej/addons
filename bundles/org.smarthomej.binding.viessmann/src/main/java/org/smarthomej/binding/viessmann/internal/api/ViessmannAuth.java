@@ -148,7 +148,7 @@ public class ViessmannAuth {
             logger.trace("ViessmannAuth: Auth response: {}", response);
             if (response != null) {
                 if (response.contains("<!DOCTYPE html>")) {
-                    logger.warn("ViessmannAuth: Login failed. Please check user and passowrd.");
+                    logger.warn("ViessmannAuth: Login failed. Please check user and password.");
                     updateBridgeStatusLogin();
                     return;
                 }
@@ -162,7 +162,6 @@ public class ViessmannAuth {
                 if (authResponse == null) {
                     logger.debug("ViessmannAuth: Got null authorize response from Viessmann API");
                     setState(ViessmannAuthState.NEED_AUTH);
-                    return;
                 } else {
                     AuthorizeResponseDTO resp = this.authResponse;
                     if (resp == null) {
@@ -208,7 +207,7 @@ public class ViessmannAuth {
             if (tokenResponse == null) {
                 logger.debug("ViessmannAuth: Got null token response from Viessmann API");
                 bridgeHandler.updateBridgeStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-                        String.format("ViessmannAuth: Got null token response from Viessmann API"));
+                        "ViessmannAuth: Got null token response from Viessmann API");
                 setState(ViessmannAuthState.NEED_AUTH);
                 return;
             }
@@ -242,7 +241,7 @@ public class ViessmannAuth {
         if (tokenResponse == null) {
             logger.debug("ViessmannAuth: Got null token response from Viessmann API");
             bridgeHandler.updateBridgeStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-                    String.format("ViessmannAuth: Got null token response from Viessmann API"));
+                    "ViessmannAuth: Got null token response from Viessmann API");
             setState(ViessmannAuthState.NEED_AUTH);
             return;
         }
@@ -256,12 +255,12 @@ public class ViessmannAuth {
 
     private void updateBridgeStatusLogin() {
         bridgeHandler.updateBridgeStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_PENDING,
-                String.format("Login fails. Please check user and password."));
+                "Login fails. Please check user and password.");
     }
 
     private void updateBridgeStatusApiKey() {
         bridgeHandler.updateBridgeStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_PENDING,
-                String.format("Login fails. Please check API Key."));
+                "Login fails. Please check API Key.");
     }
 
     private @Nullable String executeUrlAuthorize(String method, String url) {
@@ -296,7 +295,7 @@ public class ViessmannAuth {
         } catch (ExecutionException e) {
             logger.debug("ExecutionException on call to Viessmann authorization API", e);
         } catch (InterruptedException e) {
-            logger.debug("InterruptedException on call to Viessman authorization API: {}", e.getMessage());
+            logger.debug("InterruptedException on call to Viessmann authorization API: {}", e.getMessage());
         }
         return null;
     }
