@@ -80,8 +80,8 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
     private @Nullable ScheduledFuture<?> viessmannBridgeLimitJob;
 
     public @Nullable List<DeviceData> devicesData;
-    protected volatile List<String> devicesList = new ArrayList<>();
-    protected volatile List<String> pollingDevicesList = new ArrayList<>();
+    protected final List<String> devicesList = new ArrayList<>();
+    protected final List<String> pollingDevicesList = new ArrayList<>();
 
     private BridgeConfiguration config = new BridgeConfiguration();
 
