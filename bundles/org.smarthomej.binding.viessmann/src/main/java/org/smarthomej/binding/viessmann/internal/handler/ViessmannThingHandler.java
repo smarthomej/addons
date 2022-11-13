@@ -13,7 +13,6 @@
 package org.smarthomej.binding.viessmann.internal.handler;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.thing.Bridge;
@@ -39,8 +38,6 @@ import org.smarthomej.commons.UpdatingBaseThingHandler;
 public abstract class ViessmannThingHandler extends UpdatingBaseThingHandler {
 
     private final Logger logger = LoggerFactory.getLogger(ViessmannThingHandler.class);
-    protected final AtomicBoolean firstUpdateReceived = new AtomicBoolean(false);
-    protected static AtomicBoolean readyToSendData = new AtomicBoolean(false);
 
     private final ViessmannDynamicStateDescriptionProvider stateDescriptionProvider;
 
