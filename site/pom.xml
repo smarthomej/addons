@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.smarthomej.addons</groupId>
     <artifactId>org.smarthomej.addons.reactor</artifactId>
-    <version>3.2.15</version>
+    <version>3.2.16-SNAPSHOT</version>
   </parent>
 
   <artifactId>org.smarthomej.addons.site</artifactId>
