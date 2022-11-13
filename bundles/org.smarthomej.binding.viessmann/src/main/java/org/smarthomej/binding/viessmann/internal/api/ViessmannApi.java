@@ -204,8 +204,7 @@ public class ViessmannApi {
     public @Nullable DeviceDTO getAllDevices() {
         String response = executeGet(VIESSMANN_BASE_URL + "iot/v1/equipment/installations/" + installationId
                 + "/gateways/" + gatewaySerial + "/devices");
-        DeviceDTO devices = GSON.fromJson(response, DeviceDTO.class);
-        return devices;
+        return GSON.fromJson(response, DeviceDTO.class);
     }
 
     public @Nullable FeaturesDTO getAllFeatures(String deviceId) {
@@ -213,8 +212,7 @@ public class ViessmannApi {
                 + "/gateways/" + gatewaySerial + "/devices/" + deviceId + "/features/");
         if (response != null) {
             response = response.replace("enum", "enumValue");
-            FeaturesDTO features = GSON.fromJson(response, FeaturesDTO.class);
-            return features;
+            return GSON.fromJson(response, FeaturesDTO.class);
         }
         return null;
     }
@@ -222,8 +220,7 @@ public class ViessmannApi {
     public @Nullable EventsDTO getSelectedEvents(String eventType) {
         String response = executeGet(VIESSMANN_BASE_URL + "iot/v1/events-history/events?installationId="
                 + installationId + "&gatewaySerial=" + gatewaySerial + "&eventType=" + eventType);
-        EventsDTO events = GSON.fromJson(response, EventsDTO.class);
-        return events;
+        return GSON.fromJson(response, EventsDTO.class);
     }
 
     private void setInstallationAndGatewayId() {
@@ -260,10 +257,10 @@ public class ViessmannApi {
                 if (viError != null) {
                     if (viError.getStatusCode() == 429) {
                         logger.warn("ViError: {} | Resetting Limit at {}", viError.getMessage(),
-                                viError.getExtendedPayload().getLimitRestetDateTime());
+                                viError.getExtendedPayload().getLimitResetDateTime());
                         bridgeHandler.updateBridgeStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
                                 String.format("%s Resetting Limit at %s", viError.getMessage(),
-                                        viError.getExtendedPayload().getLimitRestetDateTime()));
+                                        viError.getExtendedPayload().getLimitResetDateTime()));
                         bridgeHandler.waitForApiCallLimitReset(viError.getExtendedPayload().getLimitReset());
                     } else {
                         logger.warn("ViError: {}", viError.getMessage());
@@ -291,11 +288,11 @@ public class ViessmannApi {
                 ViErrorDTO viError = GSON.fromJson(response, ViErrorDTO.class);
                 if (viError != null) {
                     if (viError.getStatusCode() == 429) {
-                        logger.warn("ViError: {} | Reseting Limit at {}", viError.getMessage(),
-                                viError.getExtendedPayload().getLimitRestetDateTime());
+                        logger.warn("ViError: {} | Resetting Limit at {}", viError.getMessage(),
+                                viError.getExtendedPayload().getLimitResetDateTime());
                         bridgeHandler.updateBridgeStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
                                 String.format("API Call limit reached. Reset at {}",
-                                        viError.getExtendedPayload().getLimitRestetDateTime()));
+                                        viError.getExtendedPayload().getLimitResetDateTime()));
                     } else {
                         logger.warn("ViError: {} | Reason: {}", viError.getMessage(), viError.getExtendedPayload());
                     }

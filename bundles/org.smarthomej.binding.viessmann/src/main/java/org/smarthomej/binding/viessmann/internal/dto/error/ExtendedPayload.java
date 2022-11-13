@@ -78,7 +78,7 @@ public class ExtendedPayload {
         return limitReset;
     }
 
-    public String getLimitRestetDateTime() {
+    public String getLimitResetDateTime() {
         ZonedDateTime d = Instant.ofEpochMilli(limitReset).atZone(ZoneId.systemDefault());
         return d.toLocalDateTime().toString();
     }

@@ -35,7 +35,7 @@ public class ThingMessageDTO {
     private String deviceId;
     private String suffix;
     private String unit;
-    private Map<String, String> properties = new HashMap<>();
+    private final Map<String, String> properties = new HashMap<>();
     public FeatureCommands commands;
 
     public String getType() {
@@ -149,7 +149,7 @@ public class ThingMessageDTO {
     public String getChannelId() {
         StringBuilder sb = new StringBuilder();
         String f = featureClear.replace(".", ";");
-        String parts[] = f.split(";");
+        String[] parts = f.split(";");
         int count = 0;
         for (String str : parts) {
             if (count != 0) {
@@ -160,7 +160,7 @@ public class ThingMessageDTO {
             count++;
         }
         if (!suffix.isEmpty()) {
-            sb.append("#" + suffix);
+            sb.append("#").append(suffix);
         }
         return sb.toString();
     }
@@ -168,7 +168,7 @@ public class ThingMessageDTO {
     public String getSubChannelId() {
         StringBuilder sb = new StringBuilder();
         String f = featureClear.replace(".", ";");
-        String parts[] = f.split(";");
+        String[] parts = f.split(";");
         int count = 0;
         for (String str : parts) {
             if (count != 0) {
@@ -178,7 +178,7 @@ public class ThingMessageDTO {
             }
             count++;
         }
-        sb.append("#" + suffix);
+        sb.append("#").append(suffix);
         return sb.toString();
     }
 

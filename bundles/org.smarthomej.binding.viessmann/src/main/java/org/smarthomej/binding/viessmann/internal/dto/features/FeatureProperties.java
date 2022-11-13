@@ -50,7 +50,7 @@ public class FeatureProperties {
     public FeatureInteger max;
 
     public ArrayList<String> getUsedEntries() {
-        ArrayList<String> list = new ArrayList<String>();
+        ArrayList<String> list = new ArrayList<>();
 
         if (value != null) {
             list.add("value");

@@ -37,7 +37,7 @@ public class FeatureCommands {
     public FeatureSetHysteresis setHysteresis;
 
     public ArrayList<String> getUsedCommands() {
-        ArrayList<String> list = new ArrayList<String>();
+        ArrayList<String> list = new ArrayList<>();
         if (setName != null) {
             list.add("setName");
         }

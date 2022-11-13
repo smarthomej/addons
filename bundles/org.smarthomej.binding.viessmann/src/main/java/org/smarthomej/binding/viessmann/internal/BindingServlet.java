@@ -44,7 +44,7 @@ public class BindingServlet extends HttpServlet {
     String servletUrl;
     HttpService httpService;
 
-    List<Thing> accountHandlers = new ArrayList<>();
+    final List<Thing> accountHandlers = new ArrayList<>();
 
     public BindingServlet(HttpService httpService) {
         this.httpService = httpService;
@@ -89,7 +89,7 @@ public class BindingServlet extends HttpServlet {
 
         String queryString = req.getQueryString();
 
-        String code = "";
+        String code;
         String error = "{\"error\": \"invalid-code-request\"}";
 
         StringBuilder html = new StringBuilder();
