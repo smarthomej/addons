@@ -291,7 +291,7 @@ public class ViessmannApi {
                         logger.warn("ViError: {} | Resetting Limit at {}", viError.getMessage(),
                                 viError.getExtendedPayload().getLimitResetDateTime());
                         bridgeHandler.updateBridgeStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-                                String.format("API Call limit reached. Reset at {}",
+                                String.format("API Call limit reached. Reset at %s",
                                         viError.getExtendedPayload().getLimitResetDateTime()));
                     } else {
                         logger.warn("ViError: {} | Reason: {}", viError.getMessage(), viError.getExtendedPayload());

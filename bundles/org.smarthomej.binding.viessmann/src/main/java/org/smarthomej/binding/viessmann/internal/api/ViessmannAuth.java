@@ -144,7 +144,7 @@ public class ViessmannAuth {
             url.append("&redirect_uri=").append(callbackUrl).append("/viessmann/authcode/");
             url.append("&scope=").append(VIESSMANN_SCOPE);
             logger.trace("ViessmannAuth: Getting authorize URL={}", url);
-            String response = executeUrlAuthorize("GET", url.toString());
+            String response = executeUrlAuthorize(url.toString());
             logger.trace("ViessmannAuth: Auth response: {}", response);
             if (response != null) {
                 if (response.contains("<!DOCTYPE html>")) {
@@ -201,7 +201,7 @@ public class ViessmannAuth {
             url.append("&code=").append(code);
 
             logger.trace("ViessmannAuth: Posting token URL={}", url);
-            String response = executeUrlToken("POST", url.toString());
+            String response = executeUrlToken(url.toString());
 
             TokenResponseDTO tokenResponse = api.getGson().fromJson(response, TokenResponseDTO.class);
             if (tokenResponse == null) {
@@ -235,7 +235,7 @@ public class ViessmannAuth {
         url.append("&refresh_token=").append(refreshToken);
 
         logger.trace("ViessmannAuth: Posting token URL={}", url);
-        String response = executeUrlToken("POST", url.toString());
+        String response = executeUrlToken(url.toString());
 
         TokenResponseDTO tokenResponse = api.getGson().fromJson(response, TokenResponseDTO.class);
         if (tokenResponse == null) {
@@ -263,10 +263,10 @@ public class ViessmannAuth {
                 "Login fails. Please check API Key.");
     }
 
-    private @Nullable String executeUrlAuthorize(String method, String url) {
+    private @Nullable String executeUrlAuthorize(String url) {
         Request request = httpClient.newRequest(url);
         request.timeout(API_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-        request.method(method);
+        request.method("GET");
         String authorization = new String(Base64.getEncoder().encode((user + ":" + password).getBytes()),
                 StandardCharsets.UTF_8);
         request.header("Authorization", "Basic " + authorization);
@@ -286,7 +286,7 @@ public class ViessmannAuth {
                     logger.debug("HTTP response 204: No content. Check configuration");
                     break;
                 default:
-                    logger.debug("HTTP {} failed: {}, {}", method, contentResponse.getStatus(),
+                    logger.debug("HTTP GET failed: {}, {}", contentResponse.getStatus(),
                             contentResponse.getReason());
                     break;
             }
@@ -300,7 +300,7 @@ public class ViessmannAuth {
         return null;
     }
 
-    private @Nullable String executeUrlToken(String method, String url) {
+    private @Nullable String executeUrlToken(String url) {
         Request request = httpClient.newRequest(url);
         request.timeout(API_TIMEOUT_MS, TimeUnit.MILLISECONDS);
         request.method("POST");
@@ -321,7 +321,7 @@ public class ViessmannAuth {
                     logger.debug("HTTP response 204: No content. Check configuration");
                     break;
                 default:
-                    logger.debug("HTTP {} failed: {}, {}", method, contentResponse.getStatus(),
+                    logger.debug("HTTP POST failed: {}, {}", contentResponse.getStatus(),
                             contentResponse.getReason());
                     break;
             }
