@@ -286,8 +286,7 @@ public class ViessmannAuth {
                     logger.debug("HTTP response 204: No content. Check configuration");
                     break;
                 default:
-                    logger.debug("HTTP GET failed: {}, {}", contentResponse.getStatus(),
-                            contentResponse.getReason());
+                    logger.debug("HTTP GET failed: {}, {}", contentResponse.getStatus(), contentResponse.getReason());
                     break;
             }
         } catch (TimeoutException e) {
@@ -321,8 +320,7 @@ public class ViessmannAuth {
                     logger.debug("HTTP response 204: No content. Check configuration");
                     break;
                 default:
-                    logger.debug("HTTP POST failed: {}, {}", contentResponse.getStatus(),
-                            contentResponse.getReason());
+                    logger.debug("HTTP POST failed: {}, {}", contentResponse.getStatus(), contentResponse.getReason());
                     break;
             }
         } catch (TimeoutException e) {
