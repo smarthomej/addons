@@ -132,7 +132,16 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
-        // Nothing to handle here currently
+        if (channelUID.getId().equals(CHANNEL_RUN_QUERY_ONCE) && OnOffType.ON.equals(command)) {
+            logger.debug("Received command: CHANNEL_RUN_QUERY_ONCE");
+            pollingFeatures();
+            updateState(CHANNEL_RUN_QUERY_ONCE, OnOffType.OFF);
+        }
+        if (channelUID.getId().equals(CHANNEL_RUN_ERROR_QUERY_ONCE) && OnOffType.ON.equals(command)) {
+            logger.debug("Received command: CHANNEL_RUN_ERROR_QUERY_ONCE");
+            getDeviceError();
+            updateState(CHANNEL_RUN_ERROR_QUERY_ONCE, OnOffType.OFF);
+        }
     }
 
     @Override
@@ -162,7 +171,7 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
             setConfigInstallationGatewayId();
         }
 
-        if (errorChannelsLinked()) {
+        if (!config.disablePolling && errorChannelsLinked()) {
             startViessmannErrorsPolling(config.pollingIntervalErrors);
         }
 
@@ -236,9 +245,9 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
 
     private void checkResetApiCalls() {
         LocalTime time = LocalTime.now();
-        if (time.isAfter(LocalTime.of(00, 00, 01)) && (time.isBefore(LocalTime.of(01, 00, 00)))) {
+        if (time.isAfter(LocalTime.of(0, 0, 1)) && (time.isBefore(LocalTime.of(1, 0, 0)))) {
             if (countReset) {
-                logger.debug("Resettig API call counts");
+                logger.debug("Resetting API call counts");
                 apiCalls = 0;
                 countReset = false;
             }
@@ -251,7 +260,7 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
         List<String> devices = pollingDevicesList;
         if (devices != null) {
             for (String deviceId : devices) {
-                logger.debug("Loading featueres from Device ID: {}", deviceId);
+                logger.debug("Loading features from Device ID: {}", deviceId);
                 getAllFeaturesByDeviceId(deviceId);
             }
         }
@@ -280,11 +289,13 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
         ScheduledFuture<?> currentPollingJob = viessmannBridgePollingJob;
         if (currentPollingJob == null) {
             viessmannBridgePollingJob = scheduler.scheduleWithFixedDelay(() -> {
-                logger.debug("Refresh job scheduled to run every {} seconds for '{}'", pollingIntervalS,
-                        getThing().getUID());
                 api.checkExpiringToken();
                 checkResetApiCalls();
-                pollingFeatures();
+                if (!config.disablePolling) {
+                    logger.debug("Refresh job scheduled to run every {} seconds for '{}'", pollingIntervalS,
+                            getThing().getUID());
+                    pollingFeatures();
+                }
             }, initialDelay, pollingIntervalS, TimeUnit.SECONDS);
         }
     }
@@ -364,7 +375,7 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
     }
 
     /**
-     * Notify appropriate child thing handlers of an Viessmann message by calling their handleUpdate() methods.
+     * Notify appropriate child thing handlers of a Viessmann message by calling their handleUpdate() methods.
      *
      * @param msg message to forward to child handler(s)
      */

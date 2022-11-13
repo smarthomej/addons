@@ -17,6 +17,12 @@
 			<channel id="lastErrorMessage" typeId="lastErrorMessage">
 				<label>Last error message</label>
 			</channel>
+			<channel id="runQueryOnce" typeId="runQueryOnce">
+				<label>Run device query once</label>
+			</channel>
+			<channel id="runErrorQueryOnce" typeId="runErrorQueryOnce">
+				<label>Run error query once</label>
+			</channel>
 		</channels>
 		<properties>
 			<property name="thingTypeVersion">3</property>
@@ -47,16 +53,22 @@
 				<description>The gatewaySerial</description>
 				<advanced>true</advanced>
 			</parameter>
+			<parameter name="disablePolling" type="boolean" required="false">
+				<label>Disable polling</label>
+				<description>Deactivates the polling to carry out the manual poll using an item</description>
+				<default>false</default>
+				<advanced>true</advanced>
+			</parameter>
 			<parameter name="apiCallLimit" type="integer" required="false">
 				<label>API call limit</label>
-				<description>The limit how often call the API. For calcutating the time how often the data is queried in
+				<description>The limit how often call the API. For calculating the time how often the data is queried in
 					seconds</description>
 				<default>1450</default>
 				<advanced>true</advanced>
 			</parameter>
 			<parameter name="bufferApiCommands" type="integer" required="false">
 				<label>Buffer for API commands</label>
-				<description>The buffer for commands. For calcutating the time how often the data is queried in seconds</description>
+				<description>The buffer for commands. For calculating the time how often the data is queried in seconds</description>
 				<default>450</default>
 				<advanced>true</advanced>
 			</parameter>
@@ -69,7 +81,7 @@
 				<advanced>true</advanced>
 			</parameter>
 			<parameter name="pollingIntervalErrors" type="integer" required="false" unit="min">
-				<label>Polling Interval Erros</label>
+				<label>Polling Interval Errors</label>
 				<description>How often the errors should be queried in minutes</description>
 				<default>60</default>
 				<advanced>true</advanced>
@@ -217,6 +229,25 @@
 		<item-type>Switch</item-type>
 		<label>Switch</label>
 		<category>Switch</category>
+	</channel-type>
+
+	<channel-type id="type-boolean-readOnly">
+		<item-type>Switch</item-type>
+		<label>Switch</label>
+		<category>Switch</category>
+		<state readOnly="true"/>
+	</channel-type>
+
+	<channel-type id="runQueryOnce" advanced="true">
+		<item-type>Switch</item-type>
+		<label>Run device query once</label>
+		<category>Switch</category>
+	</channel-type>
+
+	<channel-type id="runErrorQueryOnce" advanced="true">
+		<item-type>Switch</item-type>
+		<label>Run error query once</label>
+		<category>Error</category>
 	</channel-type>
 
 	<channel-type id="errorIsActive">
