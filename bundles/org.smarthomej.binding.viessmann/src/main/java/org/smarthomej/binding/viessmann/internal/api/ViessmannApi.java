@@ -87,7 +87,7 @@ public class ViessmannApi {
         httpHeaders.put("User-Agent", "openhab-viessmann-api/2.0");
 
         createOAuthClientService();
-        isAuthorized();
+        authorize();
         if (installationId.isEmpty() || gatewaySerial.isEmpty()) {
             setInstallationAndGatewayId();
         }
@@ -135,8 +135,7 @@ public class ViessmannApi {
      * response, then assume that the Viessmann authorization process is complete. Otherwise,
      * start the Viessmann authorization process.
      */
-    private boolean isAuthorized() {
-        boolean isAuthorized = false;
+    private void authorize() {
         try {
             TokenResponseDTO localAccessTokenResponseDTO = getTokenResponseDTO();
             if (localAccessTokenResponseDTO != null) {
@@ -150,7 +149,6 @@ public class ViessmannApi {
                     } else {
                         viessmannAuth.setState(ViessmannAuthState.COMPLETE);
                     }
-                    isAuthorized = true;
                 } else {
                     logger.debug("API: Didn't get an AccessTokenResponse from OAuth service");
                     if (viessmannAuth.isComplete()) {
@@ -159,7 +157,6 @@ public class ViessmannApi {
                 }
             }
             viessmannAuth.doAuthorization();
-            isAuthorized = true;
         } catch (ViessmannAuthException e) {
             if (logger.isDebugEnabled()) {
                 logger.info("API: The Viessmann authorization process threw an exception", e);
@@ -168,7 +165,6 @@ public class ViessmannApi {
             }
             viessmannAuth.setState(ViessmannAuthState.NEED_AUTH);
         }
-        return isAuthorized;
     }
 
     public void checkExpiringToken() {
@@ -272,7 +268,7 @@ public class ViessmannApi {
             logger.info("API IOException: Unable to execute GET: {}", e.getMessage());
         } catch (ViessmannAuthException e) {
             logger.info("API AuthException: Unable to execute GET: {}", e.getMessage());
-            isAuthorized();
+            authorize();
         }
         return response;
     }
@@ -304,7 +300,7 @@ public class ViessmannApi {
             logger.info("API IOException: Unable to execute POST: {}", e.getMessage());
         } catch (ViessmannAuthException e) {
             logger.info("API AuthException: Unable to execute POST: {}", e.getMessage());
-            isAuthorized();
+            authorize();
         }
         return false;
     }
