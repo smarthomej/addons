@@ -21,8 +21,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -218,8 +216,7 @@ public class DeviceHandler extends ViessmannThingHandler {
                                 : (ViessmannBridgeHandler) bridge.getHandler();
                         if (bridgeHandler != null) {
                             if (!bridgeHandler.setData(uri, param) || initState) {
-                                ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-                                executorService.schedule(this::initChannelState, initStateDelay, TimeUnit.SECONDS);
+                                scheduler.schedule(this::initChannelState, initStateDelay, TimeUnit.SECONDS);
                             }
                         }
                     }
