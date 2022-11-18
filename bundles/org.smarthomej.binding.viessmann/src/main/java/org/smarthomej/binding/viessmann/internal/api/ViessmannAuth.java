@@ -25,6 +25,7 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.api.Request;
+import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.http.HttpStatus;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
@@ -264,12 +265,10 @@ public class ViessmannAuth {
     }
 
     private @Nullable String executeUrlAuthorize(String url) {
-        Request request = httpClient.newRequest(url);
-        request.timeout(API_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-        request.method("GET");
         String authorization = new String(Base64.getEncoder().encode((user + ":" + password).getBytes()),
                 StandardCharsets.UTF_8);
-        request.header("Authorization", "Basic " + authorization);
+        Request request = httpClient.newRequest(url).timeout(API_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+                .method(HttpMethod.GET).header("Authorization", "Basic " + authorization);
         try {
             ContentResponse contentResponse = request.send();
             switch (contentResponse.getStatus()) {
@@ -300,11 +299,9 @@ public class ViessmannAuth {
     }
 
     private @Nullable String executeUrlToken(String url) {
-        Request request = httpClient.newRequest(url);
-        request.timeout(API_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-        request.method("POST");
-        request.header("Content-Type", "application/x-www-form-urlencoded");
-        request.header("Host", "iam.viessmann.com");
+        Request request = httpClient.newRequest(url).timeout(API_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+                .method(HttpMethod.POST).header("Content-Type", "application/x-www-form-urlencoded")
+                .header("Host", "iam.viessmann.com");
         try {
             ContentResponse contentResponse = request.send();
             switch (contentResponse.getStatus()) {
