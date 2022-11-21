@@ -87,7 +87,7 @@ public class ViessmannDiscoveryService extends AbstractDiscoveryService implemen
         stopScan();
         bridgeHandler.getDevicesList().forEach(this::buildDiscoveryResult);
 
-        // we clear all older results, they are not valid any longer and we created new results
+        // we clear all older results, they are not valid any longer, and we created new results
         removeOlderResults(getTimestampOfLastScan());
     }
 

@@ -28,23 +28,23 @@ enum ViessmannAuthState {
     NEED_AUTH,
 
     /*
-     * This state indicates that an "login" fails
+     * This state indicates that a "login" fails
      */
     NEED_LOGIN,
 
     /*
-     * This state indicates that an code request was successful, and that a "token" API
+     * This state indicates that a code request was successful, and that a "token" API
      * call is needed to complete the authorization and get the refresh and access tokens.
      */
     NEED_TOKEN,
 
     /*
-     * This state indicates that an refresh token is needed.
+     * This state indicates that a refresh token is needed.
      */
     NEED_REFRESH_TOKEN,
 
     /*
      * This state indicates that the "authorize" and "token" steps were successful.
      */
-    COMPLETE;
+    COMPLETE
 }

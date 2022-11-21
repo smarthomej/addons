@@ -87,7 +87,7 @@ public class ViessmannApi {
         httpHeaders.put("User-Agent", "openhab-viessmann-api/2.0");
 
         createOAuthClientService();
-        isAuthorized();
+        authorize();
         if (installationId.isEmpty() || gatewaySerial.isEmpty()) {
             setInstallationAndGatewayId();
         }
@@ -135,8 +135,7 @@ public class ViessmannApi {
      * response, then assume that the Viessmann authorization process is complete. Otherwise,
      * start the Viessmann authorization process.
      */
-    private boolean isAuthorized() {
-        boolean isAuthorized = false;
+    private void authorize() {
         try {
             TokenResponseDTO localAccessTokenResponseDTO = getTokenResponseDTO();
             if (localAccessTokenResponseDTO != null) {
@@ -150,7 +149,6 @@ public class ViessmannApi {
                     } else {
                         viessmannAuth.setState(ViessmannAuthState.COMPLETE);
                     }
-                    isAuthorized = true;
                 } else {
                     logger.debug("API: Didn't get an AccessTokenResponse from OAuth service");
                     if (viessmannAuth.isComplete()) {
@@ -159,7 +157,6 @@ public class ViessmannApi {
                 }
             }
             viessmannAuth.doAuthorization();
-            isAuthorized = true;
         } catch (ViessmannAuthException e) {
             if (logger.isDebugEnabled()) {
                 logger.info("API: The Viessmann authorization process threw an exception", e);
@@ -168,7 +165,6 @@ public class ViessmannApi {
             }
             viessmannAuth.setState(ViessmannAuthState.NEED_AUTH);
         }
-        return isAuthorized;
     }
 
     public void checkExpiringToken() {
@@ -204,8 +200,7 @@ public class ViessmannApi {
     public @Nullable DeviceDTO getAllDevices() {
         String response = executeGet(VIESSMANN_BASE_URL + "iot/v1/equipment/installations/" + installationId
                 + "/gateways/" + gatewaySerial + "/devices");
-        DeviceDTO devices = GSON.fromJson(response, DeviceDTO.class);
-        return devices;
+        return GSON.fromJson(response, DeviceDTO.class);
     }
 
     public @Nullable FeaturesDTO getAllFeatures(String deviceId) {
@@ -213,8 +208,7 @@ public class ViessmannApi {
                 + "/gateways/" + gatewaySerial + "/devices/" + deviceId + "/features/");
         if (response != null) {
             response = response.replace("enum", "enumValue");
-            FeaturesDTO features = GSON.fromJson(response, FeaturesDTO.class);
-            return features;
+            return GSON.fromJson(response, FeaturesDTO.class);
         }
         return null;
     }
@@ -222,8 +216,7 @@ public class ViessmannApi {
     public @Nullable EventsDTO getSelectedEvents(String eventType) {
         String response = executeGet(VIESSMANN_BASE_URL + "iot/v1/events-history/events?installationId="
                 + installationId + "&gatewaySerial=" + gatewaySerial + "&eventType=" + eventType);
-        EventsDTO events = GSON.fromJson(response, EventsDTO.class);
-        return events;
+        return GSON.fromJson(response, EventsDTO.class);
     }
 
     private void setInstallationAndGatewayId() {
@@ -260,10 +253,10 @@ public class ViessmannApi {
                 if (viError != null) {
                     if (viError.getStatusCode() == 429) {
                         logger.warn("ViError: {} | Resetting Limit at {}", viError.getMessage(),
-                                viError.getExtendedPayload().getLimitRestetDateTime());
+                                viError.getExtendedPayload().getLimitResetDateTime());
                         bridgeHandler.updateBridgeStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
                                 String.format("%s Resetting Limit at %s", viError.getMessage(),
-                                        viError.getExtendedPayload().getLimitRestetDateTime()));
+                                        viError.getExtendedPayload().getLimitResetDateTime()));
                         bridgeHandler.waitForApiCallLimitReset(viError.getExtendedPayload().getLimitReset());
                     } else {
                         logger.warn("ViError: {}", viError.getMessage());
@@ -275,7 +268,7 @@ public class ViessmannApi {
             logger.info("API IOException: Unable to execute GET: {}", e.getMessage());
         } catch (ViessmannAuthException e) {
             logger.info("API AuthException: Unable to execute GET: {}", e.getMessage());
-            isAuthorized();
+            authorize();
         }
         return response;
     }
@@ -291,11 +284,11 @@ public class ViessmannApi {
                 ViErrorDTO viError = GSON.fromJson(response, ViErrorDTO.class);
                 if (viError != null) {
                     if (viError.getStatusCode() == 429) {
-                        logger.warn("ViError: {} | Reseting Limit at {}", viError.getMessage(),
-                                viError.getExtendedPayload().getLimitRestetDateTime());
+                        logger.warn("ViError: {} | Resetting Limit at {}", viError.getMessage(),
+                                viError.getExtendedPayload().getLimitResetDateTime());
                         bridgeHandler.updateBridgeStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-                                String.format("API Call limit reached. Reset at {}",
-                                        viError.getExtendedPayload().getLimitRestetDateTime()));
+                                String.format("API Call limit reached. Reset at %s",
+                                        viError.getExtendedPayload().getLimitResetDateTime()));
                     } else {
                         logger.warn("ViError: {} | Reason: {}", viError.getMessage(), viError.getExtendedPayload());
                     }
@@ -307,7 +300,7 @@ public class ViessmannApi {
             logger.info("API IOException: Unable to execute POST: {}", e.getMessage());
         } catch (ViessmannAuthException e) {
             logger.info("API AuthException: Unable to execute POST: {}", e.getMessage());
-            isAuthorized();
+            authorize();
         }
         return false;
     }

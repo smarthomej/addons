@@ -80,8 +80,8 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
     private @Nullable ScheduledFuture<?> viessmannBridgeLimitJob;
 
     public @Nullable List<DeviceData> devicesData;
-    protected volatile List<String> devicesList = new ArrayList<>();
-    protected volatile List<String> pollingDevicesList = new ArrayList<>();
+    protected final List<String> devicesList = new ArrayList<>();
+    protected final List<String> pollingDevicesList = new ArrayList<>();
 
     private BridgeConfiguration config = new BridgeConfiguration();
 
@@ -113,9 +113,7 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
     }
 
     public void unsetPollingDevice(String deviceId) {
-        if (pollingDevicesList.contains(deviceId)) {
-            pollingDevicesList.remove(deviceId);
-        }
+        pollingDevicesList.remove(deviceId);
     }
 
     private void setConfigInstallationGatewayId() {
@@ -127,7 +125,7 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
 
     private boolean errorChannelsLinked() {
         return getThing().getChannels().stream()
-                .filter(c -> isLinked(c.getUID()) && ERROR_CHANNELS.contains(c.getUID().getId())).count() > 0;
+                .anyMatch(c -> isLinked(c.getUID()) && ERROR_CHANNELS.contains(c.getUID().getId()));
     }
 
     @Override
@@ -232,9 +230,8 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
             if (errorChannelsLinked()) {
                 errorApiCalls = 1440 / this.config.pollingIntervalErrors;
             }
-            Integer interval = (86400 / (this.config.apiCallLimit - this.config.bufferApiCommands - errorApiCalls)
+            return (86400 / (this.config.apiCallLimit - this.config.bufferApiCommands - errorApiCalls)
                     * devicesList.size()) + 1;
-            return interval;
         }
     }
 

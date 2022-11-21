@@ -25,6 +25,7 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.api.Request;
+import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.http.HttpStatus;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
@@ -144,11 +145,11 @@ public class ViessmannAuth {
             url.append("&redirect_uri=").append(callbackUrl).append("/viessmann/authcode/");
             url.append("&scope=").append(VIESSMANN_SCOPE);
             logger.trace("ViessmannAuth: Getting authorize URL={}", url);
-            String response = executeUrlAuthorize("GET", url.toString());
+            String response = executeUrlAuthorize(url.toString());
             logger.trace("ViessmannAuth: Auth response: {}", response);
             if (response != null) {
                 if (response.contains("<!DOCTYPE html>")) {
-                    logger.warn("ViessmannAuth: Login failed. Please check user and passowrd.");
+                    logger.warn("ViessmannAuth: Login failed. Please check user and password.");
                     updateBridgeStatusLogin();
                     return;
                 }
@@ -162,7 +163,6 @@ public class ViessmannAuth {
                 if (authResponse == null) {
                     logger.debug("ViessmannAuth: Got null authorize response from Viessmann API");
                     setState(ViessmannAuthState.NEED_AUTH);
-                    return;
                 } else {
                     AuthorizeResponseDTO resp = this.authResponse;
                     if (resp == null) {
@@ -202,13 +202,13 @@ public class ViessmannAuth {
             url.append("&code=").append(code);
 
             logger.trace("ViessmannAuth: Posting token URL={}", url);
-            String response = executeUrlToken("POST", url.toString());
+            String response = executeUrlToken(url.toString());
 
             TokenResponseDTO tokenResponse = api.getGson().fromJson(response, TokenResponseDTO.class);
             if (tokenResponse == null) {
                 logger.debug("ViessmannAuth: Got null token response from Viessmann API");
                 bridgeHandler.updateBridgeStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-                        String.format("ViessmannAuth: Got null token response from Viessmann API"));
+                        "ViessmannAuth: Got null token response from Viessmann API");
                 setState(ViessmannAuthState.NEED_AUTH);
                 return;
             }
@@ -236,13 +236,13 @@ public class ViessmannAuth {
         url.append("&refresh_token=").append(refreshToken);
 
         logger.trace("ViessmannAuth: Posting token URL={}", url);
-        String response = executeUrlToken("POST", url.toString());
+        String response = executeUrlToken(url.toString());
 
         TokenResponseDTO tokenResponse = api.getGson().fromJson(response, TokenResponseDTO.class);
         if (tokenResponse == null) {
             logger.debug("ViessmannAuth: Got null token response from Viessmann API");
             bridgeHandler.updateBridgeStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-                    String.format("ViessmannAuth: Got null token response from Viessmann API"));
+                    "ViessmannAuth: Got null token response from Viessmann API");
             setState(ViessmannAuthState.NEED_AUTH);
             return;
         }
@@ -256,21 +256,19 @@ public class ViessmannAuth {
 
     private void updateBridgeStatusLogin() {
         bridgeHandler.updateBridgeStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_PENDING,
-                String.format("Login fails. Please check user and password."));
+                "Login fails. Please check user and password.");
     }
 
     private void updateBridgeStatusApiKey() {
         bridgeHandler.updateBridgeStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_PENDING,
-                String.format("Login fails. Please check API Key."));
+                "Login fails. Please check API Key.");
     }
 
-    private @Nullable String executeUrlAuthorize(String method, String url) {
-        Request request = httpClient.newRequest(url);
-        request.timeout(API_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-        request.method(method);
+    private @Nullable String executeUrlAuthorize(String url) {
         String authorization = new String(Base64.getEncoder().encode((user + ":" + password).getBytes()),
                 StandardCharsets.UTF_8);
-        request.header("Authorization", "Basic " + authorization);
+        Request request = httpClient.newRequest(url).timeout(API_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+                .method(HttpMethod.GET).header("Authorization", "Basic " + authorization);
         try {
             ContentResponse contentResponse = request.send();
             switch (contentResponse.getStatus()) {
@@ -287,8 +285,7 @@ public class ViessmannAuth {
                     logger.debug("HTTP response 204: No content. Check configuration");
                     break;
                 default:
-                    logger.debug("HTTP {} failed: {}, {}", method, contentResponse.getStatus(),
-                            contentResponse.getReason());
+                    logger.debug("HTTP GET failed: {}, {}", contentResponse.getStatus(), contentResponse.getReason());
                     break;
             }
         } catch (TimeoutException e) {
@@ -296,17 +293,15 @@ public class ViessmannAuth {
         } catch (ExecutionException e) {
             logger.debug("ExecutionException on call to Viessmann authorization API", e);
         } catch (InterruptedException e) {
-            logger.debug("InterruptedException on call to Viessman authorization API: {}", e.getMessage());
+            logger.debug("InterruptedException on call to Viessmann authorization API: {}", e.getMessage());
         }
         return null;
     }
 
-    private @Nullable String executeUrlToken(String method, String url) {
-        Request request = httpClient.newRequest(url);
-        request.timeout(API_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-        request.method("POST");
-        request.header("Content-Type", "application/x-www-form-urlencoded");
-        request.header("Host", "iam.viessmann.com");
+    private @Nullable String executeUrlToken(String url) {
+        Request request = httpClient.newRequest(url).timeout(API_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+                .method(HttpMethod.POST).header("Content-Type", "application/x-www-form-urlencoded")
+                .header("Host", "iam.viessmann.com");
         try {
             ContentResponse contentResponse = request.send();
             switch (contentResponse.getStatus()) {
@@ -322,8 +317,7 @@ public class ViessmannAuth {
                     logger.debug("HTTP response 204: No content. Check configuration");
                     break;
                 default:
-                    logger.debug("HTTP {} failed: {}, {}", method, contentResponse.getStatus(),
-                            contentResponse.getReason());
+                    logger.debug("HTTP POST failed: {}, {}", contentResponse.getStatus(), contentResponse.getReason());
                     break;
             }
         } catch (TimeoutException e) {
