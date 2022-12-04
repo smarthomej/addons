@@ -22,6 +22,7 @@ import java.util.Properties;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.http.HttpStatus;
 import org.openhab.core.io.net.http.HttpUtil;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
@@ -48,6 +49,12 @@ import com.google.gson.GsonBuilder;
  */
 @NonNullByDefault
 public class ViessmannApi {
+
+    private static final String HTTP_METHOD_GET = "GET";
+    private static final String HTTP_METHOD_POST = "POST";
+    private static final String CONTENT_TYPE_APPLICATION_JSON = "application/json";
+    private static final String PARAM_VI_ERROR_ID = "viErrorId";
+
     private final Logger logger = LoggerFactory.getLogger(ViessmannApi.class);
 
     private static final Gson GSON = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
@@ -244,25 +251,13 @@ public class ViessmannApi {
     private @Nullable String executeGet(String url) {
         String response = null;
         try {
+            logger.trace("API: GET Request URL is '{}'", url);
             long startTime = System.currentTimeMillis();
-            logger.trace("API: Get Request URL is '{}'", url);
-            response = HttpUtil.executeUrl("GET", url, setHeaders(), null, null, API_TIMEOUT_MS);
+            response = HttpUtil.executeUrl(HTTP_METHOD_GET, url, setHeaders(), null, null, API_TIMEOUT_MS);
             logger.trace("API: Response took {} msec: {}", System.currentTimeMillis() - startTime, response);
-            if (response.contains("viErrorId")) {
-                ViErrorDTO viError = GSON.fromJson(response, ViErrorDTO.class);
-                if (viError != null) {
-                    if (viError.getStatusCode() == 429) {
-                        logger.warn("ViError: {} | Resetting Limit at {}", viError.getMessage(),
-                                viError.getExtendedPayload().getLimitResetDateTime());
-                        bridgeHandler.updateBridgeStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-                                String.format("%s Resetting Limit at %s", viError.getMessage(),
-                                        viError.getExtendedPayload().getLimitResetDateTime()));
-                        bridgeHandler.waitForApiCallLimitReset(viError.getExtendedPayload().getLimitReset());
-                    } else {
-                        logger.warn("ViError: {}", viError.getMessage());
-                    }
-                    return null;
-                }
+            if (response.contains(PARAM_VI_ERROR_ID)) {
+                handleViError(response);
+                return null;
             }
         } catch (IOException e) {
             logger.info("API IOException: Unable to execute GET: {}", e.getMessage());
@@ -275,24 +270,13 @@ public class ViessmannApi {
 
     private boolean executePost(String url, String json) {
         try {
-            logger.trace("API: Post request json is '{}'", json);
+            logger.trace("API: POST Request URL is '{}', JSON is '{}'", url, json);
             long startTime = System.currentTimeMillis();
-            String response = HttpUtil.executeUrl("POST", url, setHeaders(), new ByteArrayInputStream(json.getBytes()),
-                    "application/json", API_TIMEOUT_MS);
+            String response = HttpUtil.executeUrl(HTTP_METHOD_POST, url, setHeaders(),
+                    new ByteArrayInputStream(json.getBytes()), CONTENT_TYPE_APPLICATION_JSON, API_TIMEOUT_MS);
             logger.trace("API: Response took {} msec: {}", System.currentTimeMillis() - startTime, response);
-            if (response.contains("viErrorId")) {
-                ViErrorDTO viError = GSON.fromJson(response, ViErrorDTO.class);
-                if (viError != null) {
-                    if (viError.getStatusCode() == 429) {
-                        logger.warn("ViError: {} | Resetting Limit at {}", viError.getMessage(),
-                                viError.getExtendedPayload().getLimitResetDateTime());
-                        bridgeHandler.updateBridgeStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-                                String.format("API Call limit reached. Reset at %s",
-                                        viError.getExtendedPayload().getLimitResetDateTime()));
-                    } else {
-                        logger.warn("ViError: {} | Reason: {}", viError.getMessage(), viError.getExtendedPayload());
-                    }
-                }
+            if (response.contains(PARAM_VI_ERROR_ID)) {
+                handleViError(response);
                 return false;
             }
             return true;
@@ -318,5 +302,30 @@ public class ViessmannApi {
         headers.putAll(httpHeaders);
         headers.put("Authorization", "Bearer " + atr.accessToken);
         return headers;
+    }
+
+    private void handleViError(String response) {
+        ViErrorDTO viError = GSON.fromJson(response, ViErrorDTO.class);
+        if (viError != null) {
+            switch (viError.getStatusCode()) {
+                case HttpStatus.TOO_MANY_REQUESTS_429:
+                    logger.warn("ViError: {} | Resetting Limit at {}", viError.getMessage(),
+                            viError.getExtendedPayload().getLimitResetDateTime());
+                    bridgeHandler.updateBridgeStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
+                            String.format("API Call limit reached. Reset at %s",
+                                    viError.getExtendedPayload().getLimitResetDateTime()));
+                    bridgeHandler.waitForApiCallLimitReset(viError.getExtendedPayload().getLimitReset());
+                    break;
+                case HttpStatus.BAD_GATEWAY_502:
+                    logger.debug("ViError: {} | Device not reachable", viError.getMessage());
+                    bridgeHandler.updateBridgeStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
+                            "Device not reachable");
+                    break;
+                default:
+                    logger.error("ViError: {} | StatusCode: {} | Reason: ", viError.getMessage(),
+                            viError.getStatusCode(), viError.getExtendedPayload());
+                    break;
+            }
+        }
     }
 }
