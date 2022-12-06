@@ -44,6 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.viessmann.internal.ViessmannDiscoveryService;
 import org.smarthomej.binding.viessmann.internal.api.ViessmannApi;
+import org.smarthomej.binding.viessmann.internal.api.ViessmannCommunicationException;
 import org.smarthomej.binding.viessmann.internal.config.BridgeConfiguration;
 import org.smarthomej.binding.viessmann.internal.dto.device.DeviceDTO;
 import org.smarthomej.binding.viessmann.internal.dto.device.DeviceData;
@@ -174,39 +175,53 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
 
     public void getAllDevices() {
         logger.trace("Loading Device List from Viessmann Bridge");
-        DeviceDTO allDevices = api.getAllDevices();
-        countApiCalls();
-        if (allDevices != null) {
-            devicesData = allDevices.data;
-            if (devicesData == null) {
-                logger.warn("Device list is empty.");
-            } else {
-                for (DeviceData deviceData : allDevices.data) {
-                    String deviceId = deviceData.id;
-                    String deviceType = deviceData.deviceType;
-                    if (!devicesList.contains(deviceId)) {
-                        devicesList.add(deviceId);
+        try {
+            DeviceDTO allDevices = api.getAllDevices();
+            countApiCalls();
+            if (allDevices != null) {
+                devicesData = allDevices.data;
+                if (devicesData == null) {
+                    logger.warn("Device list is empty.");
+                } else {
+                    for (DeviceData deviceData : allDevices.data) {
+                        String deviceId = deviceData.id;
+                        String deviceType = deviceData.deviceType;
+                        if (!devicesList.contains(deviceId)) {
+                            devicesList.add(deviceId);
+                        }
+                        logger.trace("Device ID: {}, Type: {}", deviceId, deviceType);
                     }
-                    logger.trace("Device ID: {}, Type: {}", deviceId, deviceType);
                 }
             }
+        } catch (ViessmannCommunicationException e) {
+            updateBridgeStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
+                    "Installation not reachable");
+        } catch (JsonSyntaxException | IllegalStateException e) {
+            logger.warn("Parsing Viessmann response fails: {}", e.getMessage());
         }
     }
 
     public void getDeviceError() {
         logger.trace("Loading error-list from Viessmann Bridge");
-        EventsDTO errors = api.getSelectedEvents("device-error");
-        countApiCalls();
-        logger.trace("Errors:{}", errors);
-        if (errors != null) {
-            String state = errors.data.get(0).body.errorDescription;
-            Boolean active = errors.data.get(0).body.active;
-            updateState("lastErrorMessage", StringType.valueOf(state));
-            updateState("errorIsActive", OnOffType.from(active));
+        try {
+            EventsDTO errors = api.getSelectedEvents("device-error");
+            countApiCalls();
+            logger.trace("Errors:{}", errors);
+            if (errors != null) {
+                String state = errors.data.get(0).body.errorDescription;
+                Boolean active = errors.data.get(0).body.active;
+                updateState("lastErrorMessage", StringType.valueOf(state));
+                updateState("errorIsActive", OnOffType.from(active));
+            }
+        } catch (ViessmannCommunicationException e) {
+            updateBridgeStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
+                    "Installation not reachable");
+        } catch (JsonSyntaxException | IllegalStateException e) {
+            logger.warn("Parsing Viessmann response fails: {}", e.getMessage());
         }
     }
 
-    public boolean setData(@Nullable String url, @Nullable String json) {
+    public boolean setData(@Nullable String url, @Nullable String json) throws ViessmannCommunicationException {
         if (url != null && json != null) {
             countApiCalls();
             return api.setData(url, json);
@@ -271,6 +286,9 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
                     logger.warn("Features of Device ID {} is empty.", deviceId);
                 }
             }
+        } catch (ViessmannCommunicationException e) {
+            handler.updateThingStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
+                    "Device not reachable");
         } catch (JsonSyntaxException | IllegalStateException e) {
             logger.warn("Parsing Viessmann response fails: {}", e.getMessage());
         }

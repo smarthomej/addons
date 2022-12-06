@@ -40,6 +40,7 @@ import org.smarthomej.binding.viessmann.internal.handler.ViessmannBridgeHandler;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 
 /**
  * The {@link ViessmannApi} is responsible for managing all communication with
@@ -204,13 +205,13 @@ public class ViessmannApi {
         }
     }
 
-    public @Nullable DeviceDTO getAllDevices() {
+    public @Nullable DeviceDTO getAllDevices() throws ViessmannCommunicationException {
         String response = executeGet(VIESSMANN_BASE_URL + "iot/v1/equipment/installations/" + installationId
                 + "/gateways/" + gatewaySerial + "/devices");
         return GSON.fromJson(response, DeviceDTO.class);
     }
 
-    public @Nullable FeaturesDTO getAllFeatures(String deviceId) {
+    public @Nullable FeaturesDTO getAllFeatures(String deviceId) throws ViessmannCommunicationException {
         String response = executeGet(VIESSMANN_BASE_URL + "iot/v1/equipment/installations/" + installationId
                 + "/gateways/" + gatewaySerial + "/devices/" + deviceId + "/features/");
         if (response != null) {
@@ -220,35 +221,39 @@ public class ViessmannApi {
         return null;
     }
 
-    public @Nullable EventsDTO getSelectedEvents(String eventType) {
+    public @Nullable EventsDTO getSelectedEvents(String eventType) throws ViessmannCommunicationException {
         String response = executeGet(VIESSMANN_BASE_URL + "iot/v1/events-history/events?installationId="
                 + installationId + "&gatewaySerial=" + gatewaySerial + "&eventType=" + eventType);
         return GSON.fromJson(response, EventsDTO.class);
     }
 
     private void setInstallationAndGatewayId() {
-        String response = executeGet(VIESSMANN_BASE_URL + "iot/v1/equipment/installations?includeGateways=true");
-        InstallationDTO installation = GSON.fromJson(response, InstallationDTO.class);
-        if (installation != null) {
-            List<Data> listData = installation.data;
-            Data data = listData.get(0);
-            List<Gateway> listGateway = data.gateways;
-            Gateway gateway = listGateway.get(0);
+        try {
+            String response = executeGet(VIESSMANN_BASE_URL + "iot/v1/equipment/installations?includeGateways=true");
+            InstallationDTO installation = GSON.fromJson(response, InstallationDTO.class);
+            if (installation != null) {
+                List<Data> listData = installation.data;
+                Data data = listData.get(0);
+                List<Gateway> listGateway = data.gateways;
+                Gateway gateway = listGateway.get(0);
 
-            logger.debug("Installation ID: {}", data.id);
-            logger.debug("Gateway Serial : {}", gateway.serial);
+                logger.debug("Installation ID: {}", data.id);
+                logger.debug("Gateway Serial : {}", gateway.serial);
 
-            this.installationId = data.id.toString();
-            this.gatewaySerial = gateway.serial;
-            bridgeHandler.setInstallationGatewayId(data.id.toString(), gateway.serial);
+                this.installationId = data.id.toString();
+                this.gatewaySerial = gateway.serial;
+                bridgeHandler.setInstallationGatewayId(data.id.toString(), gateway.serial);
+            }
+        } catch (ViessmannCommunicationException | JsonSyntaxException | IllegalStateException e) {
+            // should not happen
         }
     }
 
-    public boolean setData(String url, String json) {
+    public boolean setData(String url, String json) throws ViessmannCommunicationException {
         return executePost(url, json);
     }
 
-    private @Nullable String executeGet(String url) {
+    private @Nullable String executeGet(String url) throws ViessmannCommunicationException {
         String response = null;
         try {
             logger.trace("API: GET Request URL is '{}'", url);
@@ -268,7 +273,7 @@ public class ViessmannApi {
         return response;
     }
 
-    private boolean executePost(String url, String json) {
+    private boolean executePost(String url, String json) throws ViessmannCommunicationException {
         try {
             logger.trace("API: POST Request URL is '{}', JSON is '{}'", url, json);
             long startTime = System.currentTimeMillis();
@@ -304,7 +309,7 @@ public class ViessmannApi {
         return headers;
     }
 
-    private void handleViError(String response) {
+    private void handleViError(String response) throws ViessmannCommunicationException {
         ViErrorDTO viError = GSON.fromJson(response, ViErrorDTO.class);
         if (viError != null) {
             switch (viError.getStatusCode()) {
@@ -318,9 +323,7 @@ public class ViessmannApi {
                     break;
                 case HttpStatus.BAD_GATEWAY_502:
                     logger.debug("ViError: {} | Device not reachable", viError.getMessage());
-                    bridgeHandler.updateBridgeStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-                            "Device not reachable");
-                    break;
+                    throw new ViessmannCommunicationException(viError.getMessage());
                 default:
                     logger.error("ViError: {} | StatusCode: {} | Reason: ", viError.getMessage(),
                             viError.getStatusCode(), viError.getExtendedPayload());

@@ -47,9 +47,9 @@ public abstract class ViessmannThingHandler extends UpdatingBaseThingHandler {
     }
 
     /**
-     * Initialize device state and set status for handler. Should be called at the end of initialize(). Also called by
-     * bridgeStatusChanged() when bridge status changes from OFFLINE to ONLINE. Calls initChannelState() to initialize
-     * channels if setting status to ONLINE.
+     * Initialize device state. Should be called at the end of initialize(). Also called by bridgeStatusChanged() when
+     * bridge status changes from OFFLINE to ONLINE. Calls initChannelState() to initialize channels if setting status
+     * to ONLINE.
      */
     protected void initDeviceState() {
         logger.trace("Initializing device state");
@@ -58,7 +58,6 @@ public abstract class ViessmannThingHandler extends UpdatingBaseThingHandler {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "No bridge configured");
         } else if (bridge.getStatus() == ThingStatus.ONLINE) {
             initChannelState();
-            updateStatus(ThingStatus.ONLINE);
         } else {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.BRIDGE_OFFLINE);
         }
@@ -94,6 +93,10 @@ public abstract class ViessmannThingHandler extends UpdatingBaseThingHandler {
         } else if (bridgeStatus == ThingStatus.OFFLINE) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.BRIDGE_OFFLINE);
         }
+    }
+
+    public void updateThingStatus(ThingStatus status, ThingStatusDetail statusDetail, String statusMessage) {
+        updateStatus(status, statusDetail, statusMessage);
     }
 
     public void setChannelStateDescription(ChannelUID channelUid, List<StateOption> stateOptions) {
