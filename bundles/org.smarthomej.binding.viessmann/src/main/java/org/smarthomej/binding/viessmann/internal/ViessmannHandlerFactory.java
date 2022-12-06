@@ -22,6 +22,8 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.client.HttpClient;
 import org.openhab.core.io.net.http.HttpClientFactory;
 import org.openhab.core.net.HttpServiceUtil;
+import org.openhab.core.storage.Storage;
+import org.openhab.core.storage.StorageService;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingTypeUID;
@@ -50,6 +52,7 @@ public class ViessmannHandlerFactory extends BaseThingHandlerFactory {
     private final Logger logger = LoggerFactory.getLogger(ViessmannHandlerFactory.class);
 
     private final HttpClient httpClient;
+    private final StorageService storageService;
     private final BindingServlet bindingServlet;
     private final ViessmannDynamicStateDescriptionProvider stateDescriptionProvider;
 
@@ -59,9 +62,11 @@ public class ViessmannHandlerFactory extends BaseThingHandlerFactory {
 
     @Activate
     public ViessmannHandlerFactory(@Reference HttpService httpService, @Reference HttpClientFactory httpClientFactory,
+            @Reference StorageService storageService,
             final @Reference ViessmannDynamicStateDescriptionProvider stateDescriptionProvider) {
         this.httpClient = httpClientFactory.getCommonHttpClient();
         this.bindingServlet = new BindingServlet(httpService);
+        this.storageService = storageService;
         this.stateDescriptionProvider = stateDescriptionProvider;
     }
 
@@ -88,8 +93,10 @@ public class ViessmannHandlerFactory extends BaseThingHandlerFactory {
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
 
         if (THING_TYPE_BRIDGE.equals(thingTypeUID)) {
+            Storage<String> storage = storageService.getStorage(thing.getUID().toString(),
+                    String.class.getClassLoader());
             bindingServlet.addAccountThing(thing);
-            return new ViessmannBridgeHandler((Bridge) thing, httpClient, createCallbackUrl());
+            return new ViessmannBridgeHandler((Bridge) thing, storage, httpClient, createCallbackUrl());
         } else if (THING_TYPE_DEVICE.equals(thingTypeUID)) {
             return new DeviceHandler(thing, stateDescriptionProvider);
         }
