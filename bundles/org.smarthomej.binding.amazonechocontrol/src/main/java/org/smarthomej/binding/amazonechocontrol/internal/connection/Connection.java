@@ -1378,11 +1378,12 @@ public class Connection {
             Map<String, Object> parameters, List<@Nullable Integer> ttsVolumes,
             List<@Nullable Integer> standardVolumes) {
         JsonArray serialNodesToExecute = new JsonArray();
+
         JsonArray ttsVolumeNodesToExecute = new JsonArray();
         for (int i = 0; i < devices.size(); i++) {
             Integer ttsVolume = ttsVolumes.size() > i ? ttsVolumes.get(i) : null;
             Integer standardVolume = standardVolumes.size() > i ? standardVolumes.get(i) : null;
-            if (ttsVolume != null && (standardVolume != null || !ttsVolume.equals(standardVolume))) {
+            if (ttsVolume != null && !ttsVolume.equals(standardVolume)) {
                 ttsVolumeNodesToExecute.add(
                         createExecutionNode(devices.get(i), "Alexa.DeviceControls.Volume", Map.of("value", ttsVolume)));
             }
@@ -1413,9 +1414,9 @@ public class Connection {
 
         JsonArray standardVolumeNodesToExecute = new JsonArray();
         for (int i = 0; i < devices.size(); i++) {
-            Integer ttsVolume = ttsVolumes.size() > i ? ttsVolumes.get(i) : null;
             Integer standardVolume = standardVolumes.size() > i ? standardVolumes.get(i) : null;
-            if (ttsVolume != null && standardVolume != null && !ttsVolume.equals(standardVolume)) {
+            Integer ttsVolume = ttsVolumes.size() > i ? ttsVolumes.get(i) : null;
+            if (ttsVolume != null && standardVolume != null && !standardVolume.equals(ttsVolume)) {
                 standardVolumeNodesToExecute.add(createExecutionNode(devices.get(i), "Alexa.DeviceControls.Volume",
                         Map.of("value", standardVolume)));
             }
