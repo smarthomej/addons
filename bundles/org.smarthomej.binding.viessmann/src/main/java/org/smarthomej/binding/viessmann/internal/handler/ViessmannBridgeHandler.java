@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -35,7 +36,9 @@ import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
+import org.openhab.core.thing.binding.ThingHandler;
 import org.openhab.core.thing.binding.ThingHandlerService;
+import org.openhab.core.thing.util.ThingHandlerHelper;
 import org.openhab.core.types.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,7 +84,6 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
 
     public @Nullable List<DeviceData> devicesData;
     protected final List<String> devicesList = new ArrayList<>();
-    protected final List<String> pollingDevicesList = new ArrayList<>();
 
     private BridgeConfiguration config = new BridgeConfiguration();
 
@@ -104,16 +106,6 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
     public List<String> getDevicesList() {
         // return a copy of the list, so we don't run into concurrency problems
         return new ArrayList<>(devicesList);
-    }
-
-    public void setPollingDevice(String deviceId) {
-        if (!pollingDevicesList.contains(deviceId)) {
-            pollingDevicesList.add(deviceId);
-        }
-    }
-
-    public void unsetPollingDevice(String deviceId) {
-        pollingDevicesList.remove(deviceId);
     }
 
     private void setConfigInstallationGatewayId() {
@@ -254,27 +246,29 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
     }
 
     private void pollingFeatures() {
-        List<String> devices = pollingDevicesList;
-        if (devices != null) {
-            for (String deviceId : devices) {
-                logger.debug("Loading features from Device ID: {}", deviceId);
-                getAllFeaturesByDeviceId(deviceId);
+        List<Thing> children = getThing().getThings().stream().filter(Thing::isEnabled).collect(Collectors.toList());
+        for (Thing child : children) {
+            ThingHandler childHandler = child.getHandler();
+            if (childHandler instanceof DeviceHandler && ThingHandlerHelper.isHandlerInitialized(childHandler)) {
+                updateFeaturesOfDevice((DeviceHandler) childHandler);
             }
         }
     }
 
-    public void getAllFeaturesByDeviceId(String deviceId) {
+    public void updateFeaturesOfDevice(DeviceHandler handler) {
+        String deviceId = handler.getDeviceId();
+        logger.debug("Loading features from Device ID: {}", deviceId);
         try {
             FeaturesDTO allFeatures = api.getAllFeatures(deviceId);
             countApiCalls();
             if (allFeatures != null) {
                 List<FeatureDataDTO> featuresData = allFeatures.data;
-                if (featuresData != null) {
+                if (featuresData != null && !featuresData.isEmpty()) {
                     for (FeatureDataDTO featureDataDTO : featuresData) {
-                        notifyChildHandlers(featureDataDTO);
+                        handler.handleUpdate(featureDataDTO);
                     }
                 } else {
-                    logger.warn("Features list is empty.");
+                    logger.warn("Features of Device ID {} is empty.", deviceId);
                 }
             }
         } catch (JsonSyntaxException | IllegalStateException e) {
@@ -369,20 +363,6 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
         Long delay = (resetLimitMillis - Instant.now().toEpochMilli()) / 1000;
         stopViessmannBridgeLimitReset();
         startViessmannBridgeLimitReset(delay);
-    }
-
-    /**
-     * Notify appropriate child thing handlers of a Viessmann message by calling their handleUpdate() methods.
-     *
-     * @param msg message to forward to child handler(s)
-     */
-    private void notifyChildHandlers(FeatureDataDTO msg) {
-        for (Thing thing : getThing().getThings()) {
-            ViessmannThingHandler handler = (ViessmannThingHandler) thing.getHandler();
-            if (handler instanceof DeviceHandler && msg instanceof FeatureDataDTO) {
-                handler.handleUpdate(msg);
-            }
-        }
     }
 
     public void updateBridgeStatus(ThingStatus status) {

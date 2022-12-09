@@ -88,15 +88,8 @@ public class DeviceHandler extends ViessmannThingHandler {
         }
         updateProperty(PROPERTY_ID, config.deviceId); // set representation property used by discovery
 
-        setPollingDevice();
-
         initDeviceState();
         logger.trace("Device handler finished initializing");
-    }
-
-    @Override
-    public void dispose() {
-        unsetPollingDevice();
     }
 
     @Override
@@ -104,24 +97,12 @@ public class DeviceHandler extends ViessmannThingHandler {
         Bridge bridge = getBridge();
         ViessmannBridgeHandler bridgeHandler = bridge == null ? null : (ViessmannBridgeHandler) bridge.getHandler();
         if (bridgeHandler != null) {
-            bridgeHandler.getAllFeaturesByDeviceId(config.deviceId);
+            bridgeHandler.updateFeaturesOfDevice(this);
         }
     }
 
-    private void setPollingDevice() {
-        Bridge bridge = getBridge();
-        ViessmannBridgeHandler bridgeHandler = bridge == null ? null : (ViessmannBridgeHandler) bridge.getHandler();
-        if (bridgeHandler != null) {
-            bridgeHandler.setPollingDevice(config.deviceId);
-        }
-    }
-
-    private void unsetPollingDevice() {
-        Bridge bridge = getBridge();
-        ViessmannBridgeHandler bridgeHandler = bridge == null ? null : (ViessmannBridgeHandler) bridge.getHandler();
-        if (bridgeHandler != null) {
-            bridgeHandler.unsetPollingDevice(config.deviceId);
-        }
+    public String getDeviceId() {
+        return config.deviceId;
     }
 
     @Override
