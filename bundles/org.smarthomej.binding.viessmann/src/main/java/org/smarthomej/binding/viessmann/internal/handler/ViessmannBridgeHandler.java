@@ -64,6 +64,7 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
     private final Storage<String> stateStorage;
 
     private static final Set<String> ERROR_CHANNELS = Set.of("lastErrorMessage", "errorIsActive");
+    private static final String STORED_API_CALLS = "apiCalls";
 
     private final HttpClient httpClient;
     private final @Nullable String callbackUrl;
@@ -165,7 +166,7 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
 
         BridgeConfiguration config = getConfigAs(BridgeConfiguration.class);
         this.config = config;
-        String storedApiCalls = this.stateStorage.get("apiCalls");
+        String storedApiCalls = this.stateStorage.get(STORED_API_CALLS);
         if (storedApiCalls != null) {
             apiCalls = Integer.parseInt(storedApiCalls);
         } else {
@@ -247,8 +248,9 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
 
     private void countApiCalls() {
         apiCalls++;
-        stateStorage.put("apiCalls", String.valueOf(apiCalls));
-        updateState(COUNT_API_CALLS, DecimalType.valueOf(Integer.toString(apiCalls)));
+        String apiCallsAsString = String.valueOf(apiCalls);
+        stateStorage.put(STORED_API_CALLS, apiCallsAsString);
+        updateState(COUNT_API_CALLS, DecimalType.valueOf(apiCallsAsString));
     }
 
     private void checkResetApiCalls() {
