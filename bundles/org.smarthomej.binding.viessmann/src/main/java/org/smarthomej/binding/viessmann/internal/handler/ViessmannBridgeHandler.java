@@ -31,6 +31,7 @@ import org.openhab.core.config.core.Configuration;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.StringType;
+import org.openhab.core.storage.Storage;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
@@ -64,7 +65,10 @@ import com.google.gson.JsonSyntaxException;
 public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
+    private final Storage<String> stateStorage;
+
     private static final Set<String> ERROR_CHANNELS = Set.of("lastErrorMessage", "errorIsActive");
+    private static final String STORED_API_CALLS = "apiCalls";
 
     private final HttpClient httpClient;
     private final @Nullable String callbackUrl;
@@ -88,8 +92,10 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
 
     private BridgeConfiguration config = new BridgeConfiguration();
 
-    public ViessmannBridgeHandler(Bridge bridge, HttpClient httpClient, @Nullable String callbackUrl) {
+    public ViessmannBridgeHandler(Bridge bridge, Storage<String> stateStorage, HttpClient httpClient,
+            @Nullable String callbackUrl) {
         super(bridge);
+        this.stateStorage = stateStorage;
         this.httpClient = httpClient;
         this.callbackUrl = callbackUrl;
     }
@@ -153,7 +159,12 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
 
         BridgeConfiguration config = getConfigAs(BridgeConfiguration.class);
         this.config = config;
-        apiCalls = 0;
+        String storedApiCalls = this.stateStorage.get(STORED_API_CALLS);
+        if (storedApiCalls != null) {
+            apiCalls = Integer.parseInt(storedApiCalls);
+        } else {
+            apiCalls = 0;
+        }
         newInstallationId = "";
         newGatewaySerial = "";
         api = new ViessmannApi(this, this.config.apiKey, httpClient, this.config.user, this.config.password,
@@ -244,7 +255,9 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
 
     private void countApiCalls() {
         apiCalls++;
-        updateState(COUNT_API_CALLS, DecimalType.valueOf(Integer.toString(apiCalls)));
+        String apiCallsAsString = String.valueOf(apiCalls);
+        stateStorage.put(STORED_API_CALLS, apiCallsAsString);
+        updateState(COUNT_API_CALLS, DecimalType.valueOf(apiCallsAsString));
     }
 
     private void checkResetApiCalls() {
