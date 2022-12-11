@@ -44,6 +44,7 @@ import org.openhab.core.types.StateOption;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.viessmann.internal.ViessmannDynamicStateDescriptionProvider;
+import org.smarthomej.binding.viessmann.internal.api.ViessmannCommunicationException;
 import org.smarthomej.binding.viessmann.internal.config.ThingsConfig;
 import org.smarthomej.binding.viessmann.internal.dto.HeatingCircuit;
 import org.smarthomej.binding.viessmann.internal.dto.ThingMessageDTO;
@@ -196,8 +197,13 @@ public class DeviceHandler extends ViessmannThingHandler {
                         ViessmannBridgeHandler bridgeHandler = bridge == null ? null
                                 : (ViessmannBridgeHandler) bridge.getHandler();
                         if (bridgeHandler != null) {
-                            if (!bridgeHandler.setData(uri, param) || initState) {
-                                scheduler.schedule(this::initChannelState, initStateDelay, TimeUnit.SECONDS);
+                            try {
+                                if (!bridgeHandler.setData(uri, param) || initState) {
+                                    scheduler.schedule(this::initChannelState, initStateDelay, TimeUnit.SECONDS);
+                                }
+                            } catch (ViessmannCommunicationException e) {
+                                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
+                                        e.getMessage());
                             }
                         }
                     }
@@ -215,6 +221,7 @@ public class DeviceHandler extends ViessmannThingHandler {
 
     @Override
     public void handleUpdate(FeatureDataDTO featureDataDTO) {
+        updateStatus(ThingStatus.ONLINE);
         ThingMessageDTO msg = new ThingMessageDTO();
         if (featureDataDTO.properties != null) {
             msg.setDeviceId(featureDataDTO.deviceId);

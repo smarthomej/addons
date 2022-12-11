@@ -22,6 +22,7 @@ import java.util.Properties;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.http.HttpStatus;
 import org.openhab.core.io.net.http.HttpUtil;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
@@ -39,6 +40,7 @@ import org.smarthomej.binding.viessmann.internal.handler.ViessmannBridgeHandler;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 
 /**
  * The {@link ViessmannApi} is responsible for managing all communication with
@@ -48,6 +50,12 @@ import com.google.gson.GsonBuilder;
  */
 @NonNullByDefault
 public class ViessmannApi {
+
+    private static final String HTTP_METHOD_GET = "GET";
+    private static final String HTTP_METHOD_POST = "POST";
+    private static final String CONTENT_TYPE_APPLICATION_JSON = "application/json";
+    private static final String PARAM_VI_ERROR_ID = "viErrorId";
+
     private final Logger logger = LoggerFactory.getLogger(ViessmannApi.class);
 
     private static final Gson GSON = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
@@ -197,13 +205,13 @@ public class ViessmannApi {
         }
     }
 
-    public @Nullable DeviceDTO getAllDevices() {
+    public @Nullable DeviceDTO getAllDevices() throws ViessmannCommunicationException {
         String response = executeGet(VIESSMANN_BASE_URL + "iot/v1/equipment/installations/" + installationId
                 + "/gateways/" + gatewaySerial + "/devices");
         return GSON.fromJson(response, DeviceDTO.class);
     }
 
-    public @Nullable FeaturesDTO getAllFeatures(String deviceId) {
+    public @Nullable FeaturesDTO getAllFeatures(String deviceId) throws ViessmannCommunicationException {
         String response = executeGet(VIESSMANN_BASE_URL + "iot/v1/equipment/installations/" + installationId
                 + "/gateways/" + gatewaySerial + "/devices/" + deviceId + "/features/");
         if (response != null) {
@@ -213,56 +221,48 @@ public class ViessmannApi {
         return null;
     }
 
-    public @Nullable EventsDTO getSelectedEvents(String eventType) {
+    public @Nullable EventsDTO getSelectedEvents(String eventType) throws ViessmannCommunicationException {
         String response = executeGet(VIESSMANN_BASE_URL + "iot/v1/events-history/events?installationId="
                 + installationId + "&gatewaySerial=" + gatewaySerial + "&eventType=" + eventType);
         return GSON.fromJson(response, EventsDTO.class);
     }
 
     private void setInstallationAndGatewayId() {
-        String response = executeGet(VIESSMANN_BASE_URL + "iot/v1/equipment/installations?includeGateways=true");
-        InstallationDTO installation = GSON.fromJson(response, InstallationDTO.class);
-        if (installation != null) {
-            List<Data> listData = installation.data;
-            Data data = listData.get(0);
-            List<Gateway> listGateway = data.gateways;
-            Gateway gateway = listGateway.get(0);
+        try {
+            String response = executeGet(VIESSMANN_BASE_URL + "iot/v1/equipment/installations?includeGateways=true");
+            InstallationDTO installation = GSON.fromJson(response, InstallationDTO.class);
+            if (installation != null) {
+                List<Data> listData = installation.data;
+                Data data = listData.get(0);
+                List<Gateway> listGateway = data.gateways;
+                Gateway gateway = listGateway.get(0);
 
-            logger.debug("Installation ID: {}", data.id);
-            logger.debug("Gateway Serial : {}", gateway.serial);
+                logger.debug("Installation ID: {}", data.id);
+                logger.debug("Gateway Serial : {}", gateway.serial);
 
-            this.installationId = data.id.toString();
-            this.gatewaySerial = gateway.serial;
-            bridgeHandler.setInstallationGatewayId(data.id.toString(), gateway.serial);
+                this.installationId = data.id.toString();
+                this.gatewaySerial = gateway.serial;
+                bridgeHandler.setInstallationGatewayId(data.id.toString(), gateway.serial);
+            }
+        } catch (ViessmannCommunicationException | JsonSyntaxException | IllegalStateException e) {
+            // should not happen
         }
     }
 
-    public boolean setData(String url, String json) {
+    public boolean setData(String url, String json) throws ViessmannCommunicationException {
         return executePost(url, json);
     }
 
-    private @Nullable String executeGet(String url) {
+    private @Nullable String executeGet(String url) throws ViessmannCommunicationException {
         String response = null;
         try {
+            logger.trace("API: GET Request URL is '{}'", url);
             long startTime = System.currentTimeMillis();
-            logger.trace("API: Get Request URL is '{}'", url);
-            response = HttpUtil.executeUrl("GET", url, setHeaders(), null, null, API_TIMEOUT_MS);
+            response = HttpUtil.executeUrl(HTTP_METHOD_GET, url, setHeaders(), null, null, API_TIMEOUT_MS);
             logger.trace("API: Response took {} msec: {}", System.currentTimeMillis() - startTime, response);
-            if (response.contains("viErrorId")) {
-                ViErrorDTO viError = GSON.fromJson(response, ViErrorDTO.class);
-                if (viError != null) {
-                    if (viError.getStatusCode() == 429) {
-                        logger.warn("ViError: {} | Resetting Limit at {}", viError.getMessage(),
-                                viError.getExtendedPayload().getLimitResetDateTime());
-                        bridgeHandler.updateBridgeStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-                                String.format("%s Resetting Limit at %s", viError.getMessage(),
-                                        viError.getExtendedPayload().getLimitResetDateTime()));
-                        bridgeHandler.waitForApiCallLimitReset(viError.getExtendedPayload().getLimitReset());
-                    } else {
-                        logger.warn("ViError: {}", viError.getMessage());
-                    }
-                    return null;
-                }
+            if (response.contains(PARAM_VI_ERROR_ID)) {
+                handleViError(response);
+                return null;
             }
         } catch (IOException e) {
             logger.info("API IOException: Unable to execute GET: {}", e.getMessage());
@@ -273,26 +273,15 @@ public class ViessmannApi {
         return response;
     }
 
-    private boolean executePost(String url, String json) {
+    private boolean executePost(String url, String json) throws ViessmannCommunicationException {
         try {
-            logger.trace("API: Post request json is '{}'", json);
+            logger.trace("API: POST Request URL is '{}', JSON is '{}'", url, json);
             long startTime = System.currentTimeMillis();
-            String response = HttpUtil.executeUrl("POST", url, setHeaders(), new ByteArrayInputStream(json.getBytes()),
-                    "application/json", API_TIMEOUT_MS);
+            String response = HttpUtil.executeUrl(HTTP_METHOD_POST, url, setHeaders(),
+                    new ByteArrayInputStream(json.getBytes()), CONTENT_TYPE_APPLICATION_JSON, API_TIMEOUT_MS);
             logger.trace("API: Response took {} msec: {}", System.currentTimeMillis() - startTime, response);
-            if (response.contains("viErrorId")) {
-                ViErrorDTO viError = GSON.fromJson(response, ViErrorDTO.class);
-                if (viError != null) {
-                    if (viError.getStatusCode() == 429) {
-                        logger.warn("ViError: {} | Resetting Limit at {}", viError.getMessage(),
-                                viError.getExtendedPayload().getLimitResetDateTime());
-                        bridgeHandler.updateBridgeStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-                                String.format("API Call limit reached. Reset at %s",
-                                        viError.getExtendedPayload().getLimitResetDateTime()));
-                    } else {
-                        logger.warn("ViError: {} | Reason: {}", viError.getMessage(), viError.getExtendedPayload());
-                    }
-                }
+            if (response.contains(PARAM_VI_ERROR_ID)) {
+                handleViError(response);
                 return false;
             }
             return true;
@@ -318,5 +307,28 @@ public class ViessmannApi {
         headers.putAll(httpHeaders);
         headers.put("Authorization", "Bearer " + atr.accessToken);
         return headers;
+    }
+
+    private void handleViError(String response) throws ViessmannCommunicationException {
+        ViErrorDTO viError = GSON.fromJson(response, ViErrorDTO.class);
+        if (viError != null) {
+            switch (viError.getStatusCode()) {
+                case HttpStatus.TOO_MANY_REQUESTS_429:
+                    logger.warn("ViError: {} | Resetting Limit at {}", viError.getMessage(),
+                            viError.getExtendedPayload().getLimitResetDateTime());
+                    bridgeHandler.updateBridgeStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
+                            String.format("API Call limit reached. Reset at %s",
+                                    viError.getExtendedPayload().getLimitResetDateTime()));
+                    bridgeHandler.waitForApiCallLimitReset(viError.getExtendedPayload().getLimitReset());
+                    break;
+                case HttpStatus.BAD_GATEWAY_502:
+                    logger.debug("ViError: {} | Device not reachable", viError.getMessage());
+                    throw new ViessmannCommunicationException(viError.getMessage());
+                default:
+                    logger.error("ViError: {} | StatusCode: {} | Reason: ", viError.getMessage(),
+                            viError.getStatusCode(), viError.getExtendedPayload());
+                    break;
+            }
+        }
     }
 }
