@@ -157,6 +157,13 @@
 		</state>
 	</channel-type>
 
+	<channel-type id="type-volume">
+		<item-type>Number:Volume</item-type>
+		<label>Volume</label>
+		<state pattern="%.1f %unit%" readOnly="true">
+		</state>
+	</channel-type>
+
 	<channel-type id="type-decimal">
 		<item-type>Number</item-type>
 		<label>Number</label>
