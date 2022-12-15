@@ -411,10 +411,13 @@ public class DeviceHandler extends ViessmannThingHandler {
                             logger.trace("Feature: {} Type:{} Entry: {}={}", featureDataDTO.feature, typeEntry, entry,
                                     valueEntry);
 
+                            String subChannelType = "";
+
                             if (viUnit != null) {
                                 if (!viUnit.isEmpty()) {
                                     msg.setUnit(viUnit);
                                     unit = UNIT_MAP.get(viUnit);
+                                    subChannelType = SUB_CHANNEL_TYPE_MAP.getOrDefault(viUnit, "");
                                     if (unit == null) {
                                         logger.warn(
                                                 "Unknown unit. Could not parse unit: {} of Feature: {} - Please open an issue on GitHub.",
@@ -436,12 +439,6 @@ public class DeviceHandler extends ViessmannThingHandler {
                             subMsg.setFeatureName(getFeatureName(featureDataDTO.feature));
                             subMsg.setType(typeEntry);
                             subMsg.setValue(valueEntry);
-                            String subChannelType = "";
-                            if ("cubicMeter".equals(viUnit)) {
-                                subChannelType = "type-volume";
-                            } else if ("kilowattHour".equals(viUnit)) {
-                                subChannelType = "type-energy";
-                            }
                             switch (entry) {
                                 case "entries":
                                     subMsg.setSuffix("produced");
