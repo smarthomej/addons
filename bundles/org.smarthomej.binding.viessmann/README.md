@@ -53,6 +53,9 @@ The `bridge` thing supports the connection to the Viessmann API.
 
 _All configurations are made in the UI_
 
+* `deviceId` (required) Device ID
+* `renewChannels` (default = OFF) [advanced] Renews all channels provided by the API.
+
 ## Channels
 
 ### `bridge`
