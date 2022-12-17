@@ -49,6 +49,7 @@ import org.openhab.core.thing.binding.builder.ThingBuilder;
 import org.openhab.core.thing.type.ChannelTypeUID;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.CommandOption;
+import org.openhab.core.types.State;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.tuya.internal.config.ChannelConfiguration;
@@ -100,6 +101,7 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
 
     private final ExpiringCacheMap<Integer, @Nullable Object> deviceStatusCache = new ExpiringCacheMap<>(
             Duration.ofSeconds(10));
+    private final Map<String, State> channelStateCache = new HashMap<>();
 
     public TuyaDeviceHandler(Thing thing, @Nullable List<SchemaDp> schemaDps, Gson gson,
             SimpleDynamicCommandDescriptionProvider dynamicCommandDescriptionProvider, EventLoopGroup eventLoopGroup,
@@ -245,6 +247,23 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
                 }
                 if (configuration.dp2 != 0) {
                     commandRequest.put(configuration.dp2, ((HSBType) command).getBrightness().doubleValue() > 0.0);
+                }
+            } else if (command instanceof PercentType) {
+                State oldState = channelStateCache.get(channelUID.getId());
+                if (!(oldState instanceof HSBType)) {
+                    logger.debug("Discarding command '{}' to channel '{}', cannot determine old state", command,
+                            channelUID);
+                    return;
+                }
+                HSBType newState = new HSBType(((HSBType) oldState).getHue(), ((HSBType) oldState).getSaturation(),
+                        (PercentType) command);
+                commandRequest.put(configuration.dp, ConversionUtil.hexColorEncode(newState, oldColorMode));
+                ChannelConfiguration workModeConfig = channelIdToConfiguration.get("work_mode");
+                if (workModeConfig != null) {
+                    commandRequest.put(workModeConfig.dp, "colour");
+                }
+                if (configuration.dp2 != 0) {
+                    commandRequest.put(configuration.dp2, ((PercentType) command).doubleValue() > 0.0);
                 }
             } else if (command instanceof OnOffType) {
                 if (configuration.dp2 != 0) {
@@ -479,5 +498,11 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
         ExpiringCache<@Nullable Object> expiringCache = new ExpiringCache<>(Duration.ofSeconds(10), () -> null);
         expiringCache.putValue(value);
         deviceStatusCache.put(key, expiringCache);
+    }
+
+    @Override
+    protected void updateState(String channelId, State state) {
+        channelStateCache.put(channelId, state);
+        super.updateState(channelId, state);
     }
 }
