@@ -153,71 +153,62 @@
 	<channel-type id="type-energy">
 		<item-type>Number:Energy</item-type>
 		<label>Energy</label>
-		<state pattern="%.3f %unit%" readOnly="true">
-		</state>
+		<state pattern="%.3f %unit%" readOnly="true"/>
 	</channel-type>
 
 	<channel-type id="type-volume">
 		<item-type>Number:Volume</item-type>
 		<label>Volume</label>
-		<state pattern="%.1f %unit%" readOnly="true">
-		</state>
+		<state pattern="%.1f %unit%" readOnly="true"/>
 	</channel-type>
 
 	<channel-type id="type-decimal">
 		<item-type>Number</item-type>
 		<label>Number</label>
 		<category>Number</category>
-		<state pattern="%.1f" readOnly="true">
-		</state>
+		<state pattern="%.1f" readOnly="true"/>
 	</channel-type>
 
 	<channel-type id="type-number">
 		<item-type>Number</item-type>
 		<label>Number</label>
 		<category>Number</category>
-		<state pattern="%d %unit%" readOnly="true">
-		</state>
+		<state pattern="%d %unit%" readOnly="true"/>
 	</channel-type>
 
 	<channel-type id="type-minute">
 		<item-type>Number:Time</item-type>
 		<label>Number</label>
 		<category>Number</category>
-		<state pattern="%d %unit%" readOnly="true">
-		</state>
+		<state pattern="%d %unit%" readOnly="true"/>
 	</channel-type>
 
 	<channel-type id="type-hours">
 		<item-type>Number:Time</item-type>
 		<label>Number</label>
 		<category>Number</category>
-		<state pattern="%.1f %unit%" readOnly="true">
-		</state>
+		<state pattern="%.1f %unit%" readOnly="true"/>
 	</channel-type>
 
 	<channel-type id="type-percent">
 		<item-type>Number:Dimensionless</item-type>
 		<label>Number</label>
 		<category>Number</category>
-		<state pattern="%d %unit%" readOnly="true">
-		</state>
+		<state pattern="%d %unit%" readOnly="true"/>
 	</channel-type>
 
 	<channel-type id="type-liter">
 		<item-type>Number:Time</item-type>
 		<label>Liter</label>
 		<category>Number</category>
-		<state pattern="%d %unit%" readOnly="true">
-		</state>
+		<state pattern="%d %unit%" readOnly="true"/>
 	</channel-type>
 
 	<channel-type id="type-string">
 		<item-type>String</item-type>
 		<label>String</label>
 		<category>Text</category>
-		<state readOnly="false">
-		</state>
+		<state readOnly="false"/>
 	</channel-type>
 
 	<channel-type id="type-Schedule">
