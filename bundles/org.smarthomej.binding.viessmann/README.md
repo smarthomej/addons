@@ -53,9 +53,6 @@ The `bridge` thing supports the connection to the Viessmann API.
 
 _All configurations are made in the UI_
 
-* `deviceId` (required) Device ID
-* `renewChannels` (default = OFF) [advanced] Renews all channels provided by the API.
-
 ## Channels
 
 ### `bridge`
@@ -73,6 +70,13 @@ _All configurations are made in the UI_
 
 There are many different channels.
 The channels are automatically generated for all available features.
+
+## Console
+
+In the openHAB console you can reload all channels from the specified `device`.
+
+* `viessmann listDevices` - list all devices
+* `viessmann reloadChannels <ThingUID>` - reload all channels from the device
 
 ## Breaking changes
 

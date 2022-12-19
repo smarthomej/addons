@@ -15,6 +15,7 @@ package org.smarthomej.binding.viessmann.internal;
 import static org.smarthomej.binding.viessmann.internal.ViessmannBindingConstants.*;
 
 import java.util.Dictionary;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -47,10 +48,12 @@ import org.smarthomej.binding.viessmann.internal.handler.ViessmannBridgeHandler;
  * @author Ronny Grun - Initial contribution
  */
 @NonNullByDefault
-@Component(configurationPid = "binding.viessmann", service = ThingHandlerFactory.class)
+@Component(service = { ThingHandlerFactory.class,
+        ViessmannHandlerFactory.class }, configurationPid = "binding.viessmann")
 public class ViessmannHandlerFactory extends BaseThingHandlerFactory {
     private final Logger logger = LoggerFactory.getLogger(ViessmannHandlerFactory.class);
 
+    private final Set<DeviceHandler> deviceHandlers = new HashSet<>();
     private final HttpClient httpClient;
     private final StorageService storageService;
     private final BindingServlet bindingServlet;
@@ -98,7 +101,9 @@ public class ViessmannHandlerFactory extends BaseThingHandlerFactory {
             bindingServlet.addAccountThing(thing);
             return new ViessmannBridgeHandler((Bridge) thing, storage, httpClient, createCallbackUrl());
         } else if (THING_TYPE_DEVICE.equals(thingTypeUID)) {
-            return new DeviceHandler(thing, stateDescriptionProvider);
+            DeviceHandler deviceHandler = new DeviceHandler(thing, stateDescriptionProvider);
+            deviceHandlers.add(deviceHandler);
+            return deviceHandler;
         }
         return null;
     }
@@ -107,6 +112,10 @@ public class ViessmannHandlerFactory extends BaseThingHandlerFactory {
     protected synchronized void removeHandler(ThingHandler thingHandler) {
         BindingServlet bindingServlet = this.bindingServlet;
         bindingServlet.removeAccountThing(thingHandler.getThing());
+
+        if (THING_TYPE_DEVICE.equals(thingHandler.getThing().getThingTypeUID())) {
+            deviceHandlers.remove(thingHandler.getThing().getHandler());
+        }
     }
 
     private @Nullable String createCallbackUrl() {
@@ -121,5 +130,9 @@ public class ViessmannHandlerFactory extends BaseThingHandlerFactory {
             }
             return "http://localhost:" + port;
         }
+    }
+
+    public Set<DeviceHandler> getDeviceHandlers() {
+        return deviceHandlers;
     }
 }

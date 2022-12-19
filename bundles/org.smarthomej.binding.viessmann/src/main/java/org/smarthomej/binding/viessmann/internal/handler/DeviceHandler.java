@@ -27,7 +27,6 @@ import java.util.regex.Pattern;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.core.config.core.Configuration;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.QuantityType;
@@ -90,13 +89,6 @@ public class DeviceHandler extends ViessmannThingHandler {
         }
         updateProperty(PROPERTY_ID, config.deviceId); // set representation property used by discovery
 
-        if (config.renewChannels) {
-            logger.info("Renew all channels from {} ", thing.getUID());
-            removeThingChannels();
-            Configuration conf = editConfiguration();
-            conf.put("renewChannels", false);
-            updateConfiguration(conf);
-        }
         initDeviceState();
         logger.trace("Device handler finished initializing");
     }
@@ -863,8 +855,10 @@ public class DeviceHandler extends ViessmannThingHandler {
         }
     }
 
-    private void removeThingChannels() {
+    public void reloadThingChannels() {
+        logger.info("Renew all channels from {} ", thing.getUID());
         List<Channel> channels = thing.getChannels();
         updateThing(editThing().withoutChannels(channels).build());
+        initDeviceState();
     }
 }

@@ -22,5 +22,4 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 @NonNullByDefault
 public class ThingsConfig {
     public String deviceId = "";
-    public boolean renewChannels = false;
 }

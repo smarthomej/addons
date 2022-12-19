@@ -104,12 +104,6 @@
 				<label>Device Id</label>
 				<default>0</default>
 			</parameter>
-			<parameter name="renewChannels" type="boolean" required="false">
-				<label>Renew all channels</label>
-				<description>Renews all channels provided by the API. After saving this, it goes to off and the channels are
-					renewed.</description>
-				<advanced>true</advanced>
-			</parameter>
 		</config-description>
 	</thing-type>
 
