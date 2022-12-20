@@ -411,10 +411,13 @@ public class DeviceHandler extends ViessmannThingHandler {
                             logger.trace("Feature: {} Type:{} Entry: {}={}", featureDataDTO.feature, typeEntry, entry,
                                     valueEntry);
 
+                            String subChannelType = "";
+
                             if (viUnit != null) {
                                 if (!viUnit.isEmpty()) {
                                     msg.setUnit(viUnit);
                                     unit = UNIT_MAP.get(viUnit);
+                                    subChannelType = SUB_CHANNEL_TYPE_MAP.getOrDefault(viUnit, "");
                                     if (unit == null) {
                                         logger.warn(
                                                 "Unknown unit. Could not parse unit: {} of Feature: {} - Please open an issue on GitHub.",
@@ -444,28 +447,28 @@ public class DeviceHandler extends ViessmannThingHandler {
                                     break;
                                 case "day":
                                     subMsg.setSuffix("today");
-                                    subMsg.setChannelType("type-energy");
+                                    subMsg.setChannelType(subChannelType);
                                     createSubChannel(subMsg);
                                     subMsg.setSuffix("yesterday");
                                     createSubChannel(subMsg);
                                     break;
                                 case "week":
                                     subMsg.setSuffix("thisWeek");
-                                    subMsg.setChannelType("type-energy");
+                                    subMsg.setChannelType(subChannelType);
                                     createSubChannel(subMsg);
                                     subMsg.setSuffix("lastWeek");
                                     createSubChannel(subMsg);
                                     break;
                                 case "month":
                                     subMsg.setSuffix("thisMonth");
-                                    subMsg.setChannelType("type-energy");
+                                    subMsg.setChannelType(subChannelType);
                                     createSubChannel(subMsg);
                                     subMsg.setSuffix("lastMonth");
                                     createSubChannel(subMsg);
                                     break;
                                 case "year":
                                     subMsg.setSuffix("thisYear");
-                                    subMsg.setChannelType("type-energy");
+                                    subMsg.setChannelType(subChannelType);
                                     createSubChannel(subMsg);
                                     subMsg.setSuffix("lastYear");
                                     createSubChannel(subMsg);
@@ -508,28 +511,24 @@ public class DeviceHandler extends ViessmannThingHandler {
                                         switch (entry) {
                                             case "day":
                                                 subMsg.setSuffix("today");
-                                                subMsg.setChannelType("type-energy");
                                                 updateChannelState(subMsg.getChannelId(), parts[0], unit);
                                                 subMsg.setSuffix("yesterday");
                                                 updateChannelState(subMsg.getChannelId(), parts[1], unit);
                                                 break;
                                             case "week":
                                                 subMsg.setSuffix("thisWeek");
-                                                subMsg.setChannelType("type-energy");
                                                 updateChannelState(subMsg.getChannelId(), parts[0], unit);
                                                 subMsg.setSuffix("lastWeek");
                                                 updateChannelState(subMsg.getChannelId(), parts[1], unit);
                                                 break;
                                             case "month":
                                                 subMsg.setSuffix("thisMonth");
-                                                subMsg.setChannelType("type-number");
                                                 updateChannelState(subMsg.getChannelId(), parts[0], unit);
                                                 subMsg.setSuffix("lastMonth");
                                                 updateChannelState(subMsg.getChannelId(), parts[1], unit);
                                                 break;
                                             case "year":
                                                 subMsg.setSuffix("thisYear");
-                                                subMsg.setChannelType("type-number");
                                                 updateChannelState(subMsg.getChannelId(), parts[0], unit);
                                                 subMsg.setSuffix("lastYear");
                                                 updateChannelState(subMsg.getChannelId(), parts[1], unit);

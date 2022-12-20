@@ -70,6 +70,10 @@ public class ViessmannBindingConstants {
             "liter", Units.LITRE.toString(), //
             "cubicMeter", SIUnits.CUBIC_METRE.toString());
 
+    public static final Map<String, String> SUB_CHANNEL_TYPE_MAP = Map.of( //
+            "cubicMeter", "type-volume", //
+            "kilowattHour", "type-energy");
+
     public static final Map<String, String> MODES_MAP = ResourceUtil.readProperties(ViessmannBindingConstants.class,
             "modes.properties");
 
