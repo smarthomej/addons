@@ -103,9 +103,9 @@ public class IPBridgeThingHandler extends KNXBridgeBaseThingHandler {
         IPClient client = new IPClient(ipConnectionType, ip, localSource, port, localEndPoint, useNAT,
                 autoReconnectPeriod, thing.getUID(), config.getResponseTimeout(), config.getReadingPause(),
                 config.getReadRetriesLimit(), getScheduler(), this);
-        client.initialize();
-
         this.client = client;
+
+        client.initialize();
     }
 
     @Override
