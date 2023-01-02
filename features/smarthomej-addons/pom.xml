@@ -61,7 +61,6 @@
                   <header file="src/main/resources/header.xml" filtering="no"/>
                   <fileset dir="${basedirRoot}/bundles">
                     <include name="*/src/main/feature/feature.xml"/>
-                    <!-- exclude name="**/org.smarthomej.io.repomanager/**/feature.xml"/ -->
                   </fileset>
                   <filterchain>
                     <linecontainsRegExp>
@@ -83,7 +82,7 @@
             <configuration>
               <target>
                 <replaceregexp byline="true" file="src/main/feature/feature.xml">
-                  <regexp pattern="(feature((?!repomanager).)*) version="/>
+                  <regexp pattern="(feature.* version="/>
                   <substitution expression="\1 install=&quot;manual&quot; version="/>
                 </replaceregexp>
               </target>
