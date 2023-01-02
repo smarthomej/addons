@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2021-2022 Contributors to the SmartHome/J project
+ * Copyright (c) 2021-2023 Contributors to the SmartHome/J project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
