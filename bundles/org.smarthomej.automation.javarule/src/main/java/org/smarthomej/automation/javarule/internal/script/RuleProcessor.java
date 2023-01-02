@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -106,10 +107,11 @@ public class RuleProcessor {
 
             SimpleRule simpleRule = new SimpleRule() {
                 @Override
-                @NonNullByDefault({})
                 public Object execute(Action module, Map<String, ?> input) {
                     try {
-                        return method.getParameterCount() == 1 ? method.invoke(script, input) : method.invoke(script);
+                        Object returnValue = method.getParameterCount() == 1 ? method.invoke(script, input)
+                                : method.invoke(script);
+                        return Objects.requireNonNullElse(returnValue, Map.of());
                     } catch (InvocationTargetException | IllegalAccessException e) {
                         throw new IllegalStateException(e);
                     }

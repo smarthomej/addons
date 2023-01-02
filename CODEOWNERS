@@ -22,7 +22,6 @@
 /bundles/org.smarthomej.binding.tuya/ @J-N-K
 /bundles/org.smarthomej.binding.viessmann/ @rogrun
 /bundles/org.smarthomej.commons/ @J-N-K
-/bundles/org.smarthomej.io.repomanager/ @J-N-K
 /bundles/org.smarthomej.persistence.influxdb/ @J-N-K
 /bundles/org.smarthomej.transform.basicprofiles/ @cweitkamp
 /bundles/org.smarthomej.transform.chain/ @J-N-K
