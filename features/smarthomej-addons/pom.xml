@@ -7,7 +7,7 @@
   <parent>
     <groupId>org.smarthomej.addons.features.karaf</groupId>
     <artifactId>org.smarthomej.addons.reactor.features.karaf</artifactId>
-    <version>3.2.16-SNAPSHOT</version>
+    <version>4.0.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>org.smarthomej.addons.features.karaf.smarthomej-addons</artifactId>
@@ -61,7 +61,6 @@
                   <header file="src/main/resources/header.xml" filtering="no"/>
                   <fileset dir="${basedirRoot}/bundles">
                     <include name="*/src/main/feature/feature.xml"/>
-                    <!-- exclude name="**/org.smarthomej.io.repomanager/**/feature.xml"/ -->
                   </fileset>
                   <filterchain>
                     <linecontainsRegExp>
@@ -83,7 +82,7 @@
             <configuration>
               <target>
                 <replaceregexp byline="true" file="src/main/feature/feature.xml">
-                  <regexp pattern="(feature((?!repomanager).)*) version="/>
+                  <regexp pattern="(feature.*) version="/>
                   <substitution expression="\1 install=&quot;manual&quot; version="/>
                 </replaceregexp>
               </target>

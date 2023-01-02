@@ -7,7 +7,7 @@
   <parent>
     <groupId>org.smarthomej.addons.bom</groupId>
     <artifactId>org.smarthomej.addons.reactor.bom</artifactId>
-    <version>3.2.16-SNAPSHOT</version>
+    <version>4.0.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>org.smarthomej.addons.bom.smarthomej-addons</artifactId>
@@ -114,11 +114,6 @@
     <dependency>
       <groupId>org.smarthomej.addons.bundles</groupId>
       <artifactId>org.smarthomej.transform.math</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.smarthomej.addons.bundles</groupId>
-      <artifactId>org.smarthomej.io.repomanager</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>
