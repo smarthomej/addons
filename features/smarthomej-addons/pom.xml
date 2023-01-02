@@ -82,7 +82,7 @@
             <configuration>
               <target>
                 <replaceregexp byline="true" file="src/main/feature/feature.xml">
-                  <regexp pattern="(feature.* version="/>
+                  <regexp pattern="(feature.*) version="/>
                   <substitution expression="\1 install=&quot;manual&quot; version="/>
                 </replaceregexp>
               </target>
