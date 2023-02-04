@@ -38,11 +38,6 @@
     </dependency>
     <dependency>
       <groupId>org.smarthomej.addons.bundles</groupId>
-      <artifactId>org.smarthomej.binding.dmx</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.smarthomej.addons.bundles</groupId>
       <artifactId>org.smarthomej.binding.http</artifactId>
       <version>${project.version}</version>
     </dependency>
