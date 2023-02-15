@@ -88,11 +88,6 @@
     </dependency>
     <dependency>
       <groupId>org.smarthomej.addons.bundles</groupId>
-      <artifactId>org.smarthomej.persistence.influxdb</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.smarthomej.addons.bundles</groupId>
       <artifactId>org.smarthomej.transform.chain</artifactId>
       <version>${project.version}</version>
     </dependency>
