@@ -13,14 +13,11 @@
 /bundles/org.smarthomej.binding.knx/ @J-N-K
 /bundles/org.smarthomej.binding.mail/ @J-N-K
 /bundles/org.smarthomej.binding.notificationsforfiretv/ @Trinitus01
-/bundles/org.smarthomej.binding.snmp/ @J-N-K
 /bundles/org.smarthomej.binding.tcpudp/ @J-N-K
 /bundles/org.smarthomej.binding.telenot/ @rogrun
-/bundles/org.smarthomej.binding.tr064/ @J-N-K
 /bundles/org.smarthomej.binding.tuya/ @J-N-K
 /bundles/org.smarthomej.binding.viessmann/ @rogrun
 /bundles/org.smarthomej.commons/ @J-N-K
-/bundles/org.smarthomej.persistence.influxdb/ @J-N-K
 /bundles/org.smarthomej.transform.basicprofiles/ @cweitkamp
 /bundles/org.smarthomej.transform.chain/ @J-N-K
 /bundles/org.smarthomej.transform.format/ @J-N-K

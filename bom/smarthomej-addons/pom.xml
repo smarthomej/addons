@@ -68,11 +68,6 @@
     </dependency>
     <dependency>
       <groupId>org.smarthomej.addons.bundles</groupId>
-      <artifactId>org.smarthomej.binding.tr064</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.smarthomej.addons.bundles</groupId>
       <artifactId>org.smarthomej.binding.tuya</artifactId>
       <version>${project.version}</version>
     </dependency>
