@@ -13,6 +13,7 @@
 package org.smarthomej.binding.tuya.internal.local.handlers;
 
 import java.util.Map;
+import java.util.Objects;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.smarthomej.binding.tuya.internal.local.CommandType;
@@ -43,10 +44,10 @@ public class DiscoveryMessageHandler extends ChannelDuplexHandler {
     @Override
     public void channelRead(@NonNullByDefault({}) ChannelHandlerContext ctx, @NonNullByDefault({}) Object msg)
             throws Exception {
-        if (msg instanceof MessageWrapper<?> && (CommandType.UDP_NEW.equals(((MessageWrapper<?>) msg).commandType)
-                || CommandType.UDP.equals((((MessageWrapper<?>) msg).commandType)))) {
-            @SuppressWarnings("unchecked")
-            DiscoveryMessage discoveryMessage = ((MessageWrapper<DiscoveryMessage>) msg).content;
+        if (msg instanceof MessageWrapper<?> messageWrapper
+                && (messageWrapper.commandType == CommandType.UDP_NEW || messageWrapper.commandType == CommandType.UDP
+                        || messageWrapper.commandType == CommandType.BROADCAST_LPV34)) {
+            DiscoveryMessage discoveryMessage = (DiscoveryMessage) Objects.requireNonNull(messageWrapper.content);
             DeviceInfo deviceInfo = new DeviceInfo(discoveryMessage.ip, discoveryMessage.version);
             if (!deviceInfo.equals(deviceInfos.put(discoveryMessage.deviceId, deviceInfo))) {
                 DeviceInfoSubscriber subscriber = deviceListeners.get(discoveryMessage.deviceId);

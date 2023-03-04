@@ -12,9 +12,16 @@
  */
 package org.smarthomej.binding.tuya.internal.local.handlers;
 
-import java.lang.reflect.Type;
+import static org.smarthomej.binding.tuya.internal.local.CommandType.BROADCAST_LPV34;
+import static org.smarthomej.binding.tuya.internal.local.CommandType.DP_QUERY;
+import static org.smarthomej.binding.tuya.internal.local.CommandType.DP_QUERY_NOT_SUPPORTED;
+import static org.smarthomej.binding.tuya.internal.local.CommandType.STATUS;
+import static org.smarthomej.binding.tuya.internal.local.CommandType.UDP;
+import static org.smarthomej.binding.tuya.internal.local.CommandType.UDP_NEW;
+import static org.smarthomej.binding.tuya.internal.local.ProtocolVersion.V3_3;
+import static org.smarthomej.binding.tuya.internal.local.ProtocolVersion.V3_4;
+
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
@@ -27,13 +34,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.tuya.internal.local.CommandType;
 import org.smarthomej.binding.tuya.internal.local.MessageWrapper;
+import org.smarthomej.binding.tuya.internal.local.ProtocolVersion;
+import org.smarthomej.binding.tuya.internal.local.TuyaDevice;
 import org.smarthomej.binding.tuya.internal.local.dto.DiscoveryMessage;
-import org.smarthomej.binding.tuya.internal.local.dto.TcpPayload;
+import org.smarthomej.binding.tuya.internal.local.dto.TcpStatusPayload;
 import org.smarthomej.binding.tuya.internal.util.CryptoUtil;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
-import com.google.gson.reflect.TypeToken;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -48,27 +56,22 @@ import io.netty.handler.codec.ByteToMessageDecoder;
  */
 @NonNullByDefault
 public class TuyaDecoder extends ByteToMessageDecoder {
-    private static final Type INTEGER_OBJECT_MAP_TYPE = TypeToken
-            .getParameterized(Map.class, Integer.class, Object.class).getType();
-    private static final Type STATUS_PAYLOAD_TYPE = TypeToken
-            .getParameterized(TcpPayload.class, INTEGER_OBJECT_MAP_TYPE).getType();
-
     private final Logger logger = LoggerFactory.getLogger(TuyaDecoder.class);
 
-    private final byte[] key;
-    private final String version;
+    private final TuyaDevice.KeyStore keyStore;
+    private final ProtocolVersion version;
     private final Gson gson;
     private final String deviceId;
 
-    public TuyaDecoder(Gson gson, String deviceId, byte[] key, String version) {
+    public TuyaDecoder(Gson gson, String deviceId, TuyaDevice.KeyStore keyStore, ProtocolVersion version) {
         this.gson = gson;
-        this.key = key;
+        this.keyStore = keyStore;
         this.version = version;
         this.deviceId = deviceId;
     }
 
     @Override
-    protected void decode(@NonNullByDefault({}) ChannelHandlerContext ctx, @NonNullByDefault({}) ByteBuf in,
+    public void decode(@NonNullByDefault({}) ChannelHandlerContext ctx, @NonNullByDefault({}) ByteBuf in,
             @NonNullByDefault({}) List<Object> out) throws Exception {
         if (in.readableBytes() < 24) {
             // minimum packet size is 16 bytes header + 8 bytes suffix
@@ -108,28 +111,47 @@ public class TuyaDecoder extends ByteToMessageDecoder {
         if ((returnCode & 0xffffff00) != 0) {
             // rewind if no return code is present
             buffer.position(buffer.position() - 4);
-            payload = new byte[payloadLength - 8];
+            payload = version == V3_4 ? new byte[payloadLength - 32] : new byte[payloadLength - 8];
         } else {
-            payload = new byte[payloadLength - 8 - 4];
+            payload = version == V3_4 ? new byte[payloadLength - 32 - 8] : new byte[payloadLength - 8 - 4];
         }
 
         buffer.get(payload);
-        int crc = buffer.getInt();
-        // header + payload without suffix and checksum
-        int calculatedCrc = CryptoUtil.calculateChecksum(bytes, 0, 16 + payloadLength - 8);
-        if (calculatedCrc != crc) {
-            logger.warn("Checksum failed for message from '{}': calculated {}, found {}", deviceId, calculatedCrc, crc);
-            return;
+
+        if (version == V3_4 && commandType != UDP && commandType != UDP_NEW) {
+            byte[] fullMessage = new byte[buffer.position()];
+            buffer.position(0);
+            buffer.get(fullMessage);
+            byte[] expectedHmac = new byte[32];
+            buffer.get(expectedHmac);
+            byte[] calculatedHmac = CryptoUtil.hmac(fullMessage, keyStore.getSessionKey());
+            if (!Arrays.equals(expectedHmac, calculatedHmac)) {
+                logger.warn("{}{}: Checksum failed for message: calculated {}, found {}", deviceId,
+                        Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""),
+                        calculatedHmac != null ? HexUtils.bytesToHex(calculatedHmac) : "<null>",
+                        HexUtils.bytesToHex(expectedHmac));
+                return;
+            }
+        } else {
+            int crc = buffer.getInt();
+            // header + payload without suffix and checksum
+            int calculatedCrc = CryptoUtil.calculateChecksum(bytes, 0, 16 + payloadLength - 8);
+            if (calculatedCrc != crc) {
+                logger.warn("{}{}: Checksum failed for message: calculated {}, found {}", deviceId,
+                        Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""), calculatedCrc, crc);
+                return;
+            }
         }
 
         int suffix = buffer.getInt();
         if (prefix != 0x000055aa || suffix != 0x0000aa55) {
-            logger.warn("Prefix or suffix invalid for message from '{}'.", deviceId);
+            logger.warn("{}{}: Decoding failed: Prefix or suffix invalid.", deviceId,
+                    Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""));
             return;
         }
 
-        if (Arrays.equals(Arrays.copyOfRange(payload, 0, version.length()), version.getBytes(StandardCharsets.UTF_8))) {
-            if ("3.3".equals(version)) {
+        if (Arrays.equals(Arrays.copyOfRange(payload, 0, version.getBytes().length), version.getBytes())) {
+            if (version == V3_3) {
                 // Remove 3.3 header
                 payload = Arrays.copyOfRange(payload, 15, payload.length);
             } else {
@@ -138,43 +160,54 @@ public class TuyaDecoder extends ByteToMessageDecoder {
         }
 
         MessageWrapper<?> m;
-        if (CommandType.UDP.equals(commandType)) {
+        if (commandType == UDP) {
             // UDP is unencrypted
             m = new MessageWrapper<>(commandType,
                     Objects.requireNonNull(gson.fromJson(new String(payload), DiscoveryMessage.class)));
         } else {
-            String decodedMessage = CryptoUtil.decryptAesEcb(payload, key);
+            byte[] decodedMessage = version == V3_4 ? CryptoUtil.decryptAesEcb(payload, keyStore.getSessionKey(), true)
+                    : CryptoUtil.decryptAesEcb(payload, keyStore.getDeviceKey(), false);
             if (decodedMessage == null) {
                 return;
             }
-            logger.trace("{}/{}: Decoded raw payload: {}", deviceId,
-                    Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""), decodedMessage);
+            if (Arrays.equals(Arrays.copyOfRange(decodedMessage, 0, version.getBytes().length), version.getBytes())) {
+                if (version == V3_4) {
+                    // Remove 3.4 header
+                    decodedMessage = Arrays.copyOfRange(decodedMessage, 15, decodedMessage.length);
+                }
+            }
+            if (logger.isTraceEnabled()) {
+                logger.trace("{}{}: Decoded raw payload: {}", deviceId,
+                        Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""),
+                        HexUtils.bytesToHex(decodedMessage));
+            }
 
             try {
-                if (CommandType.DP_QUERY.equals(commandType) && "json obj data unvalid".equals(decodedMessage)) {
+                String decodedString = new String(decodedMessage).trim();
+                if (commandType == DP_QUERY && "json obj data unvalid".equals(decodedString)) {
                     // "json obj data unvalid" would also result in a JSONSyntaxException but is a known error when
                     // DP_QUERY is not supported by the device. Using a CONTROL message with null values is a known
                     // workaround, cf. https://github.com/codetheweb/tuyapi/blob/master/index.js#L156
-                    logger.info("{}/{}: DP_QUERY not supported. Trying to request with CONTROL.", deviceId,
+                    logger.info("{}{}: DP_QUERY not supported. Trying to request with CONTROL.", deviceId,
                             Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""));
-                    m = new MessageWrapper<>(CommandType.DP_QUERY_NOT_SUPPORTED, Map.of());
-                } else if (CommandType.STATUS.equals(commandType) || CommandType.DP_QUERY.equals(commandType)) {
-                    m = new MessageWrapper<>(commandType, Objects
-                            .requireNonNull((TcpPayload<?>) gson.fromJson(decodedMessage, STATUS_PAYLOAD_TYPE)).dps);
-                } else if (CommandType.UDP_NEW.equals(commandType)) {
+                    m = new MessageWrapper<>(DP_QUERY_NOT_SUPPORTED, Map.of());
+                } else if (commandType == STATUS || commandType == DP_QUERY) {
                     m = new MessageWrapper<>(commandType,
-                            Objects.requireNonNull(gson.fromJson(decodedMessage, DiscoveryMessage.class)));
+                            Objects.requireNonNull(gson.fromJson(decodedString, TcpStatusPayload.class)));
+                } else if (commandType == UDP_NEW || commandType == BROADCAST_LPV34) {
+                    m = new MessageWrapper<>(commandType,
+                            Objects.requireNonNull(gson.fromJson(decodedString, DiscoveryMessage.class)));
                 } else {
                     m = new MessageWrapper<>(commandType, decodedMessage);
                 }
             } catch (JsonSyntaxException e) {
-                logger.warn("{}/{} failed to parse JSON: {}", deviceId,
+                logger.warn("{}{} failed to parse JSON: {}", deviceId,
                         Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""), e.getMessage());
                 return;
             }
         }
 
-        logger.debug("{}/{}: Received {}", deviceId, Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""), m);
+        logger.debug("{}{}: Received {}", deviceId, Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""), m);
         out.add(m);
     }
 }

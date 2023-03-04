@@ -34,10 +34,13 @@ public class DiscoveryMessage {
     public String productKey = "";
     public String version = "";
 
+    public boolean token = true;
+    public boolean wf_cfg = true;
+
     @Override
     public String toString() {
         return "DiscoveryMessage{ip='" + ip + "', deviceId='" + deviceId + "', active=" + active + ", ability="
                 + ability + ", mode=" + mode + ", encrypt=" + encrypt + ", productKey='" + productKey + "', version='"
-                + version + "'}";
+                + version + "', token= " + token + ", wf_cfg=" + wf_cfg + "}";
     }
 }
