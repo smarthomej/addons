@@ -44,16 +44,18 @@ public class DiscoveryMessageHandler extends ChannelDuplexHandler {
     @Override
     public void channelRead(@NonNullByDefault({}) ChannelHandlerContext ctx, @NonNullByDefault({}) Object msg)
             throws Exception {
-        if (msg instanceof MessageWrapper<?> messageWrapper
-                && (messageWrapper.commandType == CommandType.UDP_NEW || messageWrapper.commandType == CommandType.UDP
-                        || messageWrapper.commandType == CommandType.BROADCAST_LPV34)) {
-            DiscoveryMessage discoveryMessage = (DiscoveryMessage) Objects.requireNonNull(messageWrapper.content);
-            DeviceInfo deviceInfo = new DeviceInfo(discoveryMessage.ip, discoveryMessage.version);
-            if (!deviceInfo.equals(deviceInfos.put(discoveryMessage.deviceId, deviceInfo))) {
-                DeviceInfoSubscriber subscriber = deviceListeners.get(discoveryMessage.deviceId);
+        if (msg instanceof MessageWrapper<?>) {
+            MessageWrapper<?> messageWrapper = (MessageWrapper<?>) msg;
+            if ((messageWrapper.commandType == CommandType.UDP_NEW || messageWrapper.commandType == CommandType.UDP
+                    || messageWrapper.commandType == CommandType.BROADCAST_LPV34)) {
+                DiscoveryMessage discoveryMessage = (DiscoveryMessage) Objects.requireNonNull(messageWrapper.content);
+                DeviceInfo deviceInfo = new DeviceInfo(discoveryMessage.ip, discoveryMessage.version);
+                if (!deviceInfo.equals(deviceInfos.put(discoveryMessage.deviceId, deviceInfo))) {
+                    DeviceInfoSubscriber subscriber = deviceListeners.get(discoveryMessage.deviceId);
 
-                if (subscriber != null) {
-                    subscriber.deviceInfoChanged(deviceInfo);
+                    if (subscriber != null) {
+                        subscriber.deviceInfoChanged(deviceInfo);
+                    }
                 }
             }
         }
