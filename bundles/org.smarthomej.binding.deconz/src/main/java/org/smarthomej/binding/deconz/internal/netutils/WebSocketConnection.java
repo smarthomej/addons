@@ -241,7 +241,7 @@ public class WebSocketConnection {
     }
 
     private void handleWrongSession(Session session, String message) {
-        logger.warn("{}/{} received and discarded message for other or session {}: {}.", socketName, session.hashCode(),
+        logger.warn("{}{} received and discarded message for other or session {}: {}.", socketName, session.hashCode(),
                 session.hashCode(), message);
         if (session.isOpen()) {
             // Close the session if it is still open. It should already be closed anyway

@@ -26,9 +26,9 @@ public enum CommandType {
     UDP(0),
     AP_CONFIG(1),
     ACTIVE(2),
-    BIND(3),
-    RENAME_GW(4),
-    RENAME_DEVICE(5),
+    SESS_KEY_NEG_START(3),
+    SESS_KEY_NEG_RESPONSE(4),
+    SESS_KEY_NEG_FINISH(5),
     UNBIND(6),
     CONTROL(7),
     STATUS(8),
@@ -43,6 +43,8 @@ public enum CommandType {
     DP_REFRESH(18),
     UDP_NEW(19),
     AP_CONFIG_NEW(20),
+    BROADCAST_LPV34(35),
+    LAN_EXT_STREAM(40),
     LAN_GW_ACTIVE(240),
     LAN_SUB_DEV_REQUEST(241),
     LAN_DELETE_SUB_DEV(242),
@@ -69,6 +71,7 @@ public enum CommandType {
     }
 
     public static CommandType fromCode(int code) {
-        return Arrays.stream(values()).filter(t -> t.code == code).findAny().orElseThrow(IllegalArgumentException::new);
+        return Arrays.stream(values()).filter(t -> t.code == code).findAny()
+                .orElseThrow(() -> new IllegalArgumentException("Unknown code " + code));
     }
 }
