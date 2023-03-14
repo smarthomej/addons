@@ -360,7 +360,7 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
 
         thing.getChannels().forEach(this::configureChannel);
 
-        if (!configuration.ip.isEmpty()) {
+        if (!configuration.ip.isBlank()) {
             deviceInfoChanged(new DeviceInfo(configuration.ip, configuration.protocol));
         } else {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_PENDING, "Waiting for IP address");

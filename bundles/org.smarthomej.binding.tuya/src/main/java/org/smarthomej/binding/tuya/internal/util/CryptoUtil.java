@@ -17,7 +17,10 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.Base64;
+import java.util.Random;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -75,6 +78,8 @@ public class CryptoUtil {
             0xbdbdf21c, 0xcabac28a, 0x53b39330, 0x24b4a3a6, 0xbad03605, 0xcdd70693, 0x54de5729, 0x23d967bf, 0xb3667a2e,
             0xc4614ab8, 0x5d681b02, 0x2a6f2b94, 0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d };
     private static final int GCM_TAG_LENGTH = 16;
+
+    private static final Random SECURE_RNG = new SecureRandom();
 
     private CryptoUtil() {
         // prevent instantiation
@@ -188,15 +193,23 @@ public class CryptoUtil {
      *
      * @param data the message as array of bytes
      * @param key the key as array of bytes
+     * @param unpad remove padding (for protocol 3.4)
      * @return the decrypted message as String (or null if decryption failed)
      */
-    public static @Nullable String decryptAesEcb(byte[] data, byte[] key) {
+    public static byte @Nullable [] decryptAesEcb(byte[] data, byte[] key, boolean unpad) {
+        if (data.length == 0) {
+            return data.clone();
+        }
         try {
             SecretKey secretKey = new SecretKeySpec(key, "AES");
             final Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding");
             cipher.init(Cipher.DECRYPT_MODE, secretKey);
-            byte[] decoded = cipher.doFinal(data);
-            return new String(decoded).trim();
+            byte[] decrypted = cipher.doFinal(data);
+            if (unpad) {
+                int padlength = decrypted[decrypted.length - 1];
+                return Arrays.copyOf(decrypted, decrypted.length - padlength);
+            }
+            return decrypted;
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException
                 | BadPaddingException e) {
             LOGGER.warn("Decryption of MQ failed: {}", e.getMessage());
@@ -212,10 +225,11 @@ public class CryptoUtil {
      * @param key the key as array of bytes
      * @return the encrypted message as array of bytes (or null if decryption failed)
      */
-    public static byte @Nullable [] encryptAesEcb(byte[] data, byte[] key) {
+    public static byte @Nullable [] encryptAesEcb(byte[] data, byte[] key, boolean padding) {
         try {
             SecretKey secretKey = new SecretKeySpec(key, "AES");
-            final Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            final Cipher cipher = padding ? Cipher.getInstance("AES/ECB/PKCS5Padding")
+                    : Cipher.getInstance("AES/ECB/NoPadding");
             cipher.init(Cipher.ENCRYPT_MODE, secretKey);
             return cipher.doFinal(data);
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException
@@ -224,5 +238,48 @@ public class CryptoUtil {
         }
 
         return null;
+    }
+
+    public static byte @Nullable [] hmac(byte[] data, byte[] key) {
+        try {
+            Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
+            SecretKeySpec secret_key = new SecretKeySpec(key, "HmacSHA256");
+            sha256_HMAC.init(secret_key);
+
+            return sha256_HMAC.doFinal(data);
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+            LOGGER.warn("Creating HMAC hash failed: {}", e.getMessage());
+        }
+
+        return null;
+    }
+
+    /**
+     * Generate a {@link byte[]} with the given size
+     *
+     * @param size the size in bytes
+     * @return the array filled with random bytes.
+     */
+    public static byte[] generateRandom(int size) {
+        byte[] random = new byte[size];
+        SECURE_RNG.nextBytes(random);
+        return random;
+    }
+
+    /**
+     * Generate a protocol 3.4 session key from local and remote key for a device
+     *
+     * @param localKey the randomly generated local key
+     * @param remoteKey the provided remote key
+     * @param deviceKey the (constant) device key
+     * @return the session key for these keys
+     */
+    public static byte @Nullable [] generateSessionKey(byte[] localKey, byte[] remoteKey, byte[] deviceKey) {
+        byte[] sessionKey = localKey.clone();
+        for (int i = 0; i < sessionKey.length; i++) {
+            sessionKey[i] = (byte) (sessionKey[i] ^ remoteKey[i]);
+        }
+
+        return CryptoUtil.encryptAesEcb(sessionKey, deviceKey, false);
     }
 }
