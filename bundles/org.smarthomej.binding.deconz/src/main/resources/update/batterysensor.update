@@ -1,2 +1,0 @@
-# the battery_level channel changed from a custom type to the system-type
-1;UPDATE_CHANNEL;battery_level,Number,system:battery-level

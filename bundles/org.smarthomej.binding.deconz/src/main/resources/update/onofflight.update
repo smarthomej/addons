@@ -1,2 +1,0 @@
-# the switch channel changed from a custom type to the system-type
-1;UPDATE_CHANNEL;switch,Switch,system:power
