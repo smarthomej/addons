@@ -117,6 +117,28 @@ The `min` and `max` parameters define the range allowed (e.g. 0-86400 for turn-o
 The `string` channel has one additional (optional) parameter `range`.
 It contains a comma-separated list of command options for this channel (e.g. `white,colour,scene,music` for the "workMode" channel).
 
+### Type `ircode1`
+
+IR Code (Template) - use codes from templates library. Make a virtual remote control from pre-defined type of devices.
+
+The `ircode1` channel has three additional (mandatory) parameters:
+
+* `irCode` - Decoding parameter
+* `dp` - used as `Send delay` parameter
+* `dp2` - used as `type` parameter
+
+If linked item received a command with `Key Code` (Code Library Parameter) then device sends appropriate key code.
+
+### Type `ircode2`
+
+IR Code (DIY Mode) - use study codes from real remotes. Make a virtual remote control in DIY, learn virtual buttons.
+
+The `ircode2` channel has no additional parameters.
+
+If linked item received a command with `Key Code` (Learning Code Parameter) then device sends appropriate key code.
+
+
+
 ## Troubleshooting
 
 - If the `project` thing is not coming `ONLINE` check if you see your devices in the cloud-account on `iot.tuya.com`. 
