@@ -300,6 +300,17 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
             if (command instanceof OnOffType) {
                 commandRequest.put(configuration.dp, OnOffType.ON.equals(command));
             }
+        } else if (CHANNEL_TYPE_UID_IR_CODE_TEMPLATE.equals(channelTypeUID)) {
+            commandRequest.put(1, "send_ir");
+            commandRequest.put(3, configuration.irCode);
+            commandRequest.put(4, command.toString());
+            commandRequest.put(10, configuration.dp);
+            commandRequest.put(13, configuration.dp2);
+        } else if (CHANNEL_TYPE_UID_IR_CODE_DIY.equals(channelTypeUID)) {
+            if (command instanceof StringType) {
+                commandRequest.put(1, "study_key");
+                commandRequest.put(7, command.toString());
+            }
         }
 
         TuyaDevice tuyaDevice = this.tuyaDevice;

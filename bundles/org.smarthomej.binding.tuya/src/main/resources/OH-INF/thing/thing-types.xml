@@ -58,7 +58,7 @@
 	</thing-type>
 
 	<!-- Generic Tuya device -->
-	<thing-type id="tuyaDevice" extensible="color,switch,dimmer,number,string">
+	<thing-type id="tuyaDevice" extensible="color,switch,dimmer,number,string,ircode1,ircode2">
 		<label>Generic Tuya Device</label>
 		<description>A generic Tuya device. Can be extended with channels.</description>
 
@@ -185,4 +185,30 @@
 		</config-description>
 	</channel-type>
 
+	<channel-type id="ircode1">
+		<item-type>String</item-type>
+		<label>IR Code (Template)</label>
+		<description>Code library parameter</description>
+
+		<config-description>
+			<parameter name="irCode" type="text" required="true">
+				<label>IR Code</label>
+				<description>Decoding parameter</description>
+			</parameter>
+			<parameter name="dp" type="integer" required="true">
+				<label>Send delay</label>
+				<description>Send delay</description>
+			</parameter>
+			<parameter name="dp2" type="integer" required="true">
+				<label>Type</label>
+				<description>Code library label</description>
+			</parameter>
+		</config-description>
+	</channel-type>
+
+	<channel-type id="ircode2">
+		<item-type>String</item-type>
+		<label>IR Code (DIY mode)</label>
+		<description>Study key: Learning code parameter</description>
+	</channel-type>
 </thing:thing-descriptions>
