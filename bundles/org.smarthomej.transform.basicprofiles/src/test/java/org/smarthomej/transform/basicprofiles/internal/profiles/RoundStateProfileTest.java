@@ -34,7 +34,6 @@ import org.openhab.core.library.unit.SIUnits;
 import org.openhab.core.thing.profiles.ProfileCallback;
 import org.openhab.core.thing.profiles.ProfileContext;
 import org.openhab.core.types.Command;
-import org.openhab.core.types.State;
 
 /**
  * Basic unit tests for {@link RoundStateProfile}.
@@ -125,22 +124,6 @@ public class RoundStateProfileTest {
     }
 
     @Test
-    public void testDecimalTypeOnStateUpdateFromItem() {
-        ProfileCallback callback = mock(ProfileCallback.class);
-        RoundStateProfile roundProfile = createProfile(callback, 2);
-
-        State state = new DecimalType(23.666);
-        roundProfile.onStateUpdateFromItem(state);
-
-        ArgumentCaptor<State> capture = ArgumentCaptor.forClass(State.class);
-        verify(callback, times(1)).sendUpdate(capture.capture());
-
-        State result = capture.getValue();
-        DecimalType dtResult = (DecimalType) result;
-        assertThat(dtResult.doubleValue(), is(23.67));
-    }
-
-    @Test
     public void testQuantityTypeOnCommandFromItem() {
         ProfileCallback callback = mock(ProfileCallback.class);
         RoundStateProfile roundProfile = createProfile(callback, 1);
@@ -155,24 +138,6 @@ public class RoundStateProfileTest {
         @SuppressWarnings("unchecked")
         QuantityType<Temperature> qtResult = (QuantityType<Temperature>) result;
         assertThat(qtResult.doubleValue(), is(23.3));
-        assertThat(qtResult.getUnit(), is(SIUnits.CELSIUS));
-    }
-
-    @Test
-    public void testQuantityTypeOnStateUpdateFromItem() {
-        ProfileCallback callback = mock(ProfileCallback.class);
-        RoundStateProfile roundProfile = createProfile(callback, 1);
-
-        State state = new QuantityType<Temperature>("23.666 °C");
-        roundProfile.onStateUpdateFromItem(state);
-
-        ArgumentCaptor<State> capture = ArgumentCaptor.forClass(State.class);
-        verify(callback, times(1)).sendUpdate(capture.capture());
-
-        State result = capture.getValue();
-        @SuppressWarnings("unchecked")
-        QuantityType<Temperature> qtResult = (QuantityType<Temperature>) result;
-        assertThat(qtResult.doubleValue(), is(23.7));
         assertThat(qtResult.getUnit(), is(SIUnits.CELSIUS));
     }
 

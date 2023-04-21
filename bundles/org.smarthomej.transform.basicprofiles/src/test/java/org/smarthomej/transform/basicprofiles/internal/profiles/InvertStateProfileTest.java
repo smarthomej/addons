@@ -93,7 +93,6 @@ public class InvertStateProfileTest {
     public void testOnStateUpdateFromHandler(ParameterSet parameterSet) {
         final StateProfile profile = initProfile();
         if (parameterSet.type instanceof State && parameterSet.resultingType instanceof State) {
-            verifyStateUpdateFromItem(profile, (State) parameterSet.type, (State) parameterSet.resultingType);
             verifyStateUpdateFromHandler(profile, (State) parameterSet.type, (State) parameterSet.resultingType);
         }
     }
@@ -112,12 +111,6 @@ public class InvertStateProfileTest {
         reset(mockCallback);
         profile.onCommandFromHandler(command);
         verify(mockCallback, times(1)).sendCommand(eq(result));
-    }
-
-    private void verifyStateUpdateFromItem(StateProfile profile, State state, State result) {
-        reset(mockCallback);
-        profile.onStateUpdateFromItem(state);
-        verify(mockCallback, times(1)).sendUpdate(eq(result));
     }
 
     private void verifyStateUpdateFromHandler(StateProfile profile, State state, State result) {

@@ -59,7 +59,7 @@ public class InvertStateProfile implements StateProfile {
 
     @Override
     public void onStateUpdateFromItem(State state) {
-        callback.sendUpdate((State) invert(state));
+        // do nothing
     }
 
     @Override
