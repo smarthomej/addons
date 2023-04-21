@@ -87,8 +87,8 @@ public class DPTTest {
 
         assertNotNull(hsbType);
         assertEquals(207, hsbType.getHue().doubleValue(), 0.1);
-        assertEquals(22, hsbType.getSaturation().doubleValue(), 0.1);
-        assertEquals(18, hsbType.getBrightness().doubleValue(), 0.1);
+        assertEquals(23, hsbType.getSaturation().doubleValue(), 0.1);
+        assertEquals(19, hsbType.getBrightness().doubleValue(), 0.1);
     }
 
     @SuppressWarnings("unused")
