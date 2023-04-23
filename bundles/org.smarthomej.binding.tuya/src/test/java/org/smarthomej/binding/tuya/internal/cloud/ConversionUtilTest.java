@@ -43,7 +43,7 @@ public class ConversionUtilTest extends JavaTest {
         String hex = "00008000f0ff8b";
         HSBType hsb = ConversionUtil.hexColorDecode(hex);
 
-        Assertions.assertEquals(new HSBType("240,100,50"), hsb);
+        Assertions.assertEquals(new HSBType("240,100,50.196"), hsb);
     }
 
     @Test
