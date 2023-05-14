@@ -166,7 +166,9 @@ class MultiplyTransformationProfileTest {
             config.put(AbstractArithmeticMathTransformationProfile.ITEM_NAME_PARAM, itemName);
             GenericItem item;
             if (state instanceof QuantityType<?> quantityType) {
-                item = new NumberItem("Number:" + UnitUtils.getDimensionName(quantityType.getUnit()), TEST_ITEM_NAME);
+                when(mockedUnitProvider.getUnit(any())).thenAnswer(i -> quantityType.getUnit());
+                item = new NumberItem("Number:" + UnitUtils.getDimensionName(quantityType.getUnit()), TEST_ITEM_NAME,
+                        mockedUnitProvider);
             } else {
                 item = new NumberItem(TEST_ITEM_NAME);
             }
