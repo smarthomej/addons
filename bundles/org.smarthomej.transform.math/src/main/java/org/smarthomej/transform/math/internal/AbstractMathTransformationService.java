@@ -34,26 +34,28 @@ abstract class AbstractMathTransformationService implements TransformationServic
 
     @Override
     public @Nullable String transform(String valueString, String sourceString) throws TransformationException {
-        QuantityType<?> source;
-        try {
-            source = new QuantityType<>(sourceString);
-        } catch (IllegalArgumentException e) {
-            logger.warn("Input value '{}' could not be converted to a valid number", sourceString);
-            throw new TransformationException("Math Transformation can only be used with numeric inputs");
+        
+        if("NULL".equals(valueString) || "NULL".equals(sourceString)) {
+            return "NULL";
         }
-        QuantityType<?> value;
-        try {
-            value = new QuantityType<>(valueString);
-        } catch (IllegalArgumentException e) {
-            logger.warn("Input value '{}' could not be converted to a valid number", valueString);
-            throw new TransformationException("Math Transformation can only be used with numeric inputs");
-        }
+        
+        QuantityType<?> source = getQuantity(sourceString);
+        QuantityType<?> value = getQuantity(valueString);
         try {
             QuantityType<?> result = performCalculation(source, value);
             return BigDecimal.ZERO.compareTo(result.toBigDecimal()) == 0 ? "0" : result.toString();
         } catch (IllegalArgumentException e) {
             throw new TransformationException("ArithmeticException: " + e.getMessage());
         }
+    }
+    
+    private QuantityType<?> getQuantity(String value) throws TransformationException {
+        try {
+            return new QuantityType<>(sourceString);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Input value '{}' could not be converted to a valid number", sourceString);
+            throw new TransformationException("Math Transformation can only be used with numeric inputs");
+        }        
     }
 
     /**

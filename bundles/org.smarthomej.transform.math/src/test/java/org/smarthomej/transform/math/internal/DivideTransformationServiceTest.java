@@ -37,7 +37,9 @@ class DivideTransformationServiceTest {
         return Stream.of(Arguments.of("100", "-2000", "-20"), //
                 Arguments.of("0.3333333333333333333333333333333333", "1", "3"), //
                 Arguments.of("0", "0", "8.0"), //
-                Arguments.of("6 W/V", "1380 W", "230 V"));
+                Arguments.of("6 W/V", "1380 W", "230 V"), // 
+                Arguments.of("NULL", "NULL", "230 V"),
+                Arguments.of("NULL", "1380 W", "NULL"));
     }
 
     private final TransformationService subject = new DivideTransformationService();
