@@ -51,7 +51,7 @@ abstract class AbstractMathTransformationService implements TransformationServic
     
     private QuantityType<?> getQuantity(String value) throws TransformationException {
         try {
-            return new QuantityType<>(sourceString);
+            return new QuantityType<>(value);
         } catch (IllegalArgumentException e) {
             logger.warn("Input value '{}' could not be converted to a valid number", sourceString);
             throw new TransformationException("Math Transformation can only be used with numeric inputs");
