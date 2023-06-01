@@ -119,7 +119,8 @@ It contains a comma-separated list of command options for this channel (e.g. `wh
 
 ### Type `ircode1`
 
-IR Code (Template) - use codes from templates library. Make a virtual remote control from pre-defined type of devices.
+IR Code (Template) - use codes from templates library.
+Make a virtual remote control from pre-defined type of devices.
 
 The `ircode1` channel has three additional (mandatory) parameters:
 
