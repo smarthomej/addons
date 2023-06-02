@@ -27,6 +27,7 @@ public class FeatureProperties {
     public FeatureInteger shift;
     public FeatureDouble slope;
     public FeatureEntriesWeekDays entries;
+    public FeatureErrorEntries errorEntries;
     public FeatureBoolean overlapAllowed;
     public FeatureInteger temperature;
     public FeatureString start;
