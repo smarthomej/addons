@@ -212,18 +212,23 @@ public class ViessmannApi {
     }
 
     public @Nullable FeaturesDTO getAllFeatures(String deviceId) throws ViessmannCommunicationException {
-        String response = executeGet(VIESSMANN_BASE_URL + "iot/v1/equipment/installations/" + installationId
+        String response = executeGet(VIESSMANN_BASE_URL + "iot/v1/features/installations/" + installationId
                 + "/gateways/" + gatewaySerial + "/devices/" + deviceId + "/features/");
         if (response != null) {
             response = response.replace("enum", "enumValue");
+            int i = response.indexOf("\"entries\":{\"type\":\"array\",\"value\"");
+            while (i > 0) {
+                response = response.substring(0, i) + "\"errorEntries\"" + response.substring(i + 9, response.length());
+                i = response.indexOf("\"entries\":{\"type\":\"array\",\"value\"");
+            }
             return GSON.fromJson(response, FeaturesDTO.class);
         }
         return null;
     }
 
     public @Nullable EventsDTO getSelectedEvents(String eventType) throws ViessmannCommunicationException {
-        String response = executeGet(VIESSMANN_BASE_URL + "iot/v1/events-history/events?installationId="
-                + installationId + "&gatewaySerial=" + gatewaySerial + "&eventType=" + eventType);
+        String response = executeGet(VIESSMANN_BASE_URL + "iot/v2/events-history/installations/" + installationId
+                + "/events?eventType=" + eventType);
         return GSON.fromJson(response, EventsDTO.class);
     }
 
