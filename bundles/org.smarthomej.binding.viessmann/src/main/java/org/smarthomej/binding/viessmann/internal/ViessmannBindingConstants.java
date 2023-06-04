@@ -44,8 +44,8 @@ public class ViessmannBindingConstants {
     public static final String VIESSMANN_HOST = "api.viessmann.com";
     public static final String VIESSMANN_BASE_URL = "https://api.viessmann.com/";
     public static final String IAM_BASE_URL = "https://iam.viessmann.com/";
-    public static final String VIESSMANN_AUTHORIZE_URL = IAM_BASE_URL + "idp/v2/authorize";
-    public static final String VIESSMANN_TOKEN_URL = IAM_BASE_URL + "idp/v2/token";
+    public static final String VIESSMANN_AUTHORIZE_URL = IAM_BASE_URL + "idp/v3/authorize";
+    public static final String VIESSMANN_TOKEN_URL = IAM_BASE_URL + "idp/v3/token";
     public static final String VIESSMANN_SCOPE = "IoT%20User%20offline_access";
 
     public static final int REFRESH_TOKEN_EXPIRE = 15552000;
