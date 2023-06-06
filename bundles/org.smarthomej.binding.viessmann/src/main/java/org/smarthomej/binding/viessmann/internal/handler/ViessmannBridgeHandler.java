@@ -218,13 +218,11 @@ public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
             EventsDTO errors = api.getSelectedEvents("device-error");
             countApiCalls();
             logger.trace("Errors:{}", errors);
-            if (errors != null) {
-                if (errors.data.size() > 0) {
-                    String state = errors.data.get(0).body.errorDescription;
-                    Boolean active = errors.data.get(0).body.active;
-                    updateState("lastErrorMessage", StringType.valueOf(state));
-                    updateState("errorIsActive", OnOffType.from(active));
-                }
+            if (errors != null && errors.data.size() > 0) {
+                String state = errors.data.get(0).body.errorDescription;
+                Boolean active = errors.data.get(0).body.active;
+                updateState("lastErrorMessage", StringType.valueOf(state));
+                updateState("errorIsActive", OnOffType.from(active));
             }
         } catch (ViessmannCommunicationException e) {
             updateBridgeStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
