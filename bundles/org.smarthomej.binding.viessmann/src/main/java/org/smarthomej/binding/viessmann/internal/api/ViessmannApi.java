@@ -317,22 +317,27 @@ public class ViessmannApi {
     private void handleViError(String response) throws ViessmannCommunicationException {
         ViErrorDTO viError = GSON.fromJson(response, ViErrorDTO.class);
         if (viError != null) {
-            switch (viError.getStatusCode()) {
-                case HttpStatus.TOO_MANY_REQUESTS_429:
-                    logger.warn("ViError: {} | Resetting Limit at {}", viError.getMessage(),
-                            viError.getExtendedPayload().getLimitResetDateTime());
-                    bridgeHandler.updateBridgeStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-                            String.format("API Call limit reached. Reset at %s",
-                                    viError.getExtendedPayload().getLimitResetDateTime()));
-                    bridgeHandler.waitForApiCallLimitReset(viError.getExtendedPayload().getLimitReset());
-                    break;
-                case HttpStatus.BAD_GATEWAY_502:
-                    logger.debug("ViError: {} | Device not reachable", viError.getMessage());
-                    throw new ViessmannCommunicationException(viError.getMessage());
-                default:
-                    logger.error("ViError: {} | StatusCode: {} | Reason: ", viError.getMessage(),
-                            viError.getStatusCode(), viError.getExtendedPayload());
-                    break;
+            if ("INTERNAL_SERVER_ERROR".equals(viError.getErrorType())) {
+                logger.debug("ViError: {} | Device not reachable", viError.getMessage());
+                throw new ViessmannCommunicationException("INTERNAL_SERVER_ERROR");
+            } else {
+                switch (viError.getStatusCode()) {
+                    case HttpStatus.TOO_MANY_REQUESTS_429:
+                        logger.warn("ViError: {} | Resetting Limit at {}", viError.getMessage(),
+                                viError.getExtendedPayload().getLimitResetDateTime());
+                        bridgeHandler.updateBridgeStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
+                                String.format("API Call limit reached. Reset at %s",
+                                        viError.getExtendedPayload().getLimitResetDateTime()));
+                        bridgeHandler.waitForApiCallLimitReset(viError.getExtendedPayload().getLimitReset());
+                        break;
+                    case HttpStatus.BAD_GATEWAY_502:
+                        logger.debug("ViError: {} | Device not reachable", viError.getMessage());
+                        throw new ViessmannCommunicationException(viError.getMessage());
+                    default:
+                        logger.error("ViError: {} | StatusCode: {} | Reason: ", viError.getMessage(),
+                                viError.getStatusCode(), viError.getExtendedPayload());
+                        break;
+                }
             }
         }
     }
