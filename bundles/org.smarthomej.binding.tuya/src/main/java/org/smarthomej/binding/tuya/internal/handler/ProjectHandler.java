@@ -22,9 +22,9 @@ import java.util.concurrent.TimeUnit;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.client.HttpClient;
-import org.openhab.core.storage.Storage;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
+import org.openhab.core.thing.ThingRegistry;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.binding.BaseThingHandler;
@@ -36,6 +36,7 @@ import org.smarthomej.binding.tuya.internal.cloud.TuyaOpenAPI;
 import org.smarthomej.binding.tuya.internal.cloud.dto.DeviceListInfo;
 import org.smarthomej.binding.tuya.internal.cloud.dto.DeviceSchema;
 import org.smarthomej.binding.tuya.internal.config.ProjectConfiguration;
+import org.smarthomej.binding.tuya.internal.schema.SchemaRegistry;
 
 import com.google.gson.Gson;
 
@@ -47,14 +48,17 @@ import com.google.gson.Gson;
 @NonNullByDefault
 public class ProjectHandler extends BaseThingHandler implements ApiStatusCallback {
     private final TuyaOpenAPI api;
-    private final Storage<String> storage;
+    private final SchemaRegistry schemaRegistry;
+    private final ThingRegistry thingRegistry;
 
     private @Nullable ScheduledFuture<?> apiConnectFuture;
 
-    public ProjectHandler(Thing thing, HttpClient httpClient, Storage<String> storage, Gson gson) {
+    public ProjectHandler(Thing thing, HttpClient httpClient, SchemaRegistry schemaRegistry, Gson gson,
+            ThingRegistry thingRegistry) {
         super(thing);
+        this.schemaRegistry = schemaRegistry;
+        this.thingRegistry = thingRegistry;
         this.api = new TuyaOpenAPI(this, scheduler, gson, httpClient);
-        this.storage = storage;
     }
 
     @Override
@@ -93,8 +97,12 @@ public class ProjectHandler extends BaseThingHandler implements ApiStatusCallbac
         return api;
     }
 
-    public Storage<String> getStorage() {
-        return storage;
+    public SchemaRegistry getSchemaRegistry() {
+        return schemaRegistry;
+    }
+
+    public ThingRegistry getThingRegistry() {
+        return thingRegistry;
     }
 
     public CompletableFuture<List<DeviceListInfo>> getAllDevices(int page) {

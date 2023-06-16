@@ -43,12 +43,15 @@ public class TuyaBindingConstants {
     // List of all Thing Type UIDs
     public static final ThingTypeUID THING_TYPE_PROJECT = new ThingTypeUID(BINDING_ID, "project");
     public static final ThingTypeUID THING_TYPE_TUYA_DEVICE = new ThingTypeUID(BINDING_ID, "tuyaDevice");
+    public static final ThingTypeUID THING_TYPE_TUYA_SUB_DEVICE = new ThingTypeUID(BINDING_ID, "tuyaSubDevice");
+    public static final ThingTypeUID THING_TYPE_TUYA_GATEWAY = new ThingTypeUID(BINDING_ID, "tuyaGateway");
 
     public static final String PROPERTY_CATEGORY = "category";
     public static final String PROPERTY_MAC = "mac";
 
     public static final String CONFIG_LOCAL_KEY = "localKey";
     public static final String CONFIG_DEVICE_ID = "deviceId";
+    public static final String CONFIG_DEVICE_UUID = "deviceUuid";
     public static final String CONFIG_PRODUCT_ID = "productId";
 
     public static final ChannelTypeUID CHANNEL_TYPE_UID_COLOR = new ChannelTypeUID(BINDING_ID, "color");

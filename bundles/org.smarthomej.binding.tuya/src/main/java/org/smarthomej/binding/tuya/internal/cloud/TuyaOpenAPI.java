@@ -41,6 +41,7 @@ import org.smarthomej.binding.tuya.internal.cloud.dto.DeviceSchema;
 import org.smarthomej.binding.tuya.internal.cloud.dto.FactoryInformation;
 import org.smarthomej.binding.tuya.internal.cloud.dto.Login;
 import org.smarthomej.binding.tuya.internal.cloud.dto.ResultResponse;
+import org.smarthomej.binding.tuya.internal.cloud.dto.SubDeviceInfo;
 import org.smarthomej.binding.tuya.internal.cloud.dto.Token;
 import org.smarthomej.binding.tuya.internal.config.ProjectConfiguration;
 import org.smarthomej.binding.tuya.internal.util.CryptoUtil;
@@ -161,6 +162,11 @@ public class TuyaOpenAPI {
     public CompletableFuture<DeviceSchema> getDeviceSchema(String deviceId) {
         return request(HttpMethod.GET, "/v1.1/devices/" + deviceId + "/specifications", Map.of(), null)
                 .thenCompose(s -> processResponse(s, DeviceSchema.class));
+    }
+
+    public CompletableFuture<List<SubDeviceInfo>> getSubDevices(String deviceId) {
+        return request(HttpMethod.GET, "/v1.0/devices/" + deviceId + "/sub-devices", Map.of(), null).thenCompose(
+                s -> processResponse(s, TypeToken.getParameterized(List.class, SubDeviceInfo.class).getType()));
     }
 
     public CompletableFuture<Boolean> sendCommand(String deviceId, CommandRequest command) {

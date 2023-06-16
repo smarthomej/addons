@@ -13,13 +13,15 @@
 package org.smarthomej.binding.tuya.internal;
 
 import static org.smarthomej.binding.tuya.internal.TuyaBindingConstants.CONFIG_DEVICE_ID;
+import static org.smarthomej.binding.tuya.internal.TuyaBindingConstants.CONFIG_DEVICE_UUID;
 import static org.smarthomej.binding.tuya.internal.TuyaBindingConstants.CONFIG_LOCAL_KEY;
 import static org.smarthomej.binding.tuya.internal.TuyaBindingConstants.CONFIG_PRODUCT_ID;
 import static org.smarthomej.binding.tuya.internal.TuyaBindingConstants.PROPERTY_CATEGORY;
 import static org.smarthomej.binding.tuya.internal.TuyaBindingConstants.PROPERTY_MAC;
 import static org.smarthomej.binding.tuya.internal.TuyaBindingConstants.THING_TYPE_TUYA_DEVICE;
+import static org.smarthomej.binding.tuya.internal.TuyaBindingConstants.THING_TYPE_TUYA_GATEWAY;
+import static org.smarthomej.binding.tuya.internal.TuyaBindingConstants.THING_TYPE_TUYA_SUB_DEVICE;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -34,7 +36,7 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.config.discovery.AbstractDiscoveryService;
 import org.openhab.core.config.discovery.DiscoveryResult;
 import org.openhab.core.config.discovery.DiscoveryResultBuilder;
-import org.openhab.core.storage.Storage;
+import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingTypeUID;
 import org.openhab.core.thing.ThingUID;
 import org.openhab.core.thing.binding.ThingHandler;
@@ -43,8 +45,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.tuya.internal.cloud.TuyaOpenAPI;
 import org.smarthomej.binding.tuya.internal.cloud.dto.DeviceListInfo;
-import org.smarthomej.binding.tuya.internal.cloud.dto.DeviceSchema;
+import org.smarthomej.binding.tuya.internal.cloud.dto.SubDeviceInfo;
 import org.smarthomej.binding.tuya.internal.handler.ProjectHandler;
+import org.smarthomej.binding.tuya.internal.schema.DeviceSchemaMapper;
+import org.smarthomej.binding.tuya.internal.schema.SchemaRegistry;
 import org.smarthomej.binding.tuya.internal.util.SchemaDp;
 
 import com.google.gson.Gson;
@@ -56,14 +60,16 @@ import com.google.gson.Gson;
  */
 @NonNullByDefault
 public class TuyaDiscoveryService extends AbstractDiscoveryService implements ThingHandlerService {
-    public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES = Set.of(THING_TYPE_TUYA_DEVICE);
+
+    public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES = Set.of(THING_TYPE_TUYA_DEVICE,
+            THING_TYPE_TUYA_GATEWAY, THING_TYPE_TUYA_SUB_DEVICE);
     private static final int SEARCH_TIME = 5;
 
     private final Logger logger = LoggerFactory.getLogger(TuyaDiscoveryService.class);
     private final Gson gson = new Gson();
 
     private @Nullable ProjectHandler bridgeHandler;
-    private @NonNullByDefault({}) Storage<String> storage;
+    private @NonNullByDefault({}) SchemaRegistry schemaRegistry;
     private @Nullable ScheduledFuture<?> discoveryJob;
 
     public TuyaDiscoveryService() {
@@ -86,6 +92,44 @@ public class TuyaDiscoveryService extends AbstractDiscoveryService implements Th
         }
 
         processDeviceResponse(List.of(), api, bridgeHandler, 0);
+        bridgeHandler.getThingRegistry().stream().filter(t -> t.getThingTypeUID().equals(THING_TYPE_TUYA_GATEWAY))
+                .forEach(t -> discoverSubDevices(t, api));
+    }
+
+    private void discoverSubDevices(Thing gatewayThing, TuyaOpenAPI api) {
+        Object gatewayId = gatewayThing.getConfiguration().get(CONFIG_DEVICE_ID);
+        if (gatewayId == null) {
+            logger.debug("There is no device id in gateway {} properties", gatewayThing.getUID());
+            return;
+        }
+        api.getSubDevices(gatewayId.toString())
+                .thenAccept(subDevices -> subDevices.forEach(d -> processSubDevice(d, api, gatewayThing.getUID())));
+    }
+
+    private void processSubDevice(SubDeviceInfo subDeviceInfo, TuyaOpenAPI api, ThingUID gatewayThingUid) {
+        Map<String, Object> properties = new HashMap<>();
+        properties.put(PROPERTY_CATEGORY, subDeviceInfo.category);
+        properties.put(CONFIG_DEVICE_UUID, subDeviceInfo.nodeId);
+        properties.put(CONFIG_PRODUCT_ID, subDeviceInfo.productId);
+        properties.put(CONFIG_DEVICE_ID, subDeviceInfo.id);
+
+        ThingUID thingUid = new ThingUID(THING_TYPE_TUYA_SUB_DEVICE, gatewayThingUid, subDeviceInfo.id);
+
+        DiscoveryResult discoveryResult = DiscoveryResultBuilder.create(thingUid).withLabel(subDeviceInfo.name)
+                .withBridge(gatewayThingUid).withRepresentationProperty(CONFIG_DEVICE_ID).withProperties(properties)
+                .build();
+
+        refreshSchemaForDevice(subDeviceInfo.id, api);
+        thingDiscovered(discoveryResult);
+    }
+
+    private void refreshSchemaForDevice(String deviceId, TuyaOpenAPI api) {
+        api.getDeviceSchema(deviceId).thenAccept(schema -> {
+            DeviceSchemaMapper deviceSchemaMapper = new DeviceSchemaMapper(gson);
+            List<SchemaDp> schemaDps = deviceSchemaMapper.covert(schema);
+            SchemaRegistry schemaRegistry = this.schemaRegistry;
+            schemaRegistry.add(deviceId, schemaDps);
+        });
     }
 
     private void processDeviceResponse(List<DeviceListInfo> deviceList, TuyaOpenAPI api, ProjectHandler bridgeHandler,
@@ -100,45 +144,50 @@ public class TuyaDiscoveryService extends AbstractDiscoveryService implements Th
 
     private void processDevice(DeviceListInfo device, TuyaOpenAPI api) {
         api.getFactoryInformation(List.of(device.id)).thenAccept(fiList -> {
-            ThingUID thingUid = new ThingUID(THING_TYPE_TUYA_DEVICE, device.id);
             String deviceMac = fiList.stream().filter(fi -> fi.id.equals(device.id)).findAny().map(fi -> fi.mac)
                     .orElse("");
-
-            Map<String, Object> properties = new HashMap<>();
-            properties.put(PROPERTY_CATEGORY, device.category);
-            properties.put(PROPERTY_MAC, Objects.requireNonNull(deviceMac).replaceAll("(..)(?!$)", "$1:"));
-            properties.put(CONFIG_LOCAL_KEY, device.localKey);
-            properties.put(CONFIG_DEVICE_ID, device.id);
-            properties.put(CONFIG_PRODUCT_ID, device.productId);
-
-            DiscoveryResult discoveryResult = DiscoveryResultBuilder.create(thingUid).withLabel(device.name)
-                    .withRepresentationProperty(CONFIG_DEVICE_ID).withProperties(properties).build();
-
-            api.getDeviceSchema(device.id).thenAccept(schema -> {
-                List<SchemaDp> schemaDps = new ArrayList<>();
-                schema.functions.forEach(description -> addUniqueSchemaDp(description, schemaDps));
-                schema.status.forEach(description -> addUniqueSchemaDp(description, schemaDps));
-                storage.put(device.id, gson.toJson(schemaDps));
-            });
-
-            thingDiscovered(discoveryResult);
+            deviceMac = Objects.requireNonNull(deviceMac).replaceAll("(..)(?!$)", "$1:");
+            if ("wfcon".equals(device.category)) {
+                processGateway(device, api, deviceMac);
+            } else if (!device.subDevice) {
+                processSimpleDevice(device, api, deviceMac);
+            }
         });
     }
 
-    private void addUniqueSchemaDp(DeviceSchema.Description description, List<SchemaDp> schemaDps) {
-        if (description.dp_id == 0 || schemaDps.stream().anyMatch(schemaDp -> schemaDp.id == description.dp_id)) {
-            // dp is missing or already present, skip it
-            return;
-        }
-        // some devices report the same function code for different dps
-        // we add an index only if this is the case
-        String originalCode = description.code;
-        int index = 1;
-        while (schemaDps.stream().anyMatch(schemaDp -> schemaDp.code.equals(description.code))) {
-            description.code = originalCode + "_" + index;
-        }
+    private void processGateway(DeviceListInfo device, TuyaOpenAPI api, String deviceMac) {
+        ThingUID thingUid = new ThingUID(THING_TYPE_TUYA_GATEWAY, device.id);
 
-        schemaDps.add(SchemaDp.fromRemoteSchema(gson, description));
+        Map<String, Object> properties = new HashMap<>();
+        properties.put(PROPERTY_CATEGORY, device.category);
+        properties.put(PROPERTY_MAC, deviceMac);
+        properties.put(CONFIG_LOCAL_KEY, device.localKey);
+        properties.put(CONFIG_DEVICE_ID, device.id);
+        properties.put(CONFIG_DEVICE_UUID, device.uuid);
+        properties.put(CONFIG_PRODUCT_ID, device.productId);
+
+        DiscoveryResult discoveryResult = DiscoveryResultBuilder.create(thingUid).withLabel(device.name)
+                .withRepresentationProperty(CONFIG_DEVICE_ID).withProperties(properties).build();
+
+        thingDiscovered(discoveryResult);
+    }
+
+    private void processSimpleDevice(DeviceListInfo device, TuyaOpenAPI api, String deviceMac) {
+        ThingUID thingUid = new ThingUID(THING_TYPE_TUYA_DEVICE, device.id);
+
+        Map<String, Object> properties = new HashMap<>();
+        properties.put(PROPERTY_CATEGORY, device.category);
+        properties.put(PROPERTY_MAC, deviceMac);
+        properties.put(CONFIG_LOCAL_KEY, device.localKey);
+        properties.put(CONFIG_DEVICE_ID, device.id);
+        properties.put(CONFIG_DEVICE_UUID, device.uuid);
+        properties.put(CONFIG_PRODUCT_ID, device.productId);
+
+        DiscoveryResult discoveryResult = DiscoveryResultBuilder.create(thingUid).withLabel(device.name)
+                .withRepresentationProperty(CONFIG_DEVICE_ID).withProperties(properties).build();
+
+        refreshSchemaForDevice(device.id, api);
+        thingDiscovered(discoveryResult);
     }
 
     @Override
@@ -151,7 +200,7 @@ public class TuyaDiscoveryService extends AbstractDiscoveryService implements Th
     public void setThingHandler(ThingHandler thingHandler) {
         if (thingHandler instanceof ProjectHandler) {
             this.bridgeHandler = (ProjectHandler) thingHandler;
-            this.storage = ((ProjectHandler) thingHandler).getStorage();
+            this.schemaRegistry = ((ProjectHandler) thingHandler).getSchemaRegistry();
         }
     }
 

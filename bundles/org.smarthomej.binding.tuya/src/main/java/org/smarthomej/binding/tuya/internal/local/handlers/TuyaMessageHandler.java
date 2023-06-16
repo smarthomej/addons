@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.util.HexUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,14 +55,14 @@ public class TuyaMessageHandler extends ChannelDuplexHandler {
     public void channelActive(@NonNullByDefault({}) ChannelHandlerContext ctx) throws Exception {
         logger.debug("{}{}: Connection established.", deviceId,
                 Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""));
-        deviceStatusListener.connectionStatus(true);
+        deviceStatusListener.onConnected();
     }
 
     @Override
     public void channelInactive(@NonNullByDefault({}) ChannelHandlerContext ctx) throws Exception {
         logger.debug("{}{}: Connection terminated.", deviceId,
                 Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""));
-        deviceStatusListener.connectionStatus(false);
+        deviceStatusListener.onDisconnected(ThingStatusDetail.COMMUNICATION_ERROR, "Connection terminated");
     }
 
     @Override
@@ -72,16 +73,18 @@ public class TuyaMessageHandler extends ChannelDuplexHandler {
             MessageWrapper<?> m = (MessageWrapper<?>) msg;
             if (m.commandType == CommandType.DP_QUERY || m.commandType == CommandType.STATUS) {
                 Map<Integer, Object> stateMap = null;
+                String cid = null;
                 if (m.content instanceof TcpStatusPayload) {
                     TcpStatusPayload payload = (TcpStatusPayload) Objects.requireNonNull(m.content);
                     stateMap = payload.protocol == 4 ? payload.data.dps : payload.dps;
+                    cid = payload.cid;
                 }
 
                 if (stateMap != null && !stateMap.isEmpty()) {
-                    deviceStatusListener.processDeviceStatus(stateMap);
+                    deviceStatusListener.processDeviceStatus(cid, stateMap);
                 }
             } else if (m.commandType == CommandType.DP_QUERY_NOT_SUPPORTED) {
-                deviceStatusListener.processDeviceStatus(Map.of());
+                deviceStatusListener.processDeviceStatus(null, Map.of());
             } else if (m.commandType == CommandType.SESS_KEY_NEG_RESPONSE) {
                 byte[] localKeyHmac = CryptoUtil.hmac(keyStore.getRandom(), keyStore.getDeviceKey());
                 byte[] localKeyExpectedHmac = Arrays.copyOfRange((byte[]) m.content, 16, 16 + 32);

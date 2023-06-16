@@ -57,6 +57,71 @@
 		</config-description>
 	</thing-type>
 
+	<bridge-type id="tuyaGateway">
+		<label>Tuya Gateway</label>
+		<description>A Tuya gateway. Can be a bridge for BLE and ZigBee devices</description>
+
+		<config-description>
+			<parameter name="deviceId" type="text" required="true">
+				<label>Device ID</label>
+			</parameter>
+			<parameter name="localKey" type="text" required="true">
+				<label>Device Local Key</label>
+			</parameter>
+			<parameter name="productId" type="text" required="true">
+				<label>Product ID</label>
+			</parameter>
+			<parameter name="ip" type="text">
+				<label>IP Address</label>
+				<description>Auto-detected if device is on same subnet or broadcast forwarding configured.</description>
+				<advanced>true</advanced>
+			</parameter>
+			<parameter name="protocol" type="text">
+				<label>Protocol Version</label>
+				<options>
+					<option value="3.1">3.1</option>
+					<option value="3.3">3.3</option>
+					<option value="3.4">3.4</option>
+				</options>
+				<limitToOptions>true</limitToOptions>
+				<advanced>true</advanced>
+			</parameter>
+			<parameter name="pollingInterval" type="integer" min="10" unit="s">
+				<label>Polling Interval</label>
+				<options>
+					<option value="0">disabled</option>
+				</options>
+				<default>0</default>
+				<limitToOptions>false</limitToOptions>
+				<advanced>true</advanced>
+			</parameter>
+		</config-description>
+	</bridge-type>
+
+	<!-- Tuya sub device -->
+	<thing-type id="tuyaSubDevice" extensible="color,switch,dimmer,number,string">
+		<supported-bridge-type-refs>
+			<bridge-type-ref id="tuyaGateway"/>
+		</supported-bridge-type-refs>
+		<label>Tuya Sub Device</label>
+		<description>A Tuya device connected through a gateway. Can be extended with channels.</description>
+
+		<config-description>
+			<parameter name="deviceUuid" type="text">
+				<label>Device UUID</label>
+			</parameter>
+			<parameter name="pollingInterval" type="integer" min="10" unit="s">
+				<label>Polling Interval</label>
+				<options>
+					<option value="0">disabled</option>
+				</options>
+				<default>0</default>
+				<limitToOptions>false</limitToOptions>
+				<advanced>true</advanced>
+			</parameter>
+		</config-description>
+	</thing-type>
+
 	<!-- Generic Tuya device -->
 	<thing-type id="tuyaDevice" extensible="color,switch,dimmer,number,string">
 		<label>Generic Tuya Device</label>

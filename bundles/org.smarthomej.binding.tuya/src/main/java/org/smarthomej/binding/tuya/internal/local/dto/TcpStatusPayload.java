@@ -27,14 +27,15 @@ public class TcpStatusPayload {
     public String devId = "";
     public String gwId = "";
     public String uid = "";
+    public String cid = "";
     public long t = 0;
     public Map<Integer, Object> dps = Map.of();
     public Data data = new Data();
 
     @Override
     public String toString() {
-        return "TcpStatusPayload{protocol=" + protocol + ", devId='" + devId + "', gwId='" + gwId + "', uid='" + uid
-                + "', t=" + t + ", dps=" + dps + ", data=" + data + "}";
+        return "TcpStatusPayload{protocol=" + protocol + ", devId='" + devId + "', gwId='" + gwId + "', cid='" + cid
+                + "', uid='" + uid + "', t=" + t + ", dps=" + dps + ", data=" + data + "}";
     }
 
     public static class Data {

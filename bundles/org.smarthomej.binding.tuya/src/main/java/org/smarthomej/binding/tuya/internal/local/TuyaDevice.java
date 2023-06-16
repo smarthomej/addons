@@ -27,6 +27,7 @@ import java.util.Objects;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.core.thing.ThingStatusDetail;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.tuya.internal.local.handlers.HeartbeatHandler;
@@ -157,11 +158,11 @@ public class TuyaDevice implements ChannelFutureListener {
                 requestStatus();
             }
         } else {
+            String message = Objects.requireNonNullElse(channelFuture.cause().getMessage(), "");
             logger.debug("{}{}: Failed to connect: {}", deviceId,
-                    Objects.requireNonNullElse(channelFuture.channel().remoteAddress(), ""),
-                    channelFuture.cause().getMessage());
+                    Objects.requireNonNullElse(channelFuture.channel().remoteAddress(), ""), message);
             this.channel = null;
-            deviceStatusListener.connectionStatus(false);
+            deviceStatusListener.onDisconnected(ThingStatusDetail.COMMUNICATION_ERROR, message);
         }
     }
 

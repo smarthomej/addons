@@ -15,6 +15,8 @@ package org.smarthomej.binding.tuya.internal.local;
 import java.util.Map;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.core.thing.ThingStatusDetail;
 
 /**
  * The {@link DeviceStatusListener} encapsulates device status data
@@ -23,7 +25,9 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
  */
 @NonNullByDefault
 public interface DeviceStatusListener {
-    void processDeviceStatus(Map<Integer, Object> deviceStatus);
+    void processDeviceStatus(@Nullable String cid, Map<Integer, Object> deviceStatus);
 
-    void connectionStatus(boolean status);
+    void onConnected();
+
+    void onDisconnected(ThingStatusDetail thingStatusDetail, @Nullable String reason);
 }
