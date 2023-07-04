@@ -27,4 +27,6 @@ public class ChannelConfiguration {
     public int max = Integer.MAX_VALUE;
     public String range = "";
     public String irCode = "";
+    public int irSendDelay = 300;
+    public int irCodeType = 0;
 }
