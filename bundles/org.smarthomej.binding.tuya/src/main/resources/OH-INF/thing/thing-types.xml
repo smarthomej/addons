@@ -47,7 +47,7 @@
 				<options>
 					<option value="https://openapi.tuyacn.com">China</option>
 					<option value="https://openapi.tuyaus.com">Western America</option>
-					<option value="https://openapi-ueaz.tuyacn.com">Eastern America (Azure/MS)</option>
+					<option value="https://openapi-ueaz.tuyaus.com">Eastern America (Azure/MS)</option>
 					<option value="https://openapi.tuyaeu.com">Central Europe</option>
 					<option value="https://openapi-weaz.tuyaeu.com">Western Europe (Azure/MS)</option>
 					<option value="https://openapi.tuyain.com">India</option>
