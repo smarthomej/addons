@@ -195,11 +195,11 @@
 				<label>IR Code</label>
 				<description>Decoding parameter</description>
 			</parameter>
-			<parameter name="dp" type="integer" required="true">
+			<parameter name="irSendDelay" type="integer" required="true">
 				<label>Send delay</label>
 				<description>Send delay</description>
 			</parameter>
-			<parameter name="dp2" type="integer" required="true">
+			<parameter name="irCodeType" type="integer" required="true">
 				<label>Type</label>
 				<description>Code library label</description>
 			</parameter>
