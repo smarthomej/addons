@@ -304,8 +304,8 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
             commandRequest.put(1, "send_ir");
             commandRequest.put(3, configuration.irCode);
             commandRequest.put(4, command.toString());
-            commandRequest.put(10, configuration.dp);
-            commandRequest.put(13, configuration.dp2);
+            commandRequest.put(10, configuration.irSendDelay);
+            commandRequest.put(13, configuration.irCodeType);
         } else if (CHANNEL_TYPE_UID_IR_CODE_DIY.equals(channelTypeUID)) {
             if (command instanceof StringType) {
                 commandRequest.put(1, "study_key");
