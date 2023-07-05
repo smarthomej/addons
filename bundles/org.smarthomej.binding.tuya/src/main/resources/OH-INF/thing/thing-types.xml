@@ -58,7 +58,7 @@
 	</thing-type>
 
 	<!-- Generic Tuya device -->
-	<thing-type id="tuyaDevice" extensible="color,switch,dimmer,number,string,ircode1,ircode2">
+	<thing-type id="tuyaDevice" extensible="color,switch,dimmer,number,string,ircode1,ircode2,nec_code">
 		<label>Generic Tuya Device</label>
 		<description>A generic Tuya device. Can be extended with channels.</description>
 
@@ -211,4 +211,11 @@
 		<label>IR Code (DIY mode)</label>
 		<description>Study key: Learning code parameter</description>
 	</channel-type>
+
+	<channel-type id="nec_code">
+		<item-type>String</item-type>
+		<label>NEC code</label>
+		<description>Nec code in HEX</description>
+	</channel-type>
+
 </thing:thing-descriptions>
