@@ -19,6 +19,7 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.transform.TransformationException;
 import org.openhab.core.transform.TransformationService;
+import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +35,11 @@ abstract class AbstractMathTransformationService implements TransformationServic
 
     @Override
     public @Nullable String transform(String valueString, String sourceString) throws TransformationException {
+        if (UnDefType.NULL.toString().equals(sourceString) || UnDefType.UNDEF.toString().equals(sourceString)) {
+            // UNDEF and NULL are not transformed but should not throw errors
+            return sourceString;
+        }
+
         QuantityType<?> source;
         try {
             source = new QuantityType<>(sourceString);

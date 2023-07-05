@@ -119,14 +119,15 @@ It contains a comma-separated list of command options for this channel (e.g. `wh
 
 ### Type `ircode1`
 
-IR Code (Template) - use codes from templates library.
+IR Code (Template) - use codes from templates library. 
+
 Make a virtual remote control from pre-defined type of devices.
 
 The `ircode1` channel has three additional (mandatory) parameters:
 
 * `irCode` - Decoding parameter
-* `dp` - used as `Send delay` parameter
-* `dp2` - used as `type` parameter
+* `irSendDelay` - used as `Send delay` parameter
+* `irCodeType` - used as `type library` parameter
 
 If linked item received a command with `Key Code` (Code Library Parameter) then device sends appropriate key code.
 
@@ -138,7 +139,19 @@ The `ircode2` channel has no additional parameters.
 
 If linked item received a command with `Key Code` (Learning Code Parameter) then device sends appropriate key code.
 
+### Type `nec_code`
 
+IR Code in NEC format.
+
+Example, from Tasmota you need to use **_Data_** parameter, it can be with or without **_0x_**
+```json
+{"Time": "2023-07-05T18:17:42", "IrReceived": {"Protocol": "NEC", "Bits": 32, "Data": "0x10EFD02F"}}
+```
+
+Another example, use **_hex_** parameter
+```json
+{ "type": "nec", "uint32": 284151855, "address": 8, "data": 11, "hex": "10EFD02F" }
+```
 
 ## Troubleshooting
 

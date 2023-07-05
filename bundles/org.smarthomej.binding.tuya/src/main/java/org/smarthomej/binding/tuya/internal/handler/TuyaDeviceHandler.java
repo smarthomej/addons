@@ -16,12 +16,7 @@ import static org.smarthomej.binding.tuya.internal.TuyaBindingConstants.*;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -60,6 +55,7 @@ import org.smarthomej.binding.tuya.internal.local.TuyaDevice;
 import org.smarthomej.binding.tuya.internal.local.UdpDiscoveryListener;
 import org.smarthomej.binding.tuya.internal.local.dto.DeviceInfo;
 import org.smarthomej.binding.tuya.internal.util.ConversionUtil;
+import org.smarthomej.binding.tuya.internal.util.IrUtils;
 import org.smarthomej.binding.tuya.internal.util.SchemaDp;
 import org.smarthomej.commons.SimpleDynamicCommandDescriptionProvider;
 
@@ -310,6 +306,15 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
             if (command instanceof StringType) {
                 commandRequest.put(1, "study_key");
                 commandRequest.put(7, command.toString());
+            }
+        } else if (CHANNEL_TYPE_UID_IR_CODE_NEC.equals(channelTypeUID)) {
+            if (command instanceof StringType) {
+                String sCode = command.toString().startsWith("0x") ? command.toString().substring(2)
+                        : command.toString();
+                long code = Long.parseLong(sCode, 16);
+                String base64Code = IrUtils.necToBase64(code);
+                commandRequest.put(1, "study_key");
+                commandRequest.put(7, base64Code);
             }
         }
 
