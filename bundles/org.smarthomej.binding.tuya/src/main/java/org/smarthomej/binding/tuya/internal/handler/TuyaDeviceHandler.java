@@ -170,6 +170,16 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
                     && CHANNEL_TYPE_UID_SWITCH.equals(channelTypeUID)) {
                 updateState(channelId, OnOffType.from((boolean) value));
                 return;
+            } else if (value instanceof String && CHANNEL_TYPE_UID_IR_CODE_NEC.equals(channelTypeUID)) {
+                String decoded = null;
+                if (((String) value).length() > 68) {
+                    decoded = IrUtils.base64ToNec((String) value);
+                } else {
+                    decoded = (String) value;
+                }
+                logger.error("ir code: {}", decoded);
+                updateState(channelId, new StringType(decoded));
+                return;
             }
             logger.warn("Could not update channel '{}' of thing '{}' with value '{}'. Datatype incompatible.",
                     channelId, getThing().getUID(), value);
