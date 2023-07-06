@@ -150,6 +150,25 @@ Another example, use **_hex_** parameter
 { "type": "nec", "uint32": 284151855, "address": 8, "data": 11, "hex": "10EFD02F" }
 ```
 
+#### How to get key codes without Tasmota and other
+
+Channel can receive learning key (autodetect format and put autodetected code in channel).
+
+To start learning codes add new channel with Type String and DP = 1 and Range with `send_ir,study,study_exit,study_key`.
+
+Link Item to this added channel and send command `study`.
+
+Device will be in learning mode and be able to receive codes from remote control.
+
+Just press a button on the remote control and see key code in channel `ir-code`.
+
+If type of channel `ir-code` is **_NEC_** or **_Samsung_** you will see just a hex code.
+
+If type of channel `ir-code` is **_Tuya DIY-mode_** you will see a type of code format and a hex code.
+
+Pressing buttons and copying codes, then assign codes with Item which control device (adjust State Description and Command Options you want).
+
+After receiving the key code, the learning mode automatically continues until you send command `study_exit` or send key code by Item with code
 ## Troubleshooting
 
 - If the `project` thing is not coming `ONLINE` check if you see your devices in the cloud-account on `iot.tuya.com`. 
