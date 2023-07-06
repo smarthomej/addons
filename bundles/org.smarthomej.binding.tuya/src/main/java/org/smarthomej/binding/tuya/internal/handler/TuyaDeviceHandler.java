@@ -54,12 +54,14 @@ import org.smarthomej.binding.tuya.internal.local.DeviceStatusListener;
 import org.smarthomej.binding.tuya.internal.local.TuyaDevice;
 import org.smarthomej.binding.tuya.internal.local.UdpDiscoveryListener;
 import org.smarthomej.binding.tuya.internal.local.dto.DeviceInfo;
+import org.smarthomej.binding.tuya.internal.local.dto.IRCode;
 import org.smarthomej.binding.tuya.internal.util.ConversionUtil;
 import org.smarthomej.binding.tuya.internal.util.IrUtils;
 import org.smarthomej.binding.tuya.internal.util.SchemaDp;
 import org.smarthomej.commons.SimpleDynamicCommandDescriptionProvider;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 import io.netty.channel.EventLoopGroup;
 
@@ -171,20 +173,12 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
                 updateState(channelId, OnOffType.from((boolean) value));
                 return;
             } else if (value instanceof String && CHANNEL_TYPE_UID_IR_CODE.equals(channelTypeUID)) {
-                String decoded = null;
-                if (configuration.irType.equals("nec")) {
-                    decoded = IrUtils.base64ToNec((String) value);
-                } else if (configuration.irType.equals("samsung")) {
-                    decoded = IrUtils.base64ToSamsung((String) value);
-                } else {
-                    if (((String) value).length() > 68) {
-                        decoded = IrUtils.base64ToNec((String) value);
-                    } else {
-                        decoded = (String) value;
-                    }
+                if (configuration.dp == 2) {
+                    String decoded = convertBase64Code(configuration, (String) value);
+                    logger.warn("ir code: {}", decoded);
+                    updateState(channelId, new StringType(decoded));
+                    repeatStudyCode();
                 }
-                logger.error("ir code: {}", decoded);
-                updateState(channelId, new StringType(decoded));
                 return;
             }
             logger.warn("Could not update channel '{}' of thing '{}' with value '{}'. Datatype incompatible.",
@@ -548,5 +542,53 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
     private long convertHexCode(String code) {
         String sCode = code.startsWith("0x") ? code.substring(2) : code;
         return Long.parseLong(sCode, 16);
+    }
+
+    private String convertBase64Code(ChannelConfiguration channelConfig, String encoded) {
+        String decoded;
+        try {
+            if (channelConfig.irType.equals("nec")) {
+                decoded = IrUtils.base64ToNec(encoded);
+                IRCode code = Objects.requireNonNull(gson.fromJson(decoded, IRCode.class));
+                decoded = "0x" + code.hex;
+            } else if (channelConfig.irType.equals("samsung")) {
+                decoded = IrUtils.base64ToSamsung(encoded);
+                IRCode code = Objects.requireNonNull(gson.fromJson(decoded, IRCode.class));
+                decoded = "0x" + code.hex;
+            } else {
+                if (encoded.length() > 68) {
+                    decoded = IrUtils.base64ToNec(encoded);
+                    if (decoded == null || decoded.isEmpty()) {
+                        decoded = IrUtils.base64ToSamsung(encoded);
+                    }
+                    IRCode code = Objects.requireNonNull(gson.fromJson(decoded, IRCode.class));
+                    decoded = code.type + ": 0x" + code.hex;
+                } else {
+                    decoded = encoded;
+                }
+            }
+        } catch (JsonSyntaxException e) {
+            logger.error("Incorrect json response: {}", e.getMessage());
+            decoded = encoded;
+        }
+        return decoded;
+    }
+
+    private void finishStudyCode() {
+        Map<Integer, @Nullable Object> commandRequest = new HashMap<>();
+        commandRequest.put(1, "study_exit");
+        TuyaDevice tuyaDevice = this.tuyaDevice;
+        if (!commandRequest.isEmpty() && tuyaDevice != null) {
+            tuyaDevice.set(commandRequest);
+        }
+    }
+
+    private void repeatStudyCode() {
+        Map<Integer, @Nullable Object> commandRequest = new HashMap<>();
+        commandRequest.put(1, "study");
+        TuyaDevice tuyaDevice = this.tuyaDevice;
+        if (!commandRequest.isEmpty() && tuyaDevice != null) {
+            tuyaDevice.set(commandRequest);
+        }
     }
 }
