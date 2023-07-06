@@ -219,6 +219,11 @@
 				<default>0</default>
 				<advanced>true</advanced>
 			</parameter>
+			<parameter name="dp" type="integer" required="false">
+				<label>DP Study Key</label>
+				<description>DP number for study key. Uses for receive key code in learning mode</description>
+				<default>2</default>
+			</parameter>
 		</config-description>
 	</channel-type>
 
