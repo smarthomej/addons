@@ -56,9 +56,7 @@ public class TuyaBindingConstants {
     public static final ChannelTypeUID CHANNEL_TYPE_UID_NUMBER = new ChannelTypeUID(BINDING_ID, "number");
     public static final ChannelTypeUID CHANNEL_TYPE_UID_STRING = new ChannelTypeUID(BINDING_ID, "string");
     public static final ChannelTypeUID CHANNEL_TYPE_UID_SWITCH = new ChannelTypeUID(BINDING_ID, "switch");
-    public static final ChannelTypeUID CHANNEL_TYPE_UID_IR_CODE_TEMPLATE = new ChannelTypeUID(BINDING_ID, "ircode1");
-    public static final ChannelTypeUID CHANNEL_TYPE_UID_IR_CODE_DIY = new ChannelTypeUID(BINDING_ID, "ircode2");
-    public static final ChannelTypeUID CHANNEL_TYPE_UID_IR_CODE_NEC = new ChannelTypeUID(BINDING_ID, "nec_code");
+    public static final ChannelTypeUID CHANNEL_TYPE_UID_IR_CODE = new ChannelTypeUID(BINDING_ID, "ir-code");
 
     public static final int TCP_CONNECTION_HEARTBEAT_INTERVAL = 10; // in s
     public static final int TCP_CONNECTION_TIMEOUT = 60; // in s;

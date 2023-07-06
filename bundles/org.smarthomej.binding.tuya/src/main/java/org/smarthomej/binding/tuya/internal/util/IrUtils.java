@@ -37,11 +37,22 @@ public class IrUtils {
      * Convert Base64 code format from Tuya to nec-format.
      *
      * @param base64Code the base64 code format from Tuya
-     * @return the bec-format code
+     * @return the nec-format code
      */
     public static String base64ToNec(String base64Code) {
         ArrayList<Integer> pulses = base64ToPulse(base64Code);
         return pulsesToNec(pulses).get(0);
+    }
+
+    /**
+     * Convert Base64 code format from Tuya to samsung-format.
+     *
+     * @param base64Code the base64 code format from Tuya
+     * @return the samsung-format code
+     */
+    public static String base64ToSamsung(String base64Code) {
+        ArrayList<Integer> pulses = base64ToPulse(base64Code);
+        return pulsesToSamsung(pulses).get(0);
     }
 
     private static ArrayList<Integer> base64ToPulse(String base64Code) {
@@ -255,6 +266,54 @@ public class IrUtils {
     public static String necToBase64(long code) {
         ArrayList<Long> pulses = necToPulses(code, null);
         return pulsesToBase64(pulses);
+    }
+
+    /**
+     * Convert Samsung-format code to base64-format code from Tuya
+     *
+     * @param code samsung-format code
+     * @return the string
+     */
+    public static String samsungToBase64(long code) {
+        ArrayList<Long> pulses = samsungToPulses(code, null);
+        return pulsesToBase64(pulses);
+    }
+
+    private static ArrayList<Long> samsungToPulses(long address, Long data) {
+        Long newAddress, newData;
+        if (data == null) {
+            newAddress = address;
+        } else {
+            newAddress = mirrorBits(address, 8);
+            newData = mirrorBits(data, 8);
+            newData = (newData << 8) | (newData & 0xFF);
+            newAddress = (newAddress << 24) + (newAddress << 16) + (newData << 8) + (newData ^ 0xFF);
+        }
+        return widthEncodedToPulses(newAddress, new PulseParams());
+    }
+
+    private static List<String> pulsesToSamsung(ArrayList<Integer> pulses) {
+        List<String> ret = new ArrayList<>();
+        ArrayList<Long> res = pulsesToWidthEncoded(pulses, 4500, null, null, 1125);
+        for (Long code : res) {
+            long addr = (code >> 24) & 0xFF;
+            long addr_not = (code >> 16) & 0xFF;
+            long data = (code >> 8) & 0xFF;
+            long data_not = code & 0xFF;
+
+            String d = String.format(
+                    "{ \"type\": \"samsung\", \"uint32\": %d, \"address\": None, \"data\": None, \"hex\": \"%08X\" }",
+                    code, code);
+            if (addr == addr_not && data == (data_not ^ 0xFF)) {
+                addr = mirrorBits(addr, 8);
+                data = mirrorBits(data, 8);
+                d = String.format(
+                        "{ \"type\": \"samsung\", \"uint32\": %d, \"address\": %d, \"data\": %d, \"hex\": \"%08X\" }",
+                        code, addr, data, code);
+            }
+            ret.add(d);
+        }
+        return ret;
     }
 
     private static class PulseParams {

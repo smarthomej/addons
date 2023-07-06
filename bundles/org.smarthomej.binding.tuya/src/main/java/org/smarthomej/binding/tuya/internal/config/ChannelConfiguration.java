@@ -29,4 +29,5 @@ public class ChannelConfiguration {
     public String irCode = "";
     public int irSendDelay = 300;
     public int irCodeType = 0;
+    public String irType = "";
 }
