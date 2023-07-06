@@ -117,31 +117,28 @@ The `min` and `max` parameters define the range allowed (e.g. 0-86400 for turn-o
 The `string` channel has one additional (optional) parameter `range`.
 It contains a comma-separated list of command options for this channel (e.g. `white,colour,scene,music` for the "workMode" channel).
 
-### Type `ircode1`
+### Type `ir-code`
 
-IR Code (Template) - use codes from templates library. 
+IR code types:
++ `Tuya DIY-mode` - use study codes from real remotes. 
+   
+   Make a virtual remote control in DIY, learn virtual buttons.
 
-Make a virtual remote control from pre-defined type of devices.
++ `Tuya Codes Library (check Advanced options)` - use codes from templates library. 
+   
+   Make a virtual remote control from pre-defined type of devices.
 
-The `ircode1` channel has three additional (mandatory) parameters:
+   Select Advanced checkbox to configure other parameters: 
+   + `irCode` - Decoding parameter
+   + `irSendDelay` - used as `Send delay` parameter
+   + `irCodeType` - used as `type library` parameter
 
-* `irCode` - Decoding parameter
-* `irSendDelay` - used as `Send delay` parameter
-* `irCodeType` - used as `type library` parameter
++ `NEC` - IR Code in NEC format
++ `Samsung` - IR Code in Samsung format.
 
 If linked item received a command with `Key Code` (Code Library Parameter) then device sends appropriate key code.
 
-### Type `ircode2`
-
-IR Code (DIY Mode) - use study codes from real remotes. Make a virtual remote control in DIY, learn virtual buttons.
-
-The `ircode2` channel has no additional parameters.
-
-If linked item received a command with `Key Code` (Learning Code Parameter) then device sends appropriate key code.
-
-### Type `nec_code`
-
-IR Code in NEC format.
+#### How to use IR Code in NEC format.
 
 Example, from Tasmota you need to use **_Data_** parameter, it can be with or without **_0x_**
 ```json
