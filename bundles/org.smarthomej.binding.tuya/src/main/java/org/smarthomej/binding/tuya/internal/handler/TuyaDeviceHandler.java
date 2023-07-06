@@ -170,6 +170,22 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
                     && CHANNEL_TYPE_UID_SWITCH.equals(channelTypeUID)) {
                 updateState(channelId, OnOffType.from((boolean) value));
                 return;
+            } else if (value instanceof String && CHANNEL_TYPE_UID_IR_CODE.equals(channelTypeUID)) {
+                String decoded = null;
+                if (configuration.irType.equals("nec")) {
+                    decoded = IrUtils.base64ToNec((String) value);
+                } else if (configuration.irType.equals("samsung")) {
+                    decoded = IrUtils.base64ToSamsung((String) value);
+                } else {
+                    if (((String) value).length() > 68) {
+                        decoded = IrUtils.base64ToNec((String) value);
+                    } else {
+                        decoded = (String) value;
+                    }
+                }
+                logger.error("ir code: {}", decoded);
+                updateState(channelId, new StringType(decoded));
+                return;
             }
             logger.warn("Could not update channel '{}' of thing '{}' with value '{}'. Datatype incompatible.",
                     channelId, getThing().getUID(), value);
@@ -188,17 +204,6 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
                         channelIds, getThing().getUID(), value);
             }
         }
-    }
-
-    private String bytesToHex(byte[] bytes) {
-        final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
-        char[] hexChars = new char[bytes.length * 2];
-        for (int j = 0; j < bytes.length; j++) {
-            int v = bytes[j] & 0xFF;
-            hexChars[j * 2] = HEX_ARRAY[v >>> 4];
-            hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
-        }
-        return new String(hexChars);
     }
 
     @Override
@@ -307,23 +312,32 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
             if (command instanceof OnOffType) {
                 commandRequest.put(configuration.dp, OnOffType.ON.equals(command));
             }
-        } else if (CHANNEL_TYPE_UID_IR_CODE_TEMPLATE.equals(channelTypeUID)) {
-            commandRequest.put(1, "send_ir");
-            commandRequest.put(3, configuration.irCode);
-            commandRequest.put(4, command.toString());
-            commandRequest.put(10, configuration.irSendDelay);
-            commandRequest.put(13, configuration.irCodeType);
-        } else if (CHANNEL_TYPE_UID_IR_CODE_DIY.equals(channelTypeUID)) {
+        } else if (CHANNEL_TYPE_UID_IR_CODE.equals(channelTypeUID)) {
             if (command instanceof StringType) {
-                commandRequest.put(1, "study_key");
-                commandRequest.put(7, command.toString());
-            }
-        } else if (CHANNEL_TYPE_UID_IR_CODE_NEC.equals(channelTypeUID)) {
-            if (command instanceof StringType) {
-                long code = Long.parseLong(command.toString(), 16);
-                String base64Code = IrUtils.necToBase64(code, null);
-                commandRequest.put(1, "study_key");
-                commandRequest.put(7, base64Code);
+                if (configuration.irType.equals("base64")) {
+                    commandRequest.put(1, "study_key");
+                    commandRequest.put(7, command.toString());
+                } else if (configuration.irType.equals("tuya-head")) {
+                    if (configuration.irCode != null && !configuration.irCode.isEmpty()) {
+                        commandRequest.put(1, "send_ir");
+                        commandRequest.put(3, configuration.irCode);
+                        commandRequest.put(4, command.toString());
+                        commandRequest.put(10, configuration.irSendDelay);
+                        commandRequest.put(13, configuration.irCodeType);
+                    } else {
+                        logger.error("irCode is not set");
+                    }
+                } else if (configuration.irType.equals("nec")) {
+                    long code = convertHexCode(command.toString());
+                    String base64Code = IrUtils.necToBase64(code);
+                    commandRequest.put(1, "study_key");
+                    commandRequest.put(7, base64Code);
+                } else if (configuration.irType.equals("samsung")) {
+                    long code = convertHexCode(command.toString());
+                    String base64Code = IrUtils.samsungToBase64(code);
+                    commandRequest.put(1, "study_key");
+                    commandRequest.put(7, base64Code);
+                }
             }
         }
 
@@ -529,5 +543,10 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
     protected void updateState(String channelId, State state) {
         channelStateCache.put(channelId, state);
         super.updateState(channelId, state);
+    }
+
+    private long convertHexCode(String code) {
+        String sCode = code.startsWith("0x") ? code.substring(2) : code;
+        return Long.parseLong(sCode, 16);
     }
 }
