@@ -173,7 +173,9 @@ If type of channel `ir-code` is **_Tuya DIY-mode_** you will see a type of code 
 
 Pressing buttons and copying codes, then assign codes with Item which control device (adjust State Description and Command Options you want).
 
-After receiving the key code, the learning mode automatically continues until you send command `study_exit` or send key code by Item with code
+After receiving the key code, the learning mode automatically continues until you send command `study_exit` 
+or send key code by Item with code only if `Active Listen` is disabled.
+
 ## Troubleshooting
 
 - If the `project` thing is not coming `ONLINE` check if you see your devices in the cloud-account on `iot.tuya.com`. 
