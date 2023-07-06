@@ -339,6 +339,14 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
         if (!commandRequest.isEmpty() && tuyaDevice != null) {
             tuyaDevice.set(commandRequest);
         }
+
+        if (CHANNEL_TYPE_UID_IR_CODE.equals(channelTypeUID)) {
+            if (command instanceof StringType) {
+                if (Boolean.TRUE.equals(configuration.activeListen)) {
+                    repeatStudyCode();
+                }
+            }
+        }
     }
 
     @Override
@@ -585,6 +593,7 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
 
     private void repeatStudyCode() {
         Map<Integer, @Nullable Object> commandRequest = new HashMap<>();
+        commandRequest.clear();
         commandRequest.put(1, "study");
         TuyaDevice tuyaDevice = this.tuyaDevice;
         if (!commandRequest.isEmpty() && tuyaDevice != null) {

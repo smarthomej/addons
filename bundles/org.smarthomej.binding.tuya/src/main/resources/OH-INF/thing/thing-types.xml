@@ -201,7 +201,11 @@
 				</options>
 				<limitToOptions>true</limitToOptions>
 			</parameter>
-
+			<parameter name="activeListen" type="boolean" required="false">
+				<label>Active Listening</label>
+				<description>Device will be always in learning mode. After send command with key code device stays in the learning
+					mode</description>
+			</parameter>
 			<parameter name="irCode" type="text" required="false">
 				<label>IR Code</label>
 				<description>Only for Tuya Codes Library: Decoding parameter</description>
@@ -223,6 +227,7 @@
 				<label>DP Study Key</label>
 				<description>DP number for study key. Uses for receive key code in learning mode</description>
 				<default>2</default>
+				<advanced>true</advanced>
 			</parameter>
 		</config-description>
 	</channel-type>
