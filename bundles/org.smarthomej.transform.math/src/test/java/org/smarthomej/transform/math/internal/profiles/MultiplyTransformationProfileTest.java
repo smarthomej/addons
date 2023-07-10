@@ -31,6 +31,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.openhab.core.config.core.Configuration;
+import org.openhab.core.i18n.UnitProvider;
 import org.openhab.core.items.GenericItem;
 import org.openhab.core.items.ItemNotFoundException;
 import org.openhab.core.items.ItemRegistry;
@@ -44,6 +45,7 @@ import org.openhab.core.thing.profiles.ProfileContext;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.State;
 import org.openhab.core.types.UnDefType;
+import org.openhab.core.types.util.UnitUtils;
 import org.smarthomej.transform.math.internal.MultiplyTransformationService;
 
 /**
@@ -157,11 +159,19 @@ class MultiplyTransformationProfileTest {
             @Nullable String itemName, @Nullable State state) throws ItemNotFoundException {
         ProfileContext mockedProfileContext = mock(ProfileContext.class);
         ItemRegistry mockedItemRegistry = mock(ItemRegistry.class);
+        UnitProvider mockedUnitProvider = mock(UnitProvider.class);
         Configuration config = new Configuration();
         config.put(MultiplyTransformationProfile.MUTLIPLICAND_PARAM, multiplicand);
         if (itemName != null && state != null) {
             config.put(AbstractArithmeticMathTransformationProfile.ITEM_NAME_PARAM, itemName);
-            GenericItem item = new NumberItem(TEST_ITEM_NAME);
+            GenericItem item;
+            if (state instanceof QuantityType<?> quantityType) {
+                when(mockedUnitProvider.getUnit(any())).thenAnswer(i -> quantityType.getUnit());
+                item = new NumberItem("Number:" + UnitUtils.getDimensionName(quantityType.getUnit()), TEST_ITEM_NAME,
+                        mockedUnitProvider);
+            } else {
+                item = new NumberItem(TEST_ITEM_NAME);
+            }
             item.setState(state);
             when(mockedItemRegistry.getItem(TEST_ITEM_NAME)).thenReturn(item);
             when(mockedItemRegistry.getItem(UNKNOWN_ITEM_NAME)).thenThrow(ItemNotFoundException.class);

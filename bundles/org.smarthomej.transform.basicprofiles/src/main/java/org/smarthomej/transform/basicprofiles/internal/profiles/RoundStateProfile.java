@@ -85,7 +85,7 @@ public class RoundStateProfile implements StateProfile {
 
     @Override
     public void onStateUpdateFromItem(State state) {
-        callback.sendUpdate((State) applyRound(state));
+        // do nothing
     }
 
     @Override

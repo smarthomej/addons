@@ -13,9 +13,8 @@
 package org.smarthomej.automation.javarule.internal.compiler;
 
 import static java.lang.Integer.MAX_VALUE;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
+import static org.openhab.core.service.WatchService.Kind.DELETE;
+import static org.openhab.core.service.WatchService.Kind.MODIFY;
 import static org.osgi.framework.wiring.BundleWiring.LISTRESOURCES_LOCAL;
 import static org.osgi.framework.wiring.BundleWiring.LISTRESOURCES_RECURSE;
 import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.CORE_DEPENDENCY_JAR;
@@ -34,8 +33,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchEvent.Kind;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -69,6 +66,7 @@ import org.openhab.core.events.EventSubscriber;
 import org.openhab.core.items.ItemRegistry;
 import org.openhab.core.items.events.ItemAddedEvent;
 import org.openhab.core.items.events.ItemRemovedEvent;
+import org.openhab.core.service.WatchService;
 import org.openhab.core.thing.ThingRegistry;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.events.ThingAddedEvent;
@@ -84,7 +82,6 @@ import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.automation.javarule.internal.JavaRuleConstants;
-import org.smarthomej.commons.service.AbstractWatchService;
 
 import ch.obermuhlner.scriptengine.java.MemoryFileManager;
 
@@ -95,7 +92,7 @@ import ch.obermuhlner.scriptengine.java.MemoryFileManager;
  */
 @NonNullByDefault
 @Component(service = { CompilerService.class, EventSubscriber.class }, configurationPid = "automation.javarule")
-public class CompilerService extends AbstractWatchService implements EventSubscriber {
+public class CompilerService implements EventSubscriber, WatchService.WatchEventListener {
     private static final Set<String> DEPENDENCY_BUNDLES = Set.of("javax.measure.unit-api", "org.openhab.core",
             "org.openhab.core.model.script", "org.openhab.core.thing", "org.openhab.core.persistence",
             "org.openhab.core.automation", "org.smarthomej.automation.javarule",
@@ -116,11 +113,13 @@ public class CompilerService extends AbstractWatchService implements EventSubscr
     private final ClassGenerator classGenerator;
     private final JavaRuleDiagnosticCollector<JavaFileObject> diagnostics = new JavaRuleDiagnosticCollector<>();
     private final JavaRuleFileManager<? extends JavaFileManager> fileManager;
+    private final WatchService watchService;
 
     @Activate
-    public CompilerService(@Reference ItemRegistry itemRegistry, @Reference ThingRegistry thingRegistry,
+    public CompilerService(@Reference(target = WatchService.CONFIG_WATCHER_FILTER) WatchService watchService,
+            @Reference ItemRegistry itemRegistry, @Reference ThingRegistry thingRegistry,
             Map<String, Object> properties, BundleContext bundleContext) throws IOException {
-        super(LIB_DIR.toString());
+        this.watchService = watchService;
 
         try {
             Files.createDirectories(LIB_DIR);
@@ -157,11 +156,13 @@ public class CompilerService extends AbstractWatchService implements EventSubscr
         copyAdditionalSources();
         buildJavaRuleDependenciesJar();
         fileManager.rebuildLibPackages();
+
+        watchService.registerListener(this, LIB_DIR);
     }
 
     @Deactivate
     public void deactivate() {
-        super.deactivate();
+        watchService.unregisterListener(this);
         // delete all files in temp folder, adapted from https://stackoverflow.com/a/20280989
         try {
             Files.walkFileTree(tempFolder, new SimpleFileVisitor<>() {
@@ -357,49 +358,33 @@ public class CompilerService extends AbstractWatchService implements EventSubscr
         jar.closeEntry();
     }
 
-    /*
-     * following methods implement the watch service
-     */
     @Override
-    public boolean watchSubDirectories() {
-        return true;
-    }
-
-    @Override
-    public WatchEvent.Kind<?>[] getWatchEventKinds(@Nullable Path directory) {
-        return new WatchEvent.Kind<?>[] { ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY };
-    }
-
-    @Override
-    public void processWatchEvent(@Nullable WatchEvent<?> event, @Nullable Kind<?> kind, @Nullable Path path) {
-        if (path == null || kind == null || (kind != ENTRY_CREATE && kind != ENTRY_MODIFY && kind != ENTRY_DELETE)) {
-            logger.trace("Received '{}' for path '{}' - ignoring (null or wrong kind)", kind, path);
-            return;
-        }
-        if (path.getFileName().toString().endsWith(JAR_FILE_TYPE)) {
+    public void processWatchEvent(WatchService.Kind kind, Path path) {
+        Path fullPath = LIB_DIR.resolve(path);
+        if (fullPath.getFileName().toString().endsWith(JAR_FILE_TYPE)) {
             fileManager.rebuildLibPackages();
-        } else if (path.getFileName().toString().endsWith(JAVA_FILE_TYPE)) {
+        } else if (fullPath.getFileName().toString().endsWith(JAVA_FILE_TYPE)) {
             try {
-                Path targetPath = tempFolder.resolve(LIB_DIR.relativize(path));
-                if (kind == ENTRY_DELETE) {
+                Path targetPath = tempFolder.resolve(LIB_DIR.relativize(fullPath));
+                if (kind == DELETE) {
                     if (!Files.deleteIfExists(targetPath)) {
                         // file did not exist, no need to rebuild
                         return;
                     }
-                } else if (kind == ENTRY_MODIFY) {
-                    if (Files.exists(targetPath) && Files.readString(path).equals(Files.readString(targetPath))) {
+                } else if (kind == MODIFY) {
+                    if (Files.exists(targetPath) && Files.readString(fullPath).equals(Files.readString(targetPath))) {
                         // file already exists and has same content, no need to rebuild
                         return;
                     }
                 }
                 Files.createDirectories(targetPath.getParent());
-                Files.copy(path, targetPath, StandardCopyOption.REPLACE_EXISTING);
+                Files.copy(fullPath, targetPath, StandardCopyOption.REPLACE_EXISTING);
                 buildJavaRuleDependenciesJar();
             } catch (IOException e) {
-                logger.warn("Failed to process event '{}' for '{}': {}", kind, path, e.getMessage());
+                logger.warn("Failed to process event '{}' for '{}': {}", kind, fullPath, e.getMessage());
             }
         } else {
-            logger.trace("Received '{}' for path '{}' - ignoring (wrong extension)", kind, path);
+            logger.trace("Received '{}' for path '{}' - ignoring (wrong extension)", kind, fullPath);
         }
     }
 

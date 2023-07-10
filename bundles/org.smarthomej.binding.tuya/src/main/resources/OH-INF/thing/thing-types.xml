@@ -188,7 +188,7 @@
 	<channel-type id="ir-code">
 		<item-type>String</item-type>
 		<label>IR Code</label>
-		<description>Supperted codes: tuya basae64 codes diy mode, nec-format codes, samsung-format codes</description>
+		<description>Supported codes: tuya base64 codes diy mode, nec-format codes, samsung-format codes</description>
 
 		<config-description>
 			<parameter name="irType" type="text" required="true">

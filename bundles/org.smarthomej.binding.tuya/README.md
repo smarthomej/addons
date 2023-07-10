@@ -137,8 +137,10 @@ IR code types:
 + `Samsung` - IR Code in Samsung format.
 
 **Additional options:**
-* `Active Listening` - Device will be always in learning mode. After send command with key code device stays in the learning mode
-* `DP Study Key` - **Advanced**. DP number for study key. Uses for receive key code in learning mode. Change it own your risk.
+* `Active Listening` - Device will be always in learning mode.
+  After send command with key code device stays in the learning mode
+* `DP Study Key` - **Advanced**. DP number for study key. Uses for receive key code in learning mode. Change it own your
+  risk.
 
 
 If linked item received a command with `Key Code` (Code Library Parameter) then device sends appropriate key code.
@@ -173,9 +175,7 @@ If type of channel `ir-code` is **_Tuya DIY-mode_** you will see a type of code 
 
 Pressing buttons and copying codes, then assign codes with Item which control device (adjust State Description and Command Options you want).
 
-After receiving the key code, the learning mode automatically continues until you send command `study_exit` 
-or send key code by Item with code only if `Active Listen` is disabled.
-
+After receiving the key code, the learning mode automatically continues until you send command `study_exit` or send key code by Item with code
 ## Troubleshooting
 
 - If the `project` thing is not coming `ONLINE` check if you see your devices in the cloud-account on `iot.tuya.com`. 

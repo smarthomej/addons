@@ -86,9 +86,9 @@ public class DPTTest {
         HSBType hsbType = (HSBType) ValueDecoder.decode("251.600", data, HSBType.class);
 
         assertNotNull(hsbType);
-        assertEquals(207, hsbType.getHue().doubleValue(), 0.1);
-        assertEquals(22, hsbType.getSaturation().doubleValue(), 0.1);
-        assertEquals(18, hsbType.getBrightness().doubleValue(), 0.1);
+        assertEquals(207, hsbType.getHue().doubleValue(), 0.0025 * 360);
+        assertEquals(23, hsbType.getSaturation().doubleValue(), 0.0025 * 100);
+        assertEquals(19, hsbType.getBrightness().doubleValue(), 0.0025 * 100);
     }
 
     @SuppressWarnings("unused")
