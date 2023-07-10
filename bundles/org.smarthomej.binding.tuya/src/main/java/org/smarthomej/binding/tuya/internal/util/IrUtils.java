@@ -12,13 +12,13 @@
  */
 package org.smarthomej.binding.tuya.internal.util;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The {@link IrUtils} is a support class for decode/encode infra-red codes
@@ -40,8 +40,15 @@ public class IrUtils {
      * @return the nec-format code
      */
     public static String base64ToNec(String base64Code) {
-        ArrayList<Integer> pulses = base64ToPulse(base64Code);
-        return pulsesToNec(pulses).get(0);
+        String result = null;
+        List<Integer> pulses = base64ToPulse(base64Code);
+        if (pulses != null && !pulses.isEmpty()) {
+            List<String> res = pulsesToNec(pulses);
+            if (res != null && !res.isEmpty()) {
+                result = res.get(0);
+            }
+        }
+        return result;
     }
 
     /**
@@ -51,27 +58,38 @@ public class IrUtils {
      * @return the samsung-format code
      */
     public static String base64ToSamsung(String base64Code) {
-        ArrayList<Integer> pulses = base64ToPulse(base64Code);
-        return pulsesToSamsung(pulses).get(0);
+        String result = null;
+        List<Integer> pulses = base64ToPulse(base64Code);
+        if (pulses != null && !pulses.isEmpty()) {
+            List<String> res = pulsesToSamsung(pulses);
+            if (res != null && !res.isEmpty()) {
+                result = res.get(0);
+            }
+        }
+        return result;
     }
 
-    private static ArrayList<Integer> base64ToPulse(String base64Code) {
-        ArrayList<Integer> pulses = new ArrayList<>();
+    private static List<Integer> base64ToPulse(String base64Code) {
+        List<Integer> pulses = new ArrayList<>();
         String key = (base64Code.length() % 4 == 1 && base64Code.startsWith("1")) ? base64Code.substring(1)
                 : base64Code;
         byte[] raw_bytes = Base64.getDecoder().decode(key.getBytes(StandardCharsets.UTF_8));
 
         int i = 0;
-        while (i < raw_bytes.length) {
-            int word = ((raw_bytes[i] & 0xFF) + (raw_bytes[i + 1] & 0xFF) * 256) & 0xFFFF;
-            pulses.add(word);
-            i += 2;
+        try {
+            while (i < raw_bytes.length) {
+                int word = ((raw_bytes[i] & 0xFF) + (raw_bytes[i + 1] & 0xFF) * 256) & 0xFFFF;
+                pulses.add(word);
+                i += 2;
+            }
+        } catch (ArrayIndexOutOfBoundsException e) {
+            logger.error("Failed to convert base64 key code to pulses: {}", e.getMessage());
         }
         return pulses;
     }
 
     private static List<Long> pulsesToWidthEncoded(List<Integer> pulses, Integer startMark, Integer startSpace,
-                                                   Integer pulseThreshold, Integer spaceThreshold) {
+            Integer pulseThreshold, Integer spaceThreshold) {
         List<Long> ret = new ArrayList<>();
         if (pulses.size() < 68) {
             return null;
@@ -82,8 +100,7 @@ public class IrUtils {
         }
 
         if (startMark != null) {
-            while (pulses.size() >= 68
-                    && (pulses.get(0) < (startMark * 0.75) || pulses.get(0) > (startMark * 1.25))) {
+            while (pulses.size() >= 68 && (pulses.get(0) < (startMark * 0.75) || pulses.get(0) > (startMark * 1.25))) {
                 pulses.remove(0);
             }
 
@@ -179,7 +196,10 @@ public class IrUtils {
     private static List<String> pulsesToNec(List<Integer> pulses) {
         List<String> ret = new ArrayList<>();
         List<Long> res = pulsesToWidthEncoded(pulses, 9000, null, null, 1125);
-
+        if (res == null || res.isEmpty()) {
+            logger.error("Failed to convert pulses to NEC-format");
+            return ret;
+        }
         for (Long code : res) {
             long addr = mirrorBits((code >> 24) & 0xFF, 8);
             long addrNot = mirrorBits((code >> 16) & 0xFF, 8);
@@ -235,7 +255,7 @@ public class IrUtils {
     private static String pulsesToBase64(List<Long> pulses) {
         byte[] bytes = new byte[pulses.size() * 2];
 
-        final Integer[] i = {0};
+        final Integer[] i = { 0 };
 
         pulses.forEach(p -> {
             int val = p.shortValue();
@@ -282,7 +302,7 @@ public class IrUtils {
         return widthEncodedToPulses(newAddress, new PulseParams());
     }
 
-    private static List<String> pulsesToSamsung(ArrayList<Integer> pulses) {
+    private static List<String> pulsesToSamsung(List<Integer> pulses) {
         List<String> ret = new ArrayList<>();
         List<Long> res = pulsesToWidthEncoded(pulses, 4500, null, null, 1125);
         for (Long code : res) {
