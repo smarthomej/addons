@@ -137,8 +137,10 @@ IR code types:
 + `Samsung` - IR Code in Samsung format.
 
 **Additional options:**
-* `Active Listening` - Device will be always in learning mode. After send command with key code device stays in the learning mode
-* `DP Study Key` - **Advanced**. DP number for study key. Uses for receive key code in learning mode. Change it own your risk.
+* `Active Listening` - Device will be always in learning mode.
+  After send command with key code device stays in the learning mode
+* `DP Study Key` - **Advanced**. DP number for study key. Uses for receive key code in learning mode. Change it own your
+  risk.
 
 
 If linked item received a command with `Key Code` (Code Library Parameter) then device sends appropriate key code.

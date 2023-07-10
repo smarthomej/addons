@@ -12,20 +12,17 @@
  */
 package org.smarthomej.binding.tuya.internal.util;
 
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
+import org.slf4j.*;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.nio.charset.*;
+import java.util.*;
 
 /**
  * The {@link IrUtils} is a support class for decode/encode infra-red codes
  * <p>
  * Based on https://github.com/jasonacox/tinytuya/blob/master/tinytuya/Contrib/IRRemoteControlDevice.py
  *
- * @author Dmitry P. (d51x) - Initial contribution
+ * @author Dmitry Pyatykh - Initial contribution
  */
 public class IrUtils {
     private static final Logger logger = LoggerFactory.getLogger(IrUtils.class);
@@ -70,16 +67,14 @@ public class IrUtils {
         return pulses;
     }
 
-    private static ArrayList<Long> pulsesToWidthEncoded(ArrayList<Integer> pulses, Integer start_mark,
-            Integer start_space, Integer pulse_threshold, Integer space_threshold) {
-        ArrayList<Long> ret = new ArrayList<>();
+    private static List<Long> pulsesToWidthEncoded(List<Integer> pulses, Integer startMark,
+                                                   Integer start_space, Integer pulse_threshold, Integer space_threshold) {
+        List<Long> ret = new ArrayList<>();
         if (pulses.size() < 68) {
-            // logger.warn("Length of pulses must be a multiple of 68! (2 start + 64 data + 2 trailing)");
             return null;
         }
 
         if (pulse_threshold == null && space_threshold == null) {
-            // logger.error("pulse_threshold and/or space_threshold must be supplied!");
             return null;
         }
 
@@ -91,13 +86,11 @@ public class IrUtils {
 
             while (pulses.size() >= 68) {
                 if (pulses.get(0) < start_mark * 0.75 || pulses.get(0) > start_mark * 1.25) {
-                    // logger.error("The start mark is not the correct length");
                     return null;
                 }
 
                 if (start_space != null
                         && (pulses.get(1) < (start_space * 0.75) || pulses.get(1) > (start_space * 1.25))) {
-                    // logger.error("The start space is not the correct length");
                     return null;
                 }
 
@@ -121,8 +114,6 @@ public class IrUtils {
 
                     if (pulse_match != null && space_match != null) {
                         if (!pulse_match.equals(space_match)) {
-                            // logger.error("Both 'pulse_threshold' and 'space_threshold' are supplied and bit {}
-                            // conflicts with both!", i);
                             return null;
                         }
                         res = space_match;
@@ -140,10 +131,6 @@ public class IrUtils {
                     pulses.remove(0);
                     pulses.remove(0);
                 }
-
-                // remove two first elements
-                // pulses.remove(0);
-                // pulses.remove(0);
 
                 if (!ret.contains(x)) {
                     ret.add(x);
@@ -188,7 +175,7 @@ public class IrUtils {
 
     private static List<String> pulsesToNec(ArrayList<Integer> pulses) {
         List<String> ret = new ArrayList<>();
-        ArrayList<Long> res = pulsesToWidthEncoded(pulses, 9000, null, null, 1125);
+        List<Long> res = pulsesToWidthEncoded(pulses, 9000, null, null, 1125);
 
         for (Long code : res) {
             long addr = mirrorBits((code >> 24) & 0xFF, 8);

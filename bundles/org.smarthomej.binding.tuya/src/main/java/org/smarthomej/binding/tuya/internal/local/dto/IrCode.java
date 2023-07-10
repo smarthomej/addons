@@ -12,15 +12,15 @@
  */
 package org.smarthomej.binding.tuya.internal.local.dto;
 
-import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.*;
 
 /**
- * The {@link IRCode} represents the IR code decoded messages sent by Tuya devices
+ * The {@link IrCode} represents the IR code decoded messages sent by Tuya devices
  *
- * @author DmitryP. (d51x) - Initial contribution
+ * @author Dmitry Pyatykh - Initial contribution
  */
 @NonNullByDefault
-public class IRCode {
+public class IrCode {
     public String type = "";
     public String hex = "";
     public Integer address = 0;

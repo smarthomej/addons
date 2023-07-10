@@ -12,58 +12,32 @@
  */
 package org.smarthomej.binding.tuya.internal.handler;
 
-import static org.smarthomej.binding.tuya.internal.TuyaBindingConstants.*;
-
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.util.*;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.core.cache.ExpiringCache;
-import org.openhab.core.cache.ExpiringCacheMap;
-import org.openhab.core.config.core.Configuration;
-import org.openhab.core.library.types.DecimalType;
-import org.openhab.core.library.types.HSBType;
-import org.openhab.core.library.types.OnOffType;
-import org.openhab.core.library.types.PercentType;
-import org.openhab.core.library.types.StringType;
+import com.google.gson.*;
+import io.netty.channel.*;
+import org.eclipse.jdt.annotation.*;
+import org.openhab.core.cache.*;
+import org.openhab.core.config.core.*;
+import org.openhab.core.library.types.*;
 import org.openhab.core.thing.Channel;
-import org.openhab.core.thing.ChannelUID;
-import org.openhab.core.thing.Thing;
-import org.openhab.core.thing.ThingStatus;
-import org.openhab.core.thing.ThingStatusDetail;
-import org.openhab.core.thing.ThingUID;
-import org.openhab.core.thing.binding.BaseThingHandler;
-import org.openhab.core.thing.binding.ThingHandlerCallback;
-import org.openhab.core.thing.binding.builder.ChannelBuilder;
-import org.openhab.core.thing.binding.builder.ThingBuilder;
-import org.openhab.core.thing.type.ChannelTypeUID;
-import org.openhab.core.types.Command;
-import org.openhab.core.types.CommandOption;
-import org.openhab.core.types.State;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.smarthomej.binding.tuya.internal.config.ChannelConfiguration;
-import org.smarthomej.binding.tuya.internal.config.DeviceConfiguration;
-import org.smarthomej.binding.tuya.internal.local.DeviceInfoSubscriber;
-import org.smarthomej.binding.tuya.internal.local.DeviceStatusListener;
-import org.smarthomej.binding.tuya.internal.local.TuyaDevice;
-import org.smarthomej.binding.tuya.internal.local.UdpDiscoveryListener;
-import org.smarthomej.binding.tuya.internal.local.dto.DeviceInfo;
-import org.smarthomej.binding.tuya.internal.local.dto.IRCode;
-import org.smarthomej.binding.tuya.internal.util.ConversionUtil;
-import org.smarthomej.binding.tuya.internal.util.IrUtils;
-import org.smarthomej.binding.tuya.internal.util.SchemaDp;
-import org.smarthomej.commons.SimpleDynamicCommandDescriptionProvider;
+import org.openhab.core.thing.*;
+import org.openhab.core.thing.binding.*;
+import org.openhab.core.thing.binding.builder.*;
+import org.openhab.core.thing.type.*;
+import org.openhab.core.types.*;
+import org.slf4j.*;
+import org.smarthomej.binding.tuya.internal.config.*;
+import org.smarthomej.binding.tuya.internal.local.*;
+import org.smarthomej.binding.tuya.internal.local.dto.*;
+import org.smarthomej.binding.tuya.internal.util.*;
+import org.smarthomej.commons.*;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
+import java.nio.charset.*;
+import java.time.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.stream.*;
 
-import io.netty.channel.EventLoopGroup;
+import static org.smarthomej.binding.tuya.internal.TuyaBindingConstants.*;
 
 /**
  * The {@link TuyaDeviceHandler} handles commands and state updates
@@ -175,7 +149,7 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
             } else if (value instanceof String && CHANNEL_TYPE_UID_IR_CODE.equals(channelTypeUID)) {
                 if (configuration.dp == 2) {
                     String decoded = convertBase64Code(configuration, (String) value);
-                    logger.warn("ir code: {}", decoded);
+                    logger.info("thing {} received ir code: {}", thing.getUID(), decoded);
                     updateState(channelId, new StringType(decoded));
                     repeatStudyCode();
                 }
@@ -319,7 +293,7 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
                         commandRequest.put(10, configuration.irSendDelay);
                         commandRequest.put(13, configuration.irCodeType);
                     } else {
-                        logger.error("irCode is not set");
+                        logger.warn("irCode is not set for channel {}", channelUID);
                     }
                 } else if (configuration.irType.equals("nec")) {
                     long code = convertHexCode(command.toString());
@@ -557,11 +531,11 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
         try {
             if (channelConfig.irType.equals("nec")) {
                 decoded = IrUtils.base64ToNec(encoded);
-                IRCode code = Objects.requireNonNull(gson.fromJson(decoded, IRCode.class));
+                IrCode code = Objects.requireNonNull(gson.fromJson(decoded, IrCode.class));
                 decoded = "0x" + code.hex;
             } else if (channelConfig.irType.equals("samsung")) {
                 decoded = IrUtils.base64ToSamsung(encoded);
-                IRCode code = Objects.requireNonNull(gson.fromJson(decoded, IRCode.class));
+                IrCode code = Objects.requireNonNull(gson.fromJson(decoded, IrCode.class));
                 decoded = "0x" + code.hex;
             } else {
                 if (encoded.length() > 68) {
@@ -569,7 +543,7 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
                     if (decoded == null || decoded.isEmpty()) {
                         decoded = IrUtils.base64ToSamsung(encoded);
                     }
-                    IRCode code = Objects.requireNonNull(gson.fromJson(decoded, IRCode.class));
+                    IrCode code = Objects.requireNonNull(gson.fromJson(decoded, IrCode.class));
                     decoded = code.type + ": 0x" + code.hex;
                 } else {
                     decoded = encoded;
@@ -593,7 +567,6 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
 
     private void repeatStudyCode() {
         Map<Integer, @Nullable Object> commandRequest = new HashMap<>();
-        commandRequest.clear();
         commandRequest.put(1, "study");
         TuyaDevice tuyaDevice = this.tuyaDevice;
         if (!commandRequest.isEmpty() && tuyaDevice != null) {
