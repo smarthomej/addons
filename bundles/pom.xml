@@ -26,7 +26,6 @@
     <module>org.smarthomej.binding.amazonechocontrol</module>
     <module>org.smarthomej.binding.http</module>
     <module>org.smarthomej.binding.knx</module>
-    <module>org.smarthomej.binding.mail</module>
     <module>org.smarthomej.binding.notificationsforfiretv</module>
     <module>org.smarthomej.binding.tcpudp</module>
     <module>org.smarthomej.binding.telenot</module>
