@@ -137,7 +137,6 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
             if (tuyaDevice != null) {
                 tuyaDevice.set(commandRequest);
             }
-
             return;
         }
 
