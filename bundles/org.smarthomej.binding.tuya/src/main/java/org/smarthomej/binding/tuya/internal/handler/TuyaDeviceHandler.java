@@ -12,7 +12,13 @@
  */
 package org.smarthomej.binding.tuya.internal.handler;
 
-import static org.smarthomej.binding.tuya.internal.TuyaBindingConstants.*;
+import static org.smarthomej.binding.tuya.internal.TuyaBindingConstants.CHANNEL_TYPE_UID_COLOR;
+import static org.smarthomej.binding.tuya.internal.TuyaBindingConstants.CHANNEL_TYPE_UID_DIMMER;
+import static org.smarthomej.binding.tuya.internal.TuyaBindingConstants.CHANNEL_TYPE_UID_IR_CODE;
+import static org.smarthomej.binding.tuya.internal.TuyaBindingConstants.CHANNEL_TYPE_UID_NUMBER;
+import static org.smarthomej.binding.tuya.internal.TuyaBindingConstants.CHANNEL_TYPE_UID_STRING;
+import static org.smarthomej.binding.tuya.internal.TuyaBindingConstants.CHANNEL_TYPE_UID_SWITCH;
+import static org.smarthomej.binding.tuya.internal.TuyaBindingConstants.SCHEMAS;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -59,11 +65,14 @@ import org.smarthomej.binding.tuya.internal.local.DeviceStatusListener;
 import org.smarthomej.binding.tuya.internal.local.TuyaDevice;
 import org.smarthomej.binding.tuya.internal.local.UdpDiscoveryListener;
 import org.smarthomej.binding.tuya.internal.local.dto.DeviceInfo;
+import org.smarthomej.binding.tuya.internal.local.dto.IrCode;
 import org.smarthomej.binding.tuya.internal.util.ConversionUtil;
+import org.smarthomej.binding.tuya.internal.util.IrUtils;
 import org.smarthomej.binding.tuya.internal.util.SchemaDp;
 import org.smarthomej.commons.SimpleDynamicCommandDescriptionProvider;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 import io.netty.channel.EventLoopGroup;
 
@@ -91,7 +100,7 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
 
     private @Nullable ScheduledFuture<?> reconnectFuture;
     private @Nullable ScheduledFuture<?> pollingJob;
-
+    private @Nullable ScheduledFuture<?> irLearnJob;
     private boolean disposing = false;
 
     private final Map<Integer, String> dpToChannelId = new HashMap<>();
@@ -128,7 +137,6 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
             if (tuyaDevice != null) {
                 tuyaDevice.set(commandRequest);
             }
-
             return;
         }
 
@@ -174,6 +182,14 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
                     && CHANNEL_TYPE_UID_SWITCH.equals(channelTypeUID)) {
                 updateState(channelId, OnOffType.from((boolean) value));
                 return;
+            } else if (value instanceof String && CHANNEL_TYPE_UID_IR_CODE.equals(channelTypeUID)) {
+                if (configuration.dp == 2) {
+                    String decoded = convertBase64Code(configuration, (String) value);
+                    logger.info("thing {} received ir code: {}", thing.getUID(), decoded);
+                    updateState(channelId, new StringType(decoded));
+                    irStartLearning(configuration.activeListen);
+                }
+                return;
             }
             logger.warn("Could not update channel '{}' of thing '{}' with value '{}'. Datatype incompatible.",
                     channelId, getThing().getUID(), value);
@@ -204,6 +220,16 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
                 pollingJob = scheduler.scheduleWithFixedDelay(tuyaDevice::refreshStatus, pollingInterval,
                         pollingInterval, TimeUnit.SECONDS);
             }
+
+            // start learning code if thing is online and presents 'ir-code' channel
+            this.getThing().getChannels().stream()
+                    .filter(channel -> CHANNEL_TYPE_UID_IR_CODE.equals(channel.getChannelTypeUID())).findFirst()
+                    .ifPresent(channel -> {
+                        ChannelConfiguration config = channelIdToConfiguration.get(channel.getChannelTypeUID());
+                        if (config != null) {
+                            irStartLearning(config.activeListen);
+                        }
+                    });
         } else {
             updateStatus(ThingStatus.OFFLINE);
             ScheduledFuture<?> pollingJob = this.pollingJob;
@@ -218,6 +244,7 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
             if (tuyaDevice != null && !disposing && (reconnectFuture == null || reconnectFuture.isDone())) {
                 this.reconnectFuture = scheduler.schedule(tuyaDevice::connect, 5000, TimeUnit.MILLISECONDS);
             }
+            irStopLearning();
         }
     }
 
@@ -300,11 +327,45 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
             if (command instanceof OnOffType) {
                 commandRequest.put(configuration.dp, OnOffType.ON.equals(command));
             }
+        } else if (CHANNEL_TYPE_UID_IR_CODE.equals(channelTypeUID)) {
+            if (command instanceof StringType) {
+                if (configuration.irType.equals("base64")) {
+                    commandRequest.put(1, "study_key");
+                    commandRequest.put(7, command.toString());
+                } else if (configuration.irType.equals("tuya-head")) {
+                    if (configuration.irCode != null && !configuration.irCode.isEmpty()) {
+                        commandRequest.put(1, "send_ir");
+                        commandRequest.put(3, configuration.irCode);
+                        commandRequest.put(4, command.toString());
+                        commandRequest.put(10, configuration.irSendDelay);
+                        commandRequest.put(13, configuration.irCodeType);
+                    } else {
+                        logger.warn("irCode is not set for channel {}", channelUID);
+                    }
+                } else if (configuration.irType.equals("nec")) {
+                    long code = convertHexCode(command.toString());
+                    String base64Code = IrUtils.necToBase64(code);
+                    commandRequest.put(1, "study_key");
+                    commandRequest.put(7, base64Code);
+                } else if (configuration.irType.equals("samsung")) {
+                    long code = convertHexCode(command.toString());
+                    String base64Code = IrUtils.samsungToBase64(code);
+                    commandRequest.put(1, "study_key");
+                    commandRequest.put(7, base64Code);
+                }
+                irStopLearning();
+            }
         }
 
         TuyaDevice tuyaDevice = this.tuyaDevice;
         if (!commandRequest.isEmpty() && tuyaDevice != null) {
             tuyaDevice.set(commandRequest);
+        }
+
+        if (CHANNEL_TYPE_UID_IR_CODE.equals(channelTypeUID)) {
+            if (command instanceof StringType) {
+                irStartLearning(configuration.activeListen);
+            }
         }
     }
 
@@ -328,6 +389,7 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
             tuyaDevice.dispose();
             this.tuyaDevice = null;
         }
+        irStopLearning();
     }
 
     @Override
@@ -488,6 +550,9 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
                     .requireNonNull(dp2ToChannelId.computeIfAbsent(configuration.dp2, ArrayList::new));
             list.add(channelId);
         }
+        if (CHANNEL_TYPE_UID_IR_CODE.equals(channelTypeUID)) {
+            irStartLearning(configuration.activeListen);
+        }
     }
 
     private List<CommandOption> toCommandOptionList(List<String> options) {
@@ -504,5 +569,77 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
     protected void updateState(String channelId, State state) {
         channelStateCache.put(channelId, state);
         super.updateState(channelId, state);
+    }
+
+    private long convertHexCode(String code) {
+        String sCode = code.startsWith("0x") ? code.substring(2) : code;
+        return Long.parseLong(sCode, 16);
+    }
+
+    private String convertBase64Code(ChannelConfiguration channelConfig, String encoded) {
+        String decoded = "";
+        try {
+            if (channelConfig.irType.equals("nec")) {
+                decoded = IrUtils.base64ToNec(encoded);
+                IrCode code = Objects.requireNonNull(gson.fromJson(decoded, IrCode.class));
+                decoded = "0x" + code.hex;
+            } else if (channelConfig.irType.equals("samsung")) {
+                decoded = IrUtils.base64ToSamsung(encoded);
+                IrCode code = Objects.requireNonNull(gson.fromJson(decoded, IrCode.class));
+                decoded = "0x" + code.hex;
+            } else {
+                if (encoded.length() > 68) {
+                    decoded = IrUtils.base64ToNec(encoded);
+                    if (decoded == null || decoded.isEmpty()) {
+                        decoded = IrUtils.base64ToSamsung(encoded);
+                    }
+                    IrCode code = Objects.requireNonNull(gson.fromJson(decoded, IrCode.class));
+                    decoded = code.type + ": 0x" + code.hex;
+                } else {
+                    decoded = encoded;
+                }
+            }
+        } catch (JsonSyntaxException e) {
+            logger.error("Incorrect json response: {}", e.getMessage());
+            decoded = encoded;
+        } catch (NullPointerException e) {
+            logger.error("unable decode key code'{}', reason: {}", decoded, e.getMessage());
+        }
+        return decoded;
+    }
+
+    private void finishStudyCode() {
+        Map<Integer, @Nullable Object> commandRequest = new HashMap<>();
+        commandRequest.put(1, "study_exit");
+        TuyaDevice tuyaDevice = this.tuyaDevice;
+        if (!commandRequest.isEmpty() && tuyaDevice != null) {
+            tuyaDevice.set(commandRequest);
+        }
+    }
+
+    private void repeatStudyCode() {
+        Map<Integer, @Nullable Object> commandRequest = new HashMap<>();
+        commandRequest.put(1, "study");
+        TuyaDevice tuyaDevice = this.tuyaDevice;
+        if (!commandRequest.isEmpty() && tuyaDevice != null) {
+            tuyaDevice.set(commandRequest);
+        }
+    }
+
+    private void irStopLearning() {
+        logger.debug("[tuya:ir-controller] stop ir learning");
+        ScheduledFuture<?> feature = irLearnJob;
+        if (feature != null) {
+            feature.cancel(true);
+            this.irLearnJob = null;
+        }
+    }
+
+    private void irStartLearning(Boolean available) {
+        irStopLearning();
+        if (available) {
+            logger.debug("[tuya:ir-controller] start ir learning");
+            irLearnJob = scheduler.scheduleWithFixedDelay(this::repeatStudyCode, 200, 29000, TimeUnit.MILLISECONDS);
+        }
     }
 }
