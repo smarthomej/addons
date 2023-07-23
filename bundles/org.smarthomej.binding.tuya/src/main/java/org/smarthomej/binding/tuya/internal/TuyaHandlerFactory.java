@@ -12,7 +12,8 @@
  */
 package org.smarthomej.binding.tuya.internal;
 
-import static org.smarthomej.binding.tuya.internal.TuyaBindingConstants.*;
+import static org.smarthomej.binding.tuya.internal.TuyaBindingConstants.THING_TYPE_PROJECT;
+import static org.smarthomej.binding.tuya.internal.TuyaBindingConstants.THING_TYPE_TUYA_DEVICE;
 
 import java.lang.reflect.Type;
 import java.util.List;

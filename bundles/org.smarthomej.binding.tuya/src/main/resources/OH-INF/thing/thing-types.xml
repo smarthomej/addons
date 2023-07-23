@@ -58,7 +58,7 @@
 	</thing-type>
 
 	<!-- Generic Tuya device -->
-	<thing-type id="tuyaDevice" extensible="color,switch,dimmer,number,string">
+	<thing-type id="tuyaDevice" extensible="color,switch,dimmer,number,string,ir-code">
 		<label>Generic Tuya Device</label>
 		<description>A generic Tuya device. Can be extended with channels.</description>
 
@@ -181,6 +181,53 @@
 			</parameter>
 			<parameter name="range" type="text">
 				<label>Range</label>
+			</parameter>
+		</config-description>
+	</channel-type>
+
+	<channel-type id="ir-code">
+		<item-type>String</item-type>
+		<label>IR Code</label>
+		<description>Supported codes: tuya base64 codes diy mode, nec-format codes, samsung-format codes</description>
+
+		<config-description>
+			<parameter name="irType" type="text" required="true">
+				<label>IR Code format</label>
+				<options>
+					<option value="base64">Tuya DIY-mode</option>
+					<option value="tuya-head">Tuya Codes Library (check Advanced options)</option>
+					<option value="nec">NEC</option>
+					<option value="samsung">Samsung</option>
+				</options>
+				<limitToOptions>true</limitToOptions>
+			</parameter>
+			<parameter name="activeListen" type="boolean" required="false">
+				<label>Active Listening</label>
+				<description>Device will be always in learning mode. After send command with key code device stays in the learning
+					mode</description>
+			</parameter>
+			<parameter name="irCode" type="text" required="false">
+				<label>IR Code</label>
+				<description>Only for Tuya Codes Library: Decoding parameter</description>
+				<advanced>true</advanced>
+			</parameter>
+			<parameter name="irSendDelay" type="integer" required="false">
+				<label>Send delay</label>
+				<description>Only for Tuya Codes Library: Send delay</description>
+				<default>300</default>
+				<advanced>true</advanced>
+			</parameter>
+			<parameter name="irCodeType" type="integer" required="false">
+				<label>Type</label>
+				<description>Only for Tuya Codes Library: Code library label</description>
+				<default>0</default>
+				<advanced>true</advanced>
+			</parameter>
+			<parameter name="dp" type="integer" required="false">
+				<label>DP Study Key</label>
+				<description>DP number for study key. Uses for receive key code in learning mode</description>
+				<default>2</default>
+				<advanced>true</advanced>
 			</parameter>
 		</config-description>
 	</channel-type>
