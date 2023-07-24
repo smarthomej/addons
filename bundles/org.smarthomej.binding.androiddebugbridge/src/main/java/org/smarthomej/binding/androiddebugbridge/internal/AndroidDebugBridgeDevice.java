@@ -464,8 +464,8 @@ public class AndroidDebugBridgeDevice {
                 } catch (IOException | IllegalStateException e) {
                     String message = e.getMessage();
                     if (!EXCEPTION_STREAM_CLOSED.equals(message) && //
-                    !EXCEPTION_CONNECT_MUST_BE_CALLED_FIRST.equals(message) && //
-                    !EXCEPTION_STREAM_OPEN_ACTIVELY_REJECTED_BY_REMOTE_PEER.equals(message)) {
+                            !EXCEPTION_CONNECT_MUST_BE_CALLED_FIRST.equals(message) && //
+                            !EXCEPTION_STREAM_OPEN_ACTIVELY_REJECTED_BY_REMOTE_PEER.equals(message)) {
                         throw e;
                     }
                 }
