@@ -12,6 +12,8 @@
  */
 package org.smarthomej.transform.math.internal;
 
+import java.math.BigDecimal;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.QuantityType;
@@ -39,18 +41,21 @@ abstract class AbstractMathTransformationService implements TransformationServic
         }
 
         QuantityType<?> source;
-        QuantityType<?> value;
-        String evaluated = sourceString;
         try {
-            source = new QuantityType<>(evaluated);
-            evaluated = valueString;
-            value = new QuantityType<>(evaluated);
+            source = new QuantityType<>(sourceString);
         } catch (IllegalArgumentException e) {
-            logger.warn("Input value '{}' could not be converted to a valid number", evaluated);
+            logger.warn("Input value '{}' could not be converted to a valid number", sourceString);
             throw new TransformationException("Math Transformation can only be used with numeric inputs");
         }
-        
+        QuantityType<?> value;
         try {
+            value = new QuantityType<>(valueString);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Input value '{}' could not be converted to a valid number", valueString);
+            throw new TransformationException("Math Transformation can only be used with numeric inputs");
+        }
+        try {
+            QuantityType<?> result = performCalculation(source, value);
             return performCalculation(source, value).toString();
         } catch (IllegalArgumentException e) {
             throw new TransformationException("ArithmeticException: " + e.getMessage());
