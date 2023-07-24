@@ -36,24 +36,6 @@
         <property name="severity" value="error"/>
     </module>
 
-    <module name="org.openhab.tools.analysis.checkstyle.ExportInternalPackageCheck">
-        <property name="severity" value="error"/>
-    </module>
-
-    <module name="org.openhab.tools.analysis.checkstyle.ManifestExternalLibrariesCheck">
-        <property name="severity" value="error"/>
-    </module>
-
-    <module name="org.openhab.tools.analysis.checkstyle.BuildPropertiesExternalLibrariesCheck">
-        <property name="severity" value="error"/>
-    </module>
-
-    <module name="org.openhab.tools.analysis.checkstyle.OutsideOfLibExternalLibrariesCheck">
-        <property name="severity" value="error"/>
-        <property name="ignoredDirectories"
-                  value="${checkstyle.outsideOfLibExternalLibrariesCheck.ignoredDirectories}" default="target,bin"/>
-    </module>
-
     <module name="org.openhab.tools.analysis.checkstyle.readme.MarkdownCheck">
         <property name="severity" value="warning"/>
     </module>
@@ -68,57 +50,12 @@
         <property name="fileTypes" value="${checkstyle.onlyTabIndentationCheck.fileTypes}" default="xml,json"/>
     </module>
 
-    <module name="org.openhab.tools.analysis.checkstyle.RequireBundleCheck">
-        <property name="severity" value="error"/>
-        <property name="allowedRequireBundles" value="${checkstyle.requireBundleCheck.allowedBundles}"
-                  default="org.junit,org.mockito,org.hamcrest"/>
-    </module>
-
-    <module name="org.openhab.tools.analysis.checkstyle.BundleVendorCheck">
-        <property name="severity" value="warning"/>
-        <property name="allowedValues" value="${checkstyle.bundleVendorCheck.allowedValues}" default="openHAB"/>
-    </module>
-
-    <module name="org.openhab.tools.analysis.checkstyle.ManifestJavaVersionCheck">
-        <property name="severity" value="warning"/>
-        <property name="allowedValues" value="JavaSE-1.8"/>
-    </module>
-
-    <module name="org.openhab.tools.analysis.checkstyle.ManifestLineLengthCheck">
-        <property name="severity" value="warning"/>
-    </module>
-
     <module name="org.openhab.tools.analysis.checkstyle.RequiredFilesCheck">
         <property name="severity" value="error"/>
         <property name="extensions" value="${checkstyle.requiredFilesCheck.extensions}"
-                  default="html,properties,xml,MF"/>
+                  default="xml"/>
         <!-- Relative path to the root directory of the module -->
-        <property name="requiredFiles" value="${checkstyle.requiredFilesCheck.files}"
-                  default="build.properties,pom.xml,META-INF/MANIFEST.MF"/>
-    </module>
-
-    <module name="org.openhab.tools.analysis.checkstyle.BuildPropertiesCheck">
-        <property name="severity" value="warning"/>
-        <!-- Other bin.includes values will be checked from a specific Checks (e.g.ServiceComponentManifestCheck) -->
-        <!-- The bin.includes values must end with the "/" character -->
-        <property name="expectedBinIncludesValues" value="META-INF/,."/>
-        <!-- output.. and source.. properties allow skipping the "/" character at the end of the value -->
-        <property name="possibleOutputValues" value="target/classes,target/test-classes"/>
-        <property name="possibleSourceValues"
-                  value="src/main/java,src/main/resources,src/test/java,src/test/resources,src/main/groovy,src/test/groovy"/>
-    </module>
-
-    <module name="org.openhab.tools.analysis.checkstyle.ServiceComponentManifestCheck">
-        <property name="severity" value="error"/>
-    </module>
-
-    <module name="org.openhab.tools.analysis.checkstyle.ImportExportedPackagesCheck">
-        <property name="severity" value="warning"/>
-    </module>
-
-    <module name="org.openhab.tools.analysis.checkstyle.ManifestPackageVersionCheck">
-        <property name="severity" value="warning"/>
-        <property name="ignoreImportedPackages" value="org.junit.*"/>
+        <property name="requiredFiles" value="${checkstyle.requiredFilesCheck.files}" default="pom.xml"/>
     </module>
 
     <module name="org.openhab.tools.analysis.checkstyle.OhInfXmlLabelCheck">
@@ -130,7 +67,7 @@
     <module name="org.openhab.tools.analysis.checkstyle.OhInfXmlValidationCheck">
         <property name="severity" value="error"/>
         <property name="thingSchema" value="https://openhab.org/schemas/thing-description-1.0.0.xsd"/>
-        <property name="bindingSchema" value="https://openhab.org/schemas/binding-1.0.0.xsd"/>
+        <property name="addonSchema" value="https://openhab.org/schemas/addon-1.0.0.xsd"/>
         <property name="configSchema" value="https://openhab.org/schemas/config-description-1.0.0.xsd"/>
     </module>
 
@@ -141,16 +78,6 @@
     <module name="org.openhab.tools.analysis.checkstyle.PomXmlCheck">
         <property name="severity" value="error"/>
         <property name="checkPomVersion" value="${checkstyle.pomXmlCheck.checkPomVersion}" default="true"/>
-    </module>
-
-    <module name="org.openhab.tools.analysis.checkstyle.PackageExportsNameCheck">
-        <property name="severity" value="error"/>
-        <property name="sourceDirectories" value="src/main/java"/>
-        <property name="excludedPackages" value=".*.internal.*"/>
-    </module>
-
-    <module name="org.openhab.tools.analysis.checkstyle.AnnotationDependencyCheck">
-        <property name="severity" value="warning"/>
     </module>
 
     <module name="TreeWalker">
