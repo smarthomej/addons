@@ -12,8 +12,6 @@
  */
 package org.smarthomej.transform.math.internal;
 
-import java.math.BigDecimal;
-
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.QuantityType;
@@ -56,7 +54,7 @@ abstract class AbstractMathTransformationService implements TransformationServic
         }
         try {
             QuantityType<?> result = performCalculation(source, value);
-            return BigDecimal.ZERO.compareTo(result.toBigDecimal()) == 0 ? "0" : result.toString();
+            return performCalculation(source, value).toString();
         } catch (IllegalArgumentException e) {
             throw new TransformationException("ArithmeticException: " + e.getMessage());
         }
