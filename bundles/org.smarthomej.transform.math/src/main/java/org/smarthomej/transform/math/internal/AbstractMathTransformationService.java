@@ -12,8 +12,6 @@
  */
 package org.smarthomej.transform.math.internal;
 
-import java.math.BigDecimal;
-
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.QuantityType;
