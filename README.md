@@ -9,12 +9,8 @@ Some parts of this repository are forked from [openHAB Addons](https://github.co
 
 ## Installation / Usage
 
-For openHAB 3.2.0 - 3.4.0 it is recommended to add `https://download.smarthomej.org/addons.json` as JSON 3rd Party Addon Service in the settings.
+It is recommended to add `https://download.smarthomej.org/addons.json` as JSON 3rd Party Addon Service in the settings.
 Afterwards all addons can be installed from the UI.
-
-If you installed SmartHome/J bindings from Community Marketplace (NOT the "JSON 3rd Party Addon Service" mentioned above!), you need to manually remove the installed addons.
-Go to your `userdata` folder (e.g. `/var/lib/openhab` on Debian systems) and remove the marketplace directory.
-*Attention:* This will also uninstall all other bindings installed from the marketplace, make sure you install everything you need afterwards.
 
 ### Compatibility
 
@@ -22,12 +18,11 @@ Due to a breaking changes in openHAB, older and newer versions of bundles are no
 We'll continue to support 3.0 compatible addons until the release of openHAB 3.2.0 (which is expected end of 2021) and provide the same set of addons for newer versions.
 Please check the table to see which versions of SmartHome/J are compatible with which openHAB version:
 
-|                                         | openHAB 3.2.0 - 3.4.0 (release) | openHAB 4.0.0 (snapshots) |
-|-----------------------------------------|:-------------------------------:|:-------------------------:|
-| SmartHome/J 3.2.x (snapshots, releases) |               yes               |            no             | 
-| SmartHome/J 4.0.x (snapshots, releases) |               no                |            yes            |
+|                                         | openHAB 3.2.0 - 3.4.0 (release) | openHAB 4.0.0 (release) |
+|-----------------------------------------|:-------------------------------:|:-----------------------:|
+| SmartHome/J 3.2.x (snapshots, releases) |               yes               |           no            | 
+| SmartHome/J 4.0.x (snapshots, releases) |               no                |           yes           |
 
-Please note that currently no release for openHAB 4.0.0 snapshots is available.
 
 ### Upgrading SmartHome/J bindings installed from the JSON 3rd Party Add-on service
 
@@ -39,7 +34,7 @@ If you want to upgrade after a new version is released, you have to manually uni
 Your configurations (binding-configurations and thing configurations) are safe and will be picked up by the new version.
 Things will automatically update their type/definition where necessary.
 
-Add-ons will automatically be upgraded to the latest version if you upgrade your openHAB installation.
+For version changes in openHAB that require a change in the version change (i.e. not only changes of the last number) of SmartHome/J, it is recommended to uninstall the add-ons BEFORE the openHAB upgrade and re-install them afterwards. 
 
 *Attention:* Even though we try to reduce breaking changes to an absolute minimum, please always look at the release notes prior to updating.
 
