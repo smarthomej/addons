@@ -19,23 +19,23 @@ jobs:
       fail-fast: false
       matrix:
         java: [ '11', '17' ]
-        maven: [ '3.8.4']
-        os: [ 'ubuntu-20.04' ]
+        maven: [ '3.8.6']
+        os: [ 'ubuntu-22.04' ]
     name: Build (Java ${{ matrix.java }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         if: github.head_ref == ''
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Checkout merge
         if: github.head_ref != ''
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: refs/pull/${{github.event.pull_request.number}}/merge
 
       - name: Set up Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.m2/repository
@@ -46,13 +46,13 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Set up Java ${{ matrix.java }}
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
-          distribution: 'zulu'
+          distribution: 'temurin'
           java-version: ${{ matrix.java }}
 
       - name: Set up Maven ${{ matrix.maven }}
-        uses: stCarolas/setup-maven@v4.2
+        uses: stCarolas/setup-maven@v4.5
         with:
           maven-version: ${{ matrix.maven }}
 
