@@ -23,6 +23,7 @@ import java.net.URISyntaxException;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -180,10 +181,23 @@ public class HttpThingHandler extends UpdatingBaseThingHandler implements HttpSt
         config.headers.removeIf(String::isBlank);
 
         // configure authentication
-        if (!config.username.isEmpty() || !config.password.isEmpty()) {
-            try {
-                AuthenticationStore authStore = rateLimitedHttpClient.getAuthenticationStore();
-                URI uri = new URI(config.baseURL);
+        try {
+            AuthenticationStore authStore = rateLimitedHttpClient.getAuthenticationStore();
+            URI uri = new URI(config.baseURL);
+
+            // clear old auths if available
+            Authentication.Result authResult = authStore.findAuthenticationResult(uri);
+            if (authResult != null) {
+                authStore.removeAuthenticationResult(authResult);
+            }
+            for (String authType : List.of("Basic", "Digest")) {
+                Authentication authentication = authStore.findAuthentication(authType, uri, Authentication.ANY_REALM);
+                if (authentication != null) {
+                    authStore.removeAuthentication(authentication);
+                }
+            }
+
+            if (!config.username.isEmpty() || !config.password.isEmpty()) {
                 switch (config.authMode) {
                     case BASIC_PREEMPTIVE:
                         config.headers.add("Authorization=Basic " + Base64.getEncoder()
@@ -213,14 +227,12 @@ public class HttpThingHandler extends UpdatingBaseThingHandler implements HttpSt
                         logger.warn("Unknown authentication method '{}' for thing '{}'", config.authMode,
                                 thing.getUID());
                 }
-            } catch (URISyntaxException e) {
-                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
-                        "failed to create authentication: baseUrl is invalid");
+            } else {
+                logger.debug("No authentication configured for thing '{}'", thing.getUID());
             }
-        } else {
-            logger.debug("No authentication configured for thing '{}'", thing.getUID());
+        } catch (URISyntaxException e) {
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "Cannot create URI from baseUrl.");
         }
-
         // create channels
         thing.getChannels().forEach(this::createChannel);
 
@@ -317,11 +329,9 @@ public class HttpThingHandler extends UpdatingBaseThingHandler implements HttpSt
             // we need a key consisting of stateContent and URL, only if both are equal, we can use the same cache
             String key = channelConfig.stateContent + "$" + stateUrl;
             channelUrls.put(channelUID, key);
-            Objects.requireNonNull(
-                    urlHandlers
-                            .computeIfAbsent(key,
-                                    k -> new RefreshingUrlCache(scheduler, rateLimitedHttpClient, stateUrl, config,
-                                            channelConfig.stateContent, this)))
+            Objects.requireNonNull(urlHandlers.computeIfAbsent(key,
+                    k -> new RefreshingUrlCache(scheduler, rateLimitedHttpClient, stateUrl, config,
+                            channelConfig.stateContent, config.contentType, this)))
                     .addConsumer(itemValueConverter::process);
         }
 
