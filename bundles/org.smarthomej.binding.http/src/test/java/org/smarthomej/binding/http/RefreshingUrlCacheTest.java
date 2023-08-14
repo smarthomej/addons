@@ -253,7 +253,7 @@ public class RefreshingUrlCacheTest extends AbstractWireMockTest {
      */
     private RefreshingUrlCache getUrlCache(String content) {
         RefreshingUrlCache urlCache = new RefreshingUrlCache(scheduler, rateLimitedHttpClient, url, thingConfig,
-                content, statusListener);
+                content, null, statusListener);
         urlCache.addConsumer(contentWrappers::add);
 
         return urlCache;
