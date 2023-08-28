@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -942,10 +943,11 @@ public class Connection {
                             + (startTime != null ? startTime : "") + "&endTime=" + (endTime != null ? endTime : "")
                             + "&maxRecordSize=1");
             JsonCustomerHistoryRecords customerHistoryRecords = parseJson(json, JsonCustomerHistoryRecords.class);
-            if (customerHistoryRecords == null) {
+            if (customerHistoryRecords == null || customerHistoryRecords.customerHistoryRecords == null) {
                 return List.of();
             }
-            return Objects.requireNonNullElse(customerHistoryRecords.customerHistoryRecords, List.of());
+            return Objects.requireNonNull(customerHistoryRecords.customerHistoryRecords).stream()
+                    .sorted(Comparator.comparing(CustomerHistoryRecord::getTimestamp)).collect(Collectors.toList());
         } catch (ConnectionException e) {
             logger.info("getting activities failed", e);
         }

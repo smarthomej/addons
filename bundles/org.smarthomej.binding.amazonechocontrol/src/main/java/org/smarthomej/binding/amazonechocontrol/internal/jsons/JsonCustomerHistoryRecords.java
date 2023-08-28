@@ -13,6 +13,7 @@
 package org.smarthomej.binding.amazonechocontrol.internal.jsons;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -50,6 +51,10 @@ public class JsonCustomerHistoryRecords {
             public @Nullable String transcriptText;
             public @Nullable String agentVisualName;
             public @Nullable List<Object> personsInfo;
+        }
+
+        public long getTimestamp() {
+            return Objects.requireNonNullElse(timestamp, 0L);
         }
     }
 }

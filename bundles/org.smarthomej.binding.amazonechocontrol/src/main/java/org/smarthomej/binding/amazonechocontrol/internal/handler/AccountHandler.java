@@ -65,8 +65,6 @@ import org.smarthomej.binding.amazonechocontrol.internal.discovery.SmartHomeDevi
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonAscendingAlarm.AscendingAlarmModel;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates.BluetoothState;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCommandPayloadPushActivity;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCommandPayloadPushActivity.Key;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCommandPayloadPushDevice;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCommandPayloadPushDevice.DopplerId;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCommandPayloadPushNotificationChange;
@@ -117,6 +115,7 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
     private @Nullable ScheduledFuture<?> checkLoginJob;
     private @Nullable ScheduledFuture<?> updateSmartHomeStateJob;
     private @Nullable ScheduledFuture<?> refreshAfterCommandJob;
+    private @Nullable ScheduledFuture<?> refreshActivityJob;
     private @Nullable ScheduledFuture<?> refreshSmartHomeAfterCommandJob;
     private final Object synchronizeSmartHomeJobScheduler = new Object();
     private @Nullable ScheduledFuture<?> forceCheckDataJob;
@@ -495,8 +494,8 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
         try {
             List<JsonNotificationResponse> notifications = currentConnection.notifications();
             ZonedDateTime timeStampNow = ZonedDateTime.now();
-            echoHandlers.forEach(echoHandler -> echoHandler.updateNotifications(timeStamp, timeStampNow, pushPayload,
-                    notifications));
+            echoHandlers
+                    .forEach(echoHandler -> echoHandler.updateNotifications(timeStamp, timeStampNow, notifications));
         } catch (ConnectionException e) {
             logger.debug("refreshNotifications failed", e);
         }
@@ -744,9 +743,6 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
         if (command != null) {
             ScheduledFuture<?> refreshDataDelayed = this.refreshAfterCommandJob;
             switch (command) {
-                case "PUSH_ACTIVITY":
-                    handlePushActivity(pushCommand.payload);
-                    break;
                 case "PUSH_DOPPLER_CONNECTION_CHANGE":
                 case "PUSH_BLUETOOTH_STATE_CHANGE":
                     if (refreshDataDelayed != null) {
@@ -768,6 +764,15 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
                         DopplerId dopplerId = devicePayload.dopplerId;
                         if (dopplerId != null) {
                             handlePushDeviceCommand(dopplerId, command, payload);
+                            if ("PUSH_EQUALIZER_STATE_CHANGE".equals(command)) {
+                                ScheduledFuture<?> refreshActivityJob = this.refreshActivityJob;
+                                if (refreshActivityJob != null) {
+                                    refreshActivityJob.cancel(false);
+                                }
+                                this.refreshActivityJob = scheduler.schedule(
+                                        () -> handlePushActivity(dopplerId, pushCommand.timeStamp), 10,
+                                        TimeUnit.SECONDS);
+                            }
                         }
                     }
                     break;
@@ -782,15 +787,8 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
         }
     }
 
-    private void handlePushActivity(@Nullable String payload) {
-        if (payload == null) {
-            return;
-        }
-        JsonCommandPayloadPushActivity pushActivity = Objects
-                .requireNonNull(gson.fromJson(payload, JsonCommandPayloadPushActivity.class));
-
-        Key key = pushActivity.key;
-        if (key == null) {
+    private void handlePushActivity(@Nullable DopplerId dopplerId, @Nullable Long timestamp) {
+        if (dopplerId == null) {
             return;
         }
 
@@ -799,23 +797,18 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketComman
             return;
         }
 
-        Long timestamp = pushActivity.timestamp;
-        if (timestamp != null) {
-            long startTimestamp = timestamp - 30000;
-            long endTimestamp = timestamp + 30000;
-            List<CustomerHistoryRecord> customerHistoryRecords = connection.getActivities(startTimestamp, endTimestamp);
-            for (CustomerHistoryRecord customerHistoryRecord : customerHistoryRecords) {
-                String recordKey = customerHistoryRecord.recordKey;
-                String search = key.registeredUserId + "#" + key.entryId;
-                if (recordKey != null && search.equals(recordKey)) {
-                    String[] splitRecordKey = recordKey.split("#");
-                    if (splitRecordKey.length >= 2) {
-                        EchoHandler echoHandler = findEchoHandlerBySerialNumber(splitRecordKey[3]);
-                        if (echoHandler != null) {
-                            echoHandler.handlePushActivity(customerHistoryRecord);
-                            break;
-                        }
-                    }
+        long real_timestamp = Objects.requireNonNullElse(timestamp, System.currentTimeMillis());
+        long startTimestamp = real_timestamp - 120000;
+        long endTimestamp = real_timestamp + 30000;
+
+        String deviceKey = dopplerId.deviceType + "#" + dopplerId.deviceSerialNumber;
+        List<CustomerHistoryRecord> customerHistoryRecords = connection.getActivities(startTimestamp, endTimestamp);
+        for (CustomerHistoryRecord customerHistoryRecord : customerHistoryRecords) {
+            String recordKey = customerHistoryRecord.recordKey;
+            if (recordKey != null && recordKey.endsWith(deviceKey)) {
+                EchoHandler echoHandler = findEchoHandlerBySerialNumber(dopplerId.deviceSerialNumber);
+                if (echoHandler != null) {
+                    echoHandler.handlePushActivity(customerHistoryRecord);
                 }
             }
         }

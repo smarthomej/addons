@@ -67,7 +67,6 @@ import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonAscendingAlarm.AscendingAlarmModel;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates.BluetoothState;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates.PairedDevice;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCommandPayloadPushNotificationChange;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCommandPayloadPushVolumeChange;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCustomerHistoryRecords.CustomerHistoryRecord;
 import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCustomerHistoryRecords.CustomerHistoryRecord.VoiceHistoryRecordItem;
@@ -116,6 +115,7 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
     private @Nullable String lastKnownRadioStationId;
     private @Nullable String lastKnownBluetoothMAC;
     private @Nullable String lastKnownAmazonMusicId;
+    private long lastCustomerHistoryRecordTimestamp = System.currentTimeMillis();
     private String musicProviderId = "TUNEIN";
     private boolean isPlaying = false;
     private boolean isPaused = false;
@@ -1259,7 +1259,12 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
         }
     }
 
-    public void handlePushActivity(CustomerHistoryRecord customerHistoryRecord) {
+    public synchronized void handlePushActivity(CustomerHistoryRecord customerHistoryRecord) {
+        long recordTimestamp = customerHistoryRecord.getTimestamp();
+        if (recordTimestamp <= lastCustomerHistoryRecordTimestamp) {
+            return;
+        }
+        lastCustomerHistoryRecordTimestamp = recordTimestamp;
         List<VoiceHistoryRecordItem> voiceHistoryRecordItems = customerHistoryRecord.voiceHistoryRecordItems;
         if (voiceHistoryRecordItems != null) {
             for (VoiceHistoryRecordItem voiceHistoryRecordItem : voiceHistoryRecordItems) {
@@ -1312,6 +1317,7 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
             default:
                 AccountHandler account = this.account;
                 Device device = this.device;
+
                 if (account != null && device != null) {
                     this.disableUpdate = false;
                     updateState(account, device, null, null, null, null, null, null, null);
@@ -1320,7 +1326,6 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
     }
 
     public void updateNotifications(ZonedDateTime currentTime, ZonedDateTime now,
-            @Nullable JsonCommandPayloadPushNotificationChange pushPayload,
             List<JsonNotificationResponse> notifications) {
         Device device = this.device;
         if (device == null) {

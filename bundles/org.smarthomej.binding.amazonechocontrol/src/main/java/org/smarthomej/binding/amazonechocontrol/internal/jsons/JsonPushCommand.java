@@ -25,4 +25,5 @@ import org.eclipse.jdt.annotation.Nullable;
 public class JsonPushCommand {
     public @Nullable String command;
     public @Nullable String payload;
+    public @Nullable Long timeStamp;
 }
