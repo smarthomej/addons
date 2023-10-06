@@ -78,6 +78,8 @@ public class RuleProcessor {
 
             String ruleName = method.getName();
             String ruleDescription = ruleAnnotation.name();
+            Set<String> tags = ruleAnnotation.tags();
+            
             if (ruleDescription.isBlank() || ANNOTATION_DEFAULT.equals(ruleDescription)) {
                 ruleDescription = script.getClass().getSimpleName() + "/" + method.getName();
             }
@@ -121,6 +123,7 @@ public class RuleProcessor {
             simpleRule.setDescription(ruleDescription);
             simpleRule.setTriggers(triggers);
             simpleRule.setConditions(conditions);
+            simpleRule.setTags()
 
             rules.add(simpleRule);
 
