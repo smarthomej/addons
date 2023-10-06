@@ -30,11 +30,9 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 @Target({ ElementType.METHOD })
 @NonNullByDefault
 public @interface GenericEventTrigger {
-    String topic();
+    String eventTopic();
 
-    String source();
+    String eventSource();
 
-    String types();
-    
-    String payload();
+    String eventTypes();
 }
