@@ -33,5 +33,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 public @interface Rule {
     String name() default ANNOTATION_DEFAULT;
 
+    String[] tags() default {};
+
     boolean disabled() default false;
 }

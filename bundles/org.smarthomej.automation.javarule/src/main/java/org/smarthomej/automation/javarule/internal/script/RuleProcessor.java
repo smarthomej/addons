@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -78,6 +79,8 @@ public class RuleProcessor {
 
             String ruleName = method.getName();
             String ruleDescription = ruleAnnotation.name();
+            Set<String> ruleTags = Set.of(ruleAnnotation.tags());
+
             if (ruleDescription.isBlank() || ANNOTATION_DEFAULT.equals(ruleDescription)) {
                 ruleDescription = script.getClass().getSimpleName() + "/" + method.getName();
             }
@@ -121,6 +124,7 @@ public class RuleProcessor {
             simpleRule.setDescription(ruleDescription);
             simpleRule.setTriggers(triggers);
             simpleRule.setConditions(conditions);
+            simpleRule.setTags(ruleTags);
 
             rules.add(simpleRule);
 
