@@ -35,6 +35,6 @@ public @interface GenericEventTrigger {
     String source();
 
     String types();
-    
+
     String payload();
 }
