@@ -15,12 +15,11 @@ package org.smarthomej.automation.javarule.annotation;
 
 import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.ANNOTATION_DEFAULT;
 
-import java.util.Set;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
@@ -34,8 +33,8 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 @NonNullByDefault
 public @interface Rule {
     String name() default ANNOTATION_DEFAULT;
-    
+
     Set<String> tags() default Set.of();
-    
+
     boolean disabled() default false;
 }

@@ -16,8 +16,6 @@ import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.ANNO
 import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.CONDITION_FROM_ANNOTATION;
 import static org.smarthomej.automation.javarule.internal.JavaRuleConstants.TRIGGER_FROM_ANNOTATION;
 
-import java.util.Set;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -29,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -81,7 +80,7 @@ public class RuleProcessor {
             String ruleName = method.getName();
             String ruleDescription = ruleAnnotation.name();
             Set<String> ruleTags = ruleAnnotation.tags();
-            
+
             if (ruleDescription.isBlank() || ANNOTATION_DEFAULT.equals(ruleDescription)) {
                 ruleDescription = script.getClass().getSimpleName() + "/" + method.getName();
             }
