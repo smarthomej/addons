@@ -168,13 +168,13 @@ public class HttpThingHandler extends UpdatingBaseThingHandler implements HttpSt
         }
         rateLimitedHttpClient.setDelay(config.delay);
 
-        int channelCount = thing.getChannels().size();
-        if (channelCount * config.delay > config.refresh * 1000) {
+        int urlHandlerCount = urlHandlers.size();
+        if (urlHandlerCount * config.delay > config.refresh * 1000) {
             // this should prevent the rate limit queue from filling up
-            config.refresh = (channelCount * config.delay) / 1000 + 1;
+            config.refresh = (urlHandlerCount * config.delay) / 1000 + 1;
             logger.warn(
                     "{} channels in thing {} with a delay of {} incompatible with the configured refresh time. Refresh-Time increased to the minimum of {}",
-                    channelCount, thing.getUID(), config.delay, config.refresh);
+                    urlHandlerCount, thing.getUID(), config.delay, config.refresh);
         }
 
         // remove empty headers
