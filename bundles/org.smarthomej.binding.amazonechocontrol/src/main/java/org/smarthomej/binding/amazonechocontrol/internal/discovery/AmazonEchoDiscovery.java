@@ -38,8 +38,9 @@ import org.osgi.service.component.annotations.Activate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.DeviceTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.EnabledFeedTO;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.AccountHandler;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDevices.Device;
 
 /**
  * The {@link AmazonEchoDiscovery} is responsible for discovering echo devices on
@@ -50,15 +51,16 @@ import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDevices.Devic
  */
 @NonNullByDefault
 public class AmazonEchoDiscovery extends AbstractDiscoveryService implements ThingHandlerService {
+    private static final int BACKGROUND_INTERVAL = 10; // in seconds
     private @Nullable AccountHandler accountHandler;
     private final Logger logger = LoggerFactory.getLogger(AmazonEchoDiscovery.class);
-    private final Set<String> discoveredFlashBriefings = new HashSet<>();
+    private final Set<List<EnabledFeedTO>> discoveredFlashBriefings = new HashSet<>();
 
     private @Nullable ScheduledFuture<?> startScanStateJob;
     private @Nullable Long activateTimeStamp;
 
     public AmazonEchoDiscovery() {
-        super(SUPPORTED_ECHO_THING_TYPES_UIDS, 10);
+        super(SUPPORTED_ECHO_THING_TYPES_UIDS, 5);
     }
 
     @Override
@@ -93,7 +95,7 @@ public class AmazonEchoDiscovery extends AbstractDiscoveryService implements Thi
         }
         setDevices(accountHandler.updateDeviceList());
 
-        String currentFlashBriefingConfiguration = accountHandler.getNewCurrentFlashbriefingConfiguration();
+        List<EnabledFeedTO> currentFlashBriefingConfiguration = accountHandler.updateFlashBriefingHandlers();
         discoverFlashBriefingProfiles(currentFlashBriefingConfiguration);
     }
 
@@ -106,25 +108,21 @@ public class AmazonEchoDiscovery extends AbstractDiscoveryService implements Thi
             stopScanJob();
             return;
         }
-        Connection connection = accountHandler.findConnection();
-        if (connection == null) {
+        Connection connection = accountHandler.getConnection();
+        // do discovery only if logged in and last login is more than 10 s ago
+        Date verifyTime = connection.getVerifyTime();
+        if (verifyTime == null || System.currentTimeMillis() < (verifyTime.getTime() + 10000)) {
             return;
         }
-        Date verifyTime = connection.tryGetVerifyTime();
-        if (verifyTime == null) {
-            return;
-        }
-        if (new Date().getTime() - verifyTime.getTime() < 10000) {
-            return;
-        }
+
         startScan();
     }
 
     @Override
     protected void startBackgroundDiscovery() {
         stopScanJob();
-        startScanStateJob = scheduler.scheduleWithFixedDelay(this::startAutomaticScan, 3000, 1000,
-                TimeUnit.MILLISECONDS);
+        startScanStateJob = scheduler.scheduleWithFixedDelay(this::startAutomaticScan, BACKGROUND_INTERVAL,
+                BACKGROUND_INTERVAL, TimeUnit.SECONDS);
     }
 
     @Override
@@ -153,12 +151,12 @@ public class AmazonEchoDiscovery extends AbstractDiscoveryService implements Thi
         }
     }
 
-    private synchronized void setDevices(List<Device> deviceList) {
+    private synchronized void setDevices(List<DeviceTO> deviceList) {
         AccountHandler accountHandler = this.accountHandler;
         if (accountHandler == null) {
             return;
         }
-        for (Device device : deviceList) {
+        for (DeviceTO device : deviceList) {
             String serialNumber = device.serialNumber;
             if (serialNumber != null) {
                 String deviceFamily = device.deviceFamily;
@@ -202,26 +200,22 @@ public class AmazonEchoDiscovery extends AbstractDiscoveryService implements Thi
         }
     }
 
-    private synchronized void discoverFlashBriefingProfiles(String currentFlashBriefingJson) {
+    private synchronized void discoverFlashBriefingProfiles(List<EnabledFeedTO> enabledFeeds) {
         AccountHandler accountHandler = this.accountHandler;
-        if (accountHandler == null) {
+        if (accountHandler == null || enabledFeeds.isEmpty()) {
             return;
         }
 
-        if (currentFlashBriefingJson.isEmpty()) {
-            return;
-        }
-
-        if (!discoveredFlashBriefings.contains(currentFlashBriefingJson)) {
+        if (!discoveredFlashBriefings.contains(enabledFeeds)) {
             ThingUID bridgeThingUID = accountHandler.getThing().getUID();
             ThingUID freeThingUID = new ThingUID(THING_TYPE_FLASH_BRIEFING_PROFILE, bridgeThingUID,
-                    Integer.toString(currentFlashBriefingJson.hashCode()));
+                    Integer.toString(enabledFeeds.hashCode()));
             DiscoveryResult result = DiscoveryResultBuilder.create(freeThingUID).withLabel("FlashBriefing")
-                    .withProperty(DEVICE_PROPERTY_FLASH_BRIEFING_PROFILE, currentFlashBriefingJson)
+                    .withProperty(DEVICE_PROPERTY_FLASH_BRIEFING_PROFILE, enabledFeeds)
                     .withBridge(accountHandler.getThing().getUID()).build();
-            logger.debug("Flash Briefing {} discovered", currentFlashBriefingJson);
+            logger.debug("Flash Briefing {} discovered", enabledFeeds);
             thingDiscovered(result);
-            discoveredFlashBriefings.add(currentFlashBriefingJson);
+            discoveredFlashBriefings.add(enabledFeeds);
         }
     }
 }

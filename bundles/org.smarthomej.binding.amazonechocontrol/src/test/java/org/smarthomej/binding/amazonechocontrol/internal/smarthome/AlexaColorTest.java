@@ -21,6 +21,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.openhab.core.test.java.JavaTest;
+import org.smarthomej.binding.amazonechocontrol.internal.AmazonEchoControlBindingConstants;
 
 /**
  * The {@link AlexaColorTest} is a
@@ -39,6 +40,6 @@ public class AlexaColorTest extends JavaTest {
 
     @SuppressWarnings("unused")
     private static Stream<AlexaColor> getColors() {
-        return AlexaColor.ALEXA_COLORS.stream();
+        return AmazonEchoControlBindingConstants.ALEXA_COLORS.stream();
     }
 }

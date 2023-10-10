@@ -13,22 +13,23 @@
  */
 package org.smarthomej.binding.amazonechocontrol.internal.handler;
 
+import static org.eclipse.jetty.util.StringUtil.isNotBlank;
 import static org.smarthomej.binding.amazonechocontrol.internal.AmazonEchoControlBindingConstants.*;
+import static org.smarthomej.binding.amazonechocontrol.internal.dto.push.PushAudioPlayerStateTO.AudioPlayerState.*;
+import static org.smarthomej.binding.amazonechocontrol.internal.util.Util.findIn;
 
 import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -48,9 +49,10 @@ import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
+import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.ThingUID;
+import org.openhab.core.thing.binding.BaseThingHandler;
 import org.openhab.core.types.Command;
-import org.openhab.core.types.CommandOption;
 import org.openhab.core.types.RefreshType;
 import org.openhab.core.types.State;
 import org.openhab.core.types.StateDescription;
@@ -60,39 +62,38 @@ import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.amazonechocontrol.internal.ConnectionException;
-import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.AmazonHandlerCallback;
-import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.ChannelHandler;
-import org.smarthomej.binding.amazonechocontrol.internal.channelhandler.ChannelHandlerAnnouncement;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonAscendingAlarm.AscendingAlarmModel;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates.BluetoothState;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates.PairedDevice;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCommandPayloadPushNotificationChange;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCommandPayloadPushVolumeChange;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCustomerHistoryRecords.CustomerHistoryRecord;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCustomerHistoryRecords.CustomerHistoryRecord.VoiceHistoryRecordItem;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDeviceNotificationState.DeviceNotificationState;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDevices.Device;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDoNotDisturb.DoNotDisturbDeviceStatus;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonEqualizer;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonMediaState;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonMediaState.QueueEntry;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonMusicProvider;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonNotificationResponse;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonNotificationSound;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonPlayerState;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonPlayerState.PlayerInfo;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonPlayerState.PlayerInfo.InfoText;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonPlayerState.PlayerInfo.MainArt;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonPlayerState.PlayerInfo.Progress;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonPlayerState.PlayerInfo.Provider;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonPlayerState.PlayerInfo.Volume;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonPlaylists;
-import org.smarthomej.commons.SimpleDynamicCommandDescriptionProvider;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.AscendingAlarmModelTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.BluetoothPairedDeviceTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.DeviceNotificationStateTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.DeviceTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.DoNotDisturbDeviceStatusTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.EqualizerTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.NotificationSoundTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.NotificationTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.PlayerStateInfoTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.PlayerStateInfoTextTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.PlayerStateMainArtTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.PlayerStateProgressTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.PlayerStateProviderTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.PlayerStateVolumeTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.push.PushAudioPlayerStateTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.push.PushEqualizerStateChangeTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.push.PushVolumeChangeTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.request.PlayerSeekMediaTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.request.WHAVolumeLevelTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.BluetoothStateTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.CustomerHistoryRecordTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.CustomerHistoryRecordVoiceTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.MediaSessionTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.MusicProviderTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.PlayerStateTO;
+import org.smarthomej.binding.amazonechocontrol.internal.types.Announcement;
+import org.smarthomej.binding.amazonechocontrol.internal.types.Notification;
 import org.smarthomej.commons.SimpleDynamicStateDescriptionProvider;
-import org.smarthomej.commons.UpdatingBaseThingHandler;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 /**
  * The {@link EchoHandler} is responsible for the handling of the echo device
@@ -100,83 +101,69 @@ import com.google.gson.Gson;
  * @author Michael Geramb - Initial contribution
  */
 @NonNullByDefault
-public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandlerCallback {
+public class EchoHandler extends BaseThingHandler {
     private final Logger logger = LoggerFactory.getLogger(EchoHandler.class);
     private final Gson gson;
     private final SimpleDynamicStateDescriptionProvider dynamicStateDescriptionProvider;
-    private final SimpleDynamicCommandDescriptionProvider dynamicCommandDescriptionProvider;
 
-    private @Nullable Device device;
+    private @Nullable DeviceTO device;
     private Set<String> capabilities = new HashSet<>();
-    private @Nullable AccountHandler account;
+    private @Nullable AccountHandler account = null;
     private @Nullable ScheduledFuture<?> updateStateJob;
     private @Nullable ScheduledFuture<?> updateProgressJob;
     private final Object progressLock = new Object();
     private @Nullable String wakeWord;
-    private @Nullable String lastKnownRadioStationId;
     private @Nullable String lastKnownBluetoothMAC;
-    private @Nullable String lastKnownAmazonMusicId;
+    private long lastCustomerHistoryRecordTimestamp = System.currentTimeMillis();
     private String musicProviderId = "TUNEIN";
     private boolean isPlaying = false;
     private boolean isPaused = false;
     private int lastKnownVolume = 25;
     private int textToSpeechVolume = 0;
-    private @Nullable JsonEqualizer lastKnownEqualizer = null;
+    private @Nullable EqualizerTO lastKnownEqualizer = null;
     private boolean disableUpdate = false;
-    private boolean updateRemind = true;
-    private boolean updateTextToSpeech = true;
-    private boolean updateTextCommand = true;
-    private boolean updateRoutine = true;
-    private boolean updatePlayMusicVoiceCommand = true;
-    private @Nullable Integer notificationVolumeLevel;
-    private @Nullable Boolean ascendingAlarm;
-    private @Nullable Boolean doNotDisturb;
-    private final List<ChannelHandler> channelHandlers = new ArrayList<>();
 
-    private @Nullable JsonNotificationResponse currentNotification;
-    private @Nullable ScheduledFuture<?> currentNotifcationUpdateTimer;
-    long mediaLengthMs;
-    long mediaProgressMs;
-    long mediaStartMs;
+    private @Nullable NotificationTO currentNotification;
+    private @Nullable ScheduledFuture<?> currentNotificationUpdateTimer;
+    private long mediaLengthMs;
+    private long mediaProgressMs;
+    private long mediaStartMs;
+
+    private String currentlyPlayingQueueId = "";
+
+    // used to block further updates when an update is already taking place
+    private final AtomicBoolean waitingForUpdate = new AtomicBoolean(false);
 
     private final ExpiringCacheMap<String, State> stateCache = new ExpiringCacheMap<>(Duration.ofSeconds(30));
 
-    public EchoHandler(Thing thing, Gson gson,
-            SimpleDynamicCommandDescriptionProvider dynamicCommandDescriptionProvider,
-            SimpleDynamicStateDescriptionProvider dynamicStateDescriptionProvider) {
+    public EchoHandler(Thing thing, Gson gson, SimpleDynamicStateDescriptionProvider dynamicStateDescriptionProvider) {
         super(thing);
         this.gson = gson;
-        this.dynamicCommandDescriptionProvider = dynamicCommandDescriptionProvider;
         this.dynamicStateDescriptionProvider = dynamicStateDescriptionProvider;
-        channelHandlers.add(new ChannelHandlerAnnouncement(this, this.gson));
     }
 
     @Override
     public void initialize() {
-        logger.debug("Amazon Echo Control Binding initialized");
         Bridge bridge = this.getBridge();
         if (bridge != null) {
-            AccountHandler account = (AccountHandler) bridge.getHandler();
-            if (account != null) {
-                setDeviceAndUpdateThingState(account, this.device, null);
-                createStartCommandCommandOptions(account.getFlashBriefingProfileHandlers());
-                account.addEchoHandler(this);
-            }
+            account = (AccountHandler) bridge.getHandler();
         }
+        if (account == null) {
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.BRIDGE_UNINITIALIZED, "Bridge handler not found.");
+        } else {
+            updateStatus(ThingStatus.UNKNOWN);
+        }
+
+        lastCustomerHistoryRecordTimestamp = System.currentTimeMillis();
     }
 
-    public boolean setDeviceAndUpdateThingState(AccountHandler accountHandler, @Nullable Device device,
-            @Nullable String wakeWord) {
-        this.account = accountHandler;
+    public boolean setDeviceAndUpdateThingStatus(DeviceTO device, @Nullable String wakeWord) {
         if (wakeWord != null) {
             this.wakeWord = wakeWord;
         }
-        if (device == null) {
-            updateStatus(ThingStatus.UNKNOWN);
-            return false;
-        }
+
         this.device = device;
-        this.capabilities = device.getCapabilities();
+        this.capabilities = device.capabilities;
         if (!device.online) {
             updateStatus(ThingStatus.OFFLINE);
             return false;
@@ -187,13 +174,6 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
 
     @Override
     public void dispose() {
-        Bridge bridge = this.getBridge();
-        if (bridge != null) {
-            AccountHandler account = (AccountHandler) bridge.getHandler();
-            if (account != null) {
-                account.removeEchoHandler(this);
-            }
-        }
         stopCurrentNotification();
         ScheduledFuture<?> updateStateJob = this.updateStateJob;
         this.updateStateJob = null;
@@ -212,24 +192,17 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
         }
     }
 
-    private @Nullable Connection findConnection() {
-        AccountHandler accountHandler = this.account;
-        if (accountHandler != null) {
-            return accountHandler.findConnection();
-        }
-        return null;
+    private Optional<AccountHandler> getAccountHandler() {
+        return Optional.ofNullable(account);
     }
 
-    public @Nullable Device findDevice() {
-        return this.device;
+    private Optional<Connection> findConnection() {
+        return getAccountHandler().map(AccountHandler::getConnection);
     }
 
-    public String findSerialNumber() {
+    public String getSerialNumber() {
         String id = (String) getConfig().get(DEVICE_PROPERTY_SERIAL_NUMBER);
-        if (id == null) {
-            return "";
-        }
-        return id;
+        return id != null ? id : "";
     }
 
     @Override
@@ -241,6 +214,12 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
                 // call the original update method to prevent prolonging the same value in cache
                 super.updateState(channelUID, state);
                 return;
+            } else {
+                getAccountHandler().ifPresent(accountHandler -> {
+                    if (waitingForUpdate.compareAndSet(false, true)) {
+                        accountHandler.forceCheckData();
+                    }
+                });
             }
         }
         try {
@@ -254,97 +233,127 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
                 this.disableUpdate = false;
                 updateStateJob.cancel(false);
             }
-            AccountHandler account = this.account;
-            if (account == null) {
+
+            AccountHandler accountHandler = getAccountHandler().orElse(null);
+            if (accountHandler == null) {
                 return;
             }
-            Connection connection = account.findConnection();
+            Connection connection = findConnection().orElse(null);
             if (connection == null) {
                 return;
             }
-            Device device = this.device;
+            DeviceTO device = this.device;
             if (device == null) {
                 return;
             }
 
             String channelId = channelUID.getId();
-            for (ChannelHandler channelHandler : channelHandlers) {
-                if (channelHandler.tryHandleCommand(device, connection, channelId, command)) {
-                    return;
+            if (channelId.equals(CHANNEL_ANNOUNCEMENT) && command instanceof StringType) {
+                String commandValue = command.toFullString();
+                String body = commandValue;
+                String title = null;
+                String speak = commandValue;
+                Integer volume = null;
+                if (commandValue.startsWith("{") && commandValue.endsWith("}")) {
+                    try {
+                        Announcement request = gson.fromJson(commandValue, Announcement.class);
+                        if (request != null) {
+                            speak = isNotBlank(request.speak) ? request.speak : "."; // generate beep if no text
+                            Objects.requireNonNull(speak); // fix the null-checker
+                            volume = request.volume;
+                            title = request.title;
+                            body = request.body != null ? request.body : speak;
+                            Boolean sound = request.sound;
+                            if (sound != null) {
+                                if (!sound && !speak.startsWith("<speak>")) {
+                                    speak = "<speak>" + speak + "</speak>";
+                                }
+                                if (sound && speak.startsWith("<speak>")) {
+                                    body = "Error: The combination of sound and speak in SSML syntax is not allowed";
+                                    title = "Error";
+                                    speak = "<speak><lang xml:lang=\"en-UK\">Error: The combination of sound and speak in <prosody rate=\"x-slow\"><say-as interpret-as=\"characters\">SSML</say-as></prosody> syntax is not allowed</lang></speak>";
+                                }
+                            }
+                            if ("<speak> </speak>".equals(speak)) {
+                                volume = -1; // Do not change volume
+                            }
+                        }
+                    } catch (JsonSyntaxException e) {
+                        body = "Invalid Json." + e.getLocalizedMessage();
+                        title = "Error";
+                        speak = "<speak><lang xml:lang=\"en-US\">" + body + "</lang></speak>";
+                        body = e.getLocalizedMessage();
+                    }
                 }
+                Integer vol;
+                if (volume == null && textToSpeechVolume != 0) {
+                    vol = textToSpeechVolume;
+                } else if (volume != null && volume < 0) {
+                    vol = null;// the meaning of negative values is 'do not use'. The api requires null in this case.
+                } else {
+                    vol = volume;
+                }
+                String finalSpeak = speak;
+                String finalBody = Objects.requireNonNullElse(body, "");
+                String finalTitle = title;
+                connection.announcement(device, finalSpeak, finalBody, finalTitle, vol, lastKnownVolume);
             }
 
             // Player commands
             if (channelId.equals(CHANNEL_PLAYER)) {
                 if (command == PlayPauseType.PAUSE || command == OnOffType.OFF) {
-                    connection.command(device, "{\"type\":\"PauseCommand\"}");
+                    connection.command(device, Map.of("type", "PauseCommand"));
                 } else if (command == PlayPauseType.PLAY || command == OnOffType.ON) {
                     if (isPaused) {
-                        connection.command(device, "{\"type\":\"PlayCommand\"}");
+                        connection.command(device, Map.of("type", "PlayCommand"));
                     } else {
                         connection.playMusicVoiceCommand(device, this.musicProviderId, "!");
                         waitForUpdate = 3000;
                     }
                 } else if (command == NextPreviousType.NEXT) {
-                    connection.command(device, "{\"type\":\"NextCommand\"}");
+                    connection.command(device, Map.of("type", "NextCommand"));
                 } else if (command == NextPreviousType.PREVIOUS) {
-                    connection.command(device, "{\"type\":\"PreviousCommand\"}");
+                    connection.command(device, Map.of("type", "PreviousCommand"));
                 } else if (command == RewindFastforwardType.FASTFORWARD) {
-                    connection.command(device, "{\"type\":\"ForwardCommand\"}");
+                    connection.command(device, Map.of("type", "ForwardCommand"));
                 } else if (command == RewindFastforwardType.REWIND) {
-                    connection.command(device, "{\"type\":\"RewindCommand\"}");
+                    connection.command(device, Map.of("type", "RewindCommand"));
                 }
             }
             // Notification commands
             if (channelId.equals(CHANNEL_NOTIFICATION_VOLUME)) {
-                if (command instanceof PercentType) {
-                    int volume = ((PercentType) command).intValue();
-                    connection.notificationVolume(device, volume);
-                    this.notificationVolumeLevel = volume;
+                if (command instanceof PercentType percent) {
+                    connection.setNotificationVolume(device, percent.intValue());
                     waitForUpdate = -1;
-                    account.forceCheckData();
+                    accountHandler.forceCheckData();
                 }
             }
             if (channelId.equals(CHANNEL_ASCENDING_ALARM)) {
-                if (command == OnOffType.OFF) {
-                    connection.ascendingAlarm(device, false);
-                    this.ascendingAlarm = false;
-                    waitForUpdate = -1;
-                    account.forceCheckData();
-                }
-                if (command == OnOffType.ON) {
-                    connection.ascendingAlarm(device, true);
-                    this.ascendingAlarm = true;
-                    waitForUpdate = -1;
-                    account.forceCheckData();
-                }
+                boolean ascendingAlarm = command == OnOffType.ON;
+                connection.setAscendingAlarm(device, ascendingAlarm);
+                waitForUpdate = -1;
+                accountHandler.forceCheckData();
             }
             // Do Not Disturb command
             if (channelId.equals(CHANNEL_DO_NOT_DISTURB) && command instanceof OnOffType) {
-                boolean newDnd = OnOffType.ON.equals(command);
-                connection.doNotDisturb(device, newDnd);
-                this.doNotDisturb = true;
+                boolean newDnd = command == OnOffType.ON;
+                connection.setDoNotDisturb(device, newDnd);
                 waitForUpdate = -1;
-                account.forceCheckData();
+                accountHandler.forceCheckData();
             }
             // Media progress commands
             Long mediaPosition = null;
             if (channelId.equals(CHANNEL_MEDIA_PROGRESS)) {
-                if (command instanceof PercentType) {
-                    PercentType value = (PercentType) command;
-                    int percent = value.intValue();
-                    mediaPosition = Math.round((mediaLengthMs / 1000d) * (percent / 100d));
+                if (command instanceof PercentType percent) {
+                    mediaPosition = Math.round((mediaLengthMs / 1000d) * (percent.intValue() / 100d));
                 }
             }
             if (channelId.equals(CHANNEL_MEDIA_PROGRESS_TIME)) {
-                if (command instanceof DecimalType) {
-                    DecimalType value = (DecimalType) command;
-                    mediaPosition = value.longValue();
+                if (command instanceof DecimalType decimal) {
+                    mediaPosition = decimal.longValue();
                 }
-                if (command instanceof QuantityType<?>) {
-                    QuantityType<?> value = (QuantityType<?>) command;
-                    @Nullable
-                    QuantityType<?> seconds = value.toUnit(Units.SECOND);
+                if (command instanceof QuantityType<?> quantity) {
+                    QuantityType<?> seconds = quantity.toUnit(Units.SECOND);
                     if (seconds != null) {
                         mediaPosition = seconds.longValue();
                     }
@@ -353,8 +362,8 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
             if (mediaPosition != null) {
                 waitForUpdate = -1;
                 synchronized (progressLock) {
-                    String seekCommand = "{\"type\":\"SeekCommand\",\"mediaPosition\":" + mediaPosition
-                            + ",\"contentFocusClientId\":null}";
+                    PlayerSeekMediaTO seekCommand = new PlayerSeekMediaTO();
+                    seekCommand.mediaPosition = mediaPosition;
                     connection.command(device, seekCommand);
                     connection.command(device, seekCommand); // Must be sent twice, the first one is ignored sometimes
                     this.mediaProgressMs = mediaPosition * 1000;
@@ -365,8 +374,7 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
             // Volume commands
             if (channelId.equals(CHANNEL_VOLUME)) {
                 Integer volume = null;
-                if (command instanceof PercentType) {
-                    PercentType value = (PercentType) command;
+                if (command instanceof PercentType value) {
                     volume = value.intValue();
                 } else if (command == OnOffType.OFF) {
                     volume = 0;
@@ -385,10 +393,11 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
                 }
                 if (volume != null) {
                     if ("WHA".equals(device.deviceFamily)) {
-                        connection.command(device, "{\"type\":\"VolumeLevelCommand\",\"volumeLevel\":" + volume
-                                + ",\"contentFocusClientId\":\"Default\"}");
+                        WHAVolumeLevelTO volumeCommand = new WHAVolumeLevelTO();
+                        volumeCommand.volumeLevel = volume;
+                        connection.command(device, volumeCommand);
                     } else {
-                        connection.volume(device, volume);
+                        connection.setVolume(device, volume);
                     }
                     lastKnownVolume = volume;
                     updateState(CHANNEL_VOLUME, new PercentType(lastKnownVolume));
@@ -405,36 +414,28 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
 
             // shuffle command
             if (channelId.equals(CHANNEL_SHUFFLE)) {
-                if (command instanceof OnOffType) {
-                    OnOffType value = (OnOffType) command;
-
-                    connection.command(device, "{\"type\":\"ShuffleCommand\",\"shuffle\":\""
-                            + (value == OnOffType.ON ? "true" : "false") + "\"}");
+                if (command instanceof OnOffType onOff) {
+                    connection.command(device, Map.of("type", "ShuffleCommand", "shuffle", onOff == OnOffType.ON));
                 }
             }
 
             // play music command
-            if (channelId.equals(CHANNEL_MUSIC_PROVIDER_ID)) {
-                if (command instanceof StringType) {
-                    waitForUpdate = 0;
-                    String musicProviderId = command.toFullString();
-                    if (!musicProviderId.equals(this.musicProviderId)) {
-                        this.musicProviderId = musicProviderId;
-                        if (this.isPlaying) {
-                            connection.playMusicVoiceCommand(device, this.musicProviderId, "!");
-                            waitForUpdate = 3000;
-                        }
+            if (channelId.equals(CHANNEL_MUSIC_PROVIDER_ID) && command instanceof StringType) {
+                waitForUpdate = 0;
+                String musicProviderId = command.toFullString();
+                if (!musicProviderId.equals(this.musicProviderId)) {
+                    this.musicProviderId = musicProviderId;
+                    if (this.isPlaying) {
+                        connection.playMusicVoiceCommand(device, this.musicProviderId, "!");
+                        waitForUpdate = 3000;
                     }
                 }
             }
-            if (channelId.equals(CHANNEL_PLAY_MUSIC_VOICE_COMMAND)) {
-                if (command instanceof StringType) {
-                    String voiceCommand = command.toFullString();
-                    if (!this.musicProviderId.isEmpty()) {
-                        connection.playMusicVoiceCommand(device, this.musicProviderId, voiceCommand);
-                        waitForUpdate = 3000;
-                        updatePlayMusicVoiceCommand = true;
-                    }
+            if (channelId.equals(CHANNEL_PLAY_MUSIC_VOICE_COMMAND) && command instanceof StringType) {
+                String voiceCommand = command.toFullString();
+                if (!this.musicProviderId.isEmpty()) {
+                    connection.playMusicVoiceCommand(device, this.musicProviderId, voiceCommand);
+                    waitForUpdate = 3000;
                 }
             }
 
@@ -464,110 +465,49 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
             if (channelId.equals(CHANNEL_BLUETOOTH_DEVICE_NAME)) {
                 needBluetoothRefresh = true;
             }
-            // amazon music commands
-            if (channelId.equals(CHANNEL_AMAZON_MUSIC_TRACK_ID)) {
-                if (command instanceof StringType) {
-                    String trackId = command.toFullString();
-                    if (!trackId.isEmpty()) {
-                        waitForUpdate = 3000;
-                    }
-                    connection.playAmazonMusicTrack(device, trackId);
-                }
-            }
-            if (channelId.equals(CHANNEL_AMAZON_MUSIC_PLAY_LIST_ID)) {
-                if (command instanceof StringType) {
-                    String playListId = command.toFullString();
-                    if (!playListId.isEmpty()) {
-                        waitForUpdate = 3000;
-                    }
-                    connection.playAmazonMusicPlayList(device, playListId);
-                }
-            }
-            if (channelId.equals(CHANNEL_AMAZON_MUSIC)) {
-                if (command == OnOffType.ON) {
-                    String lastKnownAmazonMusicId = this.lastKnownAmazonMusicId;
-                    if (lastKnownAmazonMusicId != null && !lastKnownAmazonMusicId.isEmpty()) {
-                        waitForUpdate = 3000;
-                    }
-                    connection.playAmazonMusicTrack(device, lastKnownAmazonMusicId);
-                } else if (command == OnOffType.OFF) {
-                    connection.playAmazonMusicTrack(device, "");
-                }
-            }
-
-            // radio commands
-            if (channelId.equals(CHANNEL_RADIO_STATION_ID)) {
-                if (command instanceof StringType) {
-                    String stationId = command.toFullString();
-                    if (!stationId.isEmpty()) {
-                        waitForUpdate = 3000;
-                    }
-                    connection.playRadio(device, stationId);
-                }
-            }
-            if (channelId.equals(CHANNEL_RADIO)) {
-                if (command == OnOffType.ON) {
-                    String lastKnownRadioStationId = this.lastKnownRadioStationId;
-                    if (lastKnownRadioStationId != null && !lastKnownRadioStationId.isEmpty()) {
-                        waitForUpdate = 3000;
-                    }
-                    connection.playRadio(device, lastKnownRadioStationId);
-                } else if (command == OnOffType.OFF) {
-                    connection.playRadio(device, "");
-                }
-            }
 
             // notification
-            if (channelId.equals(CHANNEL_REMIND)) {
-                if (command instanceof StringType) {
-                    stopCurrentNotification();
-                    String reminder = command.toFullString();
-                    if (!reminder.isEmpty()) {
-                        waitForUpdate = 3000;
-                        updateRemind = true;
-                        currentNotification = connection.notification(device, "Reminder", reminder, null);
-                        currentNotifcationUpdateTimer = scheduler
-                                .scheduleWithFixedDelay(this::updateNotificationTimerState, 1, 1, TimeUnit.SECONDS);
-                    }
+            if (channelId.equals(CHANNEL_REMIND) && command instanceof StringType) {
+                stopCurrentNotification();
+                String reminder = command.toFullString();
+                if (!reminder.isBlank()) {
+                    waitForUpdate = 3000;
+                    currentNotification = connection.createNotification(device, "Reminder", reminder, null);
+                    currentNotificationUpdateTimer = scheduler
+                            .scheduleWithFixedDelay(this::updateNotificationTimerState, 1, 1, TimeUnit.SECONDS);
                 }
             }
-            if (channelId.equals(CHANNEL_PLAY_ALARM_SOUND)) {
-                if (command instanceof StringType) {
-                    stopCurrentNotification();
-                    String alarmSound = command.toFullString();
-                    if (!alarmSound.isEmpty()) {
-                        waitForUpdate = 3000;
-                        String[] parts = alarmSound.split(":", 2);
-                        JsonNotificationSound sound = new JsonNotificationSound();
-                        if (parts.length == 2) {
-                            sound.providerId = parts[0];
-                            sound.id = parts[1];
-                        } else {
-                            sound.providerId = "ECHO";
-                            sound.id = alarmSound;
-                        }
-                        currentNotification = connection.notification(device, "Alarm", null, sound);
-                        currentNotifcationUpdateTimer = scheduler
-                                .scheduleWithFixedDelay(this::updateNotificationTimerState, 1, 1, TimeUnit.SECONDS);
+            if (channelId.equals(CHANNEL_PLAY_ALARM_SOUND) && command instanceof StringType) {
+                stopCurrentNotification();
+                String alarmSound = command.toFullString();
+                if (!alarmSound.isEmpty()) {
+                    waitForUpdate = 3000;
+                    String[] parts = alarmSound.split(":", 2);
+                    NotificationSoundTO sound = new NotificationSoundTO();
+                    if (parts.length == 2) {
+                        sound.providerId = parts[0];
+                        sound.id = parts[1];
+                    } else {
+                        sound.providerId = "ECHO";
+                        sound.id = alarmSound;
                     }
+                    currentNotification = connection.createNotification(device, "Alarm", null, sound);
+                    currentNotificationUpdateTimer = scheduler
+                            .scheduleWithFixedDelay(this::updateNotificationTimerState, 1, 1, TimeUnit.SECONDS);
                 }
             }
 
             // routine commands
-            if (channelId.equals(CHANNEL_TEXT_TO_SPEECH)) {
-                if (command instanceof StringType) {
-                    String text = command.toFullString();
-                    if (!text.isEmpty()) {
-                        waitForUpdate = 1000;
-                        updateTextToSpeech = true;
-                        startTextToSpeech(connection, device, text);
-                    }
+            if (channelId.equals(CHANNEL_TEXT_TO_SPEECH) && command instanceof StringType) {
+                String text = command.toFullString();
+                if (!text.isEmpty()) {
+                    waitForUpdate = 1000;
+                    startTextToSpeech(connection, device, text);
                 }
             }
             if (channelId.equals(CHANNEL_TEXT_TO_SPEECH_VOLUME)) {
-                if (command instanceof PercentType) {
-                    PercentType value = (PercentType) command;
-                    textToSpeechVolume = value.intValue();
+                if (command instanceof PercentType percent) {
+                    textToSpeechVolume = percent.intValue();
                 } else if (command == OnOffType.OFF) {
                     textToSpeechVolume = 0;
                 } else if (command == OnOffType.ON) {
@@ -583,61 +523,48 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
                 }
                 this.updateState(channelId, new PercentType(textToSpeechVolume));
             }
-            if (channelId.equals(CHANNEL_TEXT_COMMAND)) {
-                if (command instanceof StringType) {
-                    String text = command.toFullString();
-                    if (!text.isEmpty()) {
-                        waitForUpdate = 1000;
-                        updateTextCommand = true;
-                        startTextCommand(connection, device, text);
-                    }
+            if (channelId.equals(CHANNEL_TEXT_COMMAND) && command instanceof StringType) {
+                String text = command.toFullString();
+                if (!text.isEmpty()) {
+                    waitForUpdate = 1000;
+                    startTextCommand(connection, device, text);
                 }
             }
-            if (channelId.equals(CHANNEL_LAST_VOICE_COMMAND)) {
-                if (command instanceof StringType) {
-                    String text = command.toFullString();
-                    if (!text.isEmpty()) {
-                        waitForUpdate = -1;
-                        startTextToSpeech(connection, device, text);
-                    }
+            if (channelId.equals(CHANNEL_LAST_VOICE_COMMAND) && command instanceof StringType) {
+                String text = command.toFullString();
+                if (!text.isEmpty()) {
+                    waitForUpdate = -1;
+                    startTextToSpeech(connection, device, text);
                 }
             }
-            if (channelId.equals(CHANNEL_START_COMMAND)) {
-                if (command instanceof StringType) {
-                    String commandText = command.toFullString();
-                    if (!commandText.isEmpty()) {
-                        if (commandText.startsWith(FLASH_BRIEFING_COMMAND_PREFIX)) {
-                            // Handle custom flashbriefings commands
-                            String flashBriefingId = commandText.substring(FLASH_BRIEFING_COMMAND_PREFIX.length());
-                            for (FlashBriefingProfileHandler flashBriefingHandler : account
-                                    .getFlashBriefingProfileHandlers()) {
-                                ThingUID flashBriefingUid = flashBriefingHandler.getThing().getUID();
-                                if (flashBriefingId.equals(flashBriefingHandler.getThing().getUID().getId())) {
-                                    flashBriefingHandler.handleCommand(
-                                            new ChannelUID(flashBriefingUid, CHANNEL_PLAY_ON_DEVICE),
-                                            new StringType(device.serialNumber));
-                                    break;
-                                }
-                            }
-                        } else {
-                            // Handle standard commands
-                            if (!commandText.startsWith("Alexa.")) {
-                                commandText = "Alexa." + commandText + ".Play";
-                            }
-                            waitForUpdate = 1000;
-                            connection.executeSequenceCommand(device, commandText, Map.of());
+            if (channelId.equals(CHANNEL_START_COMMAND) && command instanceof StringType) {
+                String commandText = command.toFullString();
+                if (commandText.startsWith(FLASH_BRIEFING_COMMAND_PREFIX)) {
+                    // Handle custom flashbriefings commands
+                    String flashBriefingId = commandText.substring(FLASH_BRIEFING_COMMAND_PREFIX.length());
+                    for (FlashBriefingProfileHandler flashBriefingHandler : accountHandler
+                            .getFlashBriefingProfileHandlers()) {
+                        ThingUID flashBriefingUid = flashBriefingHandler.getThing().getUID();
+                        if (flashBriefingId.equals(flashBriefingHandler.getThing().getUID().getId())) {
+                            flashBriefingHandler.handleCommand(new ChannelUID(flashBriefingUid, CHANNEL_PLAY_ON_DEVICE),
+                                    new StringType(device.serialNumber));
+                            break;
                         }
                     }
+                } else if (!commandText.isBlank()) {
+                    // Handle standard commands
+                    if (!commandText.startsWith("Alexa.")) {
+                        commandText = "Alexa." + commandText + ".Play";
+                    }
+                    waitForUpdate = 1000;
+                    connection.executeSequenceCommand(device, commandText, Map.of());
                 }
             }
-            if (channelId.equals(CHANNEL_START_ROUTINE)) {
-                if (command instanceof StringType) {
-                    String utterance = command.toFullString();
-                    if (!utterance.isEmpty()) {
-                        waitForUpdate = 1000;
-                        updateRoutine = true;
-                        connection.startRoutine(device, utterance);
-                    }
+            if (channelId.equals(CHANNEL_START_ROUTINE) && command instanceof StringType) {
+                String utterance = command.toFullString();
+                if (!utterance.isEmpty()) {
+                    waitForUpdate = 1000;
+                    connection.startRoutine(device, utterance);
                 }
             }
             if (waitForUpdate < 0) {
@@ -648,16 +575,13 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
             final boolean bluetoothRefresh = needBluetoothRefresh;
             Runnable doRefresh = () -> {
                 this.disableUpdate = false;
-                BluetoothState state = null;
+                BluetoothStateTO state = null;
                 if (bluetoothRefresh) {
-                    state = connection.getBluetoothConnectionStates().findStateByDevice(device);
+                    List<BluetoothStateTO> states = connection.getBluetoothConnectionStates();
+                    state = findIn(states, a -> a.deviceSerialNumber, device.serialNumber).orElse(null);
                 }
-                updateState(account, device, state, null, null, null, null, null, null);
+                updateState(device, state, null, null, null, null);
             };
-            if (command instanceof RefreshType) {
-                waitForUpdate = 0;
-                account.forceCheckData();
-            }
             if (waitForUpdate == 0) {
                 doRefresh.run();
             } else {
@@ -665,126 +589,82 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
             }
         } catch (ConnectionException e) {
             logger.info("Failed to handle command '{}' to '{}'", command, channelUID);
+        } catch (RuntimeException e) {
+            logger.warn("RuntimeException in handle command", e);
         }
     }
 
-    private boolean handleEqualizerCommands(String channelId, Command command, Connection connection, Device device) {
-        if (command instanceof RefreshType) {
-            this.lastKnownEqualizer = null;
-        }
-        if (command instanceof DecimalType) {
-            DecimalType value = (DecimalType) command;
-            if (this.lastKnownEqualizer == null) {
+    private boolean handleEqualizerCommands(String channelId, Command command, Connection connection, DeviceTO device) {
+        if (command instanceof DecimalType decimal) {
+            if (lastKnownEqualizer == null) {
                 updateEqualizerState();
             }
-            JsonEqualizer lastKnownEqualizer = this.lastKnownEqualizer;
-            if (lastKnownEqualizer != null) {
-                JsonEqualizer newEqualizerSetting = lastKnownEqualizer.createClone();
-                if (channelId.equals(CHANNEL_EQUALIZER_BASS)) {
-                    newEqualizerSetting.bass = value.intValue();
-                }
-                if (channelId.equals(CHANNEL_EQUALIZER_MIDRANGE)) {
-                    newEqualizerSetting.mid = value.intValue();
-                }
-                if (channelId.equals(CHANNEL_EQUALIZER_TREBLE)) {
-                    newEqualizerSetting.treble = value.intValue();
-                }
-                try {
-                    connection.setEqualizer(device, newEqualizerSetting);
-                    return true;
-                } catch (ConnectionException e) {
-                    logger.debug("Failed to update equalizer");
-                    this.lastKnownEqualizer = null;
-                }
+            EqualizerTO oldEqualizer = lastKnownEqualizer;
+            if (oldEqualizer != null) {
+                EqualizerTO newEqualizer = new EqualizerTO();
+                newEqualizer.bass = channelId.equals(CHANNEL_EQUALIZER_BASS) ? decimal.intValue() : oldEqualizer.bass;
+                newEqualizer.mid = channelId.equals(CHANNEL_EQUALIZER_MIDRANGE) ? decimal.intValue() : oldEqualizer.mid;
+                newEqualizer.treble = channelId.equals(CHANNEL_EQUALIZER_TREBLE) ? decimal.intValue()
+                        : oldEqualizer.treble;
+                return connection.setEqualizer(device, newEqualizer);
             }
         }
         return false;
     }
 
-    private void startTextToSpeech(Connection connection, Device device, String text) {
+    private void startTextToSpeech(Connection connection, DeviceTO device, String text) {
         Integer volume = textToSpeechVolume != 0 ? textToSpeechVolume : null;
         connection.textToSpeech(device, text, volume, lastKnownVolume);
     }
 
-    private void startTextCommand(Connection connection, Device device, String text) {
+    private void startTextCommand(Connection connection, DeviceTO device, String text) {
         Integer volume = textToSpeechVolume != 0 ? textToSpeechVolume : null;
         connection.textCommand(device, text, volume, lastKnownVolume);
     }
 
-    @Override
-    public void startAnnouncement(Device device, String speak, String bodyText, @Nullable String title,
-            @Nullable Integer volume) {
-        Connection connection = this.findConnection();
-        if (connection == null) {
-            return;
-        }
-        if (volume == null && textToSpeechVolume != 0) {
-            volume = textToSpeechVolume;
-        }
-        if (volume != null && volume < 0) {
-            volume = null; // the meaning of negative values is 'do not use'. The api requires null in this case.
-        }
-        connection.announcement(device, speak, bodyText, title, volume, lastKnownVolume);
-    }
-
     private void stopCurrentNotification() {
-        ScheduledFuture<?> currentNotificationUpdateTimer = this.currentNotifcationUpdateTimer;
+        ScheduledFuture<?> currentNotificationUpdateTimer = this.currentNotificationUpdateTimer;
         if (currentNotificationUpdateTimer != null) {
-            this.currentNotifcationUpdateTimer = null;
-            currentNotificationUpdateTimer.cancel(true);
+            this.currentNotificationUpdateTimer = null;
+            // do not interrupt the current set, otherwise the DELETE request will be aborted
+            currentNotificationUpdateTimer.cancel(false);
         }
-        JsonNotificationResponse currentNotification = this.currentNotification;
+        NotificationTO currentNotification = this.currentNotification;
         if (currentNotification != null) {
             this.currentNotification = null;
-            Connection currentConnection = this.findConnection();
-            if (currentConnection != null) {
-                try {
-                    currentConnection.stopNotification(currentNotification);
-                } catch (ConnectionException e) {
-                    logger.warn("Failed to stop notification");
-                }
-            }
+            findConnection().ifPresent(connection -> connection.deleteNotification(currentNotification.id));
         }
     }
 
     private void updateNotificationTimerState() {
         boolean stopCurrentNotification = true;
-        JsonNotificationResponse currentNotification = this.currentNotification;
+        NotificationTO currentNotification = this.currentNotification;
+        Connection currentConnection = this.findConnection().orElse(null);
         try {
-            if (currentNotification != null) {
-                Connection currentConnection = this.findConnection();
-                if (currentConnection != null) {
-                    JsonNotificationResponse newState = currentConnection.getNotificationState(currentNotification);
-                    if (newState != null && "ON".equals(newState.status)) {
-                        stopCurrentNotification = false;
-                    }
+            if (currentNotification != null && currentConnection != null) {
+                String status = currentConnection.getNotification(currentNotification.id).status;
+                if ("ON".equals(status)) {
+                    stopCurrentNotification = false;
                 }
             }
         } catch (ConnectionException e) {
             logger.warn("Failed to update notification state");
         }
         if (stopCurrentNotification) {
-            if (currentNotification != null) {
-                String type = currentNotification.type;
-                if ("Reminder".equals(type)) {
-                    updateState(CHANNEL_REMIND, StringType.EMPTY);
-                    updateRemind = false;
-                }
-            }
             stopCurrentNotification();
         }
     }
 
-    private void createMusicProviderStateDescription(List<JsonMusicProvider> jsonMusicProviders) {
+    private void createMusicProviderStateDescription(List<MusicProviderTO> musicProviders) {
         List<StateOption> options = new ArrayList<>();
-        for (JsonMusicProvider musicProvider : jsonMusicProviders) {
-            List<String> properties = musicProvider.supportedProperties;
+        for (MusicProviderTO musicProvider : musicProviders) {
+            if (!musicProvider.supportedProperties.contains("Alexa.Music.PlaySearchPhrase")) {
+                continue;
+            }
             String providerId = musicProvider.id;
             String displayName = musicProvider.displayName;
-            if (properties != null && properties.contains("Alexa.Music.PlaySearchPhrase") && providerId != null
-                    && !providerId.isEmpty() && "AVAILABLE".equals(musicProvider.availability) && displayName != null
-                    && !displayName.isEmpty()) {
-                options.add(new StateOption(providerId, displayName));
+            if (isNotBlank(providerId) && "AVAILABLE".equals(musicProvider.availability)) {
+                options.add(new StateOption(providerId, isNotBlank(displayName) ? displayName : providerId));
             }
         }
         ChannelUID channelUID = new ChannelUID(thing.getUID(), CHANNEL_MUSIC_PROVIDER_ID);
@@ -796,60 +676,10 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
         }
     }
 
-    private void createAlarmSoundsCommandOptions(List<JsonNotificationSound> alarmSounds) {
-        List<CommandOption> options = new ArrayList<>();
-        for (JsonNotificationSound notificationSound : alarmSounds) {
-            if (notificationSound.folder == null && notificationSound.providerId != null && notificationSound.id != null
-                    && notificationSound.displayName != null) {
-                String providerSoundId = notificationSound.providerId + ":" + notificationSound.id;
-                options.add(new CommandOption(providerSoundId, notificationSound.displayName));
-            }
-        }
-        ChannelUID channelUID = new ChannelUID(thing.getUID(), CHANNEL_PLAY_ALARM_SOUND);
-        dynamicCommandDescriptionProvider.setCommandOptions(channelUID, options);
-    }
-
-    private void createPlaylistsCommandOptions(JsonPlaylists playlists) {
-        List<CommandOption> options = new ArrayList<>();
-        Map<String, JsonPlaylists.PlayList @Nullable []> playlistMap = playlists.playlists;
-        if (playlistMap != null) {
-            for (JsonPlaylists.PlayList[] innerLists : playlistMap.values()) {
-                if (innerLists != null && innerLists.length > 0) {
-                    JsonPlaylists.PlayList playList = innerLists[0];
-                    final String value = playList.playlistId;
-                    if (value != null && playList.title != null) {
-                        options.add(new CommandOption(value,
-                                String.format("%s (%d)", playList.title, playList.trackCount)));
-                    }
-                }
-            }
-        }
-        ChannelUID channelUID = new ChannelUID(thing.getUID(), CHANNEL_AMAZON_MUSIC_PLAY_LIST_ID);
-        dynamicCommandDescriptionProvider.setCommandOptions(channelUID, options);
-    }
-
-    public void createStartCommandCommandOptions(Set<FlashBriefingProfileHandler> flashBriefingProfileHandlers) {
-        List<CommandOption> options = new ArrayList<>();
-        options.add(new CommandOption("Weather", "Weather"));
-        options.add(new CommandOption("Traffic", "Traffic"));
-        options.add(new CommandOption("GoodMorning", "Good morning"));
-        options.add(new CommandOption("SingASong", "Song"));
-        options.add(new CommandOption("TellStory", "Story"));
-        options.add(new CommandOption("FlashBriefing", "Flash briefing"));
-
-        for (FlashBriefingProfileHandler flashBriefing : flashBriefingProfileHandlers) {
-            String value = FLASH_BRIEFING_COMMAND_PREFIX + flashBriefing.getThing().getUID().getId();
-            String displayName = flashBriefing.getThing().getLabel();
-            options.add(new CommandOption(value, displayName));
-        }
-        ChannelUID channelUID = new ChannelUID(thing.getUID(), CHANNEL_START_COMMAND);
-        dynamicCommandDescriptionProvider.setCommandOptions(channelUID, options);
-    }
-
-    private void createBluetoothMACStateDescription(BluetoothState bluetoothState) {
+    private void createBluetoothMACStateDescription(BluetoothStateTO bluetoothState) {
         List<StateOption> options = new ArrayList<>();
         options.add(new StateOption("", ""));
-        for (PairedDevice device : bluetoothState.getPairedDeviceList()) {
+        for (BluetoothPairedDeviceTO device : bluetoothState.pairedDeviceList) {
             final String value = device.address;
             if (value != null && device.friendlyName != null) {
                 options.add(new StateOption(value, device.friendlyName));
@@ -864,168 +694,182 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
         }
     }
 
-    public void updateState(AccountHandler accountHandler, @Nullable Device device,
-            @Nullable BluetoothState bluetoothState, @Nullable DeviceNotificationState deviceNotificationState,
-            @Nullable AscendingAlarmModel ascendingAlarmModel,
-            @Nullable DoNotDisturbDeviceStatus doNotDisturbDeviceStatus, @Nullable JsonPlaylists playlists,
-            @Nullable List<JsonNotificationSound> alarmSounds, @Nullable List<JsonMusicProvider> musicProviders) {
-        try {
+    private void updateMediaPlayerState(PlayerStateInfoTO playerInfo, boolean sequenceNodeRunning, int timeFactor) {
+        PlayerStateProviderTO provider = playerInfo.provider;
+        PlayerStateInfoTextTO infoText = playerInfo.infoText != null ? playerInfo.infoText : playerInfo.miniInfoText;
+        PlayerStateMainArtTO mainArt = playerInfo.mainArt;
+        String musicProviderId = null;
+        PlayerStateProgressTO progress = playerInfo.progress;
+        if (provider != null) {
+            musicProviderId = provider.providerName;
+            // Map the music provider id to the one used for starting music with voice command
+            if (musicProviderId != null) {
+                musicProviderId = musicProviderId.toUpperCase();
 
-            this.logger.debug("Handle updateState {}", this.getThing().getUID());
+                if ("AMAZON MUSIC".equals(musicProviderId) || "CLOUD_PLAYER".equals(musicProviderId)) {
+                    musicProviderId = "AMAZON_MUSIC";
+                }
+                if (musicProviderId.startsWith("TUNEIN")) {
+                    musicProviderId = "TUNEIN";
+                }
+                if (musicProviderId.startsWith("IHEARTRADIO")) {
+                    musicProviderId = "I_HEART_RADIO";
+                }
+                if (musicProviderId.startsWith("APPLE") && musicProviderId.contains("MUSIC")) {
+                    musicProviderId = "APPLE_MUSIC";
+                }
+            }
+        }
+
+        // check playing
+        isPlaying = "PLAYING".equals(playerInfo.state);
+        isPaused = "PAUSED".equals(playerInfo.state);
+
+        if (isPlaying) {
+            currentlyPlayingQueueId = playerInfo.queueId;
+        }
+
+        synchronized (progressLock) {
+            if (isPlaying) {
+                if (progress != null) {
+                    mediaProgressMs = progress.mediaProgress * timeFactor;
+                    mediaLengthMs = progress.mediaLength * timeFactor;
+                    mediaStartMs = System.currentTimeMillis() - mediaProgressMs;
+                }
+                if (updateProgressJob == null) {
+                    updateProgressJob = scheduler.scheduleWithFixedDelay(() -> updateMediaProgress(false), 1000, 1000,
+                            TimeUnit.MILLISECONDS);
+                }
+            } else {
+                stopProgressTimer();
+                mediaProgressMs = 0;
+                mediaStartMs = 0;
+                mediaLengthMs = 0;
+            }
+            updateMediaProgress(true);
+        }
+
+        // handle music provider id
+        if (musicProviderId != null && isPlaying) {
+            this.musicProviderId = musicProviderId;
+        }
+
+        // handle title, subtitle, imageUrl
+        String title = "";
+        String subTitle1 = "";
+        String subTitle2 = "";
+        String imageUrl = "";
+        if (infoText != null) {
+            if (infoText.title != null) {
+                title = infoText.title;
+            }
+            if (infoText.subText1 != null) {
+                subTitle1 = infoText.subText1;
+            }
+
+            if (infoText.subText2 != null) {
+                subTitle2 = infoText.subText2;
+            }
+        }
+        if (mainArt != null) {
+            if (mainArt.url != null) {
+                imageUrl = mainArt.url;
+            }
+        }
+
+        // handle provider
+        String providerDisplayName = "";
+        if (provider != null) {
+            providerDisplayName = Objects.requireNonNullElse(provider.providerDisplayName, providerDisplayName);
+            String providerName = provider.providerName;
+            if (isNotBlank(providerName) && providerDisplayName.isEmpty()) {
+                providerDisplayName = providerName;
+            }
+        }
+
+        // handle volume
+        if (!sequenceNodeRunning) {
+            Integer volume = null;
+            PlayerStateVolumeTO volumeInfo = playerInfo.volume;
+            if (volumeInfo != null) {
+                volume = volumeInfo.volume;
+            }
+            if (volume != null && volume > 0) {
+                lastKnownVolume = volume;
+                updateState(CHANNEL_VOLUME, new PercentType(volume));
+            }
+        }
+
+        // Update states
+        updateState(CHANNEL_MUSIC_PROVIDER_ID, new StringType(musicProviderId));
+        updateState(CHANNEL_PROVIDER_DISPLAY_NAME, new StringType(providerDisplayName));
+        updateState(CHANNEL_PLAYER, isPlaying ? PlayPauseType.PLAY : PlayPauseType.PAUSE);
+        updateState(CHANNEL_IMAGE_URL, new StringType(imageUrl));
+        updateState(CHANNEL_TITLE, new StringType(title));
+        updateState(CHANNEL_SUBTITLE1, new StringType(subTitle1));
+        updateState(CHANNEL_SUBTITLE2, new StringType(subTitle2));
+    }
+
+    public void updateState(DeviceTO device, @Nullable BluetoothStateTO bluetoothState,
+            @Nullable DeviceNotificationStateTO deviceNotificationState,
+            @Nullable AscendingAlarmModelTO ascendingAlarmModel,
+            @Nullable DoNotDisturbDeviceStatusTO doNotDisturbDeviceStatus,
+            @Nullable List<MusicProviderTO> musicProviders) {
+        try {
+            waitingForUpdate.set(false);
+            logger.debug("Handle updateState {}", this.getThing().getUID());
 
             if (deviceNotificationState != null) {
-                notificationVolumeLevel = deviceNotificationState.volumeLevel;
+                int notificationVolumeLevel = deviceNotificationState.volumeLevel;
+                updateState(CHANNEL_NOTIFICATION_VOLUME, new PercentType(notificationVolumeLevel));
             }
+
             if (ascendingAlarmModel != null) {
-                ascendingAlarm = ascendingAlarmModel.ascendingAlarmEnabled;
+                boolean ascendingAlarm = ascendingAlarmModel.ascendingAlarmEnabled;
+                updateState(CHANNEL_ASCENDING_ALARM, OnOffType.from(ascendingAlarm));
             }
+
             if (doNotDisturbDeviceStatus != null) {
-                doNotDisturb = doNotDisturbDeviceStatus.enabled;
+                boolean doNotDisturb = doNotDisturbDeviceStatus.enabled;
+                updateState(CHANNEL_DO_NOT_DISTURB, OnOffType.from(doNotDisturb));
             }
-            if (playlists != null) {
-                createPlaylistsCommandOptions(playlists);
-            }
-            if (alarmSounds != null) {
-                createAlarmSoundsCommandOptions(alarmSounds);
-            }
+
             if (musicProviders != null) {
                 createMusicProviderStateDescription(musicProviders);
             }
-            if (!setDeviceAndUpdateThingState(accountHandler, device, null)) {
-                this.logger.debug("Handle updateState {} aborted: Not online", this.getThing().getUID());
-                return;
-            }
-            if (device == null) {
-                this.logger.debug("Handle updateState {} aborted: No device", this.getThing().getUID());
+
+            if (!setDeviceAndUpdateThingStatus(device, null)) {
+                logger.debug("Handle updateState {} aborted: Not online", this.getThing().getUID());
                 return;
             }
 
-            if (this.disableUpdate) {
-                this.logger.debug("Handle updateState {} aborted: Disabled", this.getThing().getUID());
+            if (disableUpdate) {
+                logger.debug("Handle updateState {} aborted: Disabled", this.getThing().getUID());
                 return;
             }
-            Connection connection = this.findConnection();
+
+            Connection connection = findConnection().orElse(null);
             if (connection == null) {
                 return;
             }
 
-            if (this.lastKnownEqualizer == null) {
+            if (lastKnownEqualizer == null) {
                 updateEqualizerState();
             }
 
-            PlayerInfo playerInfo = null;
-            Provider provider = null;
-            InfoText infoText = null;
-            MainArt mainArt = null;
-            String musicProviderId = null;
-            Progress progress = null;
             try {
-                JsonPlayerState playerState = connection.getPlayer(device);
-                if (playerState != null) {
-                    playerInfo = playerState.playerInfo;
-                    if (playerInfo != null) {
-                        infoText = playerInfo.infoText;
-                        if (infoText == null) {
-                            infoText = playerInfo.miniInfoText;
-                        }
-                        mainArt = playerInfo.mainArt;
-                        provider = playerInfo.provider;
-                        if (provider != null) {
-                            musicProviderId = provider.providerName;
-                            // Map the music provider id to the one used for starting music with voice command
-                            if (musicProviderId != null) {
-                                musicProviderId = musicProviderId.toUpperCase();
-
-                                if ("AMAZON MUSIC".equals(musicProviderId)) {
-                                    musicProviderId = "AMAZON_MUSIC";
-                                }
-                                if ("CLOUD_PLAYER".equals(musicProviderId)) {
-                                    musicProviderId = "AMAZON_MUSIC";
-                                }
-                                if (musicProviderId.startsWith("TUNEIN")) {
-                                    musicProviderId = "TUNEIN";
-                                }
-                                if (musicProviderId.startsWith("IHEARTRADIO")) {
-                                    musicProviderId = "I_HEART_RADIO";
-                                }
-                                if (musicProviderId.startsWith("APPLE") && musicProviderId.contains("MUSIC")) {
-                                    musicProviderId = "APPLE_MUSIC";
-                                }
-                            }
-                        }
-                        progress = playerInfo.progress;
-                    }
-                }
+                PlayerStateTO playerState = connection.getPlayerState(device);
+                updateMediaPlayerState(playerState.playerInfo, connection.isSequenceNodeQueueRunning(), 1000);
             } catch (ConnectionException e) {
-                logger.info("Failed to get player queue");
-            }
-            // check playing
-            isPlaying = (playerInfo != null && "PLAYING".equals(playerInfo.state));
-
-            isPaused = (playerInfo != null && "PAUSED".equals(playerInfo.state));
-            synchronized (progressLock) {
-                Boolean showTime = null;
-                Long mediaLength = null;
-                Long mediaProgress = null;
-                if (progress != null) {
-                    showTime = progress.showTiming;
-                    mediaLength = progress.mediaLength;
-                    mediaProgress = progress.mediaProgress;
-                }
-                if (showTime != null && showTime && mediaProgress != null && mediaLength != null) {
-                    mediaProgressMs = mediaProgress * 1000;
-                    mediaLengthMs = mediaLength * 1000;
-                    mediaStartMs = System.currentTimeMillis() - mediaProgressMs;
-                    if (isPlaying) {
-                        if (updateProgressJob == null) {
-                            updateProgressJob = scheduler.scheduleWithFixedDelay(this::updateMediaProgress, 1000, 1000,
-                                    TimeUnit.MILLISECONDS);
-                        }
-                    } else {
-                        stopProgressTimer();
-                    }
-                } else {
-                    stopProgressTimer();
-                    mediaProgressMs = 0;
-                    mediaStartMs = 0;
-                    mediaLengthMs = 0;
-                }
-                updateMediaProgress(true);
-            }
-
-            JsonMediaState mediaState = null;
-            if ("AMAZON_MUSIC".equalsIgnoreCase(musicProviderId) || "TUNEIN".equalsIgnoreCase(musicProviderId)) {
-                mediaState = connection.getMediaState(device);
-            }
-
-            // handle music provider id
-            if (provider != null && isPlaying) {
-                if (musicProviderId != null) {
-                    this.musicProviderId = musicProviderId;
-                }
-            }
-
-            // handle amazon music
-            String amazonMusicTrackId = "";
-            String amazonMusicPlayListId = "";
-            boolean amazonMusic = false;
-            if (mediaState != null) {
-                String contentId = mediaState.contentId;
-                if (isPlaying && "CLOUD_PLAYER".equals(mediaState.providerId) && contentId != null
-                        && !contentId.isEmpty()) {
-                    amazonMusicTrackId = contentId;
-                    lastKnownAmazonMusicId = amazonMusicTrackId;
-                    amazonMusic = true;
-                }
+                // ignored
             }
 
             // handle bluetooth
-            String bluetoothMAC = "";
-            String bluetoothDeviceName = "";
-            boolean bluetoothIsConnected = false;
-
             if (bluetoothState != null) {
-                for (PairedDevice paired : bluetoothState.getPairedDeviceList()) {
+                String bluetoothMAC = "";
+                String bluetoothDeviceName = "";
+                boolean bluetoothIsConnected = false;
+                for (BluetoothPairedDeviceTO paired : bluetoothState.pairedDeviceList) {
                     String pairedAddress = paired.address;
                     if (paired.connected && pairedAddress != null) {
                         bluetoothIsConnected = true;
@@ -1039,153 +883,12 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
                     }
                 }
                 createBluetoothMACStateDescription(bluetoothState);
-            }
-
-            // handle radio
-            boolean isRadio = false;
-            String radioStationId = "";
-            if (mediaState != null) {
-                radioStationId = Objects.requireNonNullElse(mediaState.radioStationId, "");
-                if (!radioStationId.isEmpty()) {
-                    lastKnownRadioStationId = radioStationId;
-                    if ("TUNEIN".equalsIgnoreCase(musicProviderId)) {
-                        isRadio = true;
-                        if (!"PLAYING".equals(mediaState.currentState)) {
-                            radioStationId = "";
-                        }
-                    }
-                }
-            }
-
-            // handle title, subtitle, imageUrl
-            String title = "";
-            String subTitle1 = "";
-            String subTitle2 = "";
-            String imageUrl = "";
-            if (infoText != null) {
-                if (infoText.title != null) {
-                    title = infoText.title;
-                }
-                if (infoText.subText1 != null) {
-                    subTitle1 = infoText.subText1;
-                }
-
-                if (infoText.subText2 != null) {
-                    subTitle2 = infoText.subText2;
-                }
-            }
-            if (mainArt != null) {
-                if (mainArt.url != null) {
-                    imageUrl = mainArt.url;
-                }
-            }
-            if (mediaState != null) {
-                List<QueueEntry> queueEntries = Objects.requireNonNullElse(mediaState.queue, List.of());
-                if (!queueEntries.isEmpty()) {
-                    QueueEntry entry = queueEntries.get(0);
-                    if (isRadio) {
-                        if ((imageUrl == null || imageUrl.isEmpty()) && entry.imageURL != null) {
-                            imageUrl = entry.imageURL;
-                        }
-                        if ((subTitle1 == null || subTitle1.isEmpty()) && entry.radioStationSlogan != null) {
-                            subTitle1 = entry.radioStationSlogan;
-                        }
-                        if ((subTitle2 == null || subTitle2.isEmpty()) && entry.radioStationLocation != null) {
-                            subTitle2 = entry.radioStationLocation;
-                        }
-                    }
-                }
-            }
-
-            // handle provider
-            String providerDisplayName = "";
-            if (provider != null) {
-                if (provider.providerDisplayName != null) {
-                    providerDisplayName = Objects.requireNonNullElse(provider.providerDisplayName, providerDisplayName);
-                }
-                String providerName = provider.providerName;
-                if (providerName != null && !providerName.isEmpty() && providerDisplayName.isEmpty()) {
-                    providerDisplayName = provider.providerName;
-                }
-            }
-
-            // handle volume
-            Integer volume = null;
-            if (!connection.isSequenceNodeQueueRunning()) {
-                if (mediaState != null) {
-                    volume = mediaState.volume;
-                }
-                if (playerInfo != null && volume == null) {
-                    Volume volumnInfo = playerInfo.volume;
-                    if (volumnInfo != null) {
-                        volume = volumnInfo.volume;
-                    }
-                }
-                if (volume != null && volume > 0) {
-                    lastKnownVolume = volume;
-                }
-                if (volume == null) {
-                    volume = lastKnownVolume;
-                }
-            }
-            // Update states
-            if (updateRemind && currentNotifcationUpdateTimer == null) {
-                updateRemind = false;
-                updateState(CHANNEL_REMIND, StringType.EMPTY);
-            }
-            if (updateRoutine) {
-                updateRoutine = false;
-                updateState(CHANNEL_START_ROUTINE, StringType.EMPTY);
-            }
-            if (updateTextToSpeech) {
-                updateTextToSpeech = false;
-                updateState(CHANNEL_TEXT_TO_SPEECH, StringType.EMPTY);
-            }
-            if (updateTextCommand) {
-                updateTextCommand = false;
-                updateState(CHANNEL_TEXT_COMMAND, StringType.EMPTY);
-            }
-            if (updatePlayMusicVoiceCommand) {
-                updatePlayMusicVoiceCommand = false;
-                updateState(CHANNEL_PLAY_MUSIC_VOICE_COMMAND, StringType.EMPTY);
-            }
-
-            updateState(CHANNEL_MUSIC_PROVIDER_ID, new StringType(musicProviderId));
-            updateState(CHANNEL_AMAZON_MUSIC_TRACK_ID, new StringType(amazonMusicTrackId));
-            updateState(CHANNEL_AMAZON_MUSIC, isPlaying && amazonMusic ? OnOffType.ON : OnOffType.OFF);
-            updateState(CHANNEL_AMAZON_MUSIC_PLAY_LIST_ID, new StringType(amazonMusicPlayListId));
-            updateState(CHANNEL_RADIO_STATION_ID, new StringType(radioStationId));
-            updateState(CHANNEL_RADIO, isPlaying && isRadio ? OnOffType.ON : OnOffType.OFF);
-            updateState(CHANNEL_PROVIDER_DISPLAY_NAME, new StringType(providerDisplayName));
-            updateState(CHANNEL_PLAYER, isPlaying ? PlayPauseType.PLAY : PlayPauseType.PAUSE);
-            updateState(CHANNEL_IMAGE_URL, new StringType(imageUrl));
-            updateState(CHANNEL_TITLE, new StringType(title));
-            if (volume != null) {
-                updateState(CHANNEL_VOLUME, new PercentType(volume));
-            }
-            updateState(CHANNEL_SUBTITLE1, new StringType(subTitle1));
-            updateState(CHANNEL_SUBTITLE2, new StringType(subTitle2));
-            if (bluetoothState != null) {
                 updateState(CHANNEL_BLUETOOTH, bluetoothIsConnected ? OnOffType.ON : OnOffType.OFF);
                 updateState(CHANNEL_BLUETOOTH_MAC, new StringType(bluetoothMAC));
                 updateState(CHANNEL_BLUETOOTH_DEVICE_NAME, new StringType(bluetoothDeviceName));
             }
-
-            updateState(CHANNEL_ASCENDING_ALARM,
-                    ascendingAlarm != null ? (ascendingAlarm ? OnOffType.ON : OnOffType.OFF) : UnDefType.UNDEF);
-
-            updateState(CHANNEL_DO_NOT_DISTURB,
-                    doNotDisturb != null ? (doNotDisturb ? OnOffType.ON : OnOffType.OFF) : UnDefType.UNDEF);
-
-            final Integer notificationVolumeLevel = this.notificationVolumeLevel;
-            if (notificationVolumeLevel != null) {
-                updateState(CHANNEL_NOTIFICATION_VOLUME, new PercentType(notificationVolumeLevel));
-            } else {
-                updateState(CHANNEL_NOTIFICATION_VOLUME, UnDefType.UNDEF);
-            }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             this.logger.debug("Handle updateState {} failed: {}", this.getThing().getUID(), e.getMessage(), e);
-
             disableUpdate = false;
         }
     }
@@ -1195,48 +898,24 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
             return;
         }
 
-        Connection connection = findConnection();
-        if (connection == null) {
-            return;
-        }
-        Device device = findDevice();
+        DeviceTO device = this.device;
         if (device == null) {
             return;
-        }
-        Integer bass = null;
-        Integer midrange = null;
-        Integer treble = null;
-        try {
-            JsonEqualizer equalizer = connection.getEqualizer(device);
-            if (equalizer != null) {
-                bass = equalizer.bass;
-                midrange = equalizer.mid;
-                treble = equalizer.treble;
-            }
-            this.lastKnownEqualizer = equalizer;
-        } catch (ConnectionException e) {
-            logger.debug("Failed to get equalizer");
-            return;
-        }
-        if (bass != null) {
-            updateState(CHANNEL_EQUALIZER_BASS, new DecimalType(bass));
-        }
-        if (midrange != null) {
-            updateState(CHANNEL_EQUALIZER_MIDRANGE, new DecimalType(midrange));
-        }
-        if (treble != null) {
-            updateState(CHANNEL_EQUALIZER_TREBLE, new DecimalType(treble));
-        }
-    }
 
-    private void updateMediaProgress() {
-        updateMediaProgress(false);
+        }
+
+        findConnection().flatMap(connection -> connection.getEqualizer(device)).ifPresent(equalizer -> {
+            updateState(CHANNEL_EQUALIZER_BASS, new DecimalType(equalizer.bass));
+            updateState(CHANNEL_EQUALIZER_MIDRANGE, new DecimalType(equalizer.mid));
+            updateState(CHANNEL_EQUALIZER_TREBLE, new DecimalType(equalizer.treble));
+            this.lastKnownEqualizer = equalizer;
+        });
     }
 
     private void updateMediaProgress(boolean updateMediaLength) {
         synchronized (progressLock) {
-            if (mediaStartMs > 0) {
-                long currentPlayTimeMs = isPlaying ? System.currentTimeMillis() - mediaStartMs : mediaProgressMs;
+            if (isPlaying && mediaStartMs > 0) {
+                long currentPlayTimeMs = System.currentTimeMillis() - mediaStartMs;
                 if (mediaLengthMs > 0) {
                     int progressPercent = (int) Math.min(100,
                             Math.round((double) currentPlayTimeMs / (double) mediaLengthMs * 100));
@@ -1259,70 +938,129 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
         }
     }
 
-    public void handlePushActivity(CustomerHistoryRecord customerHistoryRecord) {
-        List<VoiceHistoryRecordItem> voiceHistoryRecordItems = customerHistoryRecord.voiceHistoryRecordItems;
-        if (voiceHistoryRecordItems != null) {
-            for (VoiceHistoryRecordItem voiceHistoryRecordItem : voiceHistoryRecordItems) {
-                String recordItemType = voiceHistoryRecordItem.recordItemType;
-                if ("CUSTOMER_TRANSCRIPT".equals(recordItemType) || "ASR_REPLACEMENT_TEXT".equals(recordItemType)) {
-                    String customerTranscript = voiceHistoryRecordItem.transcriptText;
-                    if (customerTranscript != null && !customerTranscript.isEmpty()) {
-                        // REMOVE WAKEWORD
-                        String wakeWordPrefix = this.wakeWord;
-                        if (wakeWordPrefix != null
-                                && customerTranscript.toLowerCase().startsWith(wakeWordPrefix.toLowerCase())) {
-                            customerTranscript = customerTranscript.substring(wakeWordPrefix.length()).trim();
-                            // STOP IF WAKEWORD ONLY
-                            if (customerTranscript.isEmpty()) {
-                                return;
-                            }
+    public synchronized void handlePushActivity(CustomerHistoryRecordTO customerHistoryRecord) {
+        long recordTimestamp = customerHistoryRecord.timestamp;
+        if (recordTimestamp <= lastCustomerHistoryRecordTimestamp) {
+            return;
+        }
+        lastCustomerHistoryRecordTimestamp = recordTimestamp;
+        List<CustomerHistoryRecordVoiceTO> voiceHistoryRecordItems = customerHistoryRecord.voiceHistoryRecordItems;
+        for (CustomerHistoryRecordVoiceTO voiceHistoryRecordItem : voiceHistoryRecordItems) {
+            String recordItemType = voiceHistoryRecordItem.recordItemType;
+            if ("CUSTOMER_TRANSCRIPT".equals(recordItemType) || "ASR_REPLACEMENT_TEXT".equals(recordItemType)) {
+                String customerTranscript = voiceHistoryRecordItem.transcriptText;
+                if (!customerTranscript.isEmpty()) {
+                    // REMOVE WAKE WORD
+                    String wakeWordPrefix = this.wakeWord;
+                    if (wakeWordPrefix != null
+                            && customerTranscript.toLowerCase().startsWith(wakeWordPrefix.toLowerCase())) {
+                        customerTranscript = customerTranscript.substring(wakeWordPrefix.length()).trim();
+                        // STOP IF WAKE WORD ONLY
+                        if (customerTranscript.isEmpty()) {
+                            return;
                         }
-                        updateState(CHANNEL_LAST_VOICE_COMMAND, new StringType(customerTranscript));
                     }
-                } else if ("ALEXA_RESPONSE".equals(recordItemType) || "TTS_REPLACEMENT_TEXT".equals(recordItemType)) {
-                    String alexaResponse = voiceHistoryRecordItem.transcriptText;
-                    if (alexaResponse != null && !alexaResponse.isEmpty()) {
-                        updateState(CHANNEL_LAST_SPOKEN_TEXT, new StringType(alexaResponse));
-                    }
+                    updateState(CHANNEL_LAST_VOICE_COMMAND, new StringType(customerTranscript));
+                }
+            } else if ("ALEXA_RESPONSE".equals(recordItemType) || "TTS_REPLACEMENT_TEXT".equals(recordItemType)) {
+                String alexaResponse = voiceHistoryRecordItem.transcriptText;
+                if (alexaResponse != null && !alexaResponse.isEmpty()) {
+                    updateState(CHANNEL_LAST_SPOKEN_TEXT, new StringType(alexaResponse));
                 }
             }
         }
     }
 
+    public void handleNowPlayingUpdated(PlayerStateInfoTO playerState) {
+        findConnection().ifPresent(connection -> {
+            if (currentlyPlayingQueueId.equals(playerState.queueId)) {
+                // update when the queueId is the same
+                updateMediaPlayerState(playerState, connection.isSequenceNodeQueueRunning(), 1);
+            }
+        });
+    }
+
+    public void updateMediaSessions() {
+        findConnection().ifPresent(connection -> {
+            DeviceTO device = this.device;
+            if (device == null || !isPlaying) {
+                return;
+            }
+            List<MediaSessionTO> mediaSessions = connection.getMediaSessions(device);
+            for (MediaSessionTO mediaSession : mediaSessions) {
+                if (findIn(mediaSession.endpointList, e -> e.id.deviceSerialNumber, device.serialNumber).isPresent()) {
+                    updateMediaPlayerState(mediaSession.nowPlayingData, connection.isSequenceNodeQueueRunning(), 1000);
+                }
+            }
+        });
+    }
+
+    private void refreshAudioPlayerState() {
+        findConnection().ifPresent(connection -> {
+            try {
+                DeviceTO device = this.device;
+                if (device != null) {
+                    PlayerStateTO playerState = connection.getPlayerState(device);
+                    updateMediaPlayerState(playerState.playerInfo, connection.isSequenceNodeQueueRunning(), 1000);
+                }
+            } catch (ConnectionException ignored) {
+            }
+        });
+    }
+
     public void handlePushCommand(String command, String payload) {
         this.logger.debug("Handle push command {}", command);
+        Connection connection = this.findConnection().orElse(null);
+
         switch (command) {
             case "PUSH_VOLUME_CHANGE":
-                JsonCommandPayloadPushVolumeChange volumeChange = Objects
-                        .requireNonNull(gson.fromJson(payload, JsonCommandPayloadPushVolumeChange.class));
-                Connection connection = this.findConnection();
-                Integer volumeSetting = volumeChange.volumeSetting;
-                Boolean muted = volumeChange.isMuted;
-                if (muted != null && muted) {
+                PushVolumeChangeTO volumeChange = Objects
+                        .requireNonNull(gson.fromJson(payload, PushVolumeChangeTO.class));
+
+                if (volumeChange.isMuted) {
                     updateState(CHANNEL_VOLUME, new PercentType(0));
                 }
-                if (volumeSetting != null && connection != null && !connection.isSequenceNodeQueueRunning()) {
-                    lastKnownVolume = volumeSetting;
+                if (connection != null && !connection.isSequenceNodeQueueRunning()) {
+                    lastKnownVolume = volumeChange.volumeSetting;
                     updateState(CHANNEL_VOLUME, new PercentType(lastKnownVolume));
                 }
                 break;
             case "PUSH_EQUALIZER_STATE_CHANGE":
-                updateEqualizerState();
+                PushEqualizerStateChangeTO equalizerStateChange = Objects
+                        .requireNonNull(gson.fromJson(payload, PushEqualizerStateChangeTO.class));
+                updateState(CHANNEL_EQUALIZER_BASS, new DecimalType(equalizerStateChange.bass));
+                updateState(CHANNEL_EQUALIZER_MIDRANGE, new DecimalType(equalizerStateChange.midrange));
+                updateState(CHANNEL_EQUALIZER_TREBLE, new DecimalType(equalizerStateChange.treble));
+                break;
+            case "PUSH_AUDIO_PLAYER_STATE":
+                PushAudioPlayerStateTO audioPlayerState = Objects
+                        .requireNonNull(gson.fromJson(payload, PushAudioPlayerStateTO.class));
+                // FINISHED is emitted when the track finished, but the player continues with the next track
+                // PLAYING is emitted when a track starts (either first nextAlarmTime or next track)
+                // INTERRUPTED is emitted when the player finally stops
+                if (audioPlayerState.audioPlayerState == INTERRUPTED
+                        || (!isPlaying && audioPlayerState.audioPlayerState == PLAYING)
+                        || ("SPOTIFY".equals(musicProviderId))) {
+                    // we only need to update the state when the player stops or starts, not on track changes
+                    // except for spotify
+                    refreshAudioPlayerState();
+                }
+                break;
+            case "PUSH_MEDIA_QUEUE_CHANGE":
+                // update the media state with a request to get the new queue id
+                refreshAudioPlayerState();
                 break;
             default:
-                AccountHandler account = this.account;
-                Device device = this.device;
-                if (account != null && device != null) {
+                DeviceTO device = this.device;
+                if (device != null) {
                     this.disableUpdate = false;
-                    updateState(account, device, null, null, null, null, null, null, null);
+                    updateState(device, null, null, null, null, null);
                 }
         }
     }
 
-    public void updateNotifications(ZonedDateTime currentTime, ZonedDateTime now,
-            @Nullable JsonCommandPayloadPushNotificationChange pushPayload,
-            List<JsonNotificationResponse> notifications) {
-        Device device = this.device;
+    public void updateNotifications(List<Notification> notifications) {
+        DeviceTO device = this.device;
         if (device == null) {
             return;
         }
@@ -1331,53 +1069,30 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
         ZonedDateTime nextAlarm = null;
         ZonedDateTime nextMusicAlarm = null;
         ZonedDateTime nextTimer = null;
-        for (JsonNotificationResponse notification : notifications) {
-            if (Objects.equals(notification.deviceSerialNumber, device.serialNumber)) {
-                // notification for this device
-                if ("ON".equals(notification.status)) {
-                    if ("Reminder".equals(notification.type)) {
-                        String offset = ZoneId.systemDefault().getRules().getOffset(Instant.now()).toString();
-                        String date = notification.originalDate != null ? notification.originalDate
-                                : ZonedDateTime.now().toLocalDate().format(DateTimeFormatter.ISO_LOCAL_DATE);
-                        String time = notification.originalTime != null ? notification.originalTime : "00:00:00";
-                        ZonedDateTime alarmTime = ZonedDateTime.parse(date + "T" + time + offset,
-                                DateTimeFormatter.ISO_DATE_TIME);
-                        String recurringPattern = notification.recurringPattern;
-                        if (recurringPattern != null && !recurringPattern.isBlank() && alarmTime.isBefore(now)) {
-                            continue; // Ignore recurring entry if alarm time is before now
+        for (Notification notification : notifications) {
+            if (Objects.equals(notification.deviceSerial(), device.serialNumber)) {
+                switch (notification.type()) {
+                    case "Reminder":
+                        if (nextReminder == null || notification.nextAlarmTime().isBefore(nextReminder)) {
+                            nextReminder = notification.nextAlarmTime();
                         }
-                        if (nextReminder == null || alarmTime.isBefore(nextReminder)) {
-                            nextReminder = alarmTime;
+                        break;
+                    case "Timer":
+                        if (nextTimer == null || notification.nextAlarmTime().isBefore(nextTimer)) {
+                            nextTimer = notification.nextAlarmTime();
                         }
-                    } else if ("Timer".equals(notification.type)) {
-                        // use remaining time
-                        ZonedDateTime alarmTime = currentTime.plus(notification.remainingTime, ChronoUnit.MILLIS);
-                        if (nextTimer == null || alarmTime.isBefore(nextTimer)) {
-                            nextTimer = alarmTime;
+                        break;
+                    case "Alarm":
+                        if (nextAlarm == null || notification.nextAlarmTime().isBefore(nextAlarm)) {
+                            nextAlarm = notification.nextAlarmTime();
                         }
-                    } else if ("Alarm".equals(notification.type)) {
-                        String offset = ZoneId.systemDefault().getRules().getOffset(Instant.now()).toString();
-                        ZonedDateTime alarmTime = ZonedDateTime
-                                .parse(notification.originalDate + "T" + notification.originalTime + offset);
-                        String recurringPattern = notification.recurringPattern;
-                        if (recurringPattern != null && !recurringPattern.isBlank() && alarmTime.isBefore(now)) {
-                            continue; // Ignore recurring entry if alarm time is before now
+                        break;
+                    case "MusicAlarm":
+                        if (nextMusicAlarm == null || notification.nextAlarmTime().isBefore(nextMusicAlarm)) {
+                            nextMusicAlarm = notification.nextAlarmTime();
                         }
-                        if (nextAlarm == null || alarmTime.isBefore(nextAlarm)) {
-                            nextAlarm = alarmTime;
-                        }
-                    } else if ("MusicAlarm".equals(notification.type)) {
-                        String offset = ZoneId.systemDefault().getRules().getOffset(Instant.now()).toString();
-                        ZonedDateTime alarmTime = ZonedDateTime
-                                .parse(notification.originalDate + "T" + notification.originalTime + offset);
-                        String recurringPattern = notification.recurringPattern;
-                        if (recurringPattern != null && !recurringPattern.isBlank() && alarmTime.isBefore(now)) {
-                            continue; // Ignore recurring entry if alarm time is before now
-                        }
-                        if (nextMusicAlarm == null || alarmTime.isBefore(nextMusicAlarm)) {
-                            nextMusicAlarm = alarmTime;
-                        }
-                    }
+                        break;
+                    default:
                 }
             }
         }
@@ -1387,11 +1102,6 @@ public class EchoHandler extends UpdatingBaseThingHandler implements AmazonHandl
         updateState(CHANNEL_NEXT_MUSIC_ALARM,
                 nextMusicAlarm == null ? UnDefType.UNDEF : new DateTimeType(nextMusicAlarm));
         updateState(CHANNEL_NEXT_TIMER, nextTimer == null ? UnDefType.UNDEF : new DateTimeType(nextTimer));
-    }
-
-    @Override
-    public void updateChannelState(String channelId, State state) {
-        updateState(channelId, state);
     }
 
     @Override

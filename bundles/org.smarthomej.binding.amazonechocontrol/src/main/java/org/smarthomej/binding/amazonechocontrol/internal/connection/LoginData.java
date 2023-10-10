@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Scanner;
-import java.util.stream.Collectors;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -41,14 +40,17 @@ public class LoginData {
     private final CookieManager cookieManager;
 
     // data fields
-    public String frc;
-    public String serial;
-    public String deviceId;
-    public @Nullable String refreshToken;
-    public String amazonSite = "amazon.com";
-    public String deviceName = "Unknown";
-    public @Nullable String accountCustomerId;
-    public @Nullable Date loginTime;
+    private String frc;
+    private String serial;
+    private String deviceId;
+    private @Nullable String refreshToken;
+    private String retailDomain = "amazon.com";
+    private String retailUrl = "https://www.amazon.com";
+    private String websiteApiUrl = "https://alexa.amazon.com";
+
+    private String deviceName = "Unknown";
+    private String accountCustomerId = "";
+    private @Nullable Date loginTime;
     private List<Cookie> cookies = new ArrayList<>();
 
     public LoginData(CookieManager cookieManager, String deviceId, String frc, String serial) {
@@ -78,23 +80,104 @@ public class LoginData {
         this.deviceId = HexUtils.bytesToHex(hexStr.getBytes());
     }
 
+    public String getFrc() {
+        return frc;
+    }
+
+    public String getSerial() {
+        return serial;
+    }
+
+    public String getDeviceId() {
+        return deviceId;
+    }
+
+    public @Nullable String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public String getRetailDomain() {
+        return retailDomain;
+    }
+
+    public String getRetailUrl() {
+        return retailUrl;
+    }
+
+    public String getWebsiteApiUrl() {
+        return websiteApiUrl;
+    }
+
+    public String getDeviceName() {
+        return deviceName;
+    }
+
+    public String getAccountCustomerId() {
+        return accountCustomerId;
+    }
+
+    public @Nullable Date getLoginTime() {
+        return loginTime;
+    }
+
+    public void setFrc(String frc) {
+        this.frc = frc;
+    }
+
+    public void setSerial(String serial) {
+        this.serial = serial;
+    }
+
+    public void setDeviceId(String deviceId) {
+        this.deviceId = deviceId;
+    }
+
+    public void setRefreshToken(@Nullable String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
+
+    public void setRetailDomain(String retailDomain) {
+        this.retailDomain = retailDomain;
+    }
+
+    public void setRetailUrl(String retailUrl) {
+        this.retailUrl = retailUrl;
+    }
+
+    public void setWebsiteApiUrl(String websiteApiUrl) {
+        this.websiteApiUrl = websiteApiUrl;
+    }
+
+    public void setDeviceName(String deviceName) {
+        this.deviceName = deviceName;
+    }
+
+    public void setAccountCustomerId(String accountCustomerId) {
+        this.accountCustomerId = accountCustomerId;
+    }
+
+    public void setLoginTime(@Nullable Date loginTime) {
+        this.loginTime = loginTime;
+    }
+
     public String serializeLoginData() {
         Date loginTime = this.loginTime;
         if (refreshToken == null || loginTime == null) {
             return "";
         }
         StringBuilder builder = new StringBuilder();
-        builder.append("7\n"); // version
+        builder.append("8\n"); // version
         builder.append(frc).append("\n");
         builder.append(serial).append("\n");
         builder.append(deviceId).append("\n");
         builder.append(refreshToken).append("\n");
-        builder.append(amazonSite).append("\n");
+        builder.append(retailDomain).append("\n");
+        builder.append(retailUrl).append("\n");
+        builder.append(websiteApiUrl).append("\n");
         builder.append(deviceName).append("\n");
         builder.append(accountCustomerId).append("\n");
         builder.append(loginTime.getTime()).append("\n");
-        cookies = cookieManager.getCookieStore().getCookies().stream().map(LoginData.Cookie::fromHttpCookie)
-                .collect(Collectors.toList());
+        cookies = cookieManager.getCookieStore().getCookies().stream().map(LoginData.Cookie::fromHttpCookie).toList();
         builder.append(cookies.size()).append("\n");
         cookies.forEach(cookie -> builder.append(cookie.serialize()));
         return builder.toString();
@@ -104,7 +187,7 @@ public class LoginData {
         Scanner scanner = new Scanner(data);
         String version = scanner.nextLine();
         // check if serialize version is supported
-        if (!"7".equals(version)) {
+        if (!"7".equals(version) && !"8".equals(version)) {
             scanner.close();
             return false;
         }
@@ -114,12 +197,21 @@ public class LoginData {
         deviceId = scanner.nextLine();
 
         refreshToken = scanner.nextLine();
-        amazonSite = scanner.nextLine();
+        retailDomain = scanner.nextLine();
+        if ("8".equals(version)) {
+            retailUrl = scanner.nextLine();
+            websiteApiUrl = scanner.nextLine();
+        } else {
+            // this maybe incorrect, but it's the same code that we used before
+            retailUrl = "https://www." + retailDomain;
+            websiteApiUrl = "https://alexa." + retailDomain;
+        }
         deviceName = scanner.nextLine();
         accountCustomerId = scanner.nextLine();
         loginTime = new Date(Long.parseLong(scanner.nextLine()));
 
         int numberOfCookies = Integer.parseInt(scanner.nextLine());
+        cookies = new ArrayList<>();
         for (int i = 0; i < numberOfCookies; i++) {
             cookies.add(Cookie.fromScanner(scanner));
         }
@@ -218,5 +310,28 @@ public class LoginData {
             clientCookie.setDiscard(discard);
             return clientCookie;
         }
+    }
+
+    @Override
+    public boolean equals(@Nullable Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        LoginData loginData = (LoginData) o;
+        return Objects.equals(frc, loginData.frc) && Objects.equals(serial, loginData.serial)
+                && Objects.equals(deviceId, loginData.deviceId) && Objects.equals(refreshToken, loginData.refreshToken)
+                && Objects.equals(retailDomain, loginData.retailDomain)
+                && Objects.equals(retailUrl, loginData.retailUrl)
+                && Objects.equals(websiteApiUrl, loginData.websiteApiUrl)
+                && Objects.equals(deviceName, loginData.deviceName)
+                && Objects.equals(accountCustomerId, loginData.accountCustomerId)
+                && Objects.equals(loginTime, loginData.loginTime) && Objects.equals(cookies, loginData.cookies);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(frc, serial, deviceId, refreshToken, retailDomain, retailUrl, websiteApiUrl, deviceName,
+                accountCustomerId, loginTime, cookies);
     }
 }

@@ -4,12 +4,17 @@ This binding can control Amazon Echo devices (Alexa) and Smarthome devices conne
 
 Upgrade notice:
 
-- If you upgrade from a version before 2.5.0 you need to reset the account and login again (see at the bottom).
 - The `lastVoiceCommand` channel of the `amazonechocontrol` binding changed its behavior in version 3.2.8.
 Due to a wrong implementation the channel changed it's state to an empty string if the same command was received again.
 This has been corrected.
 If you want to be notified about every state update, please adjust your rule triggers to "received update".
-If you want to be notified about state changes (i.e. different commands), use `state changed`.
+If you want to be notified about state changes (i.e. different commands), use "state changed".
+- The write-only channels now use `autoUpdatePolicy=veto` (i.e. they don't update the item's state when a command was send).
+- The channels `amazonMusic`, `amazonMusicTrackId`, `amazonPlaylistId`, `radio` and `radioStationId` have been removed because they are no longer supported from Amazon.
+You can use the `textCommand` channel with a value of `Play playlist CrazyMusic on AmazonMusic` instead.
+- The `lastVoiceCommand` channel will be converted to a read-only channel.
+Using commands to that channel is deprecated and will stop working in future versions.
+Please use the `textToSpeech` channel instead.
 
 ## What this can be used for
 
@@ -105,11 +110,12 @@ The configuration of your Amazon account must be done in the 'Amazon Account' de
 
 ### Thing Configuration
 
-| Configuration name              | Default | Description                                                                                                                                       |
-|---------------------------------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------|
-| `discoverSmartHome`             | 0       | 0...No discover, 1...Discover direct connected, 2...Discover direct and Alexa skill devices, 3...Discover direct, Alexa and openHAB skill devices |
-| `pollingIntervalSmartHomeAlexa` | 30      | Defines the time in seconds for openHAB to pull the state of the Alexa connected devices. The minimum is 10 seconds.                              | 
-| `pollingIntervalSmartSkills`    | 120     | Defines the time in seconds for openHAB to pull the state of the over a skill connected devices. The minimum is 60 seconds.                       |
+| Configuration name              | Default | Description                                                                                                                                                                                                      |
+|---------------------------------|---------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `discoverSmartHome`             | 0       | 0...No discover, 1...Discover direct connected, 2...Discover direct and Alexa skill devices, 3...Discover direct, Alexa and openHAB skill devices                                                                |
+| `pollingIntervalSmartHomeAlexa` | 30      | Defines the time in seconds for openHAB to pull the state of the Alexa connected devices. The minimum is 10 seconds.                                                                                             | 
+| `pollingIntervalSmartSkills`    | 120     | Defines the time in seconds for openHAB to pull the state of the over a skill connected devices. The minimum is 60 seconds.                                                                                      |
+| `activityRequestDelay`          | 10      | The number of seconds between a voice command was detected and the received command is requested from the server. The minimum is 2 seconds. Lower values improve response time but may result in loss of events. |
 
 ### Channels
 
@@ -136,57 +142,45 @@ You will find the serial number in the Alexa app or on the webpage YOUR_OPENHAB/
 
 ### Channels
 
-| Channel Type ID           | Item Type   | Access Mode | Thing Type                    | Description                                                                                                                                                                                                                             |
-|---------------------------|-------------|-------------|-------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| player                    | Player      | R/W         | echo, echoshow, echospot, wha | Control the music player  (Supported commands: PLAY or ON, PAUSE or OFF, NEXT, PREVIOUS, REWIND, FASTFORWARD)                                                                                                                           |
-| volume                    | Dimmer      | R/W         | echo, echoshow, echospot      | Control the volume                                                                                                                                                                                                                      |
-| equalizerTreble           | Number      | R/W         | echo, echoshow, echospot      | Control the treble (value from -6 to 6)                                                                                                                                                                                                 |
-| equalizerMidrange         | Number      | R/W         | echo, echoshow, echospot      | Control the midrange (value from -6 to 6)                                                                                                                                                                                               |
-| equalizerBass             | Number      | R/W         | echo, echoshow, echospot      | Control the bass (value from -6 to 6)                                                                                                                                                                                                   |
-| shuffle                   | Switch      | R/W         | echo, echoshow, echospot, wha | Shuffle play if applicable, e.g. playing a playlist                                                                                                                                                                                     |
-| imageUrl                  | String      | R           | echo, echoshow, echospot, wha | Url of the album image or radio station logo                                                                                                                                                                                            |
-| title                     | String      | R           | echo, echoshow, echospot, wha | Title of the current media                                                                                                                                                                                                              |
-| subtitle1                 | String      | R           | echo, echoshow, echospot, wha | Subtitle of the current media                                                                                                                                                                                                           |
-| subtitle2                 | String      | R           | echo, echoshow, echospot, wha | Additional subtitle of the current media                                                                                                                                                                                                |
-| providerDisplayName       | String      | R           | echo, echoshow, echospot, wha | Name of the music provider                                                                                                                                                                                                              |
-| bluetoothMAC              | String      | R/W         | echo, echoshow, echospot      | Bluetooth device MAC. Used to connect to a specific device or disconnect if an empty string was provided                                                                                                                                |
-| bluetooth                 | Switch      | R/W         | echo, echoshow, echospot      | Connect/Disconnect to the last used bluetooth device (works after a bluetooth connection was established after the openHAB start)                                                                                                       |
-| bluetoothDeviceName       | String      | R           | echo, echoshow, echospot      | User friendly name of the connected bluetooth device                                                                                                                                                                                    |
-| radioStationId            | String      | R/W         | echo, echoshow, echospot, wha | Start playing of a TuneIn radio station by specifying its id or stops playing if an empty string was provided                                                                                                                           |
-| radio                     | Switch      | R/W         | echo, echoshow, echospot, wha | Start playing of the last used TuneIn radio station (works after the radio station started after the openHAB start)                                                                                                                     |
-| amazonMusicTrackId (*)    | String      | R/W         | echo, echoshow, echospot, wha | Start playing of an Amazon Music track by its id or stops playing if an empty string was provided                                                                                                                                       |
-| amazonMusicPlayListId (*) | String      | W           | echo, echoshow, echospot, wha | Write Only! Start playing of an Amazon Music playlist by specifying its id or stops playing if an empty string was provided.                                                                                                            |
-| amazonMusic (*)           | Switch      | R/W         | echo, echoshow, echospot, wha | Start playing of the last used Amazon Music song (works after at least one song was started after the openHAB start)                                                                                                                    |
-| remind                    | String      | R/W         | echo, echoshow, echospot      | Write Only! Speak the reminder and sends a notification to the Alexa app (Currently the reminder is played and notified two times, this seems to be a bug in the Amazon software)                                                       |
-| nextReminder              | DateTime    | R           | echo, echoshow, echospot      | Next reminder on the device                                                                                                                                                                                                             |
-| playAlarmSound            | String      | W           | echo, echoshow, echospot      | Write Only! Plays an Alarm sound                                                                                                                                                                                                        |
-| nextAlarm                 | DateTime    | R           | echo, echoshow, echospot      | Next alarm on the device                                                                                                                                                                                                                |
-| nextMusicAlarm            | DateTime    | R           | echo, echoshow, echospot      | Next music alarm on the device                                                                                                                                                                                                          |
-| nextTimer                 | DateTime    | R           | echo, echoshow, echospot      | Next timer on the device                                                                                                                                                                                                                |
-| startRoutine              | String      | W           | echo, echoshow, echospot      | Write Only! Type in what you normally say to Alexa without the preceding "Alexa,"                                                                                                                                                       |
-| musicProviderId           | String      | R/W         | echo, echoshow, echospot      | Current Music provider                                                                                                                                                                                                                  |
-| playMusicVoiceCommand     | String      | W           | echo, echoshow, echospot      | Write Only! Voice command as text. E.g. 'Yesterday from the Beatles'                                                                                                                                                                    |
-| startCommand              | String      | W           | echo, echoshow, echospot      | Write Only! Used to start anything. Available options: Weather, Traffic, GoodMorning, SingASong, TellStory, FlashBriefing and FlashBriefing.<FlahshbriefingDeviceID> (Note: The options are case sensitive)                             |
-| announcement              | String      | W           | echo, echoshow, echospot      | Write Only! Display the announcement message on the display. See in the tutorial section to learn how it’s possible to set the title and turn off the sound.                                                                            |
-| textToSpeech              | String      | W           | echo, echoshow, echospot      | Write Only! Write some text to this channel and Alexa will speak it. It is possible to use plain text or SSML: e.g. `<speak>I want to tell you a secret.<amazon:effect name="whispered">I am not a real human.</amazon:effect></speak>` |
-| textToSpeechVolume        | Dimmer      | R/W         | echo, echoshow, echospot      | Volume of the textToSpeech channel, if 0 the current volume will be used                                                                                                                                                                |
-| textCommand               | String      | W           | echo, echoshow, echospot      | Write Only! Execute a text command (like a spoken text)                                                                                                                                                                                 |
-| lastVoiceCommand          | String      | R/W         | echo, echoshow, echospot      | Last voice command spoken to the device. Writing to the channel starts voice output.                                                                                                                                                    |
-| lastSpokenText      	     | String      | R         	 | echo, echoshow, echospot      | Last spoken text from the device. (for example statements, answers and text to speeches)                                                                                                                                                |
-| mediaProgress             | Dimmer      | R/W         | echo, echoshow, echospot      | Media progress in percent                                                                                                                                                                                                               |
-| mediaProgressTime         | Number:Time | R/W         | echo, echoshow, echospot      | Media play time                                                                                                                                                                                                                         |
-| mediaLength               | Number:Time | R           | echo, echoshow, echospot      | Media length                                                                                                                                                                                                                            |
-| notificationVolume        | Dimmer      | R           | echo, echoshow, echospot      | Notification volume                                                                                                                                                                                                                     |
-| ascendingAlarm            | Switch      | R/W         | echo, echoshow, echospot      | Ascending alarm up to the configured volume                                                                                                                                                                                             |
-| doNotDisturb              | Switch      | R/W         | echo, echoshow, echospot      | Do Not Disturb mode enabled                                        |
-| sendMessage               | String      | W           | account                       | Write Only! Sends a message to the Echo devices.                                                                                                                                                                                        |
-| save                      | Switch      | W           | flashbriefingprofile          | Write Only! Stores the current configuration of flash briefings within the thing                                                                                                                                                        |
-| active                    | Switch      | R/W         | flashbriefingprofile          | Active the profile                                                                                                                                                                                                                      |
-| playOnDevice              | String      | W           | flashbriefingprofile          | Write Only! Specify the echo serial number or name to start the flash briefing.                                                                                                                                                         |
-
-**Attention:** Channels marked with (*) are deprecated and will be removed in the future.
-Amazon already started to remove some of that functionality.
-You can use the `textCommand` channel with a value of `Play playlist CrazyMusic on AmazonMusic` instead.
+| Channel Type ID       | Item Type   | Access Mode | Thing Type                    | Description                                                                                                                                                                                                                             |
+|-----------------------|-------------|-------------|-------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| player                | Player      | R/W         | echo, echoshow, echospot, wha | Control the music player  (Supported commands: PLAY or ON, PAUSE or OFF, NEXT, PREVIOUS, REWIND, FASTFORWARD)                                                                                                                           |
+| volume                | Dimmer      | R/W         | echo, echoshow, echospot      | Control the volume                                                                                                                                                                                                                      |
+| equalizerTreble       | Number      | R/W         | echo, echoshow, echospot      | Control the treble (value from -6 to 6)                                                                                                                                                                                                 |
+| equalizerMidrange     | Number      | R/W         | echo, echoshow, echospot      | Control the midrange (value from -6 to 6)                                                                                                                                                                                               |
+| equalizerBass         | Number      | R/W         | echo, echoshow, echospot      | Control the bass (value from -6 to 6)                                                                                                                                                                                                   |
+| shuffle               | Switch      | R/W         | echo, echoshow, echospot, wha | Shuffle play if applicable, e.g. playing a playlist                                                                                                                                                                                     |
+| imageUrl              | String      | R           | echo, echoshow, echospot, wha | Url of the album image or radio station logo                                                                                                                                                                                            |
+| title                 | String      | R           | echo, echoshow, echospot, wha | Title of the current media                                                                                                                                                                                                              |
+| subtitle1             | String      | R           | echo, echoshow, echospot, wha | Subtitle of the current media                                                                                                                                                                                                           |
+| subtitle2             | String      | R           | echo, echoshow, echospot, wha | Additional subtitle of the current media                                                                                                                                                                                                |
+| providerDisplayName   | String      | R           | echo, echoshow, echospot, wha | Name of the music provider                                                                                                                                                                                                              |
+| bluetoothMAC          | String      | R/W         | echo, echoshow, echospot      | Bluetooth device MAC. Used to connect to a specific device or disconnect if an empty string was provided                                                                                                                                |
+| bluetooth             | Switch      | R/W         | echo, echoshow, echospot      | Connect/Disconnect to the last used bluetooth device (works after a bluetooth connection was established after the openHAB start)                                                                                                       |
+| bluetoothDeviceName   | String      | R           | echo, echoshow, echospot      | User friendly name of the connected bluetooth device                                                                                                                                                                                    |
+| radio                 | Switch      | R/W         | echo, echoshow, echospot, wha | Start playing of the last used TuneIn radio station (works after the radio station started after the openHAB start)                                                                                                                     |
+| remind                | String      | W           | echo, echoshow, echospot      | Write Only! Speak the reminder and sends a notification to the Alexa app (Currently the reminder is played and notified two times, this seems to be a bug in the Amazon software)                                                       |
+| nextReminder          | DateTime    | R           | echo, echoshow, echospot      | Next reminder on the device                                                                                                                                                                                                             |
+| playAlarmSound        | String      | W           | echo, echoshow, echospot      | Write Only! Plays an Alarm sound                                                                                                                                                                                                        |
+| nextAlarm             | DateTime    | R           | echo, echoshow, echospot      | Next alarm on the device                                                                                                                                                                                                                |
+| nextMusicAlarm        | DateTime    | R           | echo, echoshow, echospot      | Next music alarm on the device                                                                                                                                                                                                          |
+| nextTimer             | DateTime    | R           | echo, echoshow, echospot      | Next timer on the device                                                                                                                                                                                                                |
+| startRoutine          | String      | W           | echo, echoshow, echospot      | Write Only! Type in what you normally say to Alexa without the preceding "Alexa,"                                                                                                                                                       |
+| musicProviderId       | String      | R/W         | echo, echoshow, echospot      | Current Music provider                                                                                                                                                                                                                  |
+| playMusicVoiceCommand | String      | W           | echo, echoshow, echospot      | Write Only! Voice command as text. E.g. 'Yesterday from the Beatles'                                                                                                                                                                    |
+| startCommand          | String      | W           | echo, echoshow, echospot      | Write Only! Used to start anything. Available options: Weather, Traffic, GoodMorning, SingASong, TellStory, FlashBriefing and FlashBriefing.<FlahshbriefingDeviceID> (Note: The options are case sensitive)                             |
+| announcement          | String      | W           | echo, echoshow, echospot      | Write Only! Display the announcement message on the display. See in the tutorial section to learn how it’s possible to set the title and turn off the sound.                                                                            |
+| textToSpeech          | String      | W           | echo, echoshow, echospot      | Write Only! Write some text to this channel and Alexa will speak it. It is possible to use plain text or SSML: e.g. `<speak>I want to tell you a secret.<amazon:effect name="whispered">I am not a real human.</amazon:effect></speak>` |
+| textToSpeechVolume    | Dimmer      | R/W         | echo, echoshow, echospot      | Volume of the textToSpeech channel, if 0 the current volume will be used                                                                                                                                                                |
+| textCommand           | String      | W           | echo, echoshow, echospot      | Write Only! Execute a text command (like a spoken text)                                                                                                                                                                                 |
+| lastVoiceCommand      | String      | R           | echo, echoshow, echospot      | Last voice command spoken to the device.                                                                                                                                                                                                |
+| lastSpokenText      	 | String      | R           | echo, echoshow, echospot      | Last spoken text from the device. (for example statements, answers and text to speeches)                                                                                                                                                |
+| mediaProgress         | Dimmer      | R/W         | echo, echoshow, echospot      | Media progress in percent                                                                                                                                                                                                               |
+| mediaProgressTime     | Number:Time | R/W         | echo, echoshow, echospot      | Media play time                                                                                                                                                                                                                         |
+| mediaLength           | Number:Time | R           | echo, echoshow, echospot      | Media length                                                                                                                                                                                                                            |
+| notificationVolume    | Dimmer      | R           | echo, echoshow, echospot      | Notification volume                                                                                                                                                                                                                     |
+| ascendingAlarm        | Switch      | R/W         | echo, echoshow, echospot      | Ascending alarm up to the configured volume                                                                                                                                                                                             |
+| doNotDisturb          | Switch      | R/W         | echo, echoshow, echospot      | Do Not Disturb mode enabled                                                                                                                                                                                                             |
 
 ## Advanced Feature Technically Experienced Users
 
@@ -277,15 +271,6 @@ String Echo_Living_Room_PlayAlarmSound          "Play Alarm Sound"              
 String Echo_Living_Room_StartRoutine            "Start Routine"                         (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:startRoutine"}
 Dimmer Echo_Living_Room_NotificationVolume      "Notification volume"                   (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:notificationVolume"}
 Switch Echo_Living_Room_AscendingAlarm          "Ascending alarm"                       (Alexa_Living_Room) {channel="amazonechocontrol:echo:account1:echo1:ascendingAlarm"}
-
-// Flashbriefings
-Switch FlashBriefing_Technical_Save             "Save (Write only)"                     { channel="amazonechocontrol:flashbriefingprofile:account1:flashbriefing1:save"} 
-Switch FlashBriefing_Technical_Active           "Active"                                { channel="amazonechocontrol:flashbriefingprofile:account1:flashbriefing1:active"}
-String FlashBriefing_Technical_Play             "Play (Write only)"                     { channel="amazonechocontrol:flashbriefingprofile:account1:flashbriefing1:playOnDevice"}
-
-Switch FlashBriefing_LifeStyle_Save             "Save (Write only)"                     { channel="amazonechocontrol:flashbriefingprofile:account1:flashbriefing2:save"} 
-Switch FlashBriefing_LifeStyle_Active           "Active"                                { channel="amazonechocontrol:flashbriefingprofile:account1:flashbriefing2:active"}
-String FlashBriefing_LifeStyle_Play             "Play (Write only)"                     { channel="amazonechocontrol:flashbriefingprofile:account1:flashbriefing2:playOnDevice"}
 ```
 
 #### echo.sitemap:
@@ -334,19 +319,38 @@ sitemap amazonechocontrol label="Echo Devices"
 }
 ```
 
-## Flash Briefing `flashbriefingprofile`
+## Flash-Briefing `flashbriefingprofile`
+
+Flash briefings are sets of information that can be configured in your Alexa app.
+The app only allows to have one flash-briefing configuration at the same time (e.g. weather and news).
+The `flashbriefingprofile` thing helps you to overcome this limitation.
+
+To set it up using managed (UI) configuration:
+
+1. Use the app to create the flash-briefing configuration you want.
+2. Start the discovery, you should see a new "flashbriefingprofile" thing. If this is not the case, a thing with the current configuration already exists.
+3. Add that thing (you can use a custom name if you want).
+4. Repeat steps 1-3 for other configurations (you can add as many as you want, make sure they are different).
+
+Textual configuration (untested, not recommended):
+
+1. Add a new `flashbriefiungprofilething` to your `.things` file.
+2. Use the app to create the flash-briefing configuration you want.
+3. Send `ON` to the `save` channel of the thing you created in step 1.
+4. Repeat steps 1-3 for other configurations (you can add as many as you want, make sure they are different).
 
 ### Channels
 
-The flashbriefingprofile thing has no configuration parameters.
-It will be configured at runtime by using the save channel to store the current flash briefing configuration which is set in the alexa app in the thing. Create a flashbriefingprofile Thing for each set you need.
-E.g. One Flashbriefing profile with technical news and weather, one for playing world news and one for sport news.
+The `flashbriefingprofile` thing has no configuration parameters.
 
-| Channel Type ID | Item Type | Access Mode | Thing Type           | Description                                                                      |
-|-----------------|-----------|-------------|----------------------|----------------------------------------------------------------------------------|
-| save            | Switch    | W           | flashbriefingprofile | Write Only! Stores the current configuration of flash briefings within the thing |
-| active          | Switch    | R/W         | flashbriefingprofile | Active the profile                                                               |
-| playOnDevice    | String    | W           | flashbriefingprofile | Specify the echo serial number or name to start the flash briefing.              |
+| Channel Type ID | Item Type | Access Mode | Description                                                                                                                                   |
+|-----------------|-----------|:-----------:|-----------------------------------------------------------------------------------------------------------------------------------------------|
+| `save`          | Switch    |      W      | Write Only! Stores the current configuration of flash briefings.                                                                              |
+| `active`        | Switch    |     R/W     | Activates this flash briefing as default ON ALL DEVICES.                                                                                      |
+| `playOnDevice`  | String    |      W      | Specify the echo serial number or name to start the flash-briefing. This is only exceuted once and the default configuration does not change. |
+
+**Attention:** Be careful when using the `save` channel.
+Storing the same configuration to several things may result in unpredictable behavior.
 
 ### Example
 
@@ -361,9 +365,6 @@ Bridge amazonechocontrol:account:account1 "Amazon Account" @ "Accounts" [discove
 ```
 
 #### flashbriefings.items:
-
-Sample for the Thing echo1 only. But it will work in the same way for the other things, only replace the thing name in the channel link.
-Take a look in the channel description above to know, which channels are supported by your thing type.
 
 ```
 // Flashbriefings

@@ -2,12 +2,16 @@
 <thing:thing-descriptions xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" bindingId="amazonechocontrol"
 	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
-	<bridge-type id="account">
+	<bridge-type id="account" extensible="refreshActivity">
 		<label>Amazon Account</label>
 		<description>Amazon Account where the amazon echo devices are registered.</description>
 		<channels>
 			<channel id="sendMessage" typeId="sendMessage"/>
+			<channel id="refreshActivity" typeId="refreshActivity"/>
 		</channels>
+		<properties>
+			<property name="thingTypeVersion">1</property>
+		</properties>
 		<config-description>
 			<parameter name="discoverSmartHome" type="integer">
 				<label>Device Discovery Mode</label>
@@ -39,6 +43,12 @@
 				</description>
 				<default>120</default>
 			</parameter>
+			<parameter name="activityRequestDelay" type="integer" min="2" unit="s">
+				<label>Activity Request Delay</label>
+				<description>The number of seconds between a voice command was detected and the received command is requested from
+					the server.</description>
+				<default>10</default>
+			</parameter>
 		</config-description>
 	</bridge-type>
 	<thing-type id="echo">
@@ -65,11 +75,6 @@
 			<channel id="musicProviderId" typeId="musicProviderId"/>
 			<channel id="playMusicVoiceCommand" typeId="playMusicVoiceCommand"/>
 			<channel id="startCommand" typeId="startCommand"/>
-			<channel id="radioStationId" typeId="radioStationId"/>
-			<channel id="radio" typeId="radio"/>
-			<channel id="amazonMusicTrackId" typeId="amazonMusicTrackId"/>
-			<channel id="amazonMusicPlayListId" typeId="amazonMusicPlayListId"/>
-			<channel id="amazonMusic" typeId="amazonMusic"/>
 			<channel id="announcement" typeId="announcement"/>
 			<channel id="textToSpeech" typeId="textToSpeech"/>
 			<channel id="textToSpeechVolume" typeId="textToSpeechVolume"/>
@@ -91,7 +96,7 @@
 			<channel id="doNotDisturb" typeId="doNotDisturb"/>
 		</channels>
 		<properties>
-			<property name="thingTypeVersion">2</property>
+			<property name="thingTypeVersion">3</property>
 		</properties>
 		<representation-property>serialNumber</representation-property>
 		<config-description>
@@ -125,11 +130,6 @@
 			<channel id="musicProviderId" typeId="musicProviderId"/>
 			<channel id="playMusicVoiceCommand" typeId="playMusicVoiceCommand"/>
 			<channel id="startCommand" typeId="startCommand"/>
-			<channel id="radioStationId" typeId="radioStationId"/>
-			<channel id="radio" typeId="radio"/>
-			<channel id="amazonMusicTrackId" typeId="amazonMusicTrackId"/>
-			<channel id="amazonMusicPlayListId" typeId="amazonMusicPlayListId"/>
-			<channel id="amazonMusic" typeId="amazonMusic"/>
 			<channel id="announcement" typeId="announcement"/>
 			<channel id="textToSpeech" typeId="textToSpeech"/>
 			<channel id="textToSpeechVolume" typeId="textToSpeechVolume"/>
@@ -151,7 +151,7 @@
 			<channel id="doNotDisturb" typeId="doNotDisturb"/>
 		</channels>
 		<properties>
-			<property name="thingTypeVersion">2</property>
+			<property name="thingTypeVersion">3</property>
 		</properties>
 		<representation-property>serialNumber</representation-property>
 		<config-description>
@@ -185,11 +185,6 @@
 			<channel id="musicProviderId" typeId="musicProviderId"/>
 			<channel id="playMusicVoiceCommand" typeId="playMusicVoiceCommand"/>
 			<channel id="startCommand" typeId="startCommand"/>
-			<channel id="radioStationId" typeId="radioStationId"/>
-			<channel id="radio" typeId="radio"/>
-			<channel id="amazonMusicTrackId" typeId="amazonMusicTrackId"/>
-			<channel id="amazonMusicPlayListId" typeId="amazonMusicPlayListId"/>
-			<channel id="amazonMusic" typeId="amazonMusic"/>
 			<channel id="announcement" typeId="announcement"/>
 			<channel id="textToSpeech" typeId="textToSpeech"/>
 			<channel id="textToSpeechVolume" typeId="textToSpeechVolume"/>
@@ -211,7 +206,7 @@
 			<channel id="doNotDisturb" typeId="doNotDisturb"/>
 		</channels>
 		<properties>
-			<property name="thingTypeVersion">2</property>
+			<property name="thingTypeVersion">3</property>
 		</properties>
 		<representation-property>serialNumber</representation-property>
 		<config-description>
@@ -238,12 +233,10 @@
 			<channel id="subtitle1" typeId="subtitle1"/>
 			<channel id="subtitle2" typeId="subtitle2"/>
 			<channel id="providerDisplayName" typeId="providerDisplayName"/>
-			<channel id="radioStationId" typeId="radioStationId"/>
-			<channel id="radio" typeId="radio"/>
-			<channel id="amazonMusicTrackId" typeId="amazonMusicTrackId"/>
-			<channel id="amazonMusicPlayListId" typeId="amazonMusicPlayListId"/>
-			<channel id="amazonMusic" typeId="amazonMusic"/>
 		</channels>
+		<properties>
+			<property name="thingTypeVersion">1</property>
+		</properties>
 		<representation-property>serialNumber</representation-property>
 		<config-description>
 			<parameter name="serialNumber" type="text" required="true">
@@ -292,10 +285,11 @@
 			</parameter>
 		</config-description>
 	</thing-type>
-	<channel-type id="save">
+	<channel-type id="save" advanced="true">
 		<item-type>Switch</item-type>
 		<label>Save</label>
-		<description>Save the current flash briefing configuration (Write only)</description>
+		<description>Save the current flash briefing configuration (write-only)</description>
+		<autoUpdatePolicy>veto</autoUpdatePolicy>
 	</channel-type>
 	<channel-type id="active">
 		<item-type>Switch</item-type>
@@ -306,6 +300,7 @@
 		<item-type>String</item-type>
 		<label>Play On Device</label>
 		<description>Plays the briefing on the device (serial number or name, write only)</description>
+		<autoUpdatePolicy>veto</autoUpdatePolicy>
 	</channel-type>
 	<channel-type id="bluetoothDeviceName" advanced="true">
 		<item-type>String</item-type>
@@ -313,47 +308,24 @@
 		<description>Connected bluetooth device</description>
 		<state readOnly="true"/>
 	</channel-type>
-	<channel-type id="radioStationId" advanced="true">
-		<item-type>String</item-type>
-		<label>TuneIn Radio Station Id</label>
-	</channel-type>
 	<channel-type id="remind" advanced="true">
 		<item-type>String</item-type>
 		<label>Remind</label>
 		<description>Speak the reminder and send a notification to the Alexa app</description>
+		<autoUpdatePolicy>veto</autoUpdatePolicy>
 	</channel-type>
 	<channel-type id="startRoutine" advanced="true">
 		<item-type>String</item-type>
 		<label>Start a Routine</label>
-		<description>The command which must be spoken to active the routing without the preceding "Alexa," (Write Only)
+		<description>The command which must be spoken to active the routing without the preceding "Alexa," (write-only)
 		</description>
+		<autoUpdatePolicy>veto</autoUpdatePolicy>
 	</channel-type>
 	<channel-type id="playAlarmSound" advanced="true">
 		<item-type>String</item-type>
 		<label>Alarm Sound</label>
 		<description>Plays an alarm sound</description>
 		<autoUpdatePolicy>veto</autoUpdatePolicy>
-	</channel-type>
-	<channel-type id="amazonMusicTrackId" advanced="true">
-		<item-type>String</item-type>
-		<label>AmazonMusic Track Id</label>
-		<description>Id of the amazon music track</description>
-	</channel-type>
-	<channel-type id="amazonMusic" advanced="true">
-		<item-type>Switch</item-type>
-		<label>AmazonMusic</label>
-		<description>Amazon Music turned on</description>
-	</channel-type>
-	<channel-type id="amazonMusicPlayListId" advanced="true">
-		<item-type>String</item-type>
-		<label>AmazonMusic Play List</label>
-		<description>Amazon Music play list id (Write only, no current state)</description>
-		<autoUpdatePolicy>veto</autoUpdatePolicy>
-	</channel-type>
-	<channel-type id="amazonMusicPlayListIdLastUsed" advanced="true">
-		<item-type>String</item-type>
-		<label>AmazonMusic Last Playlist</label>
-		<description>Id of the playlist which was started with openHAB</description>
 	</channel-type>
 	<channel-type id="providerDisplayName" advanced="true">
 		<item-type>String</item-type>
@@ -386,11 +358,6 @@
 		<item-type>String</item-type>
 		<label>Subtitle 2</label>
 		<state readOnly="true"/>
-	</channel-type>
-	<channel-type id="radio" advanced="true">
-		<item-type>Switch</item-type>
-		<label>TuneIn Radio</label>
-		<description>Radio turned on</description>
 	</channel-type>
 	<channel-type id="bluetooth" advanced="true">
 		<item-type>Switch</item-type>
@@ -442,25 +409,35 @@
 	<channel-type id="playMusicVoiceCommand">
 		<item-type>String</item-type>
 		<label>Music Voice Command</label>
-		<description>Voice command as text. E.g. 'Yesterday from the Beatles' (Write only)</description>
+		<description>Voice command as text. E.g. 'Yesterday from the Beatles' (write-only)</description>
+		<autoUpdatePolicy>veto</autoUpdatePolicy>
 	</channel-type>
 	<channel-type id="sendMessage">
 		<item-type>String</item-type>
 		<label>Send Message</label>
-		<description>Sends a message to the Echo devices (Write only).</description>
+		<description>Sends a message to the Echo devices (write-only).</description>
+		<autoUpdatePolicy>veto</autoUpdatePolicy>
+	</channel-type>
+	<channel-type id="refreshActivity">
+		<item-type>Switch</item-type>
+		<label>Refresh Activity</label>
+		<description>A command send to this channel refreshes the customer history activity (write-only)</description>
+		<autoUpdatePolicy>veto</autoUpdatePolicy>
 	</channel-type>
 	<channel-type id="announcement" advanced="true">
 		<item-type>String</item-type>
 		<label>Announcement</label>
-		<description>Display the announcement message on the display (Write only). See in the tutorial section of the binding
+		<description>Display the announcement message on the display (write-only). See in the tutorial section of the binding
 			description to learn how it's possible to set the title and turn off the sound.</description>
+		<autoUpdatePolicy>veto</autoUpdatePolicy>
 	</channel-type>
 	<channel-type id="textToSpeech" advanced="true">
 		<item-type>String</item-type>
 		<label>Speak</label>
-		<description>Speak the text (Write only). It is possible to use plain text or SSML: &lt;speak&gt;I want to tell you a
+		<description>Speak the text (write-only). It is possible to use plain text or SSML: &lt;speak&gt;I want to tell you a
 			secret.&lt;amazon:effect name=&quot;whispered&quot;&gt;I am not a real human.&lt;/amazon:effect&gt;.Can you believe
 			it?&lt;/speak&gt;</description>
+		<autoUpdatePolicy>veto</autoUpdatePolicy>
 	</channel-type>
 	<channel-type id="textToSpeechVolume" advanced="true">
 		<item-type>Dimmer</item-type>
@@ -470,7 +447,8 @@
 	<channel-type id="textCommand">
 		<item-type>String</item-type>
 		<label>TextCommand</label>
-		<description>Run a command (Write only). The command can run like a spoken command.</description>
+		<description>Run a command (write-only). The command can run like a spoken command.</description>
+		<autoUpdatePolicy>veto</autoUpdatePolicy>
 	</channel-type>
 	<channel-type id="lastVoiceCommand" advanced="true">
 		<item-type>String</item-type>
@@ -501,7 +479,7 @@
 	<channel-type id="startCommand">
 		<item-type>String</item-type>
 		<label>Start</label>
-		<description>Start information (Write only)</description>
+		<description>Start information (write-only)</description>
 		<autoUpdatePolicy>veto</autoUpdatePolicy>
 	</channel-type>
 	<channel-type id="notificationVolume" advanced="true">
