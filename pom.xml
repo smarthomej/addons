@@ -11,7 +11,7 @@
 
   <groupId>org.smarthomej.addons</groupId>
   <artifactId>org.smarthomej.addons.reactor</artifactId>
-  <version>4.0.1-SNAPSHOT</version>
+  <version>4.1.0-SNAPSHOT</version>
 
   <packaging>pom</packaging>
 
@@ -78,14 +78,14 @@
     <maven.compiler.target>${oh.java.version}</maven.compiler.target>
     <maven.compiler.compilerVersion>${oh.java.version}</maven.compiler.compilerVersion>
 
-    <ohc.version>4.0.0</ohc.version>
-    <bnd.version>6.4.0</bnd.version>
+    <ohc.version>4.1.0-SNAPSHOT</ohc.version>
+    <bnd.version>7.0.0</bnd.version>
     <commons.net.version>3.7.2</commons.net.version>
     <eea.version>2.4.0</eea.version>
-    <karaf.version>4.4.3</karaf.version>
+    <karaf.version>4.4.4</karaf.version>
     <sat.version>0.15.0</sat.version>
-    <slf4j.version>1.7.32</slf4j.version>
-    <spotless.version>2.37.0</spotless.version>
+    <slf4j.version>2.0.6</slf4j.version>
+    <spotless.version>2.38.0</spotless.version>
     <spotless.eclipse.version>4.25</spotless.eclipse.version>
     <spotless.eclipse.wtp.version>4.21.0</spotless.eclipse.wtp.version>
 
