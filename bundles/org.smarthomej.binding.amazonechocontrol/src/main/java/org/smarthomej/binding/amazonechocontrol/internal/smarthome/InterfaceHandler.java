@@ -23,8 +23,8 @@ import org.openhab.core.types.Command;
 import org.openhab.core.types.CommandOption;
 import org.openhab.core.types.StateDescription;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapability;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevice;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.smarthome.JsonSmartHomeCapability;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.smarthome.JsonSmartHomeDevice;
 
 import com.google.gson.JsonObject;
 

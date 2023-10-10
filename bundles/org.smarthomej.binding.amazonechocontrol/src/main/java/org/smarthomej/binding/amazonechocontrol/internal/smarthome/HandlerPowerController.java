@@ -15,6 +15,7 @@ package org.smarthomej.binding.amazonechocontrol.internal.smarthome;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -23,9 +24,9 @@ import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.UnDefType;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.smarthome.JsonSmartHomeCapability;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.smarthome.JsonSmartHomeDevice;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDeviceHandler;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapability;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevice;
 
 import com.google.gson.JsonObject;
 
@@ -75,10 +76,10 @@ public class HandlerPowerController extends AbstractInterfaceHandler {
         if (channelId.equals(POWER_STATE.channelId)) {
             if (containsCapabilityProperty(capabilities, POWER_STATE.propertyName)) {
                 if (command.equals(OnOffType.ON)) {
-                    connection.smartHomeCommand(entityId, "turnOn");
+                    connection.smartHomeCommand(entityId, "turnOn", Map.of());
                     return true;
                 } else if (command.equals(OnOffType.OFF)) {
-                    connection.smartHomeCommand(entityId, "turnOff");
+                    connection.smartHomeCommand(entityId, "turnOff", Map.of());
                     return true;
                 }
             }

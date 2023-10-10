@@ -21,7 +21,8 @@ import java.util.Set;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.client.HttpClient;
-import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.eclipse.jetty.http2.client.HTTP2Client;
+import org.openhab.core.io.net.http.HttpClientFactory;
 import org.openhab.core.storage.Storage;
 import org.openhab.core.storage.StorageService;
 import org.openhab.core.thing.Bridge;
@@ -30,20 +31,21 @@ import org.openhab.core.thing.ThingTypeUID;
 import org.openhab.core.thing.binding.BaseThingHandlerFactory;
 import org.openhab.core.thing.binding.ThingHandler;
 import org.openhab.core.thing.binding.ThingHandlerFactory;
-import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.http.HttpService;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.AccountHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.EchoHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.FlashBriefingProfileHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDeviceHandler;
+import org.smarthomej.binding.amazonechocontrol.internal.util.NonNullListTypeAdapterFactory;
+import org.smarthomej.binding.amazonechocontrol.internal.util.SerializeNullTypeAdapterFactory;
 import org.smarthomej.commons.SimpleDynamicCommandDescriptionProvider;
 import org.smarthomej.commons.SimpleDynamicStateDescriptionProvider;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 /**
  * The {@link AmazonEchoControlHandlerFactory} is responsible for creating things and thing
@@ -56,33 +58,43 @@ import com.google.gson.Gson;
 @NonNullByDefault
 public class AmazonEchoControlHandlerFactory extends BaseThingHandlerFactory {
     private final Set<AccountHandler> accountHandlers = new HashSet<>();
-    private final HttpService httpService;
     private final StorageService storageService;
 
-    private final BindingServlet bindingServlet;
     private final Gson gson;
     private final HttpClient httpClient;
+    private final HTTP2Client http2Client;
+
     private final SimpleDynamicCommandDescriptionProvider dynamicCommandDescriptionProvider;
     private final SimpleDynamicStateDescriptionProvider dynamicStateDescriptionProvider;
+    private final AmazonEchoControlCommandDescriptionProvider amazonEchoControlCommandDescriptionProvider;
 
     @Activate
-    public AmazonEchoControlHandlerFactory(@Reference HttpService httpService, @Reference StorageService storageService,
+    public AmazonEchoControlHandlerFactory(@Reference StorageService storageService,
             @Reference SimpleDynamicCommandDescriptionProvider dynamicCommandDescriptionProvider,
-            @Reference SimpleDynamicStateDescriptionProvider dynamicStateDescriptionProvider) throws Exception {
+            @Reference SimpleDynamicStateDescriptionProvider dynamicStateDescriptionProvider,
+            @Reference HttpClientFactory httpClientFactory,
+            @Reference AmazonEchoControlCommandDescriptionProvider amazonEchoControlCommandDescriptionProvider)
+            throws Exception {
         this.storageService = storageService;
-        this.httpService = httpService;
-        this.gson = new Gson();
+        this.gson = new GsonBuilder().registerTypeAdapterFactory(new NonNullListTypeAdapterFactory())
+                .registerTypeAdapterFactory(new SerializeNullTypeAdapterFactory()).create();
         this.dynamicCommandDescriptionProvider = dynamicCommandDescriptionProvider;
         this.dynamicStateDescriptionProvider = dynamicStateDescriptionProvider;
-        this.httpClient = new HttpClient(new SslContextFactory.Client());
-        this.bindingServlet = new BindingServlet(httpService);
+        this.amazonEchoControlCommandDescriptionProvider = amazonEchoControlCommandDescriptionProvider;
+
+        this.httpClient = httpClientFactory.createHttpClient("smarthomej-aec");
+        this.http2Client = httpClientFactory.createHttp2Client("smarthomej-aec", httpClient.getSslContextFactory());
+        http2Client.setConnectTimeout(10000);
+        http2Client.setIdleTimeout(-1);
 
         httpClient.start();
+        http2Client.start();
     }
 
     @Deactivate
     @SuppressWarnings("unused")
     public void deactivate() throws Exception {
+        http2Client.stop();
         httpClient.stop();
     }
 
@@ -93,28 +105,20 @@ public class AmazonEchoControlHandlerFactory extends BaseThingHandlerFactory {
     }
 
     @Override
-    protected void deactivate(ComponentContext componentContext) {
-        bindingServlet.dispose();
-        super.deactivate(componentContext);
-    }
-
-    @Override
     protected @Nullable ThingHandler createHandler(Thing thing) {
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
-
         if (thingTypeUID.equals(THING_TYPE_ACCOUNT)) {
             Storage<String> storage = storageService.getStorage(thing.getUID().toString(),
                     String.class.getClassLoader());
-            AccountHandler bridgeHandler = new AccountHandler((Bridge) thing, httpService, storage, gson, httpClient);
+            AccountHandler bridgeHandler = new AccountHandler((Bridge) thing, storage, gson, httpClient, http2Client,
+                    amazonEchoControlCommandDescriptionProvider);
             accountHandlers.add(bridgeHandler);
-            bindingServlet.addAccountThing(thing);
             return bridgeHandler;
         } else if (thingTypeUID.equals(THING_TYPE_FLASH_BRIEFING_PROFILE)) {
-            Storage<String> storage = storageService.getStorage(thing.getUID().toString(),
-                    String.class.getClassLoader());
-            return new FlashBriefingProfileHandler(thing, storage, dynamicCommandDescriptionProvider);
+            Storage<? super Object> storage = storageService.getStorage(thing.getUID().toString());
+            return new FlashBriefingProfileHandler(thing, storage, gson);
         } else if (SUPPORTED_ECHO_THING_TYPES_UIDS.contains(thingTypeUID)) {
-            return new EchoHandler(thing, gson, dynamicCommandDescriptionProvider, dynamicStateDescriptionProvider);
+            return new EchoHandler(thing, gson, dynamicStateDescriptionProvider);
         } else if (SUPPORTED_SMART_HOME_THING_TYPES_UIDS.contains(thingTypeUID)) {
             return new SmartHomeDeviceHandler(thing, gson, dynamicCommandDescriptionProvider,
                     dynamicStateDescriptionProvider);
@@ -124,10 +128,9 @@ public class AmazonEchoControlHandlerFactory extends BaseThingHandlerFactory {
 
     @Override
     protected synchronized void removeHandler(ThingHandler thingHandler) {
+        amazonEchoControlCommandDescriptionProvider.removeCommandDescriptionForThing(thingHandler.getThing().getUID());
         if (thingHandler instanceof AccountHandler) {
             accountHandlers.remove(thingHandler);
-            BindingServlet bindingServlet = this.bindingServlet;
-            bindingServlet.removeAccountThing(thingHandler.getThing());
         }
     }
 
