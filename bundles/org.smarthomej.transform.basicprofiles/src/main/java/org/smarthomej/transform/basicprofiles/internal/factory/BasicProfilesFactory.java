@@ -126,7 +126,7 @@ public class BasicProfilesFactory implements ProfileFactory, ProfileTypeProvider
     public BasicProfilesFactory(final @Reference ProfileTypeI18nLocalizationService profileTypeI18nLocalizationService,
             final @Reference BundleResolver bundleResolver, @Reference ItemRegistry itemRegistry) {
         this.profileTypeI18nLocalizationService = profileTypeI18nLocalizationService;
-        bundle = bundleResolver.resolveBundle(BasicProfilesFactory.class);
+        this.bundle = bundleResolver.resolveBundle(BasicProfilesFactory.class);
         this.itemRegistry = itemRegistry;
     }
 
