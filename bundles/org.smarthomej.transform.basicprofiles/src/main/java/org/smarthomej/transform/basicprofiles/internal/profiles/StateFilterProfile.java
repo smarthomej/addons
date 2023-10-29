@@ -83,13 +83,13 @@ public class StateFilterProfile implements StateProfile {
                     String value = parts[2];
                     parsedConditions.add(new Condition(itemName, conditionType, value));
                 } else {
-                    logger.warn("Malformed condition expression: {}", expression);
+                    logger.warn("Malformed condition expression: '{}'", expression);
                 }
             }
 
             return parsedConditions;
         } catch (IllegalArgumentException e) {
-            logger.warn("Cannot parse condition {}. Expected format ITEM_NAME <EQ|NEQ> STATE_VALUE: {}", config,
+            logger.warn("Cannot parse condition {}. Expected format ITEM_NAME <EQ|NEQ> STATE_VALUE: '{}'", config,
                     e.getMessage());
             return List.of();
         }
