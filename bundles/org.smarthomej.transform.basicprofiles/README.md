@@ -18,9 +18,9 @@ The given Command value is parsed either to `IncreaseDecreaseType`, `NextPreviou
 
 ```java
 Switch lightsStatus {
-        channel="hue:0200:XXX:1:color",
+    channel="hue:0200:XXX:1:color",
     channel="deconz:switch:YYY:1:buttonevent" [profile="basic-profiles:generic-command", events="1002,1003", command="ON"]
-        }
+}
 ```
 
 ## Generic Toggle Switch Profile
@@ -37,9 +37,9 @@ The Generic Toggle Switch Profile is a specialization of the Generic Command Pro
 
 ```java
 Switch lightsStatus {
-        channel="hue:0200:XXX:1:color",
+    channel="hue:0200:XXX:1:color",
     channel="deconz:switch:YYY:1:buttonevent" [profile="basic-profiles:toggle-switch", events="1002,1003"]
-        }
+}
 ```
 
 ## Debounce (Counting) Profile
@@ -87,7 +87,7 @@ It requires no specific configuration.
 
 The values of `QuantityType`, `PercentType` and `DecimalTypes` are negated (multiplied by `-1`).
 Otherwise the following mapping is used:
-
+ 
 `IncreaseDecreaseType`: `INCREASE` <-> `DECREASE`
 `NextPreviousType`: `NEXT` <-> `PREVIOUS`
 `OnOffType`: `ON` <-> `OFF`
@@ -173,15 +173,15 @@ Possible values for parameter `restoreValue`:
 
 ```Java
 Switch motionSensorFirstFloor {
-        channel="deconz:presencesensor:XXX:YYY:presence",
+    channel="deconz:presencesensor:XXX:YYY:presence",
     channel="deconz:colortemperaturelight:AAA:BBB:brightness" [profile="basic-profiles:time-range-command", inRangeValue=100, outOfRangeValue=15, start="08:00", end="23:00", restoreValue="PREVIOUS"]
-        }
+}
 ```
 
 ## State Filter Profile
 
 This filter passes on state updates from a (binding) handler to the item if and only if all listed item state conditions
-are met (conditions are ANDed togegheter).
+are met (conditions are ANDed together).
 Option to instead pass different state update in case the conditions are not met.
 State values may be quoted to treat as `StringType`.
 
@@ -204,5 +204,5 @@ Possible values for token `OPERATOR` in `conditions`:
 ```Java
 Number:Temperature airconTemperature{
         channel="mybinding:mything:mychannel"[profile="basic-profiles:state-filter",conditions="airconPower_item EQ ON",mismatchState="UNDEF"]
-        }
+}
 ```
