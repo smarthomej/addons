@@ -119,7 +119,7 @@ public class StateFilterProfile implements StateProfile {
     public void onStateUpdateFromHandler(State state) {
         State resultState = checkCondition(state);
         if (resultState != null) {
-            logger.debug("Received state update from handler: {}, forwarded as ", state,resultState);
+            logger.debug("Received state update from handler: {}, forwarded as {}", state,resultState);
             callback.sendUpdate(resultState);
         } else {
             logger.debug("Received state update from handler: {}, not forwarded to item", state);
@@ -134,26 +134,10 @@ public class StateFilterProfile implements StateProfile {
                 logger.debug("Evaluting condition: {}", condition);
                 try {
                     Item item = itemRegistry.getItem(condition.itemName);
-                    String currentState = item.getState().toString();
+                    String itemState = item.getState().toString();
 
-                    switch (condition.comparisonType) {
-                        case EQ:
-                            if (!currentState.equals(condition.value)) {
-                                allConditionsMet = false;
-                            }
-                            break;
-                        case NEQ: {
-                            if (currentState.equals(condition.value)) {
-                                allConditionsMet = false;
-                            }
-                            break;
-                        }
-                        default:
-                            logger.warn(
-                                    "Unknown condition type {} in condition {}. Expected 'eq' or 'neq' - skipping state update",
-                                    condition.comparisonType, condition);
-                            allConditionsMet = false;
-
+                    if(!condition.matches(itemState)) {
+                        allConditionsMet = false;
                     }
                 } catch (ItemNotFoundException e) {
                     logger.warn(
@@ -194,10 +178,40 @@ public class StateFilterProfile implements StateProfile {
         ComparisonType comparisonType;
         String value;
 
+        boolean quoted = false;
+
         public Condition(String itemName, ComparisonType comparisonType, String value) {
             this.itemName = itemName;
             this.comparisonType = comparisonType;
             this.value = value;
+            this.quoted = value.startsWith("'") && value.endsWith("'");
+            if (quoted) {
+                this.value = value.substring(1, value.length() - 1);
+            }
+        }
+
+        public boolean matches(String state) {
+            switch (comparisonType) {
+                case EQ:
+                    if (!state.equals(value)) {
+                        return false;
+                    }
+                    break;
+                case NEQ: {
+                    if (state.equals(value)) {
+                        return false;
+                    }
+                    break;
+                }
+                default:
+                    logger.warn(
+                            "Unknown condition type {}. Expected 'eq' or 'neq' - skipping state update",
+                            comparisonType);
+                    return false;
+
+            }
+            return true;
+
         }
 
         enum ComparisonType {

@@ -128,6 +128,17 @@ public class StateFilterProfileTest {
         profile.onStateUpdateFromHandler(expectation);
         verify(mockCallback, times(1)).sendUpdate(eq(expectation));
     }
+    @Test
+    public void testSingleConditionMatchQuoted() throws ItemNotFoundException {
+        when(mockContext.getConfiguration()).thenReturn(new Configuration(Map.of("conditions", "ItemName eq 'Value'")));
+        when(mockItemRegistry.getItem("ItemName")).thenReturn(stringItemWithState("ItemName", "Value"));
+
+        StateFilterProfile profile = new StateFilterProfile(mockCallback, mockContext, mockItemRegistry);
+
+        State expectation = new StringType("NewValue");
+        profile.onStateUpdateFromHandler(expectation);
+        verify(mockCallback, times(1)).sendUpdate(eq(expectation));
+    }
 
     private Item stringItemWithState(String itemName, String value) {
         StringItem item = new StringItem(itemName);
@@ -174,6 +185,18 @@ public class StateFilterProfileTest {
 
         profile.onStateUpdateFromHandler(new StringType("ToBeDiscarded"));
         verify(mockCallback, times(1)).sendUpdate(eq(UnDefType.UNDEF));
+    }
+    @Test
+    public void testFailingConditionWithMismatchStateQuoted() throws ItemNotFoundException {
+        when(mockContext.getConfiguration())
+                .thenReturn(new Configuration(Map.of("conditions", "ItemName eq Value", "mismatchState", "'UNDEF'")));
+        when(mockContext.getAcceptedDataTypes()).thenReturn(List.of(UnDefType.class, StringType.class));
+        when(mockItemRegistry.getItem("ItemName")).thenReturn(stringItemWithState("ItemName", "Mismatch"));
+
+        StateFilterProfile profile = new StateFilterProfile(mockCallback, mockContext, mockItemRegistry);
+
+        profile.onStateUpdateFromHandler(new StringType("ToBeDiscarded"));
+        verify(mockCallback, times(1)).sendUpdate(eq(new StringType("UNDEF")));
     }
 
     @Test
