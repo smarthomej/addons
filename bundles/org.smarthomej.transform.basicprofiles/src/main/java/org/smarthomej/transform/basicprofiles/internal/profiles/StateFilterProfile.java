@@ -82,6 +82,8 @@ public class StateFilterProfile implements StateProfile {
                             .valueOf(parts[1].toUpperCase(Locale.ROOT));
                     String value = parts[2];
                     parsedConditions.add(new Condition(itemName, conditionType, value));
+                } else {
+                    logger.warn("Malformed condition expression: {}", expression);
                 }
             }
 
@@ -117,7 +119,10 @@ public class StateFilterProfile implements StateProfile {
     public void onStateUpdateFromHandler(State state) {
         State resultState = checkCondition(state);
         if (resultState != null) {
+            logger.debug("Received state update from handler: {}, forwarded as ", state,resultState);
             callback.sendUpdate(resultState);
+        } else {
+            logger.debug("Received state update from handler: {}, not forwarded to item", state);
         }
     }
 
@@ -126,6 +131,7 @@ public class StateFilterProfile implements StateProfile {
         if (!conditions.isEmpty()) {
             boolean allConditionsMet = true;
             for (Condition condition : conditions) {
+                logger.debug("Evaluting condition: {}", condition);
                 try {
                     Item item = itemRegistry.getItem(condition.itemName);
                     String currentState = item.getState().toString();
@@ -197,6 +203,15 @@ public class StateFilterProfile implements StateProfile {
         enum ComparisonType {
             EQ,
             NEQ
+        }
+
+        @Override
+        public String toString() {
+            return "Condition{" +
+                    "itemName='" + itemName + '\'' +
+                    ", comparisonType=" + comparisonType +
+                    ", value='" + value + '\'' +
+                    '}';
         }
     }
 }
