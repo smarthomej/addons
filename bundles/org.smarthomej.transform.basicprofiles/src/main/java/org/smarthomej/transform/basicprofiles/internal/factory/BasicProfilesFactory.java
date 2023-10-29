@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.i18n.LocalizedKey;
+import org.openhab.core.items.ItemRegistry;
 import org.openhab.core.library.CoreItemFactory;
 import org.openhab.core.thing.Channel;
 import org.openhab.core.thing.DefaultSystemChannelTypeProvider;
@@ -49,6 +50,7 @@ import org.smarthomej.transform.basicprofiles.internal.profiles.GenericCommandTr
 import org.smarthomej.transform.basicprofiles.internal.profiles.GenericToggleSwitchTriggerProfile;
 import org.smarthomej.transform.basicprofiles.internal.profiles.InvertStateProfile;
 import org.smarthomej.transform.basicprofiles.internal.profiles.RoundStateProfile;
+import org.smarthomej.transform.basicprofiles.internal.profiles.StateFilterProfile;
 import org.smarthomej.transform.basicprofiles.internal.profiles.ThresholdStateProfile;
 import org.smarthomej.transform.basicprofiles.internal.profiles.TimeRangeCommandProfile;
 
@@ -69,6 +71,7 @@ public class BasicProfilesFactory implements ProfileFactory, ProfileTypeProvider
     public static final ProfileTypeUID ROUND_UID = new ProfileTypeUID(SCOPE, "round");
     public static final ProfileTypeUID THRESHOLD_UID = new ProfileTypeUID(SCOPE, "threshold");
     public static final ProfileTypeUID TIME_RANGE_COMMAND_UID = new ProfileTypeUID(SCOPE, "time-range-command");
+    public static final ProfileTypeUID STATE_FILTER_UID = new ProfileTypeUID(SCOPE, "state-filter");
 
     private static final ProfileType PROFILE_TYPE_GENERIC_COMMAND = ProfileTypeBuilder
             .newTrigger(GENERIC_COMMAND_UID, "Generic Command") //
@@ -102,24 +105,29 @@ public class BasicProfilesFactory implements ProfileFactory, ProfileTypeProvider
             .withSupportedItemTypes(CoreItemFactory.SWITCH) //
             .withSupportedChannelTypeUIDs(DefaultSystemChannelTypeProvider.SYSTEM_CHANNEL_TYPE_UID_MOTION) //
             .build();
+    private static final ProfileType PROFILE_STATE_FILTER = ProfileTypeBuilder
+            .newState(STATE_FILTER_UID, "Filter handler state updates based on any item state").build();
 
     private static final Set<ProfileTypeUID> SUPPORTED_PROFILE_TYPE_UIDS = Set.of(GENERIC_COMMAND_UID,
             GENERIC_TOGGLE_SWITCH_UID, DEBOUNCE_COUNTING_UID, DEBOUNCE_TIME_UID, INVERT_UID, ROUND_UID, THRESHOLD_UID,
-            TIME_RANGE_COMMAND_UID);
+            TIME_RANGE_COMMAND_UID, STATE_FILTER_UID);
     private static final Set<ProfileType> SUPPORTED_PROFILE_TYPES = Set.of(PROFILE_TYPE_GENERIC_COMMAND,
             PROFILE_TYPE_GENERIC_TOGGLE_SWITCH, PROFILE_TYPE_DEBOUNCE_COUNTING, PROFILE_TYPE_DEBOUNCE_TIME,
-            PROFILE_TYPE_INVERT, PROFILE_TYPE_ROUND, PROFILE_TYPE_THRESHOLD, PROFILE_TYPE_TIME_RANGE_COMMAND);
+            PROFILE_TYPE_INVERT, PROFILE_TYPE_ROUND, PROFILE_TYPE_THRESHOLD, PROFILE_TYPE_TIME_RANGE_COMMAND,
+            PROFILE_STATE_FILTER);
 
     private final Map<LocalizedKey, ProfileType> localizedProfileTypeCache = new ConcurrentHashMap<>();
 
     private final ProfileTypeI18nLocalizationService profileTypeI18nLocalizationService;
     private final Bundle bundle;
+    private final ItemRegistry itemRegistry;
 
     @Activate
     public BasicProfilesFactory(final @Reference ProfileTypeI18nLocalizationService profileTypeI18nLocalizationService,
-            final @Reference BundleResolver bundleResolver) {
+            final @Reference BundleResolver bundleResolver, @Reference ItemRegistry itemRegistry) {
         this.profileTypeI18nLocalizationService = profileTypeI18nLocalizationService;
-        this.bundle = bundleResolver.resolveBundle(BasicProfilesFactory.class);
+        bundle = bundleResolver.resolveBundle(BasicProfilesFactory.class);
+        this.itemRegistry = itemRegistry;
     }
 
     @Override
@@ -141,6 +149,8 @@ public class BasicProfilesFactory implements ProfileFactory, ProfileTypeProvider
             return new ThresholdStateProfile(callback, context);
         } else if (TIME_RANGE_COMMAND_UID.equals(profileTypeUID)) {
             return new TimeRangeCommandProfile(callback, context);
+        } else if (STATE_FILTER_UID.equals(profileTypeUID)) {
+            return new StateFilterProfile(callback, context, itemRegistry);
         }
         return null;
     }
