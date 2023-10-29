@@ -128,6 +128,7 @@ public class StateFilterProfileTest {
         profile.onStateUpdateFromHandler(expectation);
         verify(mockCallback, times(1)).sendUpdate(eq(expectation));
     }
+
     @Test
     public void testSingleConditionMatchQuoted() throws ItemNotFoundException {
         when(mockContext.getConfiguration()).thenReturn(new Configuration(Map.of("conditions", "ItemName eq 'Value'")));
@@ -186,6 +187,7 @@ public class StateFilterProfileTest {
         profile.onStateUpdateFromHandler(new StringType("ToBeDiscarded"));
         verify(mockCallback, times(1)).sendUpdate(eq(UnDefType.UNDEF));
     }
+
     @Test
     public void testFailingConditionWithMismatchStateQuoted() throws ItemNotFoundException {
         when(mockContext.getConfiguration())

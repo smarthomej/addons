@@ -119,7 +119,7 @@ public class StateFilterProfile implements StateProfile {
     public void onStateUpdateFromHandler(State state) {
         State resultState = checkCondition(state);
         if (resultState != null) {
-            logger.debug("Received state update from handler: {}, forwarded as {}", state,resultState);
+            logger.debug("Received state update from handler: {}, forwarded as {}", state, resultState);
             callback.sendUpdate(resultState);
         } else {
             logger.debug("Received state update from handler: {}, not forwarded to item", state);
@@ -136,7 +136,7 @@ public class StateFilterProfile implements StateProfile {
                     Item item = itemRegistry.getItem(condition.itemName);
                     String itemState = item.getState().toString();
 
-                    if(!condition.matches(itemState)) {
+                    if (!condition.matches(itemState)) {
                         allConditionsMet = false;
                     }
                 } catch (ItemNotFoundException e) {
@@ -204,14 +204,12 @@ public class StateFilterProfile implements StateProfile {
                     break;
                 }
                 default:
-                    logger.warn(
-                            "Unknown condition type {}. Expected 'eq' or 'neq' - skipping state update",
+                    logger.warn("Unknown condition type {}. Expected 'eq' or 'neq' - skipping state update",
                             comparisonType);
                     return false;
 
             }
             return true;
-
         }
 
         enum ComparisonType {
@@ -221,11 +219,8 @@ public class StateFilterProfile implements StateProfile {
 
         @Override
         public String toString() {
-            return "Condition{" +
-                    "itemName='" + itemName + '\'' +
-                    ", comparisonType=" + comparisonType +
-                    ", value='" + value + '\'' +
-                    '}';
+            return "Condition{" + "itemName='" + itemName + '\'' + ", comparisonType=" + comparisonType + ", value='"
+                    + value + '\'' + '}';
         }
     }
 }
