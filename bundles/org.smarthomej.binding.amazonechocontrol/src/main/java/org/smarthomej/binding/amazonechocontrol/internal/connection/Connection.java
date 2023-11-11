@@ -13,22 +13,25 @@
  */
 package org.smarthomej.binding.amazonechocontrol.internal.connection;
 
+import static org.eclipse.jetty.http.HttpStatus.NO_CONTENT_204;
+import static org.eclipse.jetty.http.HttpStatus.OK_200;
+import static org.smarthomej.binding.amazonechocontrol.internal.AmazonEchoControlBindingConstants.CAPABILITY_REGISTRATION;
+
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.CookieManager;
+import java.net.CookieStore;
 import java.net.HttpCookie;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -36,7 +39,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Scanner;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
@@ -46,75 +49,68 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-import java.util.zip.GZIPInputStream;
-
-import javax.net.ssl.HttpsURLConnection;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.http.HttpHeader;
 import org.openhab.core.common.ThreadPoolManager;
 import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.library.unit.SIUnits;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smarthomej.binding.amazonechocontrol.internal.AmazonEchoControlBindingConstants;
 import org.smarthomej.binding.amazonechocontrol.internal.ConnectionException;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonAnnouncementContent;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonAnnouncementTarget;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonAscendingAlarm;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonAscendingAlarm.AscendingAlarmModel;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonAutomation;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonAutomation.Payload;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBootstrapResult;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonBootstrapResult.Authentication;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCustomerHistoryRecords;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonCustomerHistoryRecords.CustomerHistoryRecord;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDeviceNotificationState;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDeviceNotificationState.DeviceNotificationState;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDevices;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDevices.Device;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDoNotDisturb;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDoNotDisturb.DoNotDisturbDeviceStatus;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonEnabledFeeds;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonEqualizer;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonExchangeTokenResponse;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonExchangeTokenResponse.Cookie;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonFeed;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonMediaState;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonMusicProvider;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonNetworkDetails;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonNotificationRequest;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonNotificationResponse;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonNotificationSound;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonNotificationSounds;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonNotificationsResponse;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonPlaySearchPhraseOperationPayload;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonPlayValidationResult;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonPlayerState;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonPlaylists;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonRegisterAppRequest;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonRegisterAppResponse;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonRegisterAppResponse.Bearer;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonRegisterAppResponse.DeviceInfo;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonRegisterAppResponse.Extensions;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonRegisterAppResponse.MacDms;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonRegisterAppResponse.Response;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonRegisterAppResponse.Success;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonRegisterAppResponse.Tokens;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonRenewTokenResponse;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevice;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeGroups.SmartHomeGroup;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonStartRoutineRequest;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonUsersMeResponse;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonWakeWords;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonWakeWords.WakeWord;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonWebSiteCookie;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.SmartHomeBaseDevice;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.AscendingAlarmModelTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.CookieTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.DeviceNotificationStateTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.DeviceTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.DoNotDisturbDeviceStatusTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.EnabledFeedTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.EnabledFeedsTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.EqualizerTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.NotificationSoundTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.NotificationStateTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.NotificationTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.PlaySearchPhraseTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.TOMapper;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.request.AnnouncementTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.request.AuthRegisterTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.request.BehaviorOperationValidateTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.request.ExchangeTokenTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.request.StartRoutineTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.AscendingAlarmModelsTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.AuthRegisterResponseTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.AuthRegisterTokensTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.AuthTokenTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.AutomationPayloadTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.AutomationTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.AutomationTriggerTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.BluetoothStateTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.BluetoothStatesTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.BootstrapAuthenticationTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.BootstrapTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.CustomerHistoryRecordTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.CustomerHistoryRecordsTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.DeviceListTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.DeviceNotificationStatesTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.DoNotDisturbDeviceStatusesTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.EndpointTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.ListMediaSessionTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.MediaSessionTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.MusicProviderTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.NotificationListResponseTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.NotificationSoundResponseTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.PlayerStateTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.UsersMeTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.WakeWordTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.WakeWordsTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.smarthome.JsonSmartHomeDevice;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.smarthome.SmartHomeBaseDevice;
+import org.smarthomej.binding.amazonechocontrol.internal.util.HttpRequestBuilder;
 import org.unbescape.json.JsonEscape;
 import org.unbescape.json.JsonEscapeLevel;
 import org.unbescape.json.JsonEscapeType;
@@ -123,40 +119,35 @@ import org.unbescape.xml.XmlEscapeLevel;
 import org.unbescape.xml.XmlEscapeType;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonSyntaxException;
 
 /**
- * The {@link Connection} is responsible for the connection to the amazon server
- * and handling of the commands
+ * The {@link Connection} is responsible for the connection to the amazon server and handling of the commands
  *
  * @author Michael Geramb - Initial contribution
+ * @author Jan N. Klug - Refactored to use jetty client, add {@link HttpRequestBuilder}
  */
 @NonNullByDefault
 public class Connection {
     private static final String THING_THREADPOOL_NAME = "thingHandler";
     private static final long EXPIRES_IN = 432000; // five days
-    private static final Pattern CHARSET_PATTERN = Pattern.compile("(?i)\\bcharset=\\s*\"?([^\\s;\"]*)");
-    private static final String USER_AGENT = "AmazonWebView/Amazon Alexa/2.2.443692.0/iOS/14.8/iPhone";
 
     private final Logger logger = LoggerFactory.getLogger(Connection.class);
 
     protected final ScheduledExecutorService scheduler = ThreadPoolManager.getScheduledPool(THING_THREADPOOL_NAME);
 
-    private final CookieManager cookieManager = new CookieManager();
     private final Gson gson;
-    private final Gson gsonWithNullSerialization;
 
-    private final LoginData loginData;
-    private String alexaServer = "https://alexa.amazon.com";
+    private LoginData loginData;
+    private CookieManager cookieManager = new CookieManager();
+    private final HttpRequestBuilder requestBuilder;
     private @Nullable Date verifyTime;
-    private long renewTime = 0;
+    private long connectionExpiryTime = 0;
+    private long accessTokenExpiryTime = 0;
     private @Nullable String customerName;
-    private @Nullable MacDms macDms;
+    private @Nullable String accessToken;
 
     private final Map<Integer, AnnouncementWrapper> announcements = Collections.synchronizedMap(new LinkedHashMap<>());
     private final Map<Integer, TextWrapper> textToSpeeches = Collections.synchronizedMap(new LinkedHashMap<>());
@@ -177,38 +168,24 @@ public class Connection {
         TEXT_COMMAND
     }
 
-    public Connection(@Nullable Connection oldConnection, Gson gson) {
+    public Connection(@Nullable Connection oldConnection, Gson gson, HttpClient httpClient) {
         this.gson = gson;
+
+        this.requestBuilder = new HttpRequestBuilder(httpClient, cookieManager, gson);
         if (oldConnection != null) {
-            this.loginData = new LoginData(cookieManager, oldConnection.getDeviceId(), oldConnection.getFrc(),
-                    oldConnection.getSerial());
+            LoginData oldLoginData = oldConnection.getLoginData();
+            this.loginData = new LoginData(cookieManager, oldLoginData.getDeviceId(), oldLoginData.getFrc(),
+                    oldLoginData.getSerial());
         } else {
             this.loginData = new LoginData(cookieManager);
         }
-
-        GsonBuilder gsonBuilder = new GsonBuilder();
-        gsonWithNullSerialization = gsonBuilder.create();
 
         replaceTimer(TimerType.DEVICES,
                 scheduler.scheduleWithFixedDelay(this::handleExecuteSequenceNode, 0, 500, TimeUnit.MILLISECONDS));
     }
 
-    private void setAmazonSite(@Nullable String amazonSite) {
-        String correctedAmazonSite = Objects.requireNonNullElse(amazonSite, "amazon.com").toLowerCase();
-        if (correctedAmazonSite.startsWith("http://")) {
-            correctedAmazonSite = correctedAmazonSite.substring(7);
-        }
-        if (correctedAmazonSite.startsWith("https://")) {
-            correctedAmazonSite = correctedAmazonSite.substring(8);
-        }
-        if (correctedAmazonSite.startsWith("www.")) {
-            correctedAmazonSite = correctedAmazonSite.substring(4);
-        }
-        if (correctedAmazonSite.startsWith("alexa.")) {
-            correctedAmazonSite = correctedAmazonSite.substring(6);
-        }
-        this.loginData.amazonSite = correctedAmazonSite;
-        this.alexaServer = "https://alexa." + correctedAmazonSite;
+    public HttpRequestBuilder getRequestBuilder() {
+        return requestBuilder;
     }
 
     public LoginData getLoginData() {
@@ -216,40 +193,20 @@ public class Connection {
         return loginData;
     }
 
-    public @Nullable Date tryGetVerifyTime() {
+    public @Nullable Date getVerifyTime() {
         return verifyTime;
     }
 
-    public String getFrc() {
-        return loginData.frc;
+    public String getRetailDomain() {
+        return loginData.getRetailDomain();
     }
 
-    public String getSerial() {
-        return loginData.serial;
-    }
-
-    public String getDeviceId() {
-        return loginData.deviceId;
-    }
-
-    public String getAmazonSite() {
-        return loginData.amazonSite;
+    public String getRetailUrl() {
+        return loginData.getRetailUrl();
     }
 
     public String getAlexaServer() {
-        return alexaServer;
-    }
-
-    public @Nullable MacDms getMacDms() {
-        return this.macDms;
-    }
-
-    public String getDeviceName() {
-        return this.loginData.deviceName;
-    }
-
-    public String getCustomerId() {
-        return Objects.requireNonNullElse(loginData.accountCustomerId, "Unknown");
+        return this.loginData.getWebsiteApiUrl();
     }
 
     public String getCustomerName() {
@@ -261,485 +218,233 @@ public class Connection {
                 (queueObjects) -> (queueObjects.stream().anyMatch(queueObject -> queueObject.future != null)));
     }
 
-    public boolean tryRestoreLogin(@Nullable String data, @Nullable String overloadedDomain) {
-        Date loginTime = tryRestoreSessionData(data, overloadedDomain);
-        if (loginTime != null) {
-            try {
+    public boolean restoreLogin(@Nullable String data, @Nullable String overloadedDomain) {
+        try {
+            // verify stored data
+            if (data != null && !data.isEmpty() && loginData.deserialize(data)) {
+                if (overloadedDomain != null) {
+                    loginData.setRetailDomain(overloadedDomain);
+                }
+                renewTokens();
                 if (verifyLogin()) {
-                    this.loginData.loginTime = loginTime;
                     return true;
                 }
-            } catch (ConnectionException e) {
-                // no action
             }
+        } catch (ConnectionException e) {
+            // no action
+        }
+        this.loginData.setLoginTime(null);
+        return false;
+    }
+
+    private boolean tryGetBootstrap() {
+        try {
+            BootstrapTO result = requestBuilder.get(getAlexaServer() + "/api/bootstrap").retry(false).redirect(false)
+                    .syncSend(BootstrapTO.class);
+            BootstrapAuthenticationTO authentication = result.authentication;
+            if (authentication != null && authentication.authenticated) {
+                this.customerName = authentication.customerName;
+                this.loginData.setAccountCustomerId(authentication.customerId);
+                return authentication.authenticated;
+            }
+        } catch (ConnectionException e) {
+            logger.debug("Bootstrapping failed", e);
         }
         return false;
     }
 
-    private @Nullable Date tryRestoreSessionData(@Nullable String data, @Nullable String overloadedDomain) {
-        // verify stored data
-        if (data == null || data.isEmpty() || !loginData.deserialize(data)) {
-            return null;
-        }
-
-        if (overloadedDomain != null) {
-            loginData.amazonSite = overloadedDomain;
-        }
-
-        setAmazonSite(loginData.amazonSite);
-
+    public boolean registerConnectionAsApp(String accessToken) {
         try {
-            checkRenewSession();
+            List<CookieTO> webSiteCookies = cookieManager.getCookieStore().get(URI.create("https://www.amazon.com"))
+                    .stream().map(TOMapper::mapCookie).toList();
 
-            String accountCustomerId = this.loginData.accountCustomerId;
-            if (accountCustomerId == null || accountCustomerId.isEmpty()) {
-                List<Device> devices = this.getDeviceList();
-                accountCustomerId = devices.stream().filter(device -> loginData.serial.equals(device.serialNumber))
-                        .findAny().map(device -> device.deviceOwnerCustomerId).orElse(null);
-                if (accountCustomerId == null || accountCustomerId.isEmpty()) {
-                    accountCustomerId = devices.stream().filter(device -> "This Device".equals(device.accountName))
-                            .findAny().map(device -> {
-                                loginData.serial = Objects.requireNonNullElse(device.serialNumber, loginData.serial);
-                                return device.deviceOwnerCustomerId;
-                            }).orElse(null);
-                }
-                this.loginData.accountCustomerId = accountCustomerId;
-            }
-        } catch (URISyntaxException | ConnectionException e) {
-            logger.debug("Getting account customer Id failed", e);
-        }
-        return loginData.loginTime;
-    }
+            AuthRegisterTO registerAppRequest = new AuthRegisterTO();
+            registerAppRequest.registrationData.deviceSerial = loginData.getSerial();
+            registerAppRequest.authData.accessToken = accessToken;
+            registerAppRequest.userContextMap = Map.of("frc", loginData.getFrc());
+            registerAppRequest.cookies.webSiteCookies = webSiteCookies;
 
-    private @Nullable Authentication tryGetBootstrap() throws ConnectionException {
-        HttpsURLConnection connection = makeRequest("GET", alexaServer + "/api/bootstrap", null, false, false, Map.of(),
-                0);
-        String contentType = connection.getContentType();
-        try {
-            if (connection.getResponseCode() == 200 && contentType != null
-                    && contentType.toLowerCase().startsWith("application/json")) {
-                String bootstrapResultJson = convertStream(connection);
-                JsonBootstrapResult result = parseJson(bootstrapResultJson, JsonBootstrapResult.class);
-                if (result != null) {
-                    Authentication authentication = result.authentication;
-                    if (authentication != null && authentication.authenticated) {
-                        this.customerName = authentication.customerName;
-                        if (this.loginData.accountCustomerId == null) {
-                            this.loginData.accountCustomerId = authentication.customerId;
-                        }
-                        return authentication;
-                    }
-                }
-            }
-        } catch (JsonSyntaxException | IllegalStateException e) {
-            logger.info("No valid json received", e);
-            return null;
-        } catch (IOException e) {
-            throw new ConnectionException(e.getMessage(), e);
-        }
-        return null;
-    }
+            AuthRegisterResponseTO registerAppResponse = requestBuilder.post("https://api.amazon.com/auth/register")
+                    .withContent(registerAppRequest)
+                    .withHeaders(Map.of("x-amzn-identity-auth-domain", "api.amazon.com")).syncSend(
+                            org.smarthomej.binding.amazonechocontrol.internal.dto.response.AuthRegisterTO.class).response;
 
-    public String convertStream(HttpsURLConnection connection) throws ConnectionException {
-        try (InputStream input = connection.getInputStream()) {
-            if (input == null) {
-                return "";
+            AuthRegisterTokensTO tokens = registerAppResponse.success.tokens;
+            String refreshToken = tokens.bearer.refreshToken;
+
+            this.loginData.setRefreshToken(refreshToken);
+
+            if (refreshToken == null || refreshToken.isBlank()) {
+                logger.warn("Could not determine refreshToken while trying to register as app.");
+                return false;
             }
 
-            InputStream readerStream;
-            if ("gzip".equalsIgnoreCase(connection.getContentEncoding())) {
-                readerStream = new GZIPInputStream(input);
-            } else {
-                readerStream = input;
-            }
-            String contentType = connection.getContentType();
-            String charSet = StandardCharsets.UTF_8.name();
-
-            if (contentType != null) {
-                Matcher m = CHARSET_PATTERN.matcher(contentType);
-                if (m.find()) {
-                    String foundCharset = m.group(1).trim().toUpperCase();
-                    if (!foundCharset.isEmpty()) {
-                        charSet = foundCharset;
-                    }
-                }
-            }
-
-            Scanner inputScanner = new Scanner(readerStream, charSet);
-            Scanner scannerWithoutDelimiter = inputScanner.useDelimiter("\\A");
-            String result = scannerWithoutDelimiter.hasNext() ? scannerWithoutDelimiter.next() : "";
-            inputScanner.close();
-            scannerWithoutDelimiter.close();
-            input.close();
-
-            return result;
-        } catch (IOException e) {
-            throw new ConnectionException(e.getMessage(), e);
-        }
-    }
-
-    public String makeRequestAndReturnString(String url) throws ConnectionException {
-        return makeRequestAndReturnString("GET", url, null, false, Map.of());
-    }
-
-    public String makeRequestAndReturnString(String requestMethod, String url, @Nullable String postData, boolean json,
-            Map<String, String> customHeaders) throws ConnectionException {
-        HttpsURLConnection connection = makeRequest(requestMethod, url, postData, json, true, customHeaders, 3);
-        String result = convertStream(connection);
-        logger.trace("Result of {} {}:{}", requestMethod, url, result);
-        return result;
-    }
-
-    public HttpsURLConnection makeRequest(String requestMethod, String url, @Nullable String postData, boolean json,
-            boolean autoredirect, Map<String, String> customHeaders, int badRequestRepeats) throws ConnectionException {
-        String currentUrl = url;
-        int redirectCounter = 0;
-        int retryCounter = 0;
-        // loop for handling redirect and bad request, using automatic redirect is not
-        // possible, because all response headers must be catched
-        while (true) {
-            int code;
-            HttpsURLConnection connection = null;
-            try {
-                logger.debug("Make request to {}", url);
-                connection = (HttpsURLConnection) new URL(currentUrl).openConnection();
-                connection.setRequestMethod(requestMethod);
-                connection.setRequestProperty("Accept-Language", "en-US");
-                if (!customHeaders.containsKey("User-Agent")) {
-                    connection.setRequestProperty("User-Agent", USER_AGENT);
-                }
-                connection.setRequestProperty("Accept-Encoding", "gzip");
-                connection.setRequestProperty("DNT", "1");
-                connection.setRequestProperty("Upgrade-Insecure-Requests", "1");
-                for (Map.Entry<String, String> header : customHeaders.entrySet()) {
-                    if (!header.getValue().isEmpty()) {
-                        connection.setRequestProperty(header.getKey(), header.getValue());
-                    }
-                }
-                connection.setInstanceFollowRedirects(false);
-
-                // add cookies
-                URI uri = connection.getURL().toURI();
-
-                if (!customHeaders.containsKey("Cookie")) {
-                    StringBuilder cookieHeaderBuilder = new StringBuilder();
-                    for (HttpCookie cookie : cookieManager.getCookieStore().get(uri)) {
-                        if (cookieHeaderBuilder.length() > 0) {
-                            cookieHeaderBuilder.append(";");
-                        }
-                        cookieHeaderBuilder.append(cookie.getName());
-                        cookieHeaderBuilder.append("=");
-                        cookieHeaderBuilder.append(cookie.getValue());
-                        if (cookie.getName().equals("csrf")) {
-                            connection.setRequestProperty("csrf", cookie.getValue());
-                        }
-
-                    }
-                    if (cookieHeaderBuilder.length() > 0) {
-                        String cookies = cookieHeaderBuilder.toString();
-                        connection.setRequestProperty("Cookie", cookies);
-                    }
-                }
-                if (postData != null) {
-                    logger.debug("{}: {}", requestMethod, postData);
-                    // post data
-                    byte[] postDataBytes = postData.getBytes(StandardCharsets.UTF_8);
-                    int postDataLength = postDataBytes.length;
-
-                    connection.setFixedLengthStreamingMode(postDataLength);
-
-                    if (json) {
-                        connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-                    } else {
-                        connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-                    }
-                    connection.setRequestProperty("Content-Length", Integer.toString(postDataLength));
-                    if ("POST".equals(requestMethod)) {
-                        connection.setRequestProperty("Expect", "100-continue");
-                    }
-
-                    connection.setDoOutput(true);
-                    OutputStream outputStream = connection.getOutputStream();
-                    outputStream.write(postDataBytes);
-                    outputStream.close();
-                }
-                // handle result
-                code = connection.getResponseCode();
-                String location = null;
-
-                // handle response headers
-                Map<@Nullable String, List<String>> headerFields = connection.getHeaderFields();
-                for (Map.Entry<@Nullable String, List<String>> header : headerFields.entrySet()) {
-                    String key = header.getKey();
-                    if (key != null && !key.isEmpty()) {
-                        if ("Set-Cookie".equalsIgnoreCase(key)) {
-                            // store cookie
-                            for (String cookieHeader : header.getValue()) {
-                                if (!cookieHeader.isEmpty()) {
-                                    List<HttpCookie> cookies = HttpCookie.parse(cookieHeader);
-                                    for (HttpCookie cookie : cookies) {
-                                        cookieManager.getCookieStore().add(uri, cookie);
-                                    }
-                                }
-                            }
-                        }
-                        if ("Location".equalsIgnoreCase(key)) {
-                            // get redirect location
-                            location = header.getValue().get(0);
-                            if (!location.isEmpty()) {
-                                location = uri.resolve(location).toString();
-                                // check for https
-                                if (location.toLowerCase().startsWith("http://")) {
-                                    // always use https
-                                    location = "https://" + location.substring(7);
-                                    logger.debug("Redirect corrected to {}", location);
-                                }
-                            }
-                        }
-                    }
-                }
-                if (code == 200) {
-                    logger.debug("Call to {} succeeded", url);
-                    return connection;
-                } else if (code == 301 || code == 302 && location != null) {
-                    logger.debug("Redirected to {}", location);
-                    redirectCounter++;
-                    if (redirectCounter > 30) {
-                        throw new ConnectionException("Too many redirects");
-                    }
-                    currentUrl = location;
-                    if (autoredirect) {
-                        continue; // repeat with new location
-                    }
-                    return connection;
-                } else if (code == 400 && "QUEUE_EXPIRED".equals(connection.getHeaderField("x-amzn-error"))) {
-                    // handle queue expired
-                    throw new ConnectionException("Queue expired");
-                } else {
-                    logger.debug("Retry call to {}", url);
-                    retryCounter++;
-                    if (retryCounter > badRequestRepeats) {
-                        throw new ConnectionException(requestMethod + " url '" + url + "' failed with code " + code
-                                + ": " + connection.getResponseMessage());
-                    }
-                    Thread.sleep(2000);
-                }
-            } catch (Exception e) {
-                if (connection != null) {
-                    connection.disconnect();
-                }
-                logger.debug("Request to url '{}' fails:", url, e);
-                throw new ConnectionException("Request failed", e);
-            }
-        }
-    }
-
-    public void registerConnectionAsApp(String oAutRedirectUrl)
-            throws ConnectionException, IOException, URISyntaxException, InterruptedException {
-        URI oAutRedirectUri = new URI(oAutRedirectUrl);
-
-        Map<String, String> queryParameters = new LinkedHashMap<>();
-        String query = oAutRedirectUri.getQuery();
-        String[] pairs = query.split("&");
-        for (String pair : pairs) {
-            int idx = pair.indexOf("=");
-            queryParameters.put(URLDecoder.decode(pair.substring(0, idx), StandardCharsets.UTF_8.name()),
-                    URLDecoder.decode(pair.substring(idx + 1), StandardCharsets.UTF_8.name()));
-        }
-        String accessToken = queryParameters.get("openid.oa2.access_token");
-
-        reRegisterConnectionAsApp(accessToken);
-    }
-
-    private void reRegisterConnectionAsApp(@Nullable String accessToken) throws ConnectionException {
-        List<JsonWebSiteCookie> webSiteCookies = new ArrayList<>();
-        for (HttpCookie cookie : getSessionCookies("https://www.amazon.com")) {
-            webSiteCookies.add(new JsonWebSiteCookie(cookie.getName(), cookie.getValue()));
-        }
-
-        JsonRegisterAppRequest registerAppRequest = new JsonRegisterAppRequest(loginData.serial, accessToken,
-                loginData.frc, webSiteCookies);
-        String registerAppRequestJson = gson.toJson(registerAppRequest);
-
-        String registerAppResultJson = makeRequestAndReturnString("POST", "https://api.amazon.com/auth/register",
-                registerAppRequestJson, true, Map.of("x-amzn-identity-auth-domain", "api.amazon.com"));
-        JsonRegisterAppResponse registerAppResponse = parseJson(registerAppResultJson, JsonRegisterAppResponse.class);
-
-        if (registerAppResponse == null) {
-            throw new ConnectionException("Error: No response received from register application");
-        }
-        Response response = registerAppResponse.response;
-        if (response == null) {
-            throw new ConnectionException("Error: No response received from register application");
-        }
-        Success success = response.success;
-        if (success == null) {
-            throw new ConnectionException("Error: No success received from register application");
-        }
-        Tokens tokens = success.tokens;
-        if (tokens == null) {
-            throw new ConnectionException("Error: No tokens received from register application");
-        }
-        Bearer bearer = tokens.bearer;
-        if (bearer == null) {
-            throw new ConnectionException("Error: No bearer received from register application");
-        }
-        String refreshToken = bearer.refreshToken;
-
-        this.macDms = tokens.macDms;
-
-        this.loginData.refreshToken = refreshToken;
-        if (refreshToken == null || refreshToken.isEmpty()) {
-            throw new ConnectionException("Error: No refresh token received");
-        }
-        try {
-            exchangeToken();
+            exchangeToken(getRetailDomain());
             // Check which is the owner domain
-            String usersMeResponseJson = makeRequestAndReturnString(
-                    "https://alexa.amazon.com/api/users/me?platform=ios&version=2.2.443692.0");
-            JsonUsersMeResponse usersMeResponse = parseJson(usersMeResponseJson, JsonUsersMeResponse.class);
-            if (usersMeResponse == null) {
-                throw new IllegalStateException();
-            }
-            URI uri = new URI(usersMeResponse.marketPlaceDomainName);
-            String host = uri.getHost();
+            UsersMeTO usersMeResponse = requestBuilder.get("https://alexa.amazon.com/api/users/me?platform=ios&version="
+                    + AmazonEchoControlBindingConstants.API_VERSION).syncSend(UsersMeTO.class);
 
             // Switch to owner domain
-            setAmazonSite(host);
-            exchangeToken();
-            tryGetBootstrap();
-        } catch (Exception e) {
-            logout();
-            throw new ConnectionException(e.getMessage(), e);
-        }
+            exchangeToken(usersMeResponse.marketPlaceDomainName);
+            EndpointTO endpoints = requestBuilder.get("https://alexa.amazon.com/api/endpoints")
+                    .syncSend(EndpointTO.class);
+            this.loginData.setRetailDomain(endpoints.retailDomain);
+            this.loginData.setWebsiteApiUrl(endpoints.websiteApiUrl);
+            this.loginData.setRetailUrl(endpoints.retailUrl);
 
-        String deviceName = null;
-        Extensions extensions = success.extensions;
-        if (extensions != null) {
-            DeviceInfo deviceInfo = extensions.deviceInfo;
-            if (deviceInfo != null) {
-                deviceName = deviceInfo.deviceName;
+            HttpRequestBuilder.HttpResponse response = requestBuilder
+                    .put("https://api.amazonalexa.com/v1/devices/@self/capabilities")
+                    .withContent(CAPABILITY_REGISTRATION)
+                    .withHeaders(Map.of(HttpHeader.AUTHORIZATION.toString(), "Bearer " + tokens.bearer.accessToken))
+                    .retry(false).syncSend();
+            if (response.statusCode() != NO_CONTENT_204 && response.statusCode() != OK_200) {
+                logger.warn("Registering capabilities failed, HTTP/2 stream will not work");
             }
-        }
 
-        this.loginData.deviceName = Objects.requireNonNullElse(deviceName, "Unknown");
+            tryGetBootstrap();
+            this.loginData.setDeviceName(registerAppResponse.success.extensions.deviceInfo.deviceName);
+
+            return true;
+        } catch (Exception e) {
+            logger.warn("Registering as app failed: {}", e.getMessage());
+            logout(false);
+            return false;
+        }
     }
 
-    private void exchangeToken() throws ConnectionException {
-        this.renewTime = 0;
-        String cookiesJson = "{\"cookies\":{\"." + getAmazonSite() + "\":[]}}";
+    private void exchangeToken(String cookieDomain) throws ConnectionException {
+        this.connectionExpiryTime = 0;
+        String cookiesJson = "{\"cookies\":{\"." + cookieDomain + "\":[]}}";
         String cookiesBase64 = Base64.getEncoder().encodeToString(cookiesJson.getBytes());
 
-        String exchangePostData = "di.os.name=iOS&app_version=2.2.443692.0&domain=." + getAmazonSite()
-                + "&source_token=" + URLEncoder.encode(this.loginData.refreshToken, StandardCharsets.UTF_8)
-                + "&requested_token_type=auth_cookies&source_token_type=refresh_token&di.hw.version=iPhone&di.sdk.version=6.10.0&cookies="
-                + cookiesBase64 + "&app_name=Amazon%20Alexa&di.os.version=14.8";
+        String exchangePostData = "di.os.name=iOS" //
+                + "&app_version=" + AmazonEchoControlBindingConstants.API_VERSION //
+                + "&domain=." + getRetailDomain() //
+                + "&source_token=" + URLEncoder.encode(this.loginData.getRefreshToken(), StandardCharsets.UTF_8) //
+                + "&requested_token_type=auth_cookies" //
+                + "&source_token_type=refresh_token" //
+                + "&di.hw.version=iPhone" //
+                + "&di.sdk.version=" + AmazonEchoControlBindingConstants.DI_SDK_VERSION //
+                + "&cookies=" + cookiesBase64 //
+                + "&app_name=Amazon%20Alexa" //
+                + "&di.os.version=" + AmazonEchoControlBindingConstants.DI_OS_VERSION;
 
-        String exchangeTokenJson = makeRequestAndReturnString("POST",
-                "https://www." + getAmazonSite() + "/ap/exchangetoken", exchangePostData, false, Map.of("Cookie", ""));
-        JsonExchangeTokenResponse exchangeTokenResponse = Objects
-                .requireNonNull(gson.fromJson(exchangeTokenJson, JsonExchangeTokenResponse.class));
+        String url = getRetailUrl() + "/ap/exchangetoken";
 
-        org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonExchangeTokenResponse.Response response = exchangeTokenResponse.response;
-        if (response != null) {
-            org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonExchangeTokenResponse.Tokens tokens = response.tokens;
-            if (tokens != null) {
-                Map<String, Cookie[]> cookiesMap = tokens.cookies;
-                if (cookiesMap != null) {
-                    for (String domain : cookiesMap.keySet()) {
-                        Cookie[] cookies = cookiesMap.get(domain);
-                        if (cookies != null) {
-                            for (Cookie cookie : cookies) {
-                                if (cookie != null) {
-                                    HttpCookie httpCookie = new HttpCookie(cookie.name, cookie.value);
-                                    httpCookie.setPath(cookie.path);
-                                    httpCookie.setDomain(domain);
-                                    Boolean secure = cookie.secure;
-                                    if (secure != null) {
-                                        httpCookie.setSecure(secure);
-                                    }
-                                    this.cookieManager.getCookieStore().add(null, httpCookie);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        ExchangeTokenTO exchangeToken = requestBuilder.post(url).withContent(exchangePostData).withHeader("Cookie", "")
+                .syncSend(ExchangeTokenTO.class);
+
+        CookieStore cookieStore = cookieManager.getCookieStore();
+        exchangeToken.response.tokens.cookies
+                .forEach((domain, cookies) -> cookies.stream().map(cookie -> TOMapper.mapCookie(cookie, domain))
+                        .forEach(httpCookie -> cookieStore.add(null, httpCookie)));
+
         if (!verifyLogin()) {
             throw new ConnectionException("Verify login failed after token exchange");
         }
-        this.renewTime = (long) (System.currentTimeMillis() + Connection.EXPIRES_IN * 1000d / 0.8d); // start renew at
+
+        // renew at 80% expired
+        this.connectionExpiryTime = System.currentTimeMillis() + (long) (Connection.EXPIRES_IN * 1000d / 0.8d);
     }
 
-    public boolean checkRenewSession() throws URISyntaxException, ConnectionException {
-        if (System.currentTimeMillis() >= this.renewTime) {
-            String renewTokenPostData = "app_name=Amazon%20Alexa&app_version=2.2.443692.0&di.sdk.version=6.10.0&source_token="
-                    + URLEncoder.encode(loginData.refreshToken, StandardCharsets.UTF_8)
-                    + "&package_name=com.amazon.echo&di.hw.version=iPhone&platform=iOS&requested_token_type=access_token&source_token_type=refresh_token&di.os.name=iOS&di.os.version=14.8&current_version=6.10.0";
-            String renewTokenResponseJson = makeRequestAndReturnString("POST", "https://api.amazon.com/auth/token",
-                    renewTokenPostData, false, Map.of());
-            if (this.macDms == null) {
-                JsonRenewTokenResponse tokenResponse = parseJson(renewTokenResponseJson, JsonRenewTokenResponse.class);
-                if (tokenResponse == null) {
-                    return false;
-                }
-                reRegisterConnectionAsApp(tokenResponse.accessToken);
-            } else {
-                exchangeToken();
+    public String getAccessToken() throws ConnectionException {
+        String accessToken = this.accessToken;
+        if (accessToken == null) {
+            throw new ConnectionException("accessToken not set");
+        }
+        return accessToken;
+    }
+
+    /**
+     * Check if tokens need to be renewed
+     * <p />
+     * The {@link #accessToken} is renewed when the current nextAlarmTime is above
+     * {@link #accessTokenExpiryTime}, additionally the session tokens/cookies are renewed when the current
+     * nextAlarmTime is
+     * above {@link #connectionExpiryTime}
+     *
+     * @return {@code true} when the session tokens have been renewed, {@code false} otherwise
+     * @throws ConnectionException when an error occurred
+     */
+    public boolean renewTokens() throws ConnectionException {
+        if (System.currentTimeMillis() >= this.accessTokenExpiryTime) {
+            String renewTokenPostData = "app_name=Amazon%20Alexa" //
+                    + "&app_version=" + AmazonEchoControlBindingConstants.API_VERSION //
+                    + "&di.sdk.version=" + AmazonEchoControlBindingConstants.DI_SDK_VERSION //
+                    + "&source_token=" + URLEncoder.encode(loginData.getRefreshToken(), StandardCharsets.UTF_8) //
+                    + "&package_name=com.amazon.echo" //
+                    + "&di.hw.version=iPhone" //
+                    + "&platform=iOS" //
+                    + "&requested_token_type=access_token"//
+                    + "&source_token_type=refresh_token" //
+                    + "&di.os.name=iOS" //
+                    + "&di.os.version=" + AmazonEchoControlBindingConstants.DI_OS_VERSION //
+                    + "&current_version=6.12.4";
+
+            AuthTokenTO tokenResponse = requestBuilder.post("https://api.amazon.com/auth/token")
+                    .withContent(renewTokenPostData).syncSend(AuthTokenTO.class);
+
+            String accessToken = tokenResponse.accessToken;
+            this.accessToken = accessToken;
+            if (accessToken == null) {
+                throw new ConnectionException("Failed to renew access token, no token received.");
             }
-            return true;
+
+            // renew at 80% expired
+            this.accessTokenExpiryTime = System.currentTimeMillis() + (long) ((tokenResponse.expiresIn * 1000.0) / 0.8);
+
+            if (System.currentTimeMillis() > this.connectionExpiryTime) {
+                exchangeToken(loginData.getRetailDomain());
+            }
         }
         return false;
     }
 
-    public boolean getIsLoggedIn() {
-        return loginData.loginTime != null;
+    public boolean isLoggedIn() {
+        return loginData.getLoginTime() != null;
     }
 
     public String getLoginPage() throws ConnectionException {
         // clear session data
-        logout();
+        logout(false);
 
-        logger.debug("Start Login to {}", alexaServer);
+        logger.debug("Start Login to {}", getAlexaServer());
 
         String mapMdJson = "{\"device_user_dictionary\":[],\"device_registration_data\":{\"software_version\":\"1\"},\"app_identifier\":{\"app_version\":\"2.2.443692\",\"bundle_id\":\"com.amazon.echo\"}}";
         String mapMdCookie = Base64.getEncoder().encodeToString(mapMdJson.getBytes());
 
         cookieManager.getCookieStore().add(URI.create("https://www.amazon.com"), new HttpCookie("map-md", mapMdCookie));
-        cookieManager.getCookieStore().add(URI.create("https://www.amazon.com"), new HttpCookie("frc", loginData.frc));
+        cookieManager.getCookieStore().add(URI.create("https://www.amazon.com"),
+                new HttpCookie("frc", loginData.getFrc()));
 
-        String loginFormHtml = makeRequestAndReturnString("GET", "https://www.amazon.com"
-                + "/ap/signin?openid.return_to=https://www.amazon.com/ap/maplanding&openid.assoc_handle=amzn_dp_project_dee_ios&openid.identity=http://specs.openid.net/auth/2.0/identifier_select&pageId=amzn_dp_project_dee_ios&accountStatusPolicy=P1&openid.claimed_id=http://specs.openid.net/auth/2.0/identifier_select&openid.mode=checkid_setup&openid.ns.oa2=http://www.amazon.com/ap/ext/oauth/2&openid.oa2.client_id=device:"
-                + loginData.deviceId
-                + "&openid.ns.pape=http://specs.openid.net/extensions/pape/1.0&openid.oa2.response_type=token&openid.ns=http://specs.openid.net/auth/2.0&openid.pape.max_auth_age=0&openid.oa2.scope=device_auth_access",
-                null, false, Map.of("authority", "www.amazon.com"));
+        String url = "https://www.amazon.com/ap/signin" //
+                + "?openid.return_to=https://www.amazon.com/ap/maplanding" //
+                + "&openid.assoc_handle=amzn_dp_project_dee_ios" //
+                + "&openid.identity=http://specs.openid.net/auth/2.0/identifier_select" //
+                + "&pageId=amzn_dp_project_dee_ios" //
+                + "&accountStatusPolicy=P1" //
+                + "&openid.claimed_id=http://specs.openid.net/auth/2.0/identifier_select" //
+                + "&openid.mode=checkid_setup" //
+                + "&openid.ns.oa2=http://www.amazon.com/ap/ext/oauth/2" //
+                + "&openid.oa2.client_id=device:" + loginData.getDeviceId() //
+                + "&openid.ns.pape=http://specs.openid.net/extensions/pape/1.0" //
+                + "&openid.oa2.response_type=token" //
+                + "&openid.ns=http://specs.openid.net/auth/2.0&openid.pape.max_auth_age=0" //
+                + "&openid.oa2.scope=device_auth_access";
 
-        logger.debug("Received login form {}", loginFormHtml);
-        return loginFormHtml;
+        return requestBuilder.get(url).withHeader("authority", "www.amazon.com").syncSend(String.class);
     }
 
     public boolean verifyLogin() throws ConnectionException {
-        if (this.loginData.refreshToken == null) {
+        if (this.loginData.getRefreshToken() == null || !tryGetBootstrap()) {
+            verifyTime = null;
             return false;
         }
-        Authentication authentication = tryGetBootstrap();
-        if (authentication != null && authentication.authenticated) {
-            verifyTime = new Date();
-            if (loginData.loginTime == null) {
-                loginData.loginTime = verifyTime;
-            }
-            return true;
+        verifyTime = new Date();
+        if (loginData.getLoginTime() == null) {
+            loginData.setLoginTime(verifyTime);
         }
-        return false;
-    }
-
-    public List<HttpCookie> getSessionCookies(String server) {
-        try {
-            return cookieManager.getCookieStore().get(new URI(server));
-        } catch (URISyntaxException e) {
-            return List.of();
-        }
+        return true;
     }
 
     // current value in compute can be null
@@ -752,12 +457,22 @@ public class Connection {
         });
     }
 
-    public void logout() {
-        cookieManager.getCookieStore().removeAll();
-        // reset all members
-        loginData.refreshToken = null;
-        loginData.loginTime = null;
+    public void logout(boolean reset) {
+        if (reset) {
+            cookieManager = new CookieManager();
+            loginData = new LoginData(cookieManager);
+        } else {
+            cookieManager.getCookieStore().removeAll();
+            // reset all members
+            loginData.setRefreshToken(null);
+            loginData.setLoginTime(null);
+        }
+
         verifyTime = null;
+        connectionExpiryTime = 0;
+        accessTokenExpiryTime = 0;
+        customerName = null;
+        accessToken = null;
 
         replaceTimer(TimerType.ANNOUNCEMENT, null);
         announcements.clear();
@@ -778,89 +493,24 @@ public class Connection {
         }));
     }
 
-    // parser
-    private <T> @Nullable T parseJson(String json, Class<T> type) throws JsonSyntaxException, IllegalStateException {
-        try {
-            // gson.fromJson is non-null if json is non-null and not empty
-            return gson.fromJson(json, type);
-        } catch (JsonParseException | IllegalStateException e) {
-            logger.warn("Parsing json failed: {}", json, e);
-            throw e;
-        }
-    }
-
     // commands and states
-    public List<WakeWord> getWakeWords() {
-        String json;
+    public List<WakeWordTO> getWakeWords() {
         try {
-            json = makeRequestAndReturnString(alexaServer + "/api/wake-word?cached=true");
-            JsonWakeWords wakeWords = parseJson(json, JsonWakeWords.class);
-            if (wakeWords == null) {
-                return List.of();
-            }
-            return Objects.requireNonNullElse(wakeWords.wakeWords, List.of());
+            return requestBuilder.get(getAlexaServer() + "/api/wake-word?cached=true")
+                    .syncSend(WakeWordsTO.class).wakeWords;
         } catch (ConnectionException e) {
-            logger.info("getting wakewords failed", e);
+            logger.info("Getting wake words failed", e);
         }
         return List.of();
     }
 
-    public List<SmartHomeBaseDevice> getSmarthomeDeviceList() throws ConnectionException {
-        try {
-            String json = makeRequestAndReturnString(alexaServer + "/api/phoenix");
-            logger.debug("getSmartHomeDevices result: {}", json);
-
-            JsonNetworkDetails networkDetails = parseJson(json, JsonNetworkDetails.class);
-            if (networkDetails == null) {
-                return List.of();
-            }
-            Object jsonObject = gson.fromJson(networkDetails.networkDetail, Object.class);
-            List<SmartHomeBaseDevice> result = new ArrayList<>();
-            searchSmartHomeDevicesRecursive(jsonObject, result);
-
-            return result;
-        } catch (ConnectionException e) {
-            logger.warn("getSmartHomeDevices fails: {}", e.getMessage());
-            throw e;
-        }
-    }
-
-    private void searchSmartHomeDevicesRecursive(@Nullable Object jsonNode, List<SmartHomeBaseDevice> devices) {
-        if (jsonNode instanceof Map) {
-            @SuppressWarnings({ "rawtypes", "unchecked" })
-            Map<String, Object> map = (Map) jsonNode;
-            if (map.containsKey("entityId") && map.containsKey("friendlyName") && map.containsKey("actions")) {
-                // device node found, create type element and add it to the results
-                JsonElement element = gson.toJsonTree(jsonNode);
-                JsonSmartHomeDevice shd = parseJson(element.toString(), JsonSmartHomeDevice.class);
-                if (shd != null) {
-                    devices.add(shd);
-                }
-            } else if (map.containsKey("applianceGroupName")) {
-                JsonElement element = gson.toJsonTree(jsonNode);
-                SmartHomeGroup shg = parseJson(element.toString(), SmartHomeGroup.class);
-                if (shg != null) {
-                    devices.add(shg);
-                }
-            } else {
-                map.values().forEach(value -> searchSmartHomeDevicesRecursive(value, devices));
-            }
-        }
-    }
-
-    public List<Device> getDeviceList() throws ConnectionException {
-        JsonDevices devices = Objects.requireNonNull(parseJson(getDeviceListJson(), JsonDevices.class));
-        logger.trace("Devices {}", devices.devices);
-
+    public List<DeviceTO> getDeviceList() throws ConnectionException {
+        DeviceListTO devices = requestBuilder.get(getAlexaServer() + "/api/devices-v2/device?cached=false")
+                .syncSend(DeviceListTO.class);
         // @Nullable because of a limitation of the null-checker, we filter null-serialNumbers before
         Set<@Nullable String> serialNumbers = ConcurrentHashMap.newKeySet();
         return devices.devices.stream().filter(d -> d.serialNumber != null && serialNumbers.add(d.serialNumber))
-                .collect(Collectors.toList());
-    }
-
-    public String getDeviceListJson() throws ConnectionException {
-        String json = makeRequestAndReturnString(alexaServer + "/api/devices-v2/device?cached=false");
-        return json;
+                .toList();
     }
 
     public Map<String, JsonArray> getSmartHomeDeviceStatesJson(Set<SmartHomeBaseDevice> devices)
@@ -892,12 +542,9 @@ public class Connection {
             }
         }
         requestObject.add("stateRequests", stateRequests);
-        String requestBody = requestObject.toString();
-        String json = makeRequestAndReturnString("POST", alexaServer + "/api/phoenix/state", requestBody, true,
-                Map.of());
-        logger.trace("Requested {} and received {}", requestBody, json);
+        JsonObject responseObject = requestBuilder.post(getAlexaServer() + "/api/phoenix/state")
+                .withContent(requestObject).syncSend(JsonObject.class);
 
-        JsonObject responseObject = Objects.requireNonNull(gson.fromJson(json, JsonObject.class));
         JsonArray deviceStates = (JsonArray) responseObject.get("deviceStates");
         Map<String, JsonArray> result = new HashMap<>();
         for (JsonElement deviceState : deviceStates) {
@@ -923,65 +570,55 @@ public class Connection {
         return result;
     }
 
-    public @Nullable JsonPlayerState getPlayer(Device device) throws ConnectionException {
-        String json = makeRequestAndReturnString(alexaServer + "/api/np/player?deviceSerialNumber="
-                + device.serialNumber + "&deviceType=" + device.deviceType + "&screenWidth=1440");
-        return parseJson(json, JsonPlayerState.class);
+    public PlayerStateTO getPlayerState(DeviceTO device) throws ConnectionException {
+        return requestBuilder.get(getAlexaServer() + "/api/np/player?deviceSerialNumber=" + device.serialNumber
+                + "&deviceType=" + device.deviceType + "&screenWidth=1440").syncSend(PlayerStateTO.class);
     }
 
-    public @Nullable JsonMediaState getMediaState(Device device) throws ConnectionException {
-        String json = makeRequestAndReturnString(alexaServer + "/api/media/state?deviceSerialNumber="
-                + device.serialNumber + "&deviceType=" + device.deviceType);
-        return parseJson(json, JsonMediaState.class);
-    }
-
-    public List<CustomerHistoryRecord> getActivities(@Nullable Long startTime, @Nullable Long endTime) {
+    public List<MediaSessionTO> getMediaSessions(DeviceTO device) {
         try {
-            String json = makeRequestAndReturnString(
-                    "https://" + getAmazonSite() + "/alexa-privacy/apd/rvh/customer-history-records?startTime="
-                            + (startTime != null ? startTime : "") + "&endTime=" + (endTime != null ? endTime : "")
-                            + "&maxRecordSize=1");
-            JsonCustomerHistoryRecords customerHistoryRecords = parseJson(json, JsonCustomerHistoryRecords.class);
-            if (customerHistoryRecords == null) {
-                return List.of();
-            }
-            return Objects.requireNonNullElse(customerHistoryRecords.customerHistoryRecords, List.of());
+            String url = getAlexaServer() + "/api/np/list-media-sessions?deviceSerialNumber=" + device.serialNumber
+                    + "&deviceType=" + device.deviceType;
+            return requestBuilder.get(url).syncSend(ListMediaSessionTO.class).mediaSessionList;
+        } catch (ConnectionException e) {
+            logger.warn("Failed to update media sessions for {}: {}", device.serialNumber, e.getMessage());
+        }
+        return List.of();
+    }
+
+    public List<CustomerHistoryRecordTO> getActivities(long startTime, long endTime) {
+        try {
+            String url = getRetailUrl() + "/alexa-privacy/apd/rvh/customer-history-records?startTime=" + startTime
+                    + "&endTime=" + endTime + "&maxRecordSize=1";
+            CustomerHistoryRecordsTO customerHistoryRecords = requestBuilder.get(url)
+                    .syncSend(CustomerHistoryRecordsTO.class);
+            return customerHistoryRecords.customerHistoryRecords.stream().sorted(Comparator.comparing(r -> r.timestamp))
+                    .toList();
         } catch (ConnectionException e) {
             logger.info("getting activities failed", e);
         }
         return List.of();
     }
 
-    public JsonBluetoothStates getBluetoothConnectionStates() {
+    public List<BluetoothStateTO> getBluetoothConnectionStates() {
         try {
-            String json = makeRequestAndReturnString(alexaServer + "/api/bluetooth?cached=true");
-            return Objects.requireNonNullElse(parseJson(json, JsonBluetoothStates.class), new JsonBluetoothStates());
+            String url = getAlexaServer() + "/api/bluetooth?cached=true";
+            return requestBuilder.get(url).syncSend(BluetoothStatesTO.class).bluetoothStates;
         } catch (ConnectionException e) {
-            logger.debug("failed to get bluetooth state: {}", e.getMessage());
-            return new JsonBluetoothStates();
+            logger.debug("Failed to get bluetooth state: {}", e.getMessage());
+            return List.of();
         }
     }
 
-    public @Nullable JsonPlaylists getPlaylists(Device device) throws ConnectionException {
-        String json = makeRequestAndReturnString(
-                alexaServer + "/api/cloudplayer/playlists?deviceSerialNumber=" + device.serialNumber + "&deviceType="
-                        + device.deviceType + "&mediaOwnerCustomerId=" + getCustomerId(device.deviceOwnerCustomerId));
-        return parseJson(json, JsonPlaylists.class);
-    }
-
-    public void command(Device device, String command) throws ConnectionException {
-        String url = alexaServer + "/api/np/command?deviceSerialNumber=" + device.serialNumber + "&deviceType="
+    public void command(DeviceTO device, Object command) throws ConnectionException {
+        String url = getAlexaServer() + "/api/np/command?deviceSerialNumber=" + device.serialNumber + "&deviceType="
                 + device.deviceType;
-        makeRequest("POST", url, command, true, true, Map.of(), 0);
-    }
-
-    public void smartHomeCommand(String entityId, String action) throws IOException, InterruptedException {
-        smartHomeCommand(entityId, action, Map.of());
+        requestBuilder.post(url).withContent(command).retry(false).syncSend();
     }
 
     public void smartHomeCommand(String entityId, String action, Map<String, Object> values)
             throws IOException, InterruptedException {
-        String url = alexaServer + "/api/phoenix/state";
+        String url = getAlexaServer() + "/api/phoenix/state";
 
         JsonObject json = new JsonObject();
         JsonArray controlRequests = new JsonArray();
@@ -1019,151 +656,97 @@ public class Connection {
         controlRequests.add(controlRequest);
         json.add("controlRequests", controlRequests);
 
-        String requestBody = json.toString();
         try {
-            String resultBody = makeRequestAndReturnString("PUT", url, requestBody, true, Map.of());
-            logger.trace("Request '{}' resulted in '{}", requestBody, resultBody);
-            JsonObject result = parseJson(resultBody, JsonObject.class);
+            JsonObject result = requestBuilder.put(url).withContent(json).syncSend(JsonObject.class);
             if (result == null) {
                 return;
             }
             JsonElement errors = result.get("errors");
             if (errors != null && errors.isJsonArray()) {
                 JsonArray errorList = errors.getAsJsonArray();
-                if (errorList.size() > 0) {
-                    logger.warn("Smart home device command failed. The request '{}' resulted in error(s): {}",
-                            requestBody, StreamSupport.stream(errorList.spliterator(), false).map(JsonElement::toString)
+                if (!errorList.isEmpty()) {
+                    logger.warn("Smart home device command failed. {}",
+                            StreamSupport.stream(errorList.spliterator(), false).map(JsonElement::toString)
                                     .collect(Collectors.joining(" / ")));
                 }
             }
         } catch (ConnectionException e) {
-            logger.warn("Request URL '{}' failed '{}': {}", url, requestBody, e.getMessage());
+            logger.warn("Request to URL '{}' failed: {}", url, e.getMessage());
         }
     }
 
-    public void notificationVolume(Device device, int volume) throws ConnectionException {
-        String url = alexaServer + "/api/device-notification-state/" + device.deviceType + "/" + device.softwareVersion
-                + "/" + device.serialNumber;
-        String command = "{\"deviceSerialNumber\":\"" + device.serialNumber + "\",\"deviceType\":\"" + device.deviceType
-                + "\",\"softwareVersion\":\"" + device.softwareVersion + "\",\"volumeLevel\":" + volume + "}";
-        makeRequest("PUT", url, command, true, true, Map.of(), 0);
+    public void setNotificationVolume(DeviceTO device, int volume) throws ConnectionException {
+        String url = getAlexaServer() + "/api/device-notification-state/" + device.deviceType + "/"
+                + device.softwareVersion + "/" + device.serialNumber;
+        NotificationStateTO command = new NotificationStateTO();
+        command.deviceSerialNumber = device.serialNumber;
+        command.deviceType = device.deviceType;
+        command.deviceSerialNumber = device.softwareVersion;
+        command.volumeLevel = volume;
+        requestBuilder.put(url).withContent(command).retry(false).syncSend();
     }
 
-    public void ascendingAlarm(Device device, boolean ascendingAlarm) throws ConnectionException {
-        String url = alexaServer + "/api/ascending-alarm/" + device.serialNumber;
-        String command = "{\"ascendingAlarmEnabled\":" + (ascendingAlarm ? "true" : "false")
-                + ",\"deviceSerialNumber\":\"" + device.serialNumber + "\",\"deviceType\":\"" + device.deviceType
-                + "\",\"deviceAccountId\":null}";
-        makeRequest("PUT", url, command, true, true, Map.of(), 0);
+    public void setAscendingAlarm(DeviceTO device, boolean ascendingAlarm) throws ConnectionException {
+        String url = getAlexaServer() + "/api/ascending-alarm/" + device.serialNumber;
+        AscendingAlarmModelTO command = new AscendingAlarmModelTO();
+        command.ascendingAlarmEnabled = ascendingAlarm;
+        command.deviceSerialNumber = device.serialNumber;
+        command.deviceType = device.deviceType;
+        requestBuilder.put(url).withContent(command).retry(false).syncSend();
     }
 
-    public void doNotDisturb(Device device, boolean doNotDisturb) throws ConnectionException {
-        String url = alexaServer + "/api/dnd/status";
-        String command = "{\"enabled\":" + (doNotDisturb ? "true" : "false") + ",\"deviceSerialNumber\":\""
-                + device.serialNumber + "\",\"deviceType\":\"" + device.deviceType + "\",\"deviceAccountId\":null}";
-        makeRequest("PUT", url, command, true, true, Map.of(), 0);
+    public void setDoNotDisturb(DeviceTO device, boolean doNotDisturb) throws ConnectionException {
+        String url = getAlexaServer() + "/api/dnd/status";
+        DoNotDisturbDeviceStatusTO command = new DoNotDisturbDeviceStatusTO();
+        command.enabled = doNotDisturb;
+        command.deviceSerialNumber = device.serialNumber;
+        command.deviceType = device.deviceType;
+        requestBuilder.put(url).withContent(command).retry(false).syncSend();
     }
 
-    public List<DeviceNotificationState> getDeviceNotificationStates() {
+    public List<DeviceNotificationStateTO> getDeviceNotificationStates() {
         try {
-            String json = makeRequestAndReturnString(alexaServer + "/api/device-notification-state");
-            JsonDeviceNotificationState result = parseJson(json, JsonDeviceNotificationState.class);
-            if (result == null) {
-                return List.of();
-            }
-            return Objects.requireNonNullElse(result.deviceNotificationStates, List.of());
+            return requestBuilder.get(getAlexaServer() + "/api/device-notification-state")
+                    .syncSend(DeviceNotificationStatesTO.class).deviceNotificationStates;
         } catch (ConnectionException e) {
             logger.info("Error getting device notification states", e);
         }
         return List.of();
     }
 
-    public List<AscendingAlarmModel> getAscendingAlarm() {
+    public List<AscendingAlarmModelTO> getAscendingAlarms() {
         try {
-            String json = makeRequestAndReturnString(alexaServer + "/api/ascending-alarm");
-            JsonAscendingAlarm result = parseJson(json, JsonAscendingAlarm.class);
-            if (result == null) {
-                return List.of();
-            }
-            return Objects.requireNonNullElse(result.ascendingAlarmModelList, List.of());
+            return requestBuilder.get(getAlexaServer() + "/api/ascending-alarm")
+                    .syncSend(AscendingAlarmModelsTO.class).ascendingAlarmModelList;
         } catch (ConnectionException e) {
             logger.info("Error getting ascending alarm states", e);
         }
         return List.of();
     }
 
-    public List<DoNotDisturbDeviceStatus> getDoNotDisturb() {
+    public List<DoNotDisturbDeviceStatusTO> getDoNotDisturbs() {
         try {
-            String json = makeRequestAndReturnString(alexaServer + "/api/dnd/device-status-list");
-            JsonDoNotDisturb result = parseJson(json, JsonDoNotDisturb.class);
-            if (result == null) {
-                return List.of();
-            }
-            return Objects.requireNonNullElse(result.doNotDisturbDeviceStatusList, List.of());
+            return requestBuilder.get(getAlexaServer() + "/api/dnd/device-status-list")
+                    .syncSend(DoNotDisturbDeviceStatusesTO.class).doNotDisturbDeviceStatusList;
         } catch (ConnectionException e) {
             logger.info("Error getting do not disturb status list", e);
         }
         return List.of();
     }
 
-    public void bluetooth(Device device, @Nullable String address) throws ConnectionException {
+    public void bluetooth(DeviceTO device, @Nullable String address) throws ConnectionException {
         if (address == null || address.isEmpty()) {
+            String url = getAlexaServer() + "/api/bluetooth/disconnect-sink/" + device.deviceType + "/"
+                    + device.serialNumber;
             // disconnect
-            makeRequest("POST",
-                    alexaServer + "/api/bluetooth/disconnect-sink/" + device.deviceType + "/" + device.serialNumber, "",
-                    true, true, Map.of(), 0);
+            requestBuilder.post(url).retry(false).syncSend();
         } else {
-            makeRequest("POST",
-                    alexaServer + "/api/bluetooth/pair-sink/" + device.deviceType + "/" + device.serialNumber,
-                    "{\"bluetoothDeviceAddress\":\"" + address + "\"}", true, true, Map.of(), 0);
+            String url = getAlexaServer() + "/api/bluetooth/pair-sink/" + device.deviceType + "/" + device.serialNumber;
+            requestBuilder.post(url).withContent(Map.of("bluetoothDeviceAddress", address)).retry(false).syncSend();
         }
     }
 
-    private @Nullable String getCustomerId(@Nullable String defaultId) {
-        String accountCustomerId = this.loginData.accountCustomerId;
-        return accountCustomerId == null || accountCustomerId.isEmpty() ? defaultId : accountCustomerId;
-    }
-
-    public void playRadio(Device device, @Nullable String stationId) throws ConnectionException {
-        if (stationId == null || stationId.isEmpty()) {
-            command(device, "{\"type\":\"PauseCommand\"}");
-        } else {
-            String content = "[\"music/tuneIn/stationId\",\"" + stationId + "\"]|{\"previousPageId\":null}";
-            String contentToken = new String(
-                    Base64.getEncoder().encode(Base64.getEncoder().encode(content.getBytes(StandardCharsets.UTF_8))));
-            String body = "{\"contentToken\":\"music:" + contentToken + "\"}";
-            makeRequest("PUT", alexaServer + "/api/entertainment/v1/player/queue?deviceSerialNumber="
-                    + device.serialNumber + "&deviceType=" + device.deviceType, body, true, true, Map.of(), 0);
-        }
-    }
-
-    public void playAmazonMusicTrack(Device device, @Nullable String trackId) throws ConnectionException {
-        if (trackId == null || trackId.isEmpty()) {
-            command(device, "{\"type\":\"PauseCommand\"}");
-        } else {
-            String command = "{\"trackId\":\"" + trackId + "\",\"playQueuePrime\":true}";
-            makeRequest("POST",
-                    alexaServer + "/api/cloudplayer/queue-and-play?deviceSerialNumber=" + device.serialNumber
-                            + "&deviceType=" + device.deviceType + "&mediaOwnerCustomerId="
-                            + getCustomerId(device.deviceOwnerCustomerId) + "&shuffle=false",
-                    command, true, true, Map.of(), 0);
-        }
-    }
-
-    public void playAmazonMusicPlayList(Device device, @Nullable String playListId) throws ConnectionException {
-        if (playListId == null || playListId.isEmpty()) {
-            command(device, "{\"type\":\"PauseCommand\"}");
-        } else {
-            String command = "{\"playlistId\":\"" + playListId + "\",\"playQueuePrime\":true}";
-            makeRequest("POST",
-                    alexaServer + "/api/cloudplayer/queue-and-play?deviceSerialNumber=" + device.serialNumber
-                            + "&deviceType=" + device.deviceType + "&mediaOwnerCustomerId="
-                            + getCustomerId(device.deviceOwnerCustomerId) + "&shuffle=false",
-                    command, true, true, Map.of(), 0);
-        }
-    }
-
-    public void announcement(Device device, String speak, String bodyText, @Nullable String title,
+    public void announcement(DeviceTO device, String speak, String bodyText, @Nullable String title,
             @Nullable Integer ttsVolume, @Nullable Integer standardVolume) {
         String trimmedSpeak = speak.replaceAll("\\s+", " ").trim();
         String trimmedBodyText = bodyText.replaceAll("\\s+", " ").trim();
@@ -1201,21 +784,17 @@ public class Connection {
             while (iterator.hasNext()) {
                 AnnouncementWrapper announcement = iterator.next();
                 try {
-                    List<Device> devices = announcement.getDevices();
+                    List<DeviceTO> devices = announcement.getDevices();
                     if (!devices.isEmpty()) {
-                        JsonAnnouncementContent content = new JsonAnnouncementContent(announcement);
-
-                        Map<String, Object> parameters = new HashMap<>();
-                        parameters.put("expireAfter", "PT5S");
-                        parameters.put("content", new JsonAnnouncementContent[] { content });
-                        parameters.put("target", new JsonAnnouncementTarget(devices));
-
-                        String customerId = getCustomerId(devices.get(0).deviceOwnerCustomerId);
-                        if (customerId != null) {
-                            parameters.put("customerId", customerId);
-                        }
-                        executeSequenceCommandWithVolume(devices, "AlexaAnnouncement", parameters,
-                                announcement.getTtsVolumes(), announcement.getStandardVolumes());
+                        AnnouncementTO announcementTO = new AnnouncementTO();
+                        announcementTO.content = List.of(announcement.toAnnouncementTO());
+                        announcementTO.customerId = loginData.getAccountCustomerId();
+                        announcementTO.target.customerId = devices.get(0).deviceOwnerCustomerId;
+                        announcementTO.target.devices = devices.stream().map(TOMapper::mapAnnouncementTargetDevice)
+                                .toList();
+                        executeSequenceCommandWithVolume(devices, "AlexaAnnouncement",
+                                TOMapper.mapToMap(gson, announcementTO), announcement.getTtsVolumes(),
+                                announcement.getStandardVolumes());
                     }
                 } catch (Exception e) {
                     logger.warn("send announcement fails with unexpected error", e);
@@ -1229,7 +808,7 @@ public class Connection {
         }
     }
 
-    public void textToSpeech(Device device, String text, @Nullable Integer ttsVolume,
+    public void textToSpeech(DeviceTO device, String text, @Nullable Integer ttsVolume,
             @Nullable Integer standardVolume) {
         String trimmedText = text.replaceAll("\\s+", " ").trim();
         String plainText = trimmedText.replaceAll("<.+?>", "").trim();
@@ -1263,7 +842,7 @@ public class Connection {
             while (iterator.hasNext()) {
                 TextWrapper textToSpeech = iterator.next();
                 try {
-                    List<Device> devices = textToSpeech.getDevices();
+                    List<DeviceTO> devices = textToSpeech.getDevices();
                     if (!devices.isEmpty()) {
                         executeSequenceCommandWithVolume(devices, "Alexa.Speak",
                                 Map.of("textToSpeak", textToSpeech.getText()), textToSpeech.getTtsVolumes(),
@@ -1281,7 +860,8 @@ public class Connection {
         }
     }
 
-    public void textCommand(Device device, String text, @Nullable Integer ttsVolume, @Nullable Integer standardVolume) {
+    public void textCommand(DeviceTO device, String text, @Nullable Integer ttsVolume,
+            @Nullable Integer standardVolume) {
         String trimmedText = text.replaceAll("\\s+", " ").trim();
         String plainText = trimmedText.replaceAll("<.+?>", "").trim();
         if (plainText.isEmpty()) {
@@ -1315,7 +895,7 @@ public class Connection {
             while (iterator.hasNext()) {
                 TextWrapper textCommand = iterator.next();
                 try {
-                    List<Device> devices = textCommand.getDevices();
+                    List<DeviceTO> devices = textCommand.getDevices();
                     if (!devices.isEmpty()) {
                         executeSequenceCommandWithVolume(devices, "Alexa.TextCommand",
                                 Map.of("text", textCommand.getText()), textCommand.getTtsVolumes(),
@@ -1333,7 +913,7 @@ public class Connection {
         }
     }
 
-    public void volume(Device device, int vol) {
+    public void setVolume(DeviceTO device, int vol) {
         // we lock volume until we have finished adding this one
         Lock lock = Objects.requireNonNull(locks.computeIfAbsent(TimerType.VOLUME, k -> new ReentrantLock()));
         lock.lock();
@@ -1358,7 +938,7 @@ public class Connection {
             while (iterator.hasNext()) {
                 Volume volume = iterator.next();
                 try {
-                    List<Device> devices = volume.devices;
+                    List<DeviceTO> devices = volume.devices;
                     if (!devices.isEmpty()) {
                         executeSequenceCommandWithVolume(devices, null, Map.of(), volume.volumes, List.of());
                     }
@@ -1374,7 +954,7 @@ public class Connection {
         }
     }
 
-    private void executeSequenceCommandWithVolume(List<Device> devices, @Nullable String command,
+    private void executeSequenceCommandWithVolume(List<DeviceTO> devices, @Nullable String command,
             Map<String, Object> parameters, List<@Nullable Integer> ttsVolumes,
             List<@Nullable Integer> standardVolumes) {
         JsonArray serialNodesToExecute = new JsonArray();
@@ -1384,11 +964,11 @@ public class Connection {
             Integer ttsVolume = ttsVolumes.size() > i ? ttsVolumes.get(i) : null;
             Integer standardVolume = standardVolumes.size() > i ? standardVolumes.get(i) : null;
             if (ttsVolume != null && !ttsVolume.equals(standardVolume)) {
-                ttsVolumeNodesToExecute.add(
-                        createExecutionNode(devices.get(i), "Alexa.DeviceControls.Volume", Map.of("value", ttsVolume)));
+                ttsVolumeNodesToExecute.add(createExecutionNode(devices.get(i).deviceType, devices.get(i).serialNumber,
+                        "Alexa.DeviceControls.Volume", Map.of("value", ttsVolume)));
             }
         }
-        if (ttsVolumeNodesToExecute.size() > 0) {
+        if (!ttsVolumeNodesToExecute.isEmpty()) {
             JsonObject parallelNodesToExecute = new JsonObject();
             parallelNodesToExecute.addProperty("@type", "com.amazon.alexa.behaviors.model.ParallelNode");
             parallelNodesToExecute.add("nodesToExecute", ttsVolumeNodesToExecute);
@@ -1398,13 +978,15 @@ public class Connection {
         if (command != null && !parameters.isEmpty()) {
             JsonArray commandNodesToExecute = new JsonArray();
             if ("Alexa.Speak".equals(command) || "Alexa.TextCommand".equals(command)) {
-                for (Device device : devices) {
-                    commandNodesToExecute.add(createExecutionNode(device, command, parameters));
+                for (DeviceTO device : devices) {
+                    commandNodesToExecute
+                            .add(createExecutionNode(device.deviceType, device.serialNumber, command, parameters));
                 }
             } else {
-                commandNodesToExecute.add(createExecutionNode(devices.get(0), command, parameters));
+                commandNodesToExecute.add(createExecutionNode(devices.get(0).deviceType, devices.get(0).serialNumber,
+                        command, parameters));
             }
-            if (commandNodesToExecute.size() > 0) {
+            if (!commandNodesToExecute.isEmpty()) {
                 JsonObject parallelNodesToExecute = new JsonObject();
                 parallelNodesToExecute.addProperty("@type", "com.amazon.alexa.behaviors.model.ParallelNode");
                 parallelNodesToExecute.add("nodesToExecute", commandNodesToExecute);
@@ -1417,22 +999,23 @@ public class Connection {
             Integer standardVolume = standardVolumes.size() > i ? standardVolumes.get(i) : null;
             Integer ttsVolume = ttsVolumes.size() > i ? ttsVolumes.get(i) : null;
             if (ttsVolume != null && standardVolume != null && !standardVolume.equals(ttsVolume)) {
-                standardVolumeNodesToExecute.add(createExecutionNode(devices.get(i), "Alexa.DeviceControls.Volume",
-                        Map.of("value", standardVolume)));
+                standardVolumeNodesToExecute.add(createExecutionNode(devices.get(i).deviceType,
+                        devices.get(i).serialNumber, "Alexa.DeviceControls.Volume", Map.of("value", standardVolume)));
             }
         }
-        if (standardVolumeNodesToExecute.size() > 0 && !"AlexaAnnouncement".equals(command)) {
+        if (!standardVolumeNodesToExecute.isEmpty() && !"AlexaAnnouncement".equals(command)) {
             JsonObject parallelNodesToExecute = new JsonObject();
             parallelNodesToExecute.addProperty("@type", "com.amazon.alexa.behaviors.model.ParallelNode");
             parallelNodesToExecute.add("nodesToExecute", standardVolumeNodesToExecute);
             serialNodesToExecute.add(parallelNodesToExecute);
         }
 
-        if (serialNodesToExecute.size() > 0) {
-            executeSequenceNodes(devices, serialNodesToExecute, false);
+        if (!serialNodesToExecute.isEmpty()) {
+            executeSequenceNodes(devices.stream().map(d -> d.serialNumber).toList(), serialNodesToExecute, false);
 
-            if (standardVolumeNodesToExecute.size() > 0 && "AlexaAnnouncement".equals(command)) {
-                executeSequenceNodes(devices, standardVolumeNodesToExecute, true);
+            if (!standardVolumeNodesToExecute.isEmpty() && "AlexaAnnouncement".equals(command)) {
+                executeSequenceNodes(devices.stream().map(d -> d.serialNumber).toList(), standardVolumeNodesToExecute,
+                        true);
             }
         }
     }
@@ -1440,25 +1023,24 @@ public class Connection {
     // commands: Alexa.Weather.Play, Alexa.Traffic.Play, Alexa.FlashBriefing.Play,
     // Alexa.GoodMorning.Play,
     // Alexa.SingASong.Play, Alexa.TellStory.Play, Alexa.Speak (textToSpeach)
-    public void executeSequenceCommand(Device device, String command, Map<String, Object> parameters) {
-        JsonObject nodeToExecute = createExecutionNode(device, command, parameters);
-        executeSequenceNode(List.of(device), nodeToExecute);
+    public void executeSequenceCommand(DeviceTO device, String command, Map<String, Object> parameters) {
+        JsonObject nodeToExecute = createExecutionNode(device.deviceType, device.serialNumber, command, parameters);
+        executeSequenceNode(List.of(device.serialNumber), nodeToExecute);
     }
 
-    private void executeSequenceNode(List<Device> devices, JsonObject nodeToExecute) {
+    private void executeSequenceNode(List<String> serialNumbers, JsonObject nodeToExecute) {
         QueueObject queueObject = new QueueObject();
-        queueObject.devices = devices;
+        queueObject.deviceSerialNumbers = serialNumbers;
         queueObject.nodeToExecute = nodeToExecute;
-        String serialNumbers = "";
-        for (Device device : devices) {
-            String serialNumber = device.serialNumber;
+        List<String> serials = new ArrayList<>();
+        for (String serialNumber : serialNumbers) {
             if (serialNumber != null) {
                 Objects.requireNonNull(this.devices.computeIfAbsent(serialNumber, k -> new LinkedBlockingQueue<>()))
                         .offer(queueObject);
-                serialNumbers = serialNumbers + device.serialNumber + " ";
+                serials.add(serialNumber);
             }
         }
-        logger.debug("added {} device {}", queueObject.hashCode(), serialNumbers);
+        logger.debug("Added {} device(s) {} to queue", queueObject.hashCode(), serials);
     }
 
     private void handleExecuteSequenceNode() {
@@ -1473,11 +1055,10 @@ public class Connection {
                             Future<?> future = queueObject.future;
                             if (future == null || future.isDone()) {
                                 boolean execute = true;
-                                String serial = "";
-                                for (Device tmpDevice : queueObject.devices) {
-                                    if (!serialNumber.equals(tmpDevice.serialNumber)) {
-                                        LinkedBlockingQueue<QueueObject> tmpQueueObjects = devices
-                                                .get(tmpDevice.serialNumber);
+                                List<String> serials = new ArrayList<>();
+                                for (String tmpDevice : queueObject.deviceSerialNumbers) {
+                                    if (Objects.equals(tmpDevice, serialNumber)) {
+                                        LinkedBlockingQueue<QueueObject> tmpQueueObjects = devices.get(tmpDevice);
                                         if (tmpQueueObjects != null) {
                                             QueueObject tmpQueueObject = tmpQueueObjects.peek();
                                             Future<?> tmpFuture = null;
@@ -1490,13 +1071,13 @@ public class Connection {
                                                 break;
                                             }
 
-                                            serial = serial + tmpDevice.serialNumber + " ";
+                                            serials.add(tmpDevice);
                                         }
                                     }
                                 }
                                 if (execute) {
                                     queueObject.future = scheduler.submit(() -> queuedExecuteSequenceNode(queueObject));
-                                    logger.debug("thread {} device {}", queueObject.hashCode(), serial);
+                                    logger.debug("thread {} device(s) {}", queueObject.hashCode(), serials);
                                 }
                             }
                         }
@@ -1511,11 +1092,6 @@ public class Connection {
     private void queuedExecuteSequenceNode(QueueObject queueObject) {
         JsonObject nodeToExecute = queueObject.nodeToExecute;
         ExecutionNodeObject executionNodeObject = getExecutionNodeObject(nodeToExecute);
-        if (executionNodeObject == null) {
-            logger.debug("executionNodeObject empty, removing without execution");
-            removeObjectFromQueueAfterExecutionCompletion(queueObject);
-            return;
-        }
         List<String> types = executionNodeObject.types;
         long delay = types.contains("Alexa.DeviceControls.Volume") ? 2000 : 0;
         delay += types.contains("Announcement") ? 3000 : 2000;
@@ -1525,17 +1101,15 @@ public class Connection {
             sequenceJson.addProperty("@type", "com.amazon.alexa.behaviors.model.Sequence");
             sequenceJson.add("startNode", nodeToExecute);
 
-            JsonStartRoutineRequest request = new JsonStartRoutineRequest();
+            StartRoutineTO request = new StartRoutineTO();
             request.sequenceJson = gson.toJson(sequenceJson);
-            String json = gson.toJson(request);
 
             String text = executionNodeObject.text;
             if (text != null) {
                 text = text.replaceAll("<.+?>", " ").replaceAll("\\s+", " ").trim();
-                delay += text.length() * 150;
+                delay += text.length() * 150L;
             }
-
-            makeRequest("POST", alexaServer + "/api/behaviors/preview", json, true, true, Map.of(), 3);
+            requestBuilder.post(getAlexaServer() + "/api/behaviors/preview").withContent(request).syncSend();
 
             Thread.sleep(delay);
         } catch (ConnectionException | InterruptedException e) {
@@ -1546,21 +1120,18 @@ public class Connection {
     }
 
     private void removeObjectFromQueueAfterExecutionCompletion(QueueObject queueObject) {
-        String serial = "";
-        for (Device device : queueObject.devices) {
-            String serialNumber = device.serialNumber;
-            if (serialNumber != null) {
-                LinkedBlockingQueue<?> queue = devices.get(serialNumber);
-                if (queue != null) {
-                    queue.remove(queueObject);
-                }
-                serial = serial + serialNumber + " ";
+        List<String> serials = new ArrayList<>();
+        for (String serialNumber : queueObject.deviceSerialNumbers) {
+            LinkedBlockingQueue<?> queue = devices.get(serialNumber);
+            if (queue != null) {
+                queue.remove(queueObject);
             }
+            serials.add(serialNumber);
         }
-        logger.debug("removed {} device {}", queueObject.hashCode(), serial);
+        logger.debug("Removed {} device(s) {} from queue", queueObject.hashCode(), serials);
     }
 
-    private void executeSequenceNodes(List<Device> devices, JsonArray nodesToExecute, boolean parallel) {
+    private void executeSequenceNodes(List<String> serialNumbers, JsonArray nodesToExecute, boolean parallel) {
         JsonObject serialNode = new JsonObject();
         if (parallel) {
             serialNode.addProperty("@type", "com.amazon.alexa.behaviors.model.ParallelNode");
@@ -1570,17 +1141,16 @@ public class Connection {
 
         serialNode.add("nodesToExecute", nodesToExecute);
 
-        executeSequenceNode(devices, serialNode);
+        executeSequenceNode(serialNumbers, serialNode);
     }
 
-    private JsonObject createExecutionNode(@Nullable Device device, String command, Map<String, Object> parameters) {
+    private JsonObject createExecutionNode(String deviceType, String serialNumber, String command,
+            Map<String, Object> parameters) {
         JsonObject operationPayload = new JsonObject();
-        if (device != null) {
-            operationPayload.addProperty("deviceType", device.deviceType);
-            operationPayload.addProperty("deviceSerialNumber", device.serialNumber);
-            operationPayload.addProperty("locale", "");
-            operationPayload.addProperty("customerId", getCustomerId(device.deviceOwnerCustomerId));
-        }
+        operationPayload.addProperty("deviceType", deviceType);
+        operationPayload.addProperty("deviceSerialNumber", serialNumber);
+        operationPayload.addProperty("locale", "");
+        operationPayload.addProperty("customerId", loginData.getAccountCustomerId());
         for (String key : parameters.keySet()) {
             Object value = parameters.get(key);
             if (value instanceof String) {
@@ -1606,18 +1176,17 @@ public class Connection {
         return nodeToExecute;
     }
 
-    @Nullable
     private ExecutionNodeObject getExecutionNodeObject(JsonObject nodeToExecute) {
         ExecutionNodeObject executionNodeObject = new ExecutionNodeObject();
         if (nodeToExecute.has("nodesToExecute")) {
             JsonArray serialNodesToExecute = nodeToExecute.getAsJsonArray("nodesToExecute");
-            if (serialNodesToExecute != null && serialNodesToExecute.size() > 0) {
+            if (serialNodesToExecute != null && !serialNodesToExecute.isEmpty()) {
                 for (int i = 0; i < serialNodesToExecute.size(); i++) {
                     JsonObject serialNodesToExecuteJsonObject = serialNodesToExecute.get(i).getAsJsonObject();
                     if (serialNodesToExecuteJsonObject.has("nodesToExecute")) {
                         JsonArray parallelNodesToExecute = serialNodesToExecuteJsonObject
                                 .getAsJsonArray("nodesToExecute");
-                        if (parallelNodesToExecute != null && parallelNodesToExecute.size() > 0) {
+                        if (parallelNodesToExecute != null && !parallelNodesToExecute.isEmpty()) {
                             JsonObject parallelNodesToExecuteJsonObject = parallelNodesToExecute.get(0)
                                     .getAsJsonObject();
                             if (processNodesToExecuteJsonObject(executionNodeObject,
@@ -1652,7 +1221,7 @@ public class Connection {
                         return true;
                     } else if (operationPayload.has("content")) {
                         JsonArray content = operationPayload.getAsJsonArray("content");
-                        if (content != null && content.size() > 0) {
+                        if (content != null && !content.isEmpty()) {
                             JsonObject contentJsonObject = content.get(0).getAsJsonObject();
                             if (contentJsonObject.has("speak")) {
                                 JsonObject speak = contentJsonObject.getAsJsonObject("speak");
@@ -1669,21 +1238,20 @@ public class Connection {
         return false;
     }
 
-    public void startRoutine(Device device, String utterance) throws ConnectionException {
-        JsonAutomation found = null;
+    public void startRoutine(DeviceTO device, String utterance) throws ConnectionException {
+        AutomationTO found = null;
         String deviceLocale = "";
-        List<JsonAutomation> routines = getRoutines();
+        List<AutomationTO> routines = getAutomations();
 
-        for (JsonAutomation routine : routines) {
+        for (AutomationTO routine : routines) {
             if (routine.sequence != null) {
-                List<JsonAutomation.Trigger> triggers = Objects.requireNonNullElse(routine.triggers, List.of());
-                for (JsonAutomation.Trigger trigger : triggers) {
-                    Payload payload = trigger.payload;
+                for (AutomationTriggerTO trigger : routine.triggers) {
+                    AutomationPayloadTO payload = trigger.payload;
                     if (payload == null) {
                         continue;
                     }
                     String payloadUtterance = payload.utterance;
-                    if (payloadUtterance != null && payloadUtterance.equalsIgnoreCase(utterance)) {
+                    if (utterance.equalsIgnoreCase(payloadUtterance)) {
                         found = routine;
                         deviceLocale = payload.locale;
                         break;
@@ -1694,7 +1262,7 @@ public class Connection {
         if (found != null) {
             String sequenceJson = gson.toJson(found.sequence);
 
-            JsonStartRoutineRequest request = new JsonStartRoutineRequest();
+            StartRoutineTO request = new StartRoutineTO();
             request.behaviorId = found.automationId;
 
             // replace tokens
@@ -1710,7 +1278,7 @@ public class Connection {
 
             // "customerId": "ALEXA_CUSTOMER_ID"
             String customerId = "\"customerId\":\"ALEXA_CUSTOMER_ID\"";
-            String newCustomerId = "\"customerId\":\"" + getCustomerId(device.deviceOwnerCustomerId) + "\"";
+            String newCustomerId = "\"customerId\":\"" + loginData.getAccountCustomerId() + "\"";
             sequenceJson = sequenceJson.replace(customerId, newCustomerId);
 
             // "locale": "ALEXA_CURRENT_LOCALE"
@@ -1721,185 +1289,172 @@ public class Connection {
 
             request.sequenceJson = sequenceJson;
 
-            String requestJson = gson.toJson(request);
-            makeRequest("POST", alexaServer + "/api/behaviors/preview", requestJson, true, true, Map.of(), 3);
+            requestBuilder.post(getAlexaServer() + "/api/behaviors/preview").withContent(request).syncSend();
         } else {
             logger.warn("Routine {} not found", utterance);
         }
     }
 
-    public List<JsonAutomation> getRoutines() throws ConnectionException {
-        String json = makeRequestAndReturnString(alexaServer + "/api/behaviors/v2/automations?limit=2000");
-        JsonAutomation[] result = parseJson(json, JsonAutomation[].class);
-        if (result == null) {
-            return List.of();
-        }
-        return Arrays.asList(result);
+    public List<AutomationTO> getAutomations() throws ConnectionException {
+        return requestBuilder.get(getAlexaServer() + "/api/behaviors/v2/automations?limit=2000")
+                .syncSend(AutomationTO.LIST_TYPE_TOKEN);
     }
 
-    public List<JsonFeed> getEnabledFlashBriefings() throws ConnectionException {
-        String json = makeRequestAndReturnString(alexaServer + "/api/content-skills/enabled-feeds");
-        JsonEnabledFeeds result = parseJson(json, JsonEnabledFeeds.class);
-        if (result == null) {
-            return List.of();
-        }
-        return Objects.requireNonNullElse(result.enabledFeeds, List.of());
-    }
-
-    public void setEnabledFlashBriefings(List<JsonFeed> enabledFlashBriefing) throws ConnectionException {
-        JsonEnabledFeeds enabled = new JsonEnabledFeeds();
-        enabled.enabledFeeds = enabledFlashBriefing;
-        String json = gsonWithNullSerialization.toJson(enabled);
-        makeRequest("POST", alexaServer + "/api/content-skills/enabled-feeds", json, true, true, Map.of(), 0);
-    }
-
-    public List<JsonNotificationSound> getNotificationSounds(Device device) throws ConnectionException {
-        String json = makeRequestAndReturnString(
-                alexaServer + "/api/notification/sounds?deviceSerialNumber=" + device.serialNumber + "&deviceType="
-                        + device.deviceType + "&softwareVersion=" + device.softwareVersion);
-        JsonNotificationSounds result = parseJson(json, JsonNotificationSounds.class);
-        if (result == null) {
-            return List.of();
-        }
-        return Objects.requireNonNullElse(result.notificationSounds, List.of());
-    }
-
-    public List<JsonNotificationResponse> notifications() throws ConnectionException {
-        String response = makeRequestAndReturnString(alexaServer + "/api/notifications");
-        JsonNotificationsResponse result = parseJson(response, JsonNotificationsResponse.class);
-        if (result == null) {
-            return List.of();
-        }
-        return Objects.requireNonNullElse(result.notifications, List.of());
-    }
-
-    public @Nullable JsonNotificationResponse notification(Device device, String type, @Nullable String label,
-            @Nullable JsonNotificationSound sound) throws ConnectionException {
-        Date date = new Date(new Date().getTime());
-        long createdDate = date.getTime();
-        Date alarm = new Date(createdDate + 5000); // add 5 seconds, because amazon does not accept calls for times in
-        // the past (compared with the server time)
-        long alarmTime = alarm.getTime();
-
-        JsonNotificationRequest request = new JsonNotificationRequest();
-        request.type = type;
-        request.deviceSerialNumber = device.serialNumber;
-        request.deviceType = device.deviceType;
-        request.createdDate = createdDate;
-        request.alarmTime = alarmTime;
-        request.reminderLabel = label;
-        request.sound = sound;
-        request.originalDate = new SimpleDateFormat("yyyy-MM-dd").format(alarm);
-        request.originalTime = new SimpleDateFormat("HH:mm:ss.SSSS").format(alarm);
-        request.type = type;
-        request.id = "create" + type;
-
-        String data = gsonWithNullSerialization.toJson(request);
-        String response = makeRequestAndReturnString("PUT", alexaServer + "/api/notifications/createReminder", data,
-                true, Map.of());
-        JsonNotificationResponse result = parseJson(response, JsonNotificationResponse.class);
-        return result;
-    }
-
-    public void stopNotification(JsonNotificationResponse notification) throws ConnectionException {
-        makeRequestAndReturnString("DELETE", alexaServer + "/api/notifications/" + notification.id, null, true,
-                Map.of());
-    }
-
-    public @Nullable JsonNotificationResponse getNotificationState(JsonNotificationResponse notification)
-            throws ConnectionException {
-        String response = makeRequestAndReturnString(alexaServer + "/api/notifications/" + notification.id);
-        JsonNotificationResponse result = parseJson(response, JsonNotificationResponse.class);
-        return result;
-    }
-
-    public List<JsonMusicProvider> getMusicProviders() {
+    public List<EnabledFeedTO> getEnabledFlashBriefings() {
         try {
-            Map<String, String> headers = new HashMap<>();
-            headers.put("Routines-Version", "1.1.218665");
-            String response = makeRequestAndReturnString("GET",
-                    alexaServer + "/api/behaviors/entities?skillId=amzn1.ask.1p.music", null, true, headers);
-            if (!response.isEmpty()) {
-                JsonMusicProvider[] musicProviders = parseJson(response, JsonMusicProvider[].class);
-                return Arrays.asList(musicProviders);
-            }
+            return requestBuilder.get(getAlexaServer() + "/api/content-skills/enabled-feeds")
+                    .syncSend(EnabledFeedsTO.class).enabledFeeds;
         } catch (ConnectionException e) {
-            logger.warn("getMusicProviders fails: {}", e.getMessage());
+            logger.warn("Failed to get enabled feeds: {}", e.getMessage());
         }
         return List.of();
     }
 
-    public void playMusicVoiceCommand(Device device, String providerId, String voiceCommand)
+    public void setEnabledFlashBriefings(List<EnabledFeedTO> enabledFlashBriefing) throws ConnectionException {
+        EnabledFeedsTO enabled = new EnabledFeedsTO();
+        enabled.enabledFeeds = enabledFlashBriefing;
+        requestBuilder.post(getAlexaServer() + "/api/content-skills/enabled-feeds").withContent(enabled).retry(false)
+                .syncSend();
+    }
+
+    public List<NotificationSoundTO> getNotificationSounds(DeviceTO device) {
+        try {
+            return requestBuilder
+                    .get(getAlexaServer() + "/api/notification/sounds?deviceSerialNumber=" + device.serialNumber
+                            + "&deviceType=" + device.deviceType + "&softwareVersion=" + device.softwareVersion)
+                    .syncSend(NotificationSoundResponseTO.class).notificationSounds;
+        } catch (ConnectionException e) {
+            return List.of();
+        }
+    }
+
+    public List<NotificationTO> getNotifications() {
+        try {
+            return requestBuilder.get(getAlexaServer() + "/api/notifications")
+                    .syncSend(NotificationListResponseTO.class).notifications;
+        } catch (ConnectionException e) {
+            logger.warn("Failed to get notifications: {}", e.getMessage());
+        }
+        return List.of();
+    }
+
+    public NotificationTO getNotification(String notificationId) throws ConnectionException {
+        String url = getAlexaServer() + "/api/notifications/" + notificationId;
+        return requestBuilder.get(url).syncSend(NotificationTO.class);
+    }
+
+    public @Nullable NotificationTO createNotification(DeviceTO device, String type, @Nullable String label,
+            @Nullable NotificationSoundTO sound) throws ConnectionException {
+        Instant createdTime = Instant.now();
+        // add 5 seconds, because amazon does not accept calls for times in the past (compared with the server
+        // nextAlarmTime)
+        Instant alarmTime = createdTime.plusSeconds(5);
+        ZonedDateTime zonedAlarmTime = alarmTime.atZone(ZoneId.systemDefault());
+
+        NotificationTO request = new NotificationTO();
+        request.status = "ON";
+        request.deviceSerialNumber = device.serialNumber;
+        request.deviceType = device.deviceType;
+        request.createdDate = createdTime.getEpochSecond() * 1000;
+        request.alarmTime = alarmTime.getEpochSecond() * 1000;
+        request.reminderLabel = label;
+        request.sound = sound;
+        request.originalDate = zonedAlarmTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        request.originalTime = zonedAlarmTime.format(DateTimeFormatter.ofPattern("HH:mm:ss.SSSS"));
+        request.type = type;
+        request.id = "create" + type;
+        request.isSaveInFlight = true;
+        request.isRecurring = false;
+
+        String url = getAlexaServer() + "/api/notifications/createReminder";
+        return requestBuilder.put(url).withContent(request).syncSend(NotificationTO.class);
+    }
+
+    public void deleteNotification(String notificationId) {
+        try {
+            requestBuilder.delete(getAlexaServer() + "/api/notifications/" + notificationId).syncSend();
+        } catch (ConnectionException e) {
+            logger.warn("Failed to delete notification {}: {}", notificationId, e.getMessage());
+        }
+    }
+
+    public List<MusicProviderTO> getMusicProviders() {
+        try {
+            return requestBuilder.get(getAlexaServer() + "/api/behaviors/entities?skillId=amzn1.ask.1p.music")
+                    .withHeader("Routines-Version", "1.1.218665").syncSend(MusicProviderTO.LIST_TYPE_TOKEN);
+        } catch (ConnectionException e) {
+            logger.warn("Failed to get music providers: {}", e.getMessage());
+        }
+        return List.of();
+    }
+
+    public void playMusicVoiceCommand(DeviceTO device, String providerId, String voiceCommand)
             throws ConnectionException {
-        JsonPlaySearchPhraseOperationPayload payload = new JsonPlaySearchPhraseOperationPayload();
-        payload.customerId = getCustomerId(device.deviceOwnerCustomerId);
-        payload.locale = "ALEXA_CURRENT_LOCALE";
-        payload.musicProviderId = providerId;
-        payload.searchPhrase = voiceCommand;
+        PlaySearchPhraseTO playSearchPhrase = new PlaySearchPhraseTO();
+        playSearchPhrase.customerId = loginData.getAccountCustomerId();
+        playSearchPhrase.musicProviderId = providerId;
+        playSearchPhrase.searchPhrase = voiceCommand;
 
-        String playloadString = gson.toJson(payload);
+        BehaviorOperationValidateTO validationRequest = new BehaviorOperationValidateTO();
+        validationRequest.type = "Alexa.Music.PlaySearchPhrase";
+        validationRequest.operationPayload = gson.toJson(playSearchPhrase);
 
-        JsonObject postValidationJson = new JsonObject();
+        PlaySearchPhraseTO validatedOperationPayload = requestBuilder
+                .post(getAlexaServer() + "/api/behaviors/operation/validate").withContent(validationRequest)
+                .syncSend(PlaySearchPhraseTO.VALIDATION_RESULT_TO_TYPE_TOKEN).operationPayload;
 
-        postValidationJson.addProperty("type", "Alexa.Music.PlaySearchPhrase");
-        postValidationJson.addProperty("operationPayload", playloadString);
-
-        String postDataValidate = postValidationJson.toString();
-
-        String validateResultJson = makeRequestAndReturnString("POST",
-                alexaServer + "/api/behaviors/operation/validate", postDataValidate, true, Map.of());
-
-        if (!validateResultJson.isEmpty()) {
-            JsonPlayValidationResult validationResult = parseJson(validateResultJson, JsonPlayValidationResult.class);
-            if (validationResult != null) {
-                JsonPlaySearchPhraseOperationPayload validatedOperationPayload = validationResult.operationPayload;
-                if (validatedOperationPayload != null) {
-                    payload.sanitizedSearchPhrase = validatedOperationPayload.sanitizedSearchPhrase;
-                    payload.searchPhrase = validatedOperationPayload.searchPhrase;
-                }
-            }
+        if (validatedOperationPayload != null) {
+            playSearchPhrase.sanitizedSearchPhrase = validatedOperationPayload.sanitizedSearchPhrase;
+            playSearchPhrase.searchPhrase = validatedOperationPayload.searchPhrase;
         }
 
-        payload.locale = null;
-        payload.deviceSerialNumber = device.serialNumber;
-        payload.deviceType = device.deviceType;
+        playSearchPhrase.locale = null;
+        playSearchPhrase.deviceSerialNumber = device.serialNumber;
+        playSearchPhrase.deviceType = device.deviceType;
 
         JsonObject sequenceJson = new JsonObject();
         sequenceJson.addProperty("@type", "com.amazon.alexa.behaviors.model.Sequence");
         JsonObject startNodeJson = new JsonObject();
         startNodeJson.addProperty("@type", "com.amazon.alexa.behaviors.model.OpaquePayloadOperationNode");
         startNodeJson.addProperty("type", "Alexa.Music.PlaySearchPhrase");
-        startNodeJson.add("operationPayload", gson.toJsonTree(payload));
+        startNodeJson.add("operationPayload", gson.toJsonTree(playSearchPhrase));
         sequenceJson.add("startNode", startNodeJson);
 
-        JsonStartRoutineRequest startRoutineRequest = new JsonStartRoutineRequest();
+        StartRoutineTO startRoutineRequest = new StartRoutineTO();
         startRoutineRequest.sequenceJson = sequenceJson.toString();
         startRoutineRequest.status = null;
 
-        String postData = gson.toJson(startRoutineRequest);
-        makeRequest("POST", alexaServer + "/api/behaviors/preview", postData, true, true, Map.of(), 3);
+        requestBuilder.post(getAlexaServer() + "/api/behaviors/preview").withContent(startRoutineRequest).syncSend();
     }
 
-    public @Nullable JsonEqualizer getEqualizer(Device device) throws ConnectionException {
-        String json = makeRequestAndReturnString(
-                alexaServer + "/api/equalizer/" + device.serialNumber + "/" + device.deviceType);
-        return parseJson(json, JsonEqualizer.class);
+    public Optional<EqualizerTO> getEqualizer(DeviceTO device) {
+        try {
+            return Optional.of(requestBuilder
+                    .get(getAlexaServer() + "/api/equalizer/" + device.serialNumber + "/" + device.deviceType)
+                    .syncSend(EqualizerTO.class));
+        } catch (ConnectionException e) {
+            return Optional.empty();
+        }
     }
 
-    public void setEqualizer(Device device, JsonEqualizer settings) throws ConnectionException {
-        String postData = gson.toJson(settings);
-        makeRequest("POST", alexaServer + "/api/equalizer/" + device.serialNumber + "/" + device.deviceType, postData,
-                true, true, Map.of(), 0);
+    public boolean setEqualizer(DeviceTO device, EqualizerTO settings) {
+        try {
+            requestBuilder.post(getAlexaServer() + "/api/equalizer/" + device.serialNumber + "/" + device.deviceType)
+                    .withContent(settings).retry(false).syncSend();
+            return true;
+        } catch (ConnectionException e) {
+            return false;
+        }
     }
 
     private static class Volume {
-        public List<Device> devices = new ArrayList<>();
+        public List<DeviceTO> devices = new ArrayList<>();
         public List<@Nullable Integer> volumes = new ArrayList<>();
     }
 
     private static class QueueObject {
         public @Nullable Future<?> future;
-        public List<Device> devices = List.of();
+        public List<String> deviceSerialNumbers = List.of();
         public JsonObject nodeToExecute = new JsonObject();
     }
 

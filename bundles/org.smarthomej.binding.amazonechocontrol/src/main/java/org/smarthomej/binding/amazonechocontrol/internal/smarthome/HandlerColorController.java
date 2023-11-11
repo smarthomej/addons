@@ -19,7 +19,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -35,10 +34,11 @@ import org.openhab.core.types.StateDescriptionFragmentBuilder;
 import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smarthomej.binding.amazonechocontrol.internal.AmazonEchoControlBindingConstants;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.smarthome.JsonSmartHomeCapability;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.smarthome.JsonSmartHomeDevice;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDeviceHandler;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapability;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevice;
 
 import com.google.gson.JsonObject;
 
@@ -153,8 +153,9 @@ public class HandlerColorController extends AbstractInterfaceHandler {
     public @Nullable List<CommandOption> getCommandDescription(Channel channel) {
         String channelId = channel.getUID().getId();
         if (COLOR_PROPERTIES.channelId.equals(channelId)) {
-            return AlexaColor.ALEXA_COLORS.stream().map(color -> new CommandOption(color.colorName, color.colorName))
-                    .sorted(Comparator.comparing(CommandOption::getCommand)).collect(Collectors.toList());
+            return AmazonEchoControlBindingConstants.ALEXA_COLORS.stream()
+                    .map(color -> new CommandOption(color.colorName, color.colorName))
+                    .sorted(Comparator.comparing(CommandOption::getCommand)).toList();
         }
         return null;
     }

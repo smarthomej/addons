@@ -47,13 +47,13 @@ import org.openhab.core.types.StateDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapability;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevice;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeGroupIdentifiers;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeGroupIdentity;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeGroups.SmartHomeGroup;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeTags;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.SmartHomeBaseDevice;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.smarthome.JsonSmartHomeCapability;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.smarthome.JsonSmartHomeDevice;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.smarthome.JsonSmartHomeGroupIdentifiers;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.smarthome.JsonSmartHomeGroupIdentity;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.smarthome.JsonSmartHomeGroups.SmartHomeGroup;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.smarthome.JsonSmartHomeTags;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.smarthome.SmartHomeBaseDevice;
 import org.smarthomej.binding.amazonechocontrol.internal.smarthome.ChannelInfo;
 import org.smarthomej.binding.amazonechocontrol.internal.smarthome.Constants;
 import org.smarthomej.binding.amazonechocontrol.internal.smarthome.InterfaceHandler;
@@ -188,11 +188,6 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
 
     @Override
     public void dispose() {
-        AccountHandler accountHandler = getAccountHandler();
-        if (accountHandler != null) {
-            accountHandler.removeSmartHomeDeviceHandler(this);
-        }
-
         dynamicCommandDescriptionProvider.removeCommandDescriptionForThing(thing.getUID());
         dynamicStateDescriptionProvider.removeDescriptionsForThing(thing.getUID());
     }
@@ -246,7 +241,7 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
             }
             JsonArray states = applianceIdToCapabilityStates.getOrDefault(applianceId,
                     lastStates.getOrDefault(applianceId, new JsonArray()));
-            if (states.size() == 0) {
+            if (states.isEmpty()) {
                 logger.trace("No states array found for applianceId={}.", applianceId);
                 continue;
             }
@@ -323,8 +318,8 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
             logger.debug("accountHandler is null in {}", thing.getUID());
             return;
         }
-        Connection connection = accountHandler.findConnection();
-        if (connection == null) {
+        Connection connection = accountHandler.getConnection();
+        if (!connection.isLoggedIn()) {
             logger.debug("connection is null in {}", thing.getUID());
             return;
         }

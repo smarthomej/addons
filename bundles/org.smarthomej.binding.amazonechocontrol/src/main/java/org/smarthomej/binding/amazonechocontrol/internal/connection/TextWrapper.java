@@ -17,7 +17,7 @@ import java.util.List;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDevices;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.DeviceTO;
 
 /**
  * The {@link TextWrapper} is a wrapper class for text or TTS instructions
@@ -26,7 +26,7 @@ import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDevices;
  */
 @NonNullByDefault
 public class TextWrapper {
-    private final List<JsonDevices.Device> devices = new ArrayList<>();
+    private final List<DeviceTO> devices = new ArrayList<>();
     private final String text;
     private final List<@Nullable Integer> ttsVolumes = new ArrayList<>();
     private final List<@Nullable Integer> standardVolumes = new ArrayList<>();
@@ -35,13 +35,13 @@ public class TextWrapper {
         this.text = text;
     }
 
-    public void add(JsonDevices.Device device, @Nullable Integer ttsVolume, @Nullable Integer standardVolume) {
+    public void add(DeviceTO device, @Nullable Integer ttsVolume, @Nullable Integer standardVolume) {
         devices.add(device);
         ttsVolumes.add(ttsVolume);
         standardVolumes.add(standardVolume);
     }
 
-    public List<JsonDevices.Device> getDevices() {
+    public List<DeviceTO> getDevices() {
         return devices;
     }
 
