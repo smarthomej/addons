@@ -17,7 +17,8 @@ import java.util.List;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDevices;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.DeviceTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.request.AnnouncementContentTO;
 
 /**
  * The {@link AnnouncementWrapper} is a wrapper for announcement instructions
@@ -26,7 +27,7 @@ import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonDevices;
  */
 @NonNullByDefault
 public class AnnouncementWrapper {
-    private final List<JsonDevices.Device> devices = new ArrayList<>();
+    private final List<DeviceTO> devices = new ArrayList<>();
     private final List<@Nullable Integer> ttsVolumes = new ArrayList<>();
     private final List<@Nullable Integer> standardVolumes = new ArrayList<>();
 
@@ -40,13 +41,13 @@ public class AnnouncementWrapper {
         this.title = title;
     }
 
-    public void add(JsonDevices.Device device, @Nullable Integer ttsVolume, @Nullable Integer standardVolume) {
+    public void add(DeviceTO device, @Nullable Integer ttsVolume, @Nullable Integer standardVolume) {
         devices.add(device);
         ttsVolumes.add(ttsVolume);
         standardVolumes.add(standardVolume);
     }
 
-    public List<JsonDevices.Device> getDevices() {
+    public List<DeviceTO> getDevices() {
         return devices;
     }
 
@@ -68,5 +69,15 @@ public class AnnouncementWrapper {
 
     public List<@Nullable Integer> getStandardVolumes() {
         return standardVolumes;
+    }
+
+    public AnnouncementContentTO toAnnouncementTO() {
+        AnnouncementContentTO announcement = new AnnouncementContentTO();
+        announcement.display.body = bodyText;
+        String title = this.title;
+        announcement.display.title = (title == null || title.isBlank()) ? "openHAB" : title;
+        announcement.speak.value = speak;
+        announcement.speak.type = (speak.startsWith("<speak>") && speak.endsWith("</speak>")) ? "ssml" : "text";
+        return announcement;
     }
 }

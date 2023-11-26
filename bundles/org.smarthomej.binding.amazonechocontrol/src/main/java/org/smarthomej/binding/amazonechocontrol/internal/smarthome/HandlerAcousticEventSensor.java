@@ -23,9 +23,9 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.OpenClosedType;
 import org.openhab.core.types.Command;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.smarthome.JsonSmartHomeCapability;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.smarthome.JsonSmartHomeDevice;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDeviceHandler;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeCapability;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevice;
 
 import com.google.gson.JsonObject;
 

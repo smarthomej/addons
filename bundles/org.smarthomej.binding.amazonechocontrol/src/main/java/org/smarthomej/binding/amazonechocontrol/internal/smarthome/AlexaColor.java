@@ -12,12 +12,9 @@
  */
 package org.smarthomej.binding.amazonechocontrol.internal.smarthome;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.library.types.HSBType;
-import org.smarthomej.commons.util.ResourceUtil;
+import org.smarthomej.binding.amazonechocontrol.internal.AmazonEchoControlBindingConstants;
 
 /**
  * The {@link AlexaColor} defines the Alexa color names
@@ -26,7 +23,6 @@ import org.smarthomej.commons.util.ResourceUtil;
  */
 @NonNullByDefault
 public class AlexaColor {
-    public static final List<AlexaColor> ALEXA_COLORS = getColors();
 
     public final String colorName;
     final HSBType value;
@@ -48,7 +44,7 @@ public class AlexaColor {
         double[] lab = getLabFromHSB(value);
         String colorName = "";
         double smallestDistance = Double.MAX_VALUE;
-        for (AlexaColor color : ALEXA_COLORS) {
+        for (AlexaColor color : AmazonEchoControlBindingConstants.ALEXA_COLORS) {
             double distance = color.getEuclideanDistance(lab);
             if (distance < smallestDistance) {
                 colorName = color.colorName;
@@ -93,10 +89,5 @@ public class AlexaColor {
         } else {
             return Math.pow(value, 1.0 / 3.0);
         }
-    }
-
-    private static List<AlexaColor> getColors() {
-        return ResourceUtil.readProperties(AlexaColor.class, "color.properties").entrySet().stream()
-                .map(e -> new AlexaColor(e.getKey(), new HSBType(e.getValue()))).collect(Collectors.toList());
     }
 }

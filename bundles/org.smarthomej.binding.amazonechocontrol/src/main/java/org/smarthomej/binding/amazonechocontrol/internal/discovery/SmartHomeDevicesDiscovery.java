@@ -33,13 +33,13 @@ import org.openhab.core.thing.binding.ThingHandler;
 import org.openhab.core.thing.binding.ThingHandlerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.smarthome.JsonSmartHomeDevice;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.smarthome.JsonSmartHomeDevice.DriverIdentity;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.smarthome.JsonSmartHomeDeviceAlias;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.smarthome.JsonSmartHomeGroups.SmartHomeGroup;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.smarthome.SmartHomeBaseDevice;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.AccountHandler;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDeviceHandler;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevice;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevice.DriverIdentity;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDeviceAlias;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.JsonSmartHomeGroups.SmartHomeGroup;
-import org.smarthomej.binding.amazonechocontrol.internal.jsons.SmartHomeBaseDevice;
 import org.smarthomej.binding.amazonechocontrol.internal.smarthome.Constants;
 
 /**
@@ -95,7 +95,7 @@ public class SmartHomeDevicesDiscovery extends AbstractDiscoveryService implemen
     protected void startBackgroundDiscovery() {
         ScheduledFuture<?> discoveryJob = this.discoveryJob;
         if (discoveryJob == null || discoveryJob.isCancelled()) {
-            this.discoveryJob = scheduler.scheduleWithFixedDelay(this::startScan, 3, 60, TimeUnit.SECONDS);
+            this.discoveryJob = scheduler.scheduleWithFixedDelay(this::startScan, 1, 5, TimeUnit.MINUTES);
         }
     }
 
@@ -124,9 +124,8 @@ public class SmartHomeDevicesDiscovery extends AbstractDiscoveryService implemen
             String deviceName = null;
             Map<String, Object> props = new HashMap<>();
 
-            if (smartHomeDevice instanceof JsonSmartHomeDevice) {
-                JsonSmartHomeDevice shd = (JsonSmartHomeDevice) smartHomeDevice;
-                logger.trace("Found SmartHome device: {}", shd);
+            if (smartHomeDevice instanceof JsonSmartHomeDevice shd) {
+                logger.trace("Found SmartHome device: {}", shd.applianceId);
 
                 String entityId = shd.entityId;
                 if (entityId == null) {
@@ -166,7 +165,7 @@ public class SmartHomeDevicesDiscovery extends AbstractDiscoveryService implemen
                 }
                 if (manufacturerName != null && manufacturerName.startsWith("Amazon")) {
                     List<@Nullable String> interfaces = shd.getCapabilities().stream().map(c -> c.interfaceName)
-                            .collect(Collectors.toList());
+                            .toList();
                     if (driverIdentity != null && "SonarCloudService".equals(driverIdentity.identifier)) {
                         if (interfaces.contains("Alexa.AcousticEventSensor")) {
                             deviceName = "Alexa Guard on " + shd.friendlyName;
