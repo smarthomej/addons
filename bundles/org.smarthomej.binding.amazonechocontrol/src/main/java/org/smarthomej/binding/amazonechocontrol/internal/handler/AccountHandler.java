@@ -75,10 +75,12 @@ import org.smarthomej.binding.amazonechocontrol.internal.dto.push.NotifyNowPlayi
 import org.smarthomej.binding.amazonechocontrol.internal.dto.push.PushCommandTO;
 import org.smarthomej.binding.amazonechocontrol.internal.dto.push.PushDeviceTO;
 import org.smarthomej.binding.amazonechocontrol.internal.dto.push.PushDopplerIdTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.push.PushListItemChangeTO;
 import org.smarthomej.binding.amazonechocontrol.internal.dto.request.SendConversationDTO;
 import org.smarthomej.binding.amazonechocontrol.internal.dto.response.AccountTO;
 import org.smarthomej.binding.amazonechocontrol.internal.dto.response.BluetoothStateTO;
 import org.smarthomej.binding.amazonechocontrol.internal.dto.response.CustomerHistoryRecordTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.ListItemTO;
 import org.smarthomej.binding.amazonechocontrol.internal.dto.response.MusicProviderTO;
 import org.smarthomej.binding.amazonechocontrol.internal.dto.response.WakeWordTO;
 import org.smarthomej.binding.amazonechocontrol.internal.dto.smarthome.JsonSmartHomeDevice;
@@ -644,6 +646,12 @@ public class AccountHandler extends BaseBridgeHandler implements PushConnection.
                 // we can't determine which session was updated, but it only makes sense for currently playing devices
                 // echoHandlers.forEach(e -> e.refreshAudioPlayerState(true));
                 echoHandlers.values().forEach(EchoHandler::updateMediaSessions);
+                break;
+            case "PUSH_LIST_ITEM_CHANGE":
+                PushListItemChangeTO itemChange = Objects
+                        .requireNonNull(gson.fromJson(payload, PushListItemChangeTO.class));
+                List<ListItemTO> lists = connection.getNamedListItems(itemChange.listId);
+                // TODO: create channels
                 break;
             default:
                 logger.warn("Detected unknown command from activity stream: {}", pushCommand);
