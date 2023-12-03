@@ -189,15 +189,17 @@ Use case: Ignore values from a binding unless some other item(s) have a specific
 
 ### Configuration
 
-| Configuration Parameter | Type | Description                                                                                                                                                               |
-|-------------------------|------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `conditions`            | text | Comma separated list of expressions on the format `ITEM_NAME OPERATOR ITEM_STATE`, ie `MyItem EQ OFF`. Use quotes around `ITEM_STATE` to treat value as string ie `'OFF`' |
-| `mismatchState`         | text | Optional state to pass instead if conditions are NOT met. Use quotes to treat as `StringType`. Defaults to `UNDEF`                                                         |
+| Configuration Parameter | Type | Description                                                                                                                                                                                       |
+|-------------------------|------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `conditions`            | text | Comma separated list of expressions on the format `ITEM_NAME OPERATOR ITEM_STATE`, ie `MyItem EQ OFF`. Use quotes around `ITEM_STATE` to treat value as string ie `'OFF'` and not `OnOffType.OFF` |
+| `mismatchState`         | text | Optional state to pass instead if conditions are NOT met. Use single quotes to treat as `StringType`. Defaults to `UNDEF`                                                                         |
+| `separator`             | text | Optional separator string to separate expressions when using multiple. Defaults to `,`                                                                                                            |
 
 Possible values for token `OPERATOR` in `conditions`:
 
 - `EQ` - Equals
 - `NEQ` - Not equals
+
 
 ### Full Example
 

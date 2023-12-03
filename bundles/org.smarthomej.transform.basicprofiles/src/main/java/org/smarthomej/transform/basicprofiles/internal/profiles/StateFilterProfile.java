@@ -62,18 +62,18 @@ public class StateFilterProfile implements StateProfile {
 
         StateFilterProfileConfig config = context.getConfiguration().as(StateFilterProfileConfig.class);
         if (config != null) {
-            conditions.addAll(parseConditions(config.conditions));
+            conditions.addAll(parseConditions(config.conditions, config.separator));
             configMismatchState = parseState(config.mismatchState);
         }
     }
 
-    private List parseConditions(String config) {
+    private List<StateCondition> parseConditions(@Nullable String config, String separator) {
         if (config == null)
             return List.of();
 
         List<StateCondition> parsedConditions = new ArrayList<>();
         try {
-            String[] expressions = config.split(",");
+            String[] expressions = config.split(separator);
             for (String expression : expressions) {
                 String[] parts = expression.trim().split("\s");
                 if (parts.length == 3) {
@@ -193,15 +193,9 @@ public class StateFilterProfile implements StateProfile {
         public boolean matches(String state) {
             switch (comparisonType) {
                 case EQ:
-                    if (!state.equals(value)) {
-                        return false;
-                    }
-                    break;
+                    return state.equals(value);
                 case NEQ: {
-                    if (state.equals(value)) {
-                        return false;
-                    }
-                    break;
+                    return !state.equals(value);
                 }
                 default:
                     logger.warn("Unknown condition type {}. Expected 'eq' or 'neq' - skipping state update",
@@ -209,7 +203,6 @@ public class StateFilterProfile implements StateProfile {
                     return false;
 
             }
-            return true;
         }
 
         enum ComparisonType {
@@ -219,8 +212,8 @@ public class StateFilterProfile implements StateProfile {
 
         @Override
         public String toString() {
-            return "StateCondition{" + "itemName='" + itemName + '\'' + ", comparisonType=" + comparisonType + ", value='"
-                    + value + '\'' + '}';
+            return "Condition{itemName='" + itemName + "', comparisonType=" + comparisonType + ", value='"
+                    + value + "'}'";
         }
     }
 }

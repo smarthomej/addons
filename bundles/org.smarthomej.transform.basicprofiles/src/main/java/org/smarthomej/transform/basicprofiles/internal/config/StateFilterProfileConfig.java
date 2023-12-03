@@ -27,4 +27,6 @@ public class StateFilterProfileConfig {
     public String conditions = "";
 
     public String mismatchState = UnDefType.UNDEF.toString();
+
+    public String separator = ",";
 }
