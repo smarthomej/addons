@@ -50,7 +50,7 @@ public class StateFilterProfile implements StateProfile {
     private final ProfileCallback callback;
     private List<Class<? extends State>> acceptedDataTypes;
 
-    private List<StateFilterProfile.Condition> conditions = new ArrayList<>();
+    private List<StateCondition> conditions = new ArrayList<>();
 
     @Nullable
     private State configMismatchState = null;
@@ -71,17 +71,17 @@ public class StateFilterProfile implements StateProfile {
         if (config == null)
             return List.of();
 
-        List<StateFilterProfile.Condition> parsedConditions = new ArrayList<>();
+        List<StateCondition> parsedConditions = new ArrayList<>();
         try {
             String[] expressions = config.split(",");
             for (String expression : expressions) {
                 String[] parts = expression.trim().split("\s");
                 if (parts.length == 3) {
                     String itemName = parts[0];
-                    Condition.ComparisonType conditionType = Condition.ComparisonType
+                    StateCondition.ComparisonType conditionType = StateCondition.ComparisonType
                             .valueOf(parts[1].toUpperCase(Locale.ROOT));
                     String value = parts[2];
-                    parsedConditions.add(new Condition(itemName, conditionType, value));
+                    parsedConditions.add(new StateCondition(itemName, conditionType, value));
                 } else {
                     logger.warn("Malformed condition expression: '{}'", expression);
                 }
@@ -130,7 +130,7 @@ public class StateFilterProfile implements StateProfile {
     private State checkCondition(State state) {
         if (!conditions.isEmpty()) {
             boolean allConditionsMet = true;
-            for (Condition condition : conditions) {
+            for (StateCondition condition : conditions) {
                 logger.debug("Evaluting condition: {}", condition);
                 try {
                     Item item = itemRegistry.getItem(condition.itemName);
@@ -172,7 +172,7 @@ public class StateFilterProfile implements StateProfile {
         }
     }
 
-    class Condition {
+    class StateCondition {
         String itemName;
 
         ComparisonType comparisonType;
@@ -180,7 +180,7 @@ public class StateFilterProfile implements StateProfile {
 
         boolean quoted = false;
 
-        public Condition(String itemName, ComparisonType comparisonType, String value) {
+        public StateCondition(String itemName, ComparisonType comparisonType, String value) {
             this.itemName = itemName;
             this.comparisonType = comparisonType;
             this.value = value;
@@ -219,7 +219,7 @@ public class StateFilterProfile implements StateProfile {
 
         @Override
         public String toString() {
-            return "Condition{" + "itemName='" + itemName + '\'' + ", comparisonType=" + comparisonType + ", value='"
+            return "StateCondition{" + "itemName='" + itemName + '\'' + ", comparisonType=" + comparisonType + ", value='"
                     + value + '\'' + '}';
         }
     }
