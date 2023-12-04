@@ -212,8 +212,8 @@ public class StateFilterProfile implements StateProfile {
 
         @Override
         public String toString() {
-            return "Condition{itemName='" + itemName + "', comparisonType=" + comparisonType + ", value='"
-                    + value + "'}'";
+            return "Condition{itemName='" + itemName + "', comparisonType=" + comparisonType + ", value='" + value
+                    + "'}'";
         }
     }
 }
