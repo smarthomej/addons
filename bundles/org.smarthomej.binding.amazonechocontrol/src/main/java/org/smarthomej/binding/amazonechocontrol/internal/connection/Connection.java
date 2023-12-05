@@ -99,9 +99,12 @@ import org.smarthomej.binding.amazonechocontrol.internal.dto.response.DeviceList
 import org.smarthomej.binding.amazonechocontrol.internal.dto.response.DeviceNotificationStatesTO;
 import org.smarthomej.binding.amazonechocontrol.internal.dto.response.DoNotDisturbDeviceStatusesTO;
 import org.smarthomej.binding.amazonechocontrol.internal.dto.response.EndpointTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.ListItemTO;
 import org.smarthomej.binding.amazonechocontrol.internal.dto.response.ListMediaSessionTO;
 import org.smarthomej.binding.amazonechocontrol.internal.dto.response.MediaSessionTO;
 import org.smarthomej.binding.amazonechocontrol.internal.dto.response.MusicProviderTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.NamedListsInfoTO;
+import org.smarthomej.binding.amazonechocontrol.internal.dto.response.NamedListsItemsTO;
 import org.smarthomej.binding.amazonechocontrol.internal.dto.response.NotificationListResponseTO;
 import org.smarthomej.binding.amazonechocontrol.internal.dto.response.NotificationSoundResponseTO;
 import org.smarthomej.binding.amazonechocontrol.internal.dto.response.PlayerStateTO;
@@ -592,10 +595,31 @@ public class Connection {
                     + "&endTime=" + endTime + "&maxRecordSize=1";
             CustomerHistoryRecordsTO customerHistoryRecords = requestBuilder.get(url)
                     .syncSend(CustomerHistoryRecordsTO.class);
-            return customerHistoryRecords.customerHistoryRecords.stream().sorted(Comparator.comparing(r -> r.timestamp))
-                    .toList();
+            return customerHistoryRecords.customerHistoryRecords.stream()
+                    .filter(r -> !"DEVICE_ARBITRATION".equals(r.utteranceType))
+                    .sorted(Comparator.comparing(r -> r.timestamp)).toList();
         } catch (ConnectionException e) {
             logger.info("getting activities failed", e);
+        }
+        return List.of();
+    }
+
+    public @Nullable NamedListsInfoTO getNamedListInfo(String listId) {
+        try {
+            String url = getAlexaServer() + "/api/namedLists/" + listId + "?_=" + System.currentTimeMillis();
+            return requestBuilder.get(url).syncSend(NamedListsInfoTO.class);
+        } catch (ConnectionException e) {
+            logger.info("getting information for list {} failed", listId, e);
+        }
+        return null;
+    }
+
+    public List<ListItemTO> getNamedListItems(String listId) {
+        try {
+            String url = getAlexaServer() + "/api/namedLists/" + listId + "/items?_=" + System.currentTimeMillis();
+            return requestBuilder.get(url).syncSend(NamedListsItemsTO.class).list;
+        } catch (ConnectionException e) {
+            logger.info("getting items from list '{}' failed", listId, e);
         }
         return List.of();
     }
@@ -841,6 +865,7 @@ public class Connection {
             Iterator<TextWrapper> iterator = textToSpeeches.values().iterator();
             while (iterator.hasNext()) {
                 TextWrapper textToSpeech = iterator.next();
+                logger.trace("Executing textToSpeech {}", textToSpeech);
                 try {
                     List<DeviceTO> devices = textToSpeech.getDevices();
                     if (!devices.isEmpty()) {
@@ -848,8 +873,8 @@ public class Connection {
                                 Map.of("textToSpeak", textToSpeech.getText()), textToSpeech.getTtsVolumes(),
                                 textToSpeech.getStandardVolumes());
                     }
-                } catch (Exception e) {
-                    logger.warn("send textToSpeech fails with unexpected error", e);
+                } catch (RuntimeException e) {
+                    logger.warn("Send textToSpeech failed with unexpected error", e);
                 }
                 iterator.remove();
             }
@@ -885,8 +910,8 @@ public class Connection {
         }
     }
 
-    private synchronized void sendTextCommand() {
-        // we lock new TTS until we have dispatched everything
+    private void sendTextCommand() {
+        // we lock new textCommands until we have dispatched everything
         Lock lock = Objects.requireNonNull(locks.computeIfAbsent(TimerType.TEXT_COMMAND, k -> new ReentrantLock()));
         lock.lock();
 
@@ -894,6 +919,7 @@ public class Connection {
             Iterator<TextWrapper> iterator = textCommands.values().iterator();
             while (iterator.hasNext()) {
                 TextWrapper textCommand = iterator.next();
+                logger.trace("Executing textCommand {}", textCommand);
                 try {
                     List<DeviceTO> devices = textCommand.getDevices();
                     if (!devices.isEmpty()) {
@@ -901,8 +927,8 @@ public class Connection {
                                 Map.of("text", textCommand.getText()), textCommand.getTtsVolumes(),
                                 textCommand.getStandardVolumes());
                     }
-                } catch (Exception e) {
-                    logger.warn("send textCommand fails with unexpected error", e);
+                } catch (RuntimeException e) {
+                    logger.warn("Sending textCommand failed with unexpected error", e);
                 }
                 iterator.remove();
             }
