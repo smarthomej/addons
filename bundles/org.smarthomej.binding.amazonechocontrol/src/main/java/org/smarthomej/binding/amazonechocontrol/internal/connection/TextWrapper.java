@@ -56,4 +56,10 @@ public class TextWrapper {
     public String getText() {
         return text;
     }
+
+    @Override
+    public String toString() {
+        return "TextWrapper{" + "devices=" + devices + ", text='" + text + "'" + ", ttsVolumes=" + ttsVolumes
+                + ", standardVolumes=" + standardVolumes + "}";
+    }
 }
