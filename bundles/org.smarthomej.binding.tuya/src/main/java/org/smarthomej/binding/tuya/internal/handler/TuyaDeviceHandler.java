@@ -305,6 +305,9 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
         } else if (CHANNEL_TYPE_UID_DIMMER.equals(channelTypeUID)) {
             if (command instanceof PercentType) {
                 int value = ConversionUtil.brightnessEncode((PercentType) command, 0, configuration.max);
+                if (configuration.reversed) {
+                    value = configuration.max - value;
+                }
                 if (value >= configuration.min) {
                     commandRequest.put(configuration.dp, value);
                 }
