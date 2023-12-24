@@ -56,6 +56,7 @@ import org.openhab.core.thing.type.ChannelTypeUID;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.CommandOption;
 import org.openhab.core.types.State;
+import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.tuya.internal.config.ChannelConfiguration;
@@ -163,36 +164,40 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
                 return;
             }
 
-            if (value instanceof String && CHANNEL_TYPE_UID_COLOR.equals(channelTypeUID)) {
-                oldColorMode = ((String) value).length() == 14;
-                updateState(channelId, ConversionUtil.hexColorDecode((String) value));
-                return;
-            } else if (value instanceof String && CHANNEL_TYPE_UID_STRING.equals(channelTypeUID)) {
-                updateState(channelId, new StringType((String) value));
-                return;
-            } else if (Double.class.isAssignableFrom(value.getClass())
-                    && CHANNEL_TYPE_UID_DIMMER.equals(channelTypeUID)) {
-                updateState(channelId, ConversionUtil.brightnessDecode((double) value, 0, configuration.max));
-                return;
-            } else if (Double.class.isAssignableFrom(value.getClass())
-                    && CHANNEL_TYPE_UID_NUMBER.equals(channelTypeUID)) {
-                updateState(channelId, new DecimalType((double) value));
-                return;
-            } else if (Boolean.class.isAssignableFrom(value.getClass())
-                    && CHANNEL_TYPE_UID_SWITCH.equals(channelTypeUID)) {
-                updateState(channelId, OnOffType.from((boolean) value));
-                return;
-            } else if (value instanceof String && CHANNEL_TYPE_UID_IR_CODE.equals(channelTypeUID)) {
-                if (configuration.dp == 2) {
-                    String decoded = convertBase64Code(configuration, (String) value);
-                    logger.info("thing {} received ir code: {}", thing.getUID(), decoded);
-                    updateState(channelId, new StringType(decoded));
-                    irStartLearning(configuration.activeListen);
+            try {
+                if (value instanceof String && CHANNEL_TYPE_UID_COLOR.equals(channelTypeUID)) {
+                    oldColorMode = ((String) value).length() == 14;
+                    updateState(channelId, ConversionUtil.hexColorDecode((String) value));
+                    return;
+                } else if (value instanceof String && CHANNEL_TYPE_UID_STRING.equals(channelTypeUID)) {
+                    updateState(channelId, new StringType((String) value));
+                    return;
+                } else if (Double.class.isAssignableFrom(value.getClass())
+                        && CHANNEL_TYPE_UID_DIMMER.equals(channelTypeUID)) {
+                    updateState(channelId, ConversionUtil.brightnessDecode((double) value, 0, configuration.max));
+                    return;
+                } else if (Double.class.isAssignableFrom(value.getClass())
+                        && CHANNEL_TYPE_UID_NUMBER.equals(channelTypeUID)) {
+                    updateState(channelId, new DecimalType((double) value));
+                    return;
+                } else if (Boolean.class.isAssignableFrom(value.getClass())
+                        && CHANNEL_TYPE_UID_SWITCH.equals(channelTypeUID)) {
+                    updateState(channelId, OnOffType.from((boolean) value));
+                    return;
+                } else if (value instanceof String && CHANNEL_TYPE_UID_IR_CODE.equals(channelTypeUID)) {
+                    if (configuration.dp == 2) {
+                        String decoded = convertBase64Code(configuration, (String) value);
+                        logger.info("thing {} received ir code: {}", thing.getUID(), decoded);
+                        updateState(channelId, new StringType(decoded));
+                        irStartLearning(configuration.activeListen);
+                    }
+                    return;
                 }
-                return;
+            } catch (IllegalArgumentException ignored) {
             }
             logger.warn("Could not update channel '{}' of thing '{}' with value '{}'. Datatype incompatible.",
                     channelId, getThing().getUID(), value);
+            updateState(channelId, UnDefType.UNDEF);
         } else {
             // try additional channelDps, only OnOffType
             List<String> channelIds = dp2ToChannelId.get(dp);
