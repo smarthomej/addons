@@ -1,8 +1,9 @@
 # Smarthome/J Add-ons
 
 [![EPL-2.0](https://img.shields.io/badge/license-EPL%202-green.svg)](https://opensource.org/licenses/EPL-2.0)
-[![Build Status 3.2.x](https://github.com/smarthomej/addons/actions/workflows/ci-build-32.yml/badge.svg?branch=3.2.x)](https://github.com/smarthomej/addons/actions/workflows/ci-build-32.yml)
 [![Build Status 4.0.x](https://github.com/smarthomej/addons/actions/workflows/ci-build-40.yml/badge.svg?branch=4.0.x)](https://github.com/smarthomej/addons/actions/workflows/ci-build-40.yml)
+[![Build Status 4.1.x](https://github.com/smarthomej/addons/actions/workflows/ci-build-41.yml/badge.svg?branch=4.1.x)](https://github.com/smarthomej/addons/actions/workflows/ci-build-41.yml)
+[![Build Status 4.2.x](https://github.com/smarthomej/addons/actions/workflows/ci-build-42.yml/badge.svg?branch=4.2.x)](https://github.com/smarthomej/addons/actions/workflows/ci-build-42.yml)
 
 This repository contains the add-ons that are implemented on top of [openHAB Core APIs](https://github.com/openhab/openhab-core).
 Some parts of this repository are forked from [openHAB Addons](https://github.com/openhab/openhab-addons).
@@ -11,18 +12,17 @@ Some parts of this repository are forked from [openHAB Addons](https://github.co
 
 It is recommended to add `https://download.smarthomej.org/addons.json` as JSON 3rd Party Addon Service in the settings.
 Afterwards all addons can be installed from the UI.
+Due to limitations openHAB Core, please make sure to disable "Show incompatible add-ons" on the "Add-on Management" page (NOT the "JSON 3rd Party Addon Service" page).
 
 ### Compatibility
 
 Due to a breaking changes in openHAB, older and newer versions of bundles are not compatible in every combination.
-We'll continue to support 3.0 compatible addons until the release of openHAB 3.2.0 (which is expected end of 2021) and provide the same set of addons for newer versions.
-Please check the table to see which versions of SmartHome/J are compatible with which openHAB version:
+Currently the last two stable releases of openHAB (4.0 and 4.1) as well as the current development version (4.2, only latest snapshots) are supported.
 
-|                                         | openHAB 3.2.0 - 3.4.0 (release) | openHAB 4.0.0 (release) |
-|-----------------------------------------|:-------------------------------:|:-----------------------:|
-| SmartHome/J 3.2.x (snapshots, releases) |               yes               |           no            | 
-| SmartHome/J 4.0.x (snapshots, releases) |               no                |           yes           |
+The downloads for openHAB 3.2-3.4 are still available, but these versions will no longer receive updates.
+Please consider upgrading your openHAB installation.
 
+Starting with 4.0, the version numbers between openHAB Core and SmartHome/J are the same, i.e. SmartHome/J 4.0.x is compatible with openHAB 4.0.x.
 
 ### Upgrading SmartHome/J bindings installed from the JSON 3rd Party Add-on service
 
