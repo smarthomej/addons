@@ -33,14 +33,14 @@ By using discovery all necessary setting of the device are retrieved from your c
 
 First create and link a Tuya Develop Account:
 
-- Go to `iot.tuya.com` (the Tuya developer portal) and create an account. 
-You can choose any credentials (email/password) you like (it is not necessary that they are the same as in the app). 
-After confirming your account, log in to your new account. 
+- Go to `iot.tuya.com` (the Tuya developer portal) and create an account.
+You can choose any credentials (email/password) you like (it is not necessary that they are the same as in the app).
+After confirming your account, log in to your new account.
 - On the left navigation bar, select "Cloud", then "Create new Cloud project" (upper right corner).
 Enter a name (e.g. "My Smarthome"), select "Smart Home" for "Industry" and "Development Method".
-For security reasons, select only the "Data Center" that your app is connected to (you can change that later if you select the wrong one). 
+For security reasons, select only the "Data Center" that your app is connected to (you can change that later if you select the wrong one).
 Select "IoT Core", "Authorization" and "Device Status Notification" as APIs.
-- You should be redirected to the "Overview" tab of your project. 
+- You should be redirected to the "Overview" tab of your project.
 Write down (or copy) "Access ID/Client ID" and "Access Secret/Client Secret" (you can always look it up in your account).
 - In the upper menu bar, select the "Devices" tab, then go to "Link Tuya App Account" and link you App account.
 
@@ -54,7 +54,7 @@ The `datacenter` needs to be set to the same value as in your IoT project.
 
 The thing should come online immediately.
 
-If the thing does not come online, check 
+If the thing does not come online, check
 
 - if you really used the app and not the developer portal credentials
 - if you entered the correct country code (check in the App if you accidentally choose a wrong country)
@@ -98,37 +98,39 @@ All channels have at least the `dp` parameter which is used to identify the chan
 
 ### Type `color`
 
-The `color` channel has a second (optional) parameter `dp2`.
+The `color` channel has a second optional parameter `dp2`.
 This parameter identifies the ON/OFF switch that is usually available on color lights.
 
 ### Type `dimmer`
 
-The `dimmer` channel has two additional mandatory (`min` and `max`) and one (optional) parameter `dp2`.
+The `dimmer` channel has two additional mandatory parameters `min` and `max`, one optional parameter `dp2` and one advanced parameter `reversed`.
 The `min` and `max` parameters define the range allowed for controlling the brightness (most common are 0-255 or 10-1000).
-The `dp2`parameter identifies the ON/OFF switch that is usually available on dimmable lights.
+The `dp2` parameter identifies the ON/OFF switch that is usually available on dimmable lights.
+The `reversed` parameter changes the direction of the scale (e.g. 0 becomes 100, 100 becomes 0).
+It defaults to `false`.
 
 ### Type `number`
 
-The `number` channel has two additional mandatory (`min` and `max`) parameters.
+The `number` channel has two additional mandatory parameters `min` and `max`.
 The `min` and `max` parameters define the range allowed (e.g. 0-86400 for turn-off "countdown").
 
 ### Type `string`
 
-The `string` channel has one additional (optional) parameter `range`.
+The `string` channel has one additional optional parameter `range`.
 It contains a comma-separated list of command options for this channel (e.g. `white,colour,scene,music` for the "workMode" channel).
 
 ### Type `ir-code`
 
 IR code types:
-+ `Tuya DIY-mode` - use study codes from real remotes. 
-   
++ `Tuya DIY-mode` - use study codes from real remotes.
+
    Make a virtual remote control in DIY, learn virtual buttons.
 
-+ `Tuya Codes Library (check Advanced options)` - use codes from templates library. 
-   
++ `Tuya Codes Library (check Advanced options)` - use codes from templates library.
+
    Make a virtual remote control from pre-defined type of devices.
 
-   Select Advanced checkbox to configure other parameters: 
+   Select Advanced checkbox to configure other parameters:
    + `irCode` - Decoding parameter
    + `irSendDelay` - used as `Send delay` parameter
    + `irCodeType` - used as `type library` parameter
@@ -178,8 +180,8 @@ Pressing buttons and copying codes, then assign codes with Item which control de
 After receiving the key code, the learning mode automatically continues until you send command `study_exit` or send key code by Item with code
 ## Troubleshooting
 
-- If the `project` thing is not coming `ONLINE` check if you see your devices in the cloud-account on `iot.tuya.com`. 
-If the listis empty, most likely you selected a wrong datacenter. 
+- If the `project` thing is not coming `ONLINE` check if you see your devices in the cloud-account on `iot.tuya.com`.
+If the listis empty, most likely you selected a wrong datacenter.
 - Check if there are errors in the log and if you see messages like `Configuring IP address '192.168.1.100' for thing 'tuya:tuya:tuyaDevice:bf3122fba012345fc9pqa'`.
 If this is missing, try configuring the IP manually.
 The MAC of your device can be found in the auto-discovered thing properties (this helps to identify the device in your router).
@@ -188,9 +190,7 @@ Type `log:set TRACE org.smarthomej.binding.tuya` on the Karaf console to enable 
 Use `log:tail` to display the log.
 You can revert to normal logging with `log:set DEFAULT org.smarthomej.binding.tuya`
 - At least disable/enable the thing when providing logs.
-For most details better remove the device, use discovery and re-add the device. 
+For most details better remove the device, use discovery and re-add the device.
 Please use PasteBin or a similar service, do not use JPG or other images, they can't be analysed properly.
-Check that the log doesn't contain any credentials. 
+Check that the log doesn't contain any credentials.
 - Add the thing configuration to your report (in the UI use the "Code" view).
-
-
