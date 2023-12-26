@@ -45,6 +45,19 @@ import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
+import org.openhab.core.thing.binding.generic.ChannelHandler;
+import org.openhab.core.thing.binding.generic.ChannelHandlerContent;
+import org.openhab.core.thing.binding.generic.ChannelMode;
+import org.openhab.core.thing.binding.generic.ChannelTransformation;
+import org.openhab.core.thing.binding.generic.converter.ColorChannelHandler;
+import org.openhab.core.thing.binding.generic.converter.DimmerChannelHandler;
+import org.openhab.core.thing.binding.generic.converter.FixedValueMappingChannelHandler;
+import org.openhab.core.thing.binding.generic.converter.GenericChannelHandler;
+import org.openhab.core.thing.binding.generic.converter.ImageChannelHandler;
+import org.openhab.core.thing.binding.generic.converter.NumberChannelHandler;
+import org.openhab.core.thing.binding.generic.converter.PlayerChannelHandler;
+import org.openhab.core.thing.binding.generic.converter.RollershutterChannelHandler;
+import org.openhab.core.thing.internal.binding.generic.converter.AbstractTransformingChannelHandler;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.RefreshType;
 import org.openhab.core.types.State;
@@ -61,19 +74,6 @@ import org.smarthomej.binding.http.internal.http.RateLimitedHttpClient;
 import org.smarthomej.binding.http.internal.http.RefreshingUrlCache;
 import org.smarthomej.commons.SimpleDynamicStateDescriptionProvider;
 import org.smarthomej.commons.UpdatingBaseThingHandler;
-import org.smarthomej.commons.itemvalueconverter.ChannelMode;
-import org.smarthomej.commons.itemvalueconverter.ContentWrapper;
-import org.smarthomej.commons.itemvalueconverter.ItemValueConverter;
-import org.smarthomej.commons.itemvalueconverter.converter.AbstractTransformingItemConverter;
-import org.smarthomej.commons.itemvalueconverter.converter.ColorItemConverter;
-import org.smarthomej.commons.itemvalueconverter.converter.DimmerItemConverter;
-import org.smarthomej.commons.itemvalueconverter.converter.FixedValueMappingItemConverter;
-import org.smarthomej.commons.itemvalueconverter.converter.GenericItemConverter;
-import org.smarthomej.commons.itemvalueconverter.converter.ImageItemConverter;
-import org.smarthomej.commons.itemvalueconverter.converter.NumberItemConverter;
-import org.smarthomej.commons.itemvalueconverter.converter.PlayerItemConverter;
-import org.smarthomej.commons.itemvalueconverter.converter.RollershutterItemConverter;
-import org.smarthomej.commons.transform.ValueTransformationProvider;
 
 /**
  * The {@link HttpThingHandler} is responsible for handling commands, which are
@@ -86,29 +86,26 @@ public class HttpThingHandler extends UpdatingBaseThingHandler implements HttpSt
     private static final Set<Character> URL_PART_DELIMITER = Set.of('/', '?', '&');
 
     private final Logger logger = LoggerFactory.getLogger(HttpThingHandler.class);
-    private final ValueTransformationProvider valueTransformationProvider;
     private final HttpClientProvider httpClientProvider;
     private final RateLimitedHttpClient rateLimitedHttpClient;
     private final SimpleDynamicStateDescriptionProvider httpDynamicStateDescriptionProvider;
 
     private HttpThingConfig config = new HttpThingConfig();
     private final Map<String, RefreshingUrlCache> urlHandlers = new HashMap<>();
-    private final Map<ChannelUID, ItemValueConverter> channels = new HashMap<>();
+    private final Map<ChannelUID, ChannelHandler> channels = new HashMap<>();
     private final Map<ChannelUID, String> channelUrls = new HashMap<>();
 
     public HttpThingHandler(Thing thing, HttpClientProvider httpClientProvider,
-            ValueTransformationProvider valueTransformationProvider,
             SimpleDynamicStateDescriptionProvider httpDynamicStateDescriptionProvider) {
         super(thing);
         this.httpClientProvider = httpClientProvider;
         this.rateLimitedHttpClient = new RateLimitedHttpClient(httpClientProvider.getSecureClient(), scheduler);
-        this.valueTransformationProvider = valueTransformationProvider;
         this.httpDynamicStateDescriptionProvider = httpDynamicStateDescriptionProvider;
     }
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
-        ItemValueConverter itemValueConverter = channels.get(channelUID);
+        ChannelHandler itemValueConverter = channels.get(channelUID);
         if (itemValueConverter == null) {
             logger.warn("Cannot find channel implementation for channel {}.", channelUID);
             return;
@@ -279,45 +276,46 @@ public class HttpThingHandler extends UpdatingBaseThingHandler implements HttpSt
             return;
         }
 
-        ItemValueConverter itemValueConverter;
+        ChannelHandler itemValueConverter;
         switch (acceptedItemType) {
             case "Color":
-                itemValueConverter = createItemConverter(ColorItemConverter::new, commandUrl, channelUID,
+                itemValueConverter = createChannelHandler(ColorChannelHandler::new, commandUrl, channelUID,
                         channelConfig);
                 break;
             case "DateTime":
-                itemValueConverter = createGenericItemConverter(commandUrl, channelUID, channelConfig,
+                itemValueConverter = createGenericChannelHandler(commandUrl, channelUID, channelConfig,
                         DateTimeType::new);
                 break;
             case "Dimmer":
-                itemValueConverter = createItemConverter(DimmerItemConverter::new, commandUrl, channelUID,
+                itemValueConverter = createChannelHandler(DimmerChannelHandler::new, commandUrl, channelUID,
                         channelConfig);
                 break;
             case "Contact":
             case "Switch":
-                itemValueConverter = createItemConverter(FixedValueMappingItemConverter::new, commandUrl, channelUID,
+                itemValueConverter = createChannelHandler(FixedValueMappingChannelHandler::new, commandUrl, channelUID,
                         channelConfig);
                 break;
             case "Image":
-                itemValueConverter = new ImageItemConverter(state -> updateState(channelUID, state));
+                itemValueConverter = new ImageChannelHandler(state -> updateState(channelUID, state));
                 break;
             case "Location":
-                itemValueConverter = createGenericItemConverter(commandUrl, channelUID, channelConfig, PointType::new);
+                itemValueConverter = createGenericChannelHandler(commandUrl, channelUID, channelConfig, PointType::new);
                 break;
             case "Number":
-                itemValueConverter = createItemConverter(NumberItemConverter::new, commandUrl, channelUID,
+                itemValueConverter = createChannelHandler(NumberChannelHandler::new, commandUrl, channelUID,
                         channelConfig);
                 break;
             case "Player":
-                itemValueConverter = createItemConverter(PlayerItemConverter::new, commandUrl, channelUID,
+                itemValueConverter = createChannelHandler(PlayerChannelHandler::new, commandUrl, channelUID,
                         channelConfig);
                 break;
             case "Rollershutter":
-                itemValueConverter = createItemConverter(RollershutterItemConverter::new, commandUrl, channelUID,
+                itemValueConverter = createChannelHandler(RollershutterChannelHandler::new, commandUrl, channelUID,
                         channelConfig);
                 break;
             case "String":
-                itemValueConverter = createGenericItemConverter(commandUrl, channelUID, channelConfig, StringType::new);
+                itemValueConverter = createGenericChannelHandler(commandUrl, channelUID, channelConfig,
+                        StringType::new);
                 break;
             default:
                 logger.warn("Unsupported item-type '{}'", channel.getAcceptedItemType());
@@ -373,7 +371,7 @@ public class HttpThingHandler extends UpdatingBaseThingHandler implements HttpSt
                         request.timeout(config.timeout, TimeUnit.MILLISECONDS);
                         config.getHeaders().forEach(request::header);
 
-                        CompletableFuture<@Nullable ContentWrapper> responseContentFuture = new CompletableFuture<>();
+                        CompletableFuture<@Nullable ChannelHandlerContent> responseContentFuture = new CompletableFuture<>();
                         responseContentFuture.exceptionally(t -> {
                             if (t instanceof HttpAuthException) {
                                 if (isRetry || !rateLimitedHttpClient.reAuth(uri)) {
@@ -412,18 +410,18 @@ public class HttpThingHandler extends UpdatingBaseThingHandler implements HttpSt
         }
     }
 
-    private ItemValueConverter createItemConverter(AbstractTransformingItemConverter.Factory factory, String commandUrl,
+    private ChannelHandler createChannelHandler(AbstractTransformingChannelHandler.Factory factory, String commandUrl,
             ChannelUID channelUID, HttpChannelConfig channelConfig) {
         return factory.create(state -> updateState(channelUID, state), command -> postCommand(channelUID, command),
                 command -> sendHttpValue(commandUrl, command),
-                valueTransformationProvider.getValueTransformation(channelConfig.stateTransformation),
-                valueTransformationProvider.getValueTransformation(channelConfig.commandTransformation), channelConfig);
+                new ChannelTransformation(channelConfig.stateTransformation),
+                new ChannelTransformation(channelConfig.commandTransformation), channelConfig);
     }
 
-    private ItemValueConverter createGenericItemConverter(String commandUrl, ChannelUID channelUID,
+    private ChannelHandler createGenericChannelHandler(String commandUrl, ChannelUID channelUID,
             HttpChannelConfig channelConfig, Function<String, State> toState) {
-        AbstractTransformingItemConverter.Factory factory = (state, command, value, stateTrans, commandTrans,
-                config) -> new GenericItemConverter(toState, state, command, value, stateTrans, commandTrans, config);
-        return createItemConverter(factory, commandUrl, channelUID, channelConfig);
+        AbstractTransformingChannelHandler.Factory factory = (state, command, value, stateTrans, commandTrans,
+                config) -> new GenericChannelHandler(toState, state, command, value, stateTrans, commandTrans, config);
+        return createChannelHandler(factory, commandUrl, channelUID, channelConfig);
     }
 }

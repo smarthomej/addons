@@ -42,11 +42,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.openhab.core.thing.binding.generic.ChannelHandlerContent;
 import org.smarthomej.binding.http.internal.config.HttpThingConfig;
 import org.smarthomej.binding.http.internal.http.HttpStatusListener;
 import org.smarthomej.binding.http.internal.http.RateLimitedHttpClient;
 import org.smarthomej.binding.http.internal.http.RefreshingUrlCache;
-import org.smarthomej.commons.itemvalueconverter.ContentWrapper;
 
 /**
  * The {@link RefreshingUrlCacheTest} implements tests for the {@link RefreshingUrlCache}
@@ -64,7 +64,7 @@ public class RefreshingUrlCacheTest extends AbstractWireMockTest {
     private @NonNullByDefault({}) String url;
     private @NonNullByDefault({}) HttpStatusListener statusListener;
 
-    private List<@Nullable ContentWrapper> contentWrappers = new CopyOnWriteArrayList<>();
+    private final List<@Nullable ChannelHandlerContent> contentWrappers = new CopyOnWriteArrayList<>();
 
     @BeforeEach
     public void initTest() {
@@ -107,7 +107,7 @@ public class RefreshingUrlCacheTest extends AbstractWireMockTest {
         verify(statusListener, times(contentWrappers.size())).onHttpSuccess();
 
         // assert all content equals the correct value
-        assertTrue(contentWrappers.stream().map(Objects::requireNonNull).map(ContentWrapper::getAsString)
+        assertTrue(contentWrappers.stream().map(Objects::requireNonNull).map(ChannelHandlerContent::getAsString)
                 .allMatch(TEST_CONTENT::equals));
     }
 
