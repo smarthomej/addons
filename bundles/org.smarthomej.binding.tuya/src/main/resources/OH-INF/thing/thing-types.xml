@@ -149,6 +149,12 @@
 			<parameter name="max" type="integer">
 				<label>Maximum</label>
 			</parameter>
+			<parameter name="reversed" type="boolean">
+				<label>Reversed</label>
+				<description>Changes the direction of the scale (e.g. 0 becomes 100, 100 becomes 0).</description>
+				<default>false</default>
+				<advanced>true</advanced>
+			</parameter>
 		</config-description>
 	</channel-type>
 
