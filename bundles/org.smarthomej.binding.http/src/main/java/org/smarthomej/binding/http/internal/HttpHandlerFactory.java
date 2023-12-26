@@ -34,7 +34,6 @@ import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.commons.SimpleDynamicStateDescriptionProvider;
-import org.smarthomej.commons.transform.ValueTransformationProvider;
 
 /**
  * The {@link HttpHandlerFactory} is responsible for creating things and thing
@@ -50,17 +49,14 @@ public class HttpHandlerFactory extends BaseThingHandlerFactory implements HttpC
 
     private final HttpClient secureClient;
     private final HttpClient insecureClient;
-    private final ValueTransformationProvider valueTransformationProvider;
 
     private final SimpleDynamicStateDescriptionProvider httpDynamicStateDescriptionProvider;
 
     @Activate
     public HttpHandlerFactory(@Reference HttpClientFactory httpClientFactory,
-            @Reference ValueTransformationProvider valueTransformationProvider,
             @Reference SimpleDynamicStateDescriptionProvider httpDynamicStateDescriptionProvider) {
         this.secureClient = new HttpClient(new SslContextFactory.Client());
         this.insecureClient = new HttpClient(new SslContextFactory.Client(true));
-        this.valueTransformationProvider = valueTransformationProvider;
         // clear user agent, this needs to be set later in the thing configuration as additional header
         this.secureClient.setUserAgentField(null);
         this.insecureClient.setUserAgentField(null);
@@ -96,7 +92,7 @@ public class HttpHandlerFactory extends BaseThingHandlerFactory implements HttpC
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
 
         if (THING_TYPE_URL.equals(thingTypeUID)) {
-            return new HttpThingHandler(thing, this, valueTransformationProvider, httpDynamicStateDescriptionProvider);
+            return new HttpThingHandler(thing, this, httpDynamicStateDescriptionProvider);
         }
 
         return null;
