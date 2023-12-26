@@ -31,11 +31,11 @@ import java.util.function.Consumer;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.http.HttpMethod;
+import org.openhab.core.thing.binding.generic.ChannelHandlerContent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.http.internal.Util;
 import org.smarthomej.binding.http.internal.config.HttpThingConfig;
-import org.smarthomej.commons.itemvalueconverter.ContentWrapper;
 
 /**
  * The {@link RefreshingUrlCache} is responsible for requesting from a single URL and passing the content to the
@@ -53,7 +53,7 @@ public class RefreshingUrlCache {
     private final int timeout;
     private final int bufferSize;
     private final @Nullable String fallbackEncoding;
-    private final Set<Consumer<@Nullable ContentWrapper>> consumers = ConcurrentHashMap.newKeySet();
+    private final Set<Consumer<@Nullable ChannelHandlerContent>> consumers = ConcurrentHashMap.newKeySet();
     private final Map<String, String> headers;
     private final HttpMethod httpMethod;
     private final String httpContent;
@@ -61,7 +61,7 @@ public class RefreshingUrlCache {
     private final HttpStatusListener httpStatusListener;
 
     private final ScheduledFuture<?> future;
-    private @Nullable ContentWrapper lastContent;
+    private @Nullable ChannelHandlerContent lastContent;
 
     public RefreshingUrlCache(ScheduledExecutorService executor, RateLimitedHttpClient httpClient, String url,
             HttpThingConfig thingConfig, String httpContent, @Nullable String httpContentType,
@@ -101,7 +101,7 @@ public class RefreshingUrlCache {
                 request.timeout(timeout, TimeUnit.MILLISECONDS);
                 headers.forEach(request::header);
 
-                CompletableFuture<@Nullable ContentWrapper> responseContentFuture = new CompletableFuture<>();
+                CompletableFuture<@Nullable ChannelHandlerContent> responseContentFuture = new CompletableFuture<>();
                 responseContentFuture.exceptionally(t -> {
                     if (t instanceof HttpAuthException) {
                         if (isRetry || !httpClient.reAuth(uri)) {
@@ -140,17 +140,17 @@ public class RefreshingUrlCache {
         logger.trace("Stopped refresh task for URL '{}'", url);
     }
 
-    public void addConsumer(Consumer<@Nullable ContentWrapper> consumer) {
+    public void addConsumer(Consumer<@Nullable ChannelHandlerContent> consumer) {
         consumers.add(consumer);
     }
 
-    public Optional<ContentWrapper> get() {
+    public Optional<ChannelHandlerContent> get() {
         return Optional.ofNullable(lastContent);
     }
 
-    private void processResult(@Nullable ContentWrapper content) {
+    private void processResult(@Nullable ChannelHandlerContent content) {
         if (content != null || strictErrorHandling) {
-            for (Consumer<@Nullable ContentWrapper> consumer : consumers) {
+            for (Consumer<@Nullable ChannelHandlerContent> consumer : consumers) {
                 try {
                     consumer.accept(content);
                 } catch (IllegalArgumentException | IllegalStateException e) {

@@ -15,7 +15,7 @@ package org.smarthomej.binding.http.internal.config;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.smarthomej.commons.itemvalueconverter.ItemValueConverterChannelConfig;
+import org.openhab.core.thing.binding.generic.ChannelValueConverterConfig;
 
 /**
  * The {@link HttpChannelConfig} class contains fields mapping channel configuration parameters.
@@ -23,7 +23,7 @@ import org.smarthomej.commons.itemvalueconverter.ItemValueConverterChannelConfig
  * @author Jan N. Klug - Initial contribution
  */
 @NonNullByDefault
-public class HttpChannelConfig extends ItemValueConverterChannelConfig {
+public class HttpChannelConfig extends ChannelValueConverterConfig {
 
     public @Nullable String stateExtension;
     public @Nullable String commandExtension;
