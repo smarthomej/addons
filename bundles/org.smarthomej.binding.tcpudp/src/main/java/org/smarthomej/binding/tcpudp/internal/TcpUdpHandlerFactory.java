@@ -27,7 +27,6 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.smarthomej.commons.SimpleDynamicStateDescriptionProvider;
-import org.smarthomej.commons.transform.ValueTransformationProvider;
 
 /**
  * The {@link TcpUdpHandlerFactory} is responsible for creating things and thing
@@ -42,13 +41,10 @@ public class TcpUdpHandlerFactory extends BaseThingHandlerFactory {
     private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Set.of(THING_TYPE_UID_CLIENT,
             THING_TYPE_UID_RECEIVER);
 
-    private final ValueTransformationProvider valueTransformationProvider;
     private final SimpleDynamicStateDescriptionProvider dynamicStateDescriptionProvider;
 
     @Activate
-    public TcpUdpHandlerFactory(@Reference ValueTransformationProvider valueTransformationProvider,
-            @Reference SimpleDynamicStateDescriptionProvider dynamicStateDescriptionProvider) {
-        this.valueTransformationProvider = valueTransformationProvider;
+    public TcpUdpHandlerFactory(@Reference SimpleDynamicStateDescriptionProvider dynamicStateDescriptionProvider) {
         this.dynamicStateDescriptionProvider = dynamicStateDescriptionProvider;
     }
 
@@ -62,9 +58,9 @@ public class TcpUdpHandlerFactory extends BaseThingHandlerFactory {
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
 
         if (THING_TYPE_UID_CLIENT.equals(thingTypeUID)) {
-            return new ClientThingHandler(thing, valueTransformationProvider, dynamicStateDescriptionProvider);
+            return new ClientThingHandler(thing, dynamicStateDescriptionProvider);
         } else if (THING_TYPE_UID_RECEIVER.equals(thingTypeUID)) {
-            return new ReceiverThingHandler(thing, valueTransformationProvider);
+            return new ReceiverThingHandler(thing);
         }
 
         return null;

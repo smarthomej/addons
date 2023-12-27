@@ -46,13 +46,13 @@ import org.openhab.core.thing.ThingUID;
 import org.openhab.core.thing.binding.ThingHandlerCallback;
 import org.openhab.core.thing.binding.builder.ChannelBuilder;
 import org.openhab.core.thing.binding.builder.ThingBuilder;
+import org.openhab.core.thing.binding.generic.ChannelMode;
 import org.openhab.core.thing.type.ChannelTypeUID;
 import org.smarthomej.binding.tcpudp.internal.config.ClientConfiguration;
 import org.smarthomej.binding.tcpudp.internal.config.TcpUdpChannelConfig;
 import org.smarthomej.binding.tcpudp.internal.test.EchoServer;
 import org.smarthomej.binding.tcpudp.internal.test.TestUtil;
 import org.smarthomej.commons.SimpleDynamicStateDescriptionProvider;
-import org.smarthomej.commons.itemvalueconverter.ChannelMode;
 import org.smarthomej.commons.transform.NoOpValueTransformation;
 import org.smarthomej.commons.transform.ValueTransformationProvider;
 
@@ -183,7 +183,7 @@ public class ClientThingHandlerTest extends JavaTest {
                 .withConfiguration(TestUtil.getConfigurationFromInstance(clientConfiguration)).withChannel(channel)
                 .build();
 
-        ClientThingHandler testClientThingHandler = new ClientThingHandler(thing, valueTransformationProvider,
+        ClientThingHandler testClientThingHandler = new ClientThingHandler(thing,
                 simpleDynamicStateDescriptionProvider);
 
         testClientThingHandler.setCallback(thingHandlerCallback);

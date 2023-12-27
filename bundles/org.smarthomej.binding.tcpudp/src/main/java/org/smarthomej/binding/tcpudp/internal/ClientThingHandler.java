@@ -40,6 +40,9 @@ import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.binding.BaseThingHandler;
+import org.openhab.core.thing.binding.generic.ChannelHandler;
+import org.openhab.core.thing.binding.generic.ChannelHandlerContent;
+import org.openhab.core.thing.binding.generic.ChannelMode;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.RefreshType;
 import org.openhab.core.types.StateDescription;
@@ -49,10 +52,6 @@ import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.tcpudp.internal.config.ClientConfiguration;
 import org.smarthomej.binding.tcpudp.internal.config.TcpUdpChannelConfig;
 import org.smarthomej.commons.SimpleDynamicStateDescriptionProvider;
-import org.smarthomej.commons.itemvalueconverter.ChannelMode;
-import org.smarthomej.commons.itemvalueconverter.ContentWrapper;
-import org.smarthomej.commons.itemvalueconverter.ItemValueConverter;
-import org.smarthomej.commons.transform.ValueTransformationProvider;
 
 /**
  * The {@link ClientThingHandler} is the thing handler for client type things
@@ -65,27 +64,25 @@ public class ClientThingHandler extends BaseThingHandler {
     private final ScheduledExecutorService scheduler = ThreadPoolManager.getScheduledPool("SHJ-tcpudp");
 
     private final SimpleDynamicStateDescriptionProvider dynamicStateDescriptionProvider;
-    private final Map<ChannelUID, ItemValueConverter> channels = new HashMap<>();
+    private final Map<ChannelUID, ChannelHandler> channels = new HashMap<>();
     private final Map<ChannelUID, String> readCommands = new HashMap<>();
 
-    private Function<String, Optional<ContentWrapper>> doSyncRequest = this::doTcpSyncRequest;
-    private ItemValueConverterFactory itemValueConverterFactory;
+    private Function<String, Optional<ChannelHandlerContent>> doSyncRequest = this::doTcpSyncRequest;
+    private final ChannelHandlerFactory channelHandlerFactory;
     private @Nullable ScheduledFuture<?> refreshJob = null;
 
     protected ClientConfiguration config = new ClientConfiguration();
 
-    public ClientThingHandler(Thing thing, ValueTransformationProvider valueTransformationProvider,
-            SimpleDynamicStateDescriptionProvider dynamicStateDescriptionProvider) {
+    public ClientThingHandler(Thing thing, SimpleDynamicStateDescriptionProvider dynamicStateDescriptionProvider) {
         super(thing);
         this.dynamicStateDescriptionProvider = dynamicStateDescriptionProvider;
 
-        itemValueConverterFactory = new ItemValueConverterFactory(valueTransformationProvider, this::updateState,
-                this::postCommand, null);
+        channelHandlerFactory = new ChannelHandlerFactory(this::updateState, this::postCommand, null);
     }
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
-        ItemValueConverter itemValueConverter = channels.get(channelUID);
+        ChannelHandler itemValueConverter = channels.get(channelUID);
         if (itemValueConverter == null) {
             logger.warn("Cannot find channel implementation for channel {}.", channelUID);
             return;
@@ -123,11 +120,11 @@ public class ClientThingHandler extends BaseThingHandler {
         // set methods depending on thing-type
         if (config.protocol == ClientConfiguration.Protocol.UDP) {
             doSyncRequest = this::doUdpSyncRequest;
-            itemValueConverterFactory.setSendValue(this::doUdpAsyncSend);
+            channelHandlerFactory.setSendValue(this::doUdpAsyncSend);
             logger.debug("Configured '{}' for UDP connections.", thing.getUID());
         } else if (config.protocol == ClientConfiguration.Protocol.TCP) {
             doSyncRequest = this::doTcpSyncRequest;
-            itemValueConverterFactory.setSendValue(this::doTcpAsyncSend);
+            channelHandlerFactory.setSendValue(this::doTcpAsyncSend);
             logger.debug("Configured '{}' for TCP connections.", thing.getUID());
         } else {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
@@ -171,14 +168,14 @@ public class ClientThingHandler extends BaseThingHandler {
 
     private void refreshChannel(ChannelUID channelUID, String stateContent) {
         logger.trace("Refreshing '{}' with command '{}'", channelUID, stateContent);
-        ItemValueConverter itemValueConverter = channels.get(channelUID);
+        ChannelHandler channelHandler = channels.get(channelUID);
 
-        if (itemValueConverter == null) {
+        if (channelHandler == null) {
             logger.warn("Failed to refresh '{}': itemValueConverter not found.", channelUID);
             return;
         }
 
-        doSyncRequest.apply(stateContent).ifPresent(itemValueConverter::process);
+        doSyncRequest.apply(stateContent).ifPresent(channelHandler::process);
     }
 
     private void createChannel(Channel channel) {
@@ -186,7 +183,7 @@ public class ClientThingHandler extends BaseThingHandler {
         TcpUdpChannelConfig channelConfig = channel.getConfiguration().as(TcpUdpChannelConfig.class);
         String acceptedItemType = channel.getAcceptedItemType();
 
-        itemValueConverterFactory.create(channelUID, acceptedItemType, channelConfig).ifPresent(itemValueConverter -> {
+        channelHandlerFactory.create(channelUID, acceptedItemType, channelConfig).ifPresent(itemValueConverter -> {
             if (channelConfig.mode == ChannelMode.READONLY || channelConfig.mode == ChannelMode.READWRITE) {
                 if (channelConfig.stateContent.isEmpty()) {
                     logger.warn(
@@ -234,7 +231,7 @@ public class ClientThingHandler extends BaseThingHandler {
         });
     }
 
-    protected Optional<ContentWrapper> doTcpSyncRequest(String request) {
+    protected Optional<ChannelHandlerContent> doTcpSyncRequest(String request) {
         try (Socket socket = new Socket(config.host, config.port);
                 OutputStream out = socket.getOutputStream();
                 InputStream in = socket.getInputStream();
@@ -257,7 +254,7 @@ public class ClientThingHandler extends BaseThingHandler {
 
             outputByteArrayStream.flush();
 
-            ContentWrapper contentWrapper = new ContentWrapper(outputByteArrayStream.toByteArray(),
+            ChannelHandlerContent contentWrapper = new ChannelHandlerContent(outputByteArrayStream.toByteArray(),
                     Objects.requireNonNullElse(config.encoding, StandardCharsets.UTF_8.name()), null);
 
             updateStatus(ThingStatus.ONLINE);
@@ -288,7 +285,7 @@ public class ClientThingHandler extends BaseThingHandler {
         });
     }
 
-    protected Optional<ContentWrapper> doUdpSyncRequest(String request) {
+    protected Optional<ChannelHandlerContent> doUdpSyncRequest(String request) {
         try (DatagramSocket socket = new DatagramSocket()) {
             socket.setSoTimeout(config.timeout);
             InetAddress inetAddress = InetAddress.getByName(config.host);
@@ -301,8 +298,8 @@ public class ClientThingHandler extends BaseThingHandler {
             packet = new DatagramPacket(receiveBuffer, receiveBuffer.length);
             socket.receive(packet);
 
-            ContentWrapper contentWrapper = new ContentWrapper(Arrays.copyOf(packet.getData(), packet.getLength()),
-                    getEncoding(), null);
+            ChannelHandlerContent contentWrapper = new ChannelHandlerContent(
+                    Arrays.copyOf(packet.getData(), packet.getLength()), getEncoding(), null);
 
             updateStatus(ThingStatus.ONLINE);
             return Optional.of(contentWrapper);
