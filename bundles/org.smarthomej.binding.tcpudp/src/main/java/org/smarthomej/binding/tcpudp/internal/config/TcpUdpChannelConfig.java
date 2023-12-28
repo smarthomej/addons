@@ -14,7 +14,7 @@ package org.smarthomej.binding.tcpudp.internal.config;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.smarthomej.commons.itemvalueconverter.ItemValueConverterChannelConfig;
+import org.openhab.core.thing.binding.generic.ChannelValueConverterConfig;
 
 /**
  * The {@link TcpUdpChannelConfig} class contains fields mapping channel configuration parameters.
@@ -22,7 +22,7 @@ import org.smarthomej.commons.itemvalueconverter.ItemValueConverterChannelConfig
  * @author Jan N. Klug - Initial contribution
  */
 @NonNullByDefault
-public class TcpUdpChannelConfig extends ItemValueConverterChannelConfig {
+public class TcpUdpChannelConfig extends ChannelValueConverterConfig {
 
     public @Nullable String stateTransformation;
 

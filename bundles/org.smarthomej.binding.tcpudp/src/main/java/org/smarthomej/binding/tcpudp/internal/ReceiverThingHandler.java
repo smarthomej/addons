@@ -28,6 +28,8 @@ import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.binding.BaseThingHandler;
+import org.openhab.core.thing.binding.generic.ChannelHandler;
+import org.openhab.core.thing.binding.generic.ChannelHandlerContent;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.RefreshType;
 import org.openhab.core.types.State;
@@ -39,9 +41,6 @@ import org.smarthomej.binding.tcpudp.internal.config.TcpUdpChannelConfig;
 import org.smarthomej.binding.tcpudp.internal.receiver.Receiver;
 import org.smarthomej.binding.tcpudp.internal.receiver.TcpReceiver;
 import org.smarthomej.binding.tcpudp.internal.receiver.UdpReceiver;
-import org.smarthomej.commons.itemvalueconverter.ContentWrapper;
-import org.smarthomej.commons.itemvalueconverter.ItemValueConverter;
-import org.smarthomej.commons.transform.ValueTransformationProvider;
 
 /**
  * The {@link ReceiverThingHandler} is a teh thing handler for receiver type things
@@ -52,7 +51,7 @@ import org.smarthomej.commons.transform.ValueTransformationProvider;
 public class ReceiverThingHandler extends BaseThingHandler implements Receiver.ReceiverListener {
     private final Logger logger = LoggerFactory.getLogger(ReceiverThingHandler.class);
 
-    private final ItemValueConverterFactory itemValueConverterFactory;
+    private final ChannelHandlerFactory itemValueConverterFactory;
     private final Set<ContentListener> contentListeners = new HashSet<>();
     private final Map<ChannelUID, State> stateCache = new ConcurrentHashMap<>();
 
@@ -61,11 +60,10 @@ public class ReceiverThingHandler extends BaseThingHandler implements Receiver.R
 
     protected ReceiverConfiguration config = new ReceiverConfiguration();
 
-    public ReceiverThingHandler(Thing thing, ValueTransformationProvider valueTransformationProvider) {
+    public ReceiverThingHandler(Thing thing) {
         super(thing);
 
-        itemValueConverterFactory = new ItemValueConverterFactory(valueTransformationProvider, this::updateState,
-                this::postCommand, null);
+        itemValueConverterFactory = new ChannelHandlerFactory(this::updateState, this::postCommand, null);
     }
 
     @Override
@@ -146,10 +144,10 @@ public class ReceiverThingHandler extends BaseThingHandler implements Receiver.R
 
     @Override
     public void onReceive(String sender, byte[] content) {
-        ContentWrapper contentWrapper = new ContentWrapper(content, getEncoding(), null);
+        ChannelHandlerContent contentWrapper = new ChannelHandlerContent(content, getEncoding(), null);
 
         contentListeners.stream().filter(listener -> listener.addressFilter.matcher(sender).matches())
-                .forEach(listener -> listener.itemValueConverter.process(contentWrapper));
+                .forEach(listener -> listener.channelHandler.process(contentWrapper));
     }
 
     @Override
@@ -162,14 +160,14 @@ public class ReceiverThingHandler extends BaseThingHandler implements Receiver.R
     }
 
     /**
-     * The {@link ContentListener} is a class that groups an {@link ItemValueConverter} and an associated address filter
+     * The {@link ContentListener} is a class that groups an {@link ChannelHandler} and an associated address filter
      */
     public static class ContentListener {
-        public final ItemValueConverter itemValueConverter;
+        public final ChannelHandler channelHandler;
         public final Pattern addressFilter;
 
-        public ContentListener(ItemValueConverter itemValueConverter, String addressFilter) {
-            this.itemValueConverter = itemValueConverter;
+        public ContentListener(ChannelHandler channelHandler, String addressFilter) {
+            this.channelHandler = channelHandler;
             // convert input pattern to regex, using only * as wildcard
             this.addressFilter = Pattern.compile(Pattern.quote(addressFilter).replace("*", "\\E.*?\\Q"));
         }
