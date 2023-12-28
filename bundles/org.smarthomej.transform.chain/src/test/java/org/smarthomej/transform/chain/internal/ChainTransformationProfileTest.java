@@ -14,15 +14,13 @@ package org.smarthomej.transform.chain.internal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.*;
 
 import java.util.Map;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,10 +34,14 @@ import org.openhab.core.library.types.StringType;
 import org.openhab.core.thing.profiles.ProfileCallback;
 import org.openhab.core.thing.profiles.ProfileContext;
 import org.openhab.core.thing.profiles.StateProfile;
+import org.openhab.core.transform.TransformationException;
+import org.openhab.core.transform.TransformationHelper;
+import org.openhab.core.transform.TransformationService;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.State;
 import org.openhab.core.types.UnDefType;
-import org.smarthomej.transform.chain.internal.test.TestValueTransformationProvider;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 
 /**
  * The {@link ChainTransformationProfileTest} are test cases for the ChainTransformationProfile
@@ -57,14 +59,41 @@ public class ChainTransformationProfileTest {
 
     public static final String FAIL_TRANSFORMATION_PATTERN = "APPEND:foo∩FAIL:noparam∩DUPLICATE:noparam";
 
-    @Mock
-    private @NonNullByDefault({}) ProfileCallback callback;
+    private static final ServiceReference<TransformationService> appendTransformationServiceRefMock = mock(
+            ServiceReference.class);
+    private static final ServiceReference<TransformationService> duplicateTransformationServiceRefMock = mock(
+            ServiceReference.class);
+    private static final ServiceReference<TransformationService> failTransformationServiceRefMock = mock(
+            ServiceReference.class);
+    private static final BundleContext bundleContextMock = mock(BundleContext.class);
 
-    @Mock
-    private @NonNullByDefault({}) ProfileContext context;
+    private @Mock @NonNullByDefault({}) ProfileCallback callback;
+    private @Mock @NonNullByDefault({}) ProfileContext context;
 
     private @NonNullByDefault({}) ArgumentCaptor<State> stateCaptor;
     private @NonNullByDefault({}) ArgumentCaptor<Command> commandCaptor;
+
+    @BeforeAll
+    public static void beforeAll() {
+        when(duplicateTransformationServiceRefMock.getProperty(TransformationService.SERVICE_PROPERTY_NAME))
+                .thenReturn("DUPLICATE");
+        when(appendTransformationServiceRefMock.getProperty(TransformationService.SERVICE_PROPERTY_NAME))
+                .thenReturn("APPEND");
+        when(failTransformationServiceRefMock.getProperty(TransformationService.SERVICE_PROPERTY_NAME))
+                .thenReturn("FAIL");
+
+        when(bundleContextMock.getService(duplicateTransformationServiceRefMock))
+                .thenReturn(new DuplicateTransformationService());
+        when(bundleContextMock.getService(appendTransformationServiceRefMock))
+                .thenReturn(new AppendTransformationService());
+        when(bundleContextMock.getService(failTransformationServiceRefMock))
+                .thenReturn(new FailTransformationService());
+
+        TransformationHelper helper = new TransformationHelper(bundleContextMock);
+        helper.setTransformationService(duplicateTransformationServiceRefMock);
+        helper.setTransformationService(appendTransformationServiceRefMock);
+        helper.setTransformationService(failTransformationServiceRefMock);
+    }
 
     @BeforeEach
     public void setup() {
@@ -230,6 +259,30 @@ public class ChainTransformationProfileTest {
         Map<String, Object> configuration = Map.of("toItem", toItem, "toChannel", toChannel, "undefOnError",
                 undefOnError);
         doReturn(new Configuration(configuration)).when(context).getConfiguration();
-        return new ChainTransformationProfile(callback, context, new TestValueTransformationProvider());
+        return new ChainTransformationProfile(callback, context);
+    }
+
+    private static class FailTransformationService implements TransformationService {
+
+        @Override
+        public @Nullable String transform(String s, String s1) throws TransformationException {
+            return null;
+        }
+    }
+
+    private static class AppendTransformationService implements TransformationService {
+
+        @Override
+        public @Nullable String transform(String s, String s1) throws TransformationException {
+            return s1 + s;
+        }
+    }
+
+    private static class DuplicateTransformationService implements TransformationService {
+
+        @Override
+        public @Nullable String transform(String s, String s1) throws TransformationException {
+            return s1 + s1;
+        }
     }
 }
