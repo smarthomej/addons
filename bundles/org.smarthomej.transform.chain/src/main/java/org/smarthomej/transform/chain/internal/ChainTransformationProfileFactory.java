@@ -26,10 +26,7 @@ import org.openhab.core.thing.profiles.ProfileType;
 import org.openhab.core.thing.profiles.ProfileTypeBuilder;
 import org.openhab.core.thing.profiles.ProfileTypeProvider;
 import org.openhab.core.thing.profiles.ProfileTypeUID;
-import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
-import org.smarthomej.commons.transform.ValueTransformationProvider;
 
 /**
  *
@@ -40,12 +37,6 @@ import org.smarthomej.commons.transform.ValueTransformationProvider;
 @NonNullByDefault
 @Component(service = { ProfileFactory.class, ProfileTypeProvider.class })
 public class ChainTransformationProfileFactory implements ProfileFactory, ProfileTypeProvider {
-    private final ValueTransformationProvider valueTransformationProvider;
-
-    @Activate
-    public ChainTransformationProfileFactory(@Reference ValueTransformationProvider valueTransformationProvider) {
-        this.valueTransformationProvider = valueTransformationProvider;
-    }
 
     @Override
     public Collection<ProfileType> getProfileTypes(@Nullable Locale locale) {
@@ -57,7 +48,7 @@ public class ChainTransformationProfileFactory implements ProfileFactory, Profil
     public @Nullable Profile createProfile(ProfileTypeUID profileTypeUID, ProfileCallback callback,
             ProfileContext profileContext) {
         return ChainTransformationProfile.PROFILE_TYPE_UID.equals(profileTypeUID)
-                ? new ChainTransformationProfile(callback, profileContext, valueTransformationProvider)
+                ? new ChainTransformationProfile(callback, profileContext)
                 : null;
     }
 

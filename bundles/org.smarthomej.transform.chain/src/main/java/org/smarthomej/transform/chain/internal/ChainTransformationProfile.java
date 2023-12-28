@@ -16,6 +16,7 @@ import java.util.Optional;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.library.types.StringType;
+import org.openhab.core.thing.binding.generic.ChannelTransformation;
 import org.openhab.core.thing.profiles.ProfileCallback;
 import org.openhab.core.thing.profiles.ProfileContext;
 import org.openhab.core.thing.profiles.ProfileTypeUID;
@@ -26,9 +27,6 @@ import org.openhab.core.types.State;
 import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthomej.commons.transform.NoOpValueTransformation;
-import org.smarthomej.commons.transform.ValueTransformation;
-import org.smarthomej.commons.transform.ValueTransformationProvider;
 
 /**
  * Profile to offer the ChainTransformation on a ItemChannelLink
@@ -37,29 +35,25 @@ import org.smarthomej.commons.transform.ValueTransformationProvider;
  */
 @NonNullByDefault
 public class ChainTransformationProfile implements StateProfile {
-
     public static final ProfileTypeUID PROFILE_TYPE_UID = new ProfileTypeUID(
             TransformationService.TRANSFORM_PROFILE_SCOPE, "CHAIN");
 
     private final Logger logger = LoggerFactory.getLogger(ChainTransformationProfile.class);
     private final ProfileCallback callback;
 
-    private final ValueTransformationProvider valueTransformationProvider;
     private final ChainTransformationProfileConfiguration configuration;
 
-    private ValueTransformation toItem;
-    private ValueTransformation toChannel;
+    private ChannelTransformation toItem;
+    private ChannelTransformation toChannel;
 
-    public ChainTransformationProfile(ProfileCallback callback, ProfileContext context,
-            ValueTransformationProvider valueTransformationProvider) {
+    public ChainTransformationProfile(ProfileCallback callback, ProfileContext context) {
         this.callback = callback;
-        this.valueTransformationProvider = valueTransformationProvider;
 
         configuration = context.getConfiguration().as(ChainTransformationProfileConfiguration.class);
         logger.debug("Profile configured with: '{}'", configuration);
 
-        toItem = valueTransformationProvider.getValueTransformation(configuration.toItem);
-        toChannel = valueTransformationProvider.getValueTransformation(configuration.toChannel);
+        toItem = new ChannelTransformation(configuration.toItem);
+        toChannel = new ChannelTransformation(configuration.toChannel);
     }
 
     @Override
@@ -96,15 +90,15 @@ public class ChainTransformationProfile implements StateProfile {
     }
 
     private Optional<StringType> transformToItem(String input) {
-        if (!NoOpValueTransformation.getInstance().equals(toItem) && !configuration.toItem.isEmpty()) {
-            toItem = valueTransformationProvider.getValueTransformation(configuration.toItem);
+        if (!configuration.toItem.isEmpty()) {
+            toItem = new ChannelTransformation(configuration.toItem);
         }
         return toItem.apply(input).map(StringType::new);
     }
 
     private Optional<StringType> transformToChannel(String input) {
-        if (!NoOpValueTransformation.getInstance().equals(toChannel) && !configuration.toChannel.isEmpty()) {
-            toChannel = valueTransformationProvider.getValueTransformation(configuration.toChannel);
+        if (!configuration.toChannel.isEmpty()) {
+            toChannel = new ChannelTransformation(configuration.toChannel);
         }
         return toChannel.apply(input).map(StringType::new);
     }
