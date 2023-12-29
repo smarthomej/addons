@@ -2,7 +2,6 @@
 <features name="org.smarthomej.transform.chain-${project.version}" xmlns="http://karaf.apache.org/xmlns/features/v1.4.0">
 	<feature name="smarthomej-transformation-chain" description="Chain Transformation" version="${project.version}">
 		<feature>openhab-runtime-base</feature>
-		<bundle dependency="true">mvn:org.smarthomej.addons.bundles/org.smarthomej.commons/${project.version}</bundle>
 		<bundle start-level="75">mvn:org.smarthomej.addons.bundles/org.smarthomej.transform.chain/${project.version}</bundle>
 	</feature>
 </features>

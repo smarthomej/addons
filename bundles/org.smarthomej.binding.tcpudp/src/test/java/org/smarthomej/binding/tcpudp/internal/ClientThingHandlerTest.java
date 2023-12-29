@@ -26,11 +26,9 @@ import static org.smarthomej.binding.tcpudp.internal.TcpUdpBindingConstants.THIN
 import java.util.List;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -53,8 +51,6 @@ import org.smarthomej.binding.tcpudp.internal.config.TcpUdpChannelConfig;
 import org.smarthomej.binding.tcpudp.internal.test.EchoServer;
 import org.smarthomej.binding.tcpudp.internal.test.TestUtil;
 import org.smarthomej.commons.SimpleDynamicStateDescriptionProvider;
-import org.smarthomej.commons.transform.NoOpValueTransformation;
-import org.smarthomej.commons.transform.ValueTransformationProvider;
 
 /**
  * The {@link ClientThingHandlerTest} is a test class for {@link ClientThingHandler}
@@ -74,16 +70,7 @@ public class ClientThingHandlerTest extends JavaTest {
     private @NonNullByDefault({}) ThingHandlerCallback thingHandlerCallback;
 
     @Mock
-    private @NonNullByDefault({}) ValueTransformationProvider valueTransformationProvider;
-
-    @Mock
     private @NonNullByDefault({}) SimpleDynamicStateDescriptionProvider simpleDynamicStateDescriptionProvider;
-
-    @BeforeEach
-    public void startUp() {
-        Mockito.doReturn(NoOpValueTransformation.getInstance()).when(valueTransformationProvider)
-                .getValueTransformation(any());
-    }
 
     @Test
     public void tcpRequestTest() {
