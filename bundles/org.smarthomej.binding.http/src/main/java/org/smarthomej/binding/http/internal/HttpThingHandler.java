@@ -45,6 +45,7 @@ import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
+import org.openhab.core.thing.binding.BaseThingHandler;
 import org.openhab.core.thing.binding.generic.ChannelHandler;
 import org.openhab.core.thing.binding.generic.ChannelHandlerContent;
 import org.openhab.core.thing.binding.generic.ChannelMode;
@@ -73,7 +74,6 @@ import org.smarthomej.binding.http.internal.http.HttpStatusListener;
 import org.smarthomej.binding.http.internal.http.RateLimitedHttpClient;
 import org.smarthomej.binding.http.internal.http.RefreshingUrlCache;
 import org.smarthomej.commons.SimpleDynamicStateDescriptionProvider;
-import org.smarthomej.commons.UpdatingBaseThingHandler;
 
 /**
  * The {@link HttpThingHandler} is responsible for handling commands, which are
@@ -82,7 +82,7 @@ import org.smarthomej.commons.UpdatingBaseThingHandler;
  * @author Jan N. Klug - Initial contribution
  */
 @NonNullByDefault
-public class HttpThingHandler extends UpdatingBaseThingHandler implements HttpStatusListener {
+public class HttpThingHandler extends BaseThingHandler implements HttpStatusListener {
     private static final Set<Character> URL_PART_DELIMITER = Set.of('/', '?', '&');
 
     private final Logger logger = LoggerFactory.getLogger(HttpThingHandler.class);
