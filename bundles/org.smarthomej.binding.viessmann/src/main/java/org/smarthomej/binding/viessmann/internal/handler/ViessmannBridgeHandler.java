@@ -37,6 +37,7 @@ import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
+import org.openhab.core.thing.binding.BaseBridgeHandler;
 import org.openhab.core.thing.binding.ThingHandler;
 import org.openhab.core.thing.binding.ThingHandlerService;
 import org.openhab.core.thing.util.ThingHandlerHelper;
@@ -52,7 +53,6 @@ import org.smarthomej.binding.viessmann.internal.dto.device.DeviceData;
 import org.smarthomej.binding.viessmann.internal.dto.events.EventsDTO;
 import org.smarthomej.binding.viessmann.internal.dto.features.FeatureDataDTO;
 import org.smarthomej.binding.viessmann.internal.dto.features.FeaturesDTO;
-import org.smarthomej.commons.UpdatingBaseBridgeHandler;
 
 import com.google.gson.JsonSyntaxException;
 
@@ -62,7 +62,7 @@ import com.google.gson.JsonSyntaxException;
  * @author Ronny Grun - Initial contribution
  */
 @NonNullByDefault
-public class ViessmannBridgeHandler extends UpdatingBaseBridgeHandler {
+public class ViessmannBridgeHandler extends BaseBridgeHandler {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final Storage<String> stateStorage;
