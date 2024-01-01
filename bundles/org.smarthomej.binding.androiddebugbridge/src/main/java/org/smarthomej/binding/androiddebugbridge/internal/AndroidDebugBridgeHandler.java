@@ -38,13 +38,13 @@ import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
+import org.openhab.core.thing.binding.BaseThingHandler;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.CommandOption;
 import org.openhab.core.types.RefreshType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.androiddebugbridge.internal.AndroidDebugBridgeDevice.VolumeInfo;
-import org.smarthomej.commons.UpdatingBaseThingHandler;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -56,7 +56,7 @@ import com.google.gson.JsonSyntaxException;
  * @author Miguel Álvarez - Initial contribution
  */
 @NonNullByDefault
-public class AndroidDebugBridgeHandler extends UpdatingBaseThingHandler {
+public class AndroidDebugBridgeHandler extends BaseThingHandler {
 
     public static final String KEY_EVENT_PLAY = "126";
     public static final String KEY_EVENT_PAUSE = "127";
