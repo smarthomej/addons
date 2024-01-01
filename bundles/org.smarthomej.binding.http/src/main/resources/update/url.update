@@ -1,3 +1,0 @@
-# add last success and last failure channels
-1;ADD_CHANNEL;lastSuccess,DateTime,http:requestDateTime,Last Success
-1;ADD_CHANNEL;lastFailure,DateTime,http:requestDateTime,Last Failure
