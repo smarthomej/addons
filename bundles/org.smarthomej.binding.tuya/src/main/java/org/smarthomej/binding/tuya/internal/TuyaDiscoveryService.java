@@ -31,14 +31,14 @@ import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.core.config.discovery.AbstractDiscoveryService;
+import org.openhab.core.config.discovery.AbstractThingHandlerDiscoveryService;
 import org.openhab.core.config.discovery.DiscoveryResult;
 import org.openhab.core.config.discovery.DiscoveryResultBuilder;
 import org.openhab.core.storage.Storage;
 import org.openhab.core.thing.ThingTypeUID;
 import org.openhab.core.thing.ThingUID;
-import org.openhab.core.thing.binding.ThingHandler;
-import org.openhab.core.thing.binding.ThingHandlerService;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.tuya.internal.cloud.TuyaOpenAPI;
@@ -54,47 +54,39 @@ import com.google.gson.Gson;
  *
  * @author Jan N. Klug - Initial contribution
  */
+@Component(scope = ServiceScope.PROTOTYPE, service = TuyaDiscoveryService.class)
 @NonNullByDefault
-public class TuyaDiscoveryService extends AbstractDiscoveryService implements ThingHandlerService {
+public class TuyaDiscoveryService extends AbstractThingHandlerDiscoveryService<ProjectHandler> {
     public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES = Set.of(THING_TYPE_TUYA_DEVICE);
     private static final int SEARCH_TIME = 5;
 
     private final Logger logger = LoggerFactory.getLogger(TuyaDiscoveryService.class);
     private final Gson gson = new Gson();
-
-    private @Nullable ProjectHandler bridgeHandler;
     private @NonNullByDefault({}) Storage<String> storage;
     private @Nullable ScheduledFuture<?> discoveryJob;
 
     public TuyaDiscoveryService() {
-        super(SUPPORTED_THING_TYPES, SEARCH_TIME);
+        super(ProjectHandler.class, SUPPORTED_THING_TYPES, SEARCH_TIME);
     }
 
     @Override
     protected void startScan() {
-        ProjectHandler bridgeHandler = this.bridgeHandler;
-        if (bridgeHandler == null) {
-            logger.warn("Could not start discovery, bridge handler not set");
-            return;
-        }
-
-        TuyaOpenAPI api = bridgeHandler.getApi();
+        TuyaOpenAPI api = thingHandler.getApi();
         if (!api.isConnected()) {
             logger.debug("Tried to start scan but API for bridge '{}' is not connected.",
-                    bridgeHandler.getThing().getUID());
+                    thingHandler.getThing().getUID());
             return;
         }
 
-        processDeviceResponse(List.of(), api, bridgeHandler, 0);
+        processDeviceResponse(List.of(), api, 0);
     }
 
-    private void processDeviceResponse(List<DeviceListInfo> deviceList, TuyaOpenAPI api, ProjectHandler bridgeHandler,
-            int page) {
+    private void processDeviceResponse(List<DeviceListInfo> deviceList, TuyaOpenAPI api, int page) {
         deviceList.forEach(device -> processDevice(device, api));
         if (page == 0 || deviceList.size() == 100) {
             int nextPage = page + 1;
-            bridgeHandler.getAllDevices(nextPage)
-                    .thenAccept(nextDeviceList -> processDeviceResponse(nextDeviceList, api, bridgeHandler, nextPage));
+            thingHandler.getAllDevices(nextPage)
+                    .thenAccept(nextDeviceList -> processDeviceResponse(nextDeviceList, api, nextPage));
         }
     }
 
@@ -148,28 +140,15 @@ public class TuyaDiscoveryService extends AbstractDiscoveryService implements Th
     }
 
     @Override
-    public void setThingHandler(ThingHandler thingHandler) {
-        if (thingHandler instanceof ProjectHandler) {
-            this.bridgeHandler = (ProjectHandler) thingHandler;
-            this.storage = ((ProjectHandler) thingHandler).getStorage();
-        }
+    public void initialize() {
+        this.storage = thingHandler.getStorage();
+        super.initialize();
     }
 
     @Override
-    public @Nullable ThingHandler getThingHandler() {
-        return bridgeHandler;
-    }
-
-    @Override
-    public void activate() {
-        super.activate(null);
-    }
-
-    @Override
-    public void deactivate() {
+    public void dispose() {
+        super.dispose();
         removeOlderResults(new Date().getTime());
-
-        super.deactivate();
     }
 
     @Override

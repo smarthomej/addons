@@ -22,13 +22,13 @@ import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.core.config.discovery.AbstractDiscoveryService;
+import org.openhab.core.config.discovery.AbstractThingHandlerDiscoveryService;
 import org.openhab.core.config.discovery.DiscoveryResult;
 import org.openhab.core.config.discovery.DiscoveryResultBuilder;
 import org.openhab.core.thing.ThingTypeUID;
 import org.openhab.core.thing.ThingUID;
-import org.openhab.core.thing.binding.ThingHandler;
-import org.openhab.core.thing.binding.ThingHandlerService;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.viessmann.internal.handler.ViessmannBridgeHandler;
@@ -38,25 +38,23 @@ import org.smarthomej.binding.viessmann.internal.handler.ViessmannBridgeHandler;
  *
  * @author Ronny Grun - Initial contribution
  */
+@Component(scope = ServiceScope.PROTOTYPE, service = ViessmannDiscoveryService.class)
 @NonNullByDefault
-public class ViessmannDiscoveryService extends AbstractDiscoveryService implements ThingHandlerService {
+public class ViessmannDiscoveryService extends AbstractThingHandlerDiscoveryService<ViessmannBridgeHandler> {
 
     private final Logger logger = LoggerFactory.getLogger(ViessmannDiscoveryService.class);
 
     private @Nullable ScheduledFuture<?> scanningJob;
-    private @Nullable ViessmannBridgeHandler bridgeHandler;
-    private @Nullable ThingUID bridgeUID;
+    private @NonNullByDefault({}) ThingUID bridgeUID;
 
     public ViessmannDiscoveryService() {
-        super(DISCOVERABLE_DEVICE_TYPE_UIDS, 30, true);
+        super(ViessmannBridgeHandler.class, DISCOVERABLE_DEVICE_TYPE_UIDS, 30, true);
     }
 
     @Override
-    public void setThingHandler(ThingHandler thingHandler) {
-        if (thingHandler instanceof ViessmannBridgeHandler) {
-            this.bridgeHandler = (ViessmannBridgeHandler) thingHandler;
-            this.bridgeUID = thingHandler.getThing().getUID();
-        }
+    public void initialize() {
+        this.bridgeUID = thingHandler.getThing().getUID();
+        super.initialize();
     }
 
     @Override
@@ -65,27 +63,9 @@ public class ViessmannDiscoveryService extends AbstractDiscoveryService implemen
     }
 
     @Override
-    public @Nullable ThingHandler getThingHandler() {
-        return bridgeHandler;
-    }
-
-    public void activate() {
-        super.activate(null);
-    }
-
-    public void deactivate() {
-        super.deactivate();
-    }
-
-    @Override
     protected void startScan() {
-        ViessmannBridgeHandler bridgeHandler = this.bridgeHandler;
-        if (bridgeHandler == null) {
-            logger.warn("Tried to scan for results but bridge handler is not set in discovery service");
-            return;
-        }
         stopScan();
-        bridgeHandler.getDevicesList().forEach(this::buildDiscoveryResult);
+        thingHandler.getDevicesList().forEach(this::buildDiscoveryResult);
 
         // we clear all older results, they are not valid any longer, and we created new results
         removeOlderResults(getTimestampOfLastScan());
@@ -109,12 +89,6 @@ public class ViessmannDiscoveryService extends AbstractDiscoveryService implemen
     }
 
     private void buildDiscoveryResult(String address) {
-        ThingUID bridgeUID = this.bridgeUID;
-        if (bridgeUID == null) {
-            logger.warn("BridgeUid is not set but a discovery result has been produced. This should not happen.");
-            return;
-        }
-
         ThingUID uid = new ThingUID(THING_TYPE_DEVICE, bridgeUID, address);
         Map<String, Object> properties = Map.ofEntries(entry(PROPERTY_ID, address));
         String label = "Viessmann Device " + address;

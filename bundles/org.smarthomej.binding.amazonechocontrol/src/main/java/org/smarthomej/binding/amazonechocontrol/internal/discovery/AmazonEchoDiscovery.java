@@ -16,10 +16,8 @@ package org.smarthomej.binding.amazonechocontrol.internal.discovery;
 import static org.smarthomej.binding.amazonechocontrol.internal.AmazonEchoControlBindingConstants.*;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
@@ -27,14 +25,13 @@ import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.core.config.discovery.AbstractDiscoveryService;
+import org.openhab.core.config.discovery.AbstractThingHandlerDiscoveryService;
 import org.openhab.core.config.discovery.DiscoveryResult;
 import org.openhab.core.config.discovery.DiscoveryResultBuilder;
 import org.openhab.core.thing.ThingTypeUID;
 import org.openhab.core.thing.ThingUID;
-import org.openhab.core.thing.binding.ThingHandler;
-import org.openhab.core.thing.binding.ThingHandlerService;
-import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
@@ -49,10 +46,10 @@ import org.smarthomej.binding.amazonechocontrol.internal.handler.AccountHandler;
  * @author Michael Geramb - Initial contribution
  * @author Jan N. Klug - Refactored to ThingHandlerService
  */
+@Component(scope = ServiceScope.PROTOTYPE, service = AmazonEchoDiscovery.class)
 @NonNullByDefault
-public class AmazonEchoDiscovery extends AbstractDiscoveryService implements ThingHandlerService {
+public class AmazonEchoDiscovery extends AbstractThingHandlerDiscoveryService<AccountHandler> {
     private static final int BACKGROUND_INTERVAL = 10; // in seconds
-    private @Nullable AccountHandler accountHandler;
     private final Logger logger = LoggerFactory.getLogger(AmazonEchoDiscovery.class);
     private final Set<List<EnabledFeedTO>> discoveredFlashBriefings = new HashSet<>();
 
@@ -60,55 +57,28 @@ public class AmazonEchoDiscovery extends AbstractDiscoveryService implements Thi
     private @Nullable Long activateTimeStamp;
 
     public AmazonEchoDiscovery() {
-        super(SUPPORTED_ECHO_THING_TYPES_UIDS, 5);
-    }
-
-    @Override
-    public void setThingHandler(ThingHandler thingHandler) {
-        this.accountHandler = (AccountHandler) thingHandler;
-    }
-
-    @Override
-    public @Nullable ThingHandler getThingHandler() {
-        return accountHandler;
-    }
-
-    public void activate() {
-        activate(new HashMap<>());
-    }
-
-    @Override
-    public void deactivate() {
-        super.deactivate();
+        super(AccountHandler.class, SUPPORTED_ECHO_THING_TYPES_UIDS, 5);
     }
 
     @Override
     protected void startScan() {
-        AccountHandler accountHandler = this.accountHandler;
-        if (accountHandler == null) {
-            return;
-        }
         stopScanJob();
         final Long activateTimeStamp = this.activateTimeStamp;
         if (activateTimeStamp != null) {
             removeOlderResults(activateTimeStamp);
         }
-        setDevices(accountHandler.updateDeviceList());
+        setDevices(thingHandler.updateDeviceList());
 
-        List<EnabledFeedTO> currentFlashBriefingConfiguration = accountHandler.updateFlashBriefingHandlers();
+        List<EnabledFeedTO> currentFlashBriefingConfiguration = thingHandler.updateFlashBriefingHandlers();
         discoverFlashBriefingProfiles(currentFlashBriefingConfiguration);
     }
 
     protected void startAutomaticScan() {
-        AccountHandler accountHandler = this.accountHandler;
-        if (accountHandler == null) {
-            return;
-        }
-        if (!accountHandler.getThing().getThings().isEmpty()) {
+        if (!thingHandler.getThing().getThings().isEmpty()) {
             stopScanJob();
             return;
         }
-        Connection connection = accountHandler.getConnection();
+        Connection connection = thingHandler.getConnection();
         // do discovery only if logged in and last login is more than 10 s ago
         Date verifyTime = connection.getVerifyTime();
         if (verifyTime == null || System.currentTimeMillis() < (verifyTime.getTime() + 10000)) {
@@ -140,22 +110,14 @@ public class AmazonEchoDiscovery extends AbstractDiscoveryService implements Thi
     }
 
     @Override
-    @Activate
-    public void activate(@Nullable Map<String, Object> config) {
-        super.activate(config);
-        if (config != null) {
-            modified(config);
-        }
+    public void initialize() {
         if (activateTimeStamp == null) {
             activateTimeStamp = new Date().getTime();
         }
+        super.initialize();
     }
 
     private synchronized void setDevices(List<DeviceTO> deviceList) {
-        AccountHandler accountHandler = this.accountHandler;
-        if (accountHandler == null) {
-            return;
-        }
         for (DeviceTO device : deviceList) {
             String serialNumber = device.serialNumber;
             if (serialNumber != null) {
@@ -180,7 +142,7 @@ public class AmazonEchoDiscovery extends AbstractDiscoveryService implements Thi
                             continue;
                     }
 
-                    ThingUID bridgeThingUID = accountHandler.getThing().getUID();
+                    ThingUID bridgeThingUID = thingHandler.getThing().getUID();
                     ThingUID thingUID = new ThingUID(thingTypeId, bridgeThingUID, serialNumber);
 
                     DiscoveryResult result = DiscoveryResultBuilder.create(thingUID).withLabel(device.accountName)
@@ -201,18 +163,17 @@ public class AmazonEchoDiscovery extends AbstractDiscoveryService implements Thi
     }
 
     private synchronized void discoverFlashBriefingProfiles(List<EnabledFeedTO> enabledFeeds) {
-        AccountHandler accountHandler = this.accountHandler;
-        if (accountHandler == null || enabledFeeds.isEmpty()) {
+        if (enabledFeeds.isEmpty()) {
             return;
         }
 
         if (!discoveredFlashBriefings.contains(enabledFeeds)) {
-            ThingUID bridgeThingUID = accountHandler.getThing().getUID();
+            ThingUID bridgeThingUID = thingHandler.getThing().getUID();
             ThingUID freeThingUID = new ThingUID(THING_TYPE_FLASH_BRIEFING_PROFILE, bridgeThingUID,
                     Integer.toString(enabledFeeds.hashCode()));
             DiscoveryResult result = DiscoveryResultBuilder.create(freeThingUID).withLabel("FlashBriefing")
                     .withProperty(DEVICE_PROPERTY_FLASH_BRIEFING_PROFILE, enabledFeeds)
-                    .withBridge(accountHandler.getThing().getUID()).build();
+                    .withBridge(thingHandler.getThing().getUID()).build();
             logger.debug("Flash Briefing {} discovered", enabledFeeds);
             thingDiscovered(result);
             discoveredFlashBriefings.add(enabledFeeds);

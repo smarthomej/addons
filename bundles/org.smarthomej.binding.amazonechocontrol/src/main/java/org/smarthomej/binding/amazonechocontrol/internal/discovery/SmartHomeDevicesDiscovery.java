@@ -25,12 +25,12 @@ import java.util.stream.Collectors;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.core.config.discovery.AbstractDiscoveryService;
+import org.openhab.core.config.discovery.AbstractThingHandlerDiscoveryService;
 import org.openhab.core.config.discovery.DiscoveryResult;
 import org.openhab.core.config.discovery.DiscoveryResultBuilder;
 import org.openhab.core.thing.ThingUID;
-import org.openhab.core.thing.binding.ThingHandler;
-import org.openhab.core.thing.binding.ThingHandlerService;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.amazonechocontrol.internal.dto.smarthome.JsonSmartHomeDevice;
@@ -46,43 +46,20 @@ import org.smarthomej.binding.amazonechocontrol.internal.smarthome.Constants;
  * @author Lukas Knoeller - Initial contribution
  * @author Jan N. Klug - Refactored to ThingHandlerService
  */
+@Component(scope = ServiceScope.PROTOTYPE, service = SmartHomeDevicesDiscovery.class)
 @NonNullByDefault
-public class SmartHomeDevicesDiscovery extends AbstractDiscoveryService implements ThingHandlerService {
-    private @Nullable AccountHandler accountHandler;
+public class SmartHomeDevicesDiscovery extends AbstractThingHandlerDiscoveryService<AccountHandler> {
     private final Logger logger = LoggerFactory.getLogger(SmartHomeDevicesDiscovery.class);
 
     private @Nullable ScheduledFuture<?> discoveryJob;
 
     public SmartHomeDevicesDiscovery() {
-        super(SUPPORTED_SMART_HOME_THING_TYPES_UIDS, 10);
-    }
-
-    @Override
-    public void setThingHandler(ThingHandler thingHandler) {
-        this.accountHandler = (AccountHandler) thingHandler;
-    }
-
-    @Override
-    public @Nullable ThingHandler getThingHandler() {
-        return accountHandler;
-    }
-
-    public void activate() {
-        super.activate(null);
-    }
-
-    @Override
-    public void deactivate() {
-        super.deactivate();
+        super(AccountHandler.class, SUPPORTED_SMART_HOME_THING_TYPES_UIDS, 10);
     }
 
     @Override
     protected void startScan() {
-        AccountHandler accountHandler = this.accountHandler;
-        if (accountHandler == null) {
-            return;
-        }
-        setSmartHomeDevices(accountHandler.updateSmartHomeDeviceList(false));
+        setSmartHomeDevices(thingHandler.updateSmartHomeDeviceList(false));
     }
 
     @Override
@@ -109,17 +86,13 @@ public class SmartHomeDevicesDiscovery extends AbstractDiscoveryService implemen
     }
 
     private synchronized void setSmartHomeDevices(List<SmartHomeBaseDevice> deviceList) {
-        AccountHandler accountHandler = this.accountHandler;
-        if (accountHandler == null) {
-            return;
-        }
-        int smartHomeDeviceDiscoveryMode = accountHandler.getSmartHomeDevicesDiscoveryMode();
+        int smartHomeDeviceDiscoveryMode = thingHandler.getSmartHomeDevicesDiscoveryMode();
         if (smartHomeDeviceDiscoveryMode == 0) {
             return;
         }
 
         for (Object smartHomeDevice : deviceList) {
-            ThingUID bridgeThingUID = accountHandler.getThing().getUID();
+            ThingUID bridgeThingUID = thingHandler.getThing().getUID();
             ThingUID thingUID = null;
             String deviceName = null;
             Map<String, Object> props = new HashMap<>();
