@@ -22,13 +22,13 @@ import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.core.config.discovery.AbstractDiscoveryService;
+import org.openhab.core.config.discovery.AbstractThingHandlerDiscoveryService;
 import org.openhab.core.config.discovery.DiscoveryResult;
 import org.openhab.core.config.discovery.DiscoveryResultBuilder;
 import org.openhab.core.thing.ThingTypeUID;
 import org.openhab.core.thing.ThingUID;
-import org.openhab.core.thing.binding.ThingHandler;
-import org.openhab.core.thing.binding.ThingHandlerService;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.telenot.internal.handler.TelenotBridgeHandler;
@@ -38,25 +38,23 @@ import org.smarthomej.binding.telenot.internal.handler.TelenotBridgeHandler;
  *
  * @author Ronny Grun - Initial contribution
  */
+@Component(scope = ServiceScope.PROTOTYPE, service = TelenotDiscoveryService.class)
 @NonNullByDefault
-public class TelenotDiscoveryService extends AbstractDiscoveryService implements ThingHandlerService {
+public class TelenotDiscoveryService extends AbstractThingHandlerDiscoveryService<TelenotBridgeHandler> {
 
     private final Logger logger = LoggerFactory.getLogger(TelenotDiscoveryService.class);
 
     private @Nullable ScheduledFuture<?> scanningJob;
-    private @Nullable TelenotBridgeHandler bridgeHandler;
-    private @Nullable ThingUID bridgeUID;
+    private @NonNullByDefault({}) ThingUID bridgeUID;
 
     public TelenotDiscoveryService() {
-        super(DISCOVERABLE_DEVICE_TYPE_UIDS, 30, true);
+        super(TelenotBridgeHandler.class, DISCOVERABLE_DEVICE_TYPE_UIDS, 30, true);
     }
 
     @Override
-    public void setThingHandler(ThingHandler thingHandler) {
-        if (thingHandler instanceof TelenotBridgeHandler) {
-            this.bridgeHandler = (TelenotBridgeHandler) thingHandler;
-            this.bridgeUID = thingHandler.getThing().getUID();
-        }
+    public void initialize() {
+        this.bridgeUID = thingHandler.getThing().getUID();
+        super.initialize();
     }
 
     @Override
@@ -65,29 +63,9 @@ public class TelenotDiscoveryService extends AbstractDiscoveryService implements
     }
 
     @Override
-    public @Nullable ThingHandler getThingHandler() {
-        return bridgeHandler;
-    }
-
-    @Override
-    public void activate() {
-        super.activate(null);
-    }
-
-    @Override
-    public void deactivate() {
-        super.deactivate();
-    }
-
-    @Override
     protected void startScan() {
-        TelenotBridgeHandler bridgeHandler = this.bridgeHandler;
-        if (bridgeHandler == null) {
-            logger.warn("Tried to scan for results but bridge handler is not set in discovery service");
-            return;
-        }
         stopScan();
-        bridgeHandler.getUsedSecurityArea().forEach(this::buildDiscoveryResult);
+        thingHandler.getUsedSecurityArea().forEach(this::buildDiscoveryResult);
 
         // we clear all older results, they are not valid any longer and we created new results
         removeOlderResults(getTimestampOfLastScan());
@@ -111,12 +89,6 @@ public class TelenotDiscoveryService extends AbstractDiscoveryService implements
     }
 
     private void buildDiscoveryResult(String address) {
-        ThingUID bridgeUID = this.bridgeUID;
-        if (bridgeUID == null) {
-            logger.warn("BridgeUid is not set but a discovery result has been produced. This should not happen.");
-            return;
-        }
-
         ThingUID uid = new ThingUID(THING_TYPE_SB, bridgeUID, address);
         Map<String, Object> properties = Map.ofEntries( //
                 entry(PROPERTY_ADDRESS, Integer.parseInt(address)), //
