@@ -148,7 +148,6 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
     private void processChannelStatus(Integer dp, Object value) {
         String channelId = dpToChannelId.get(dp);
         if (channelId != null) {
-
             ChannelConfiguration configuration = channelIdToConfiguration.get(channelId);
             ChannelTypeUID channelTypeUID = channelIdToChannelTypeUID.get(channelId);
 
@@ -180,6 +179,8 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
                         && CHANNEL_TYPE_UID_NUMBER.equals(channelTypeUID)) {
                     updateState(channelId, new DecimalType((double) value));
                     return;
+                } else if (value instanceof String string && CHANNEL_TYPE_UID_NUMBER.equals(channelTypeUID)) {
+                    updateState(channelId, new DecimalType(string));
                 } else if (Boolean.class.isAssignableFrom(value.getClass())
                         && CHANNEL_TYPE_UID_SWITCH.equals(channelTypeUID)) {
                     updateState(channelId, OnOffType.from((boolean) value));
@@ -324,12 +325,12 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
                 }
             }
         } else if (CHANNEL_TYPE_UID_STRING.equals(channelTypeUID)) {
-            if (command instanceof StringType) {
-                commandRequest.put(configuration.dp, command.toString());
-            }
+            commandRequest.put(configuration.dp, command.toString());
         } else if (CHANNEL_TYPE_UID_NUMBER.equals(channelTypeUID)) {
-            if (command instanceof DecimalType) {
-                commandRequest.put(configuration.dp, ((DecimalType) command).intValue());
+            if (command instanceof DecimalType decimalType) {
+                commandRequest.put(configuration.dp,
+                        configuration.sendAsString ? String.format("%d", decimalType.intValue())
+                                : decimalType.intValue());
             }
         } else if (CHANNEL_TYPE_UID_SWITCH.equals(channelTypeUID)) {
             if (command instanceof OnOffType) {
