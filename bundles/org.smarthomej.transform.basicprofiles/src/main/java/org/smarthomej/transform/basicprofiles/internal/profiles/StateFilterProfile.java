@@ -52,8 +52,7 @@ public class StateFilterProfile implements StateProfile {
 
     private List<StateCondition> conditions = new ArrayList<>();
 
-    @Nullable
-    private State configMismatchState = null;
+    private @Nullable State configMismatchState = null;
 
     public StateFilterProfile(ProfileCallback callback, ProfileContext context, ItemRegistry itemRegistry) {
         this.callback = callback;
