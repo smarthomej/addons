@@ -61,7 +61,7 @@ public class StateFilterProfile implements StateProfile {
 
         StateFilterProfileConfig config = context.getConfiguration().as(StateFilterProfileConfig.class);
         if (config != null) {
-            conditions.addAll(parseConditions(config.conditions, config.separator));
+            conditions = parseConditions(config.conditions, config.separator);
             configMismatchState = parseState(config.mismatchState);
         }
     }
