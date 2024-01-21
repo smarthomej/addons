@@ -67,8 +67,9 @@ public class StateFilterProfile implements StateProfile {
     }
 
     private List<StateCondition> parseConditions(@Nullable String config, String separator) {
-        if (config == null)
+        if (config == null) {
             return List.of();
+        }
 
         List<StateCondition> parsedConditions = new ArrayList<>();
         try {
