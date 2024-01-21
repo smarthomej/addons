@@ -50,7 +50,7 @@ public class StateFilterProfile implements StateProfile {
     private final ProfileCallback callback;
     private List<Class<? extends State>> acceptedDataTypes;
 
-    private List<StateCondition> conditions = new ArrayList<>();
+    private List<StateCondition> conditions = List.of();
 
     private @Nullable State configMismatchState = null;
 
