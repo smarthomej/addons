@@ -68,6 +68,7 @@
 			</parameter>
 			<parameter name="localKey" type="text" required="true">
 				<label>Device Local Key</label>
+				<context>password</context>
 			</parameter>
 			<parameter name="productId" type="text" required="true">
 				<label>Product ID</label>
@@ -173,6 +174,12 @@
 			</parameter>
 			<parameter name="max" type="integer">
 				<label>Maximum</label>
+			</parameter>
+			<parameter name="sendAdString" type="boolean">
+				<label>Send As String</label>
+				<description>Send the value as string instead of number.</description>
+				<default>false</default>
+				<advanced>true</advanced>
 			</parameter>
 		</config-description>
 	</channel-type>
