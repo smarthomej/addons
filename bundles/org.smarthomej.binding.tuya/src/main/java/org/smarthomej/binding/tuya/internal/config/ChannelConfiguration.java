@@ -25,6 +25,7 @@ public class ChannelConfiguration {
     public int dp2 = 0;
     public int min = Integer.MIN_VALUE;
     public int max = Integer.MAX_VALUE;
+    public boolean sendAsString = false;
     public boolean reversed = false;
     public String range = "";
     public String irCode = "";
