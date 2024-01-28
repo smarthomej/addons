@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +28,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Dmitry Pyatykh - Initial contribution
  */
+@NonNullByDefault
 public class IrUtils {
     private static final Logger logger = LoggerFactory.getLogger(IrUtils.class);
 
@@ -40,15 +42,14 @@ public class IrUtils {
      * @return the nec-format code
      */
     public static String base64ToNec(String base64Code) {
-        String result = null;
         List<Integer> pulses = base64ToPulse(base64Code);
-        if (pulses != null && !pulses.isEmpty()) {
+        if (!pulses.isEmpty()) {
             List<String> res = pulsesToNec(pulses);
-            if (res != null && !res.isEmpty()) {
-                result = res.get(0);
+            if (!res.isEmpty()) {
+                return res.get(0);
             }
         }
-        return result;
+        throw new IllegalArgumentException("No pulses found or conversion result is empty.");
     }
 
     /**
@@ -58,15 +59,14 @@ public class IrUtils {
      * @return the samsung-format code
      */
     public static String base64ToSamsung(String base64Code) {
-        String result = null;
         List<Integer> pulses = base64ToPulse(base64Code);
-        if (pulses != null && !pulses.isEmpty()) {
+        if (!pulses.isEmpty()) {
             List<String> res = pulsesToSamsung(pulses);
-            if (res != null && !res.isEmpty()) {
-                result = res.get(0);
+            if (!res.isEmpty()) {
+                return res.get(0);
             }
         }
-        return result;
+        throw new IllegalArgumentException("No pulses found or conversion result is empty.");
     }
 
     private static List<Integer> base64ToPulse(String base64Code) {
@@ -88,78 +88,46 @@ public class IrUtils {
                 }
             }
         } catch (ArrayIndexOutOfBoundsException e) {
-            logger.error("Failed to convert base64 key code to pulses: {}", e.getMessage());
+            logger.warn("Failed to convert base64 key code to pulses: {}", e.getMessage());
         }
         return pulses;
     }
 
-    private static List<Long> pulsesToWidthEncoded(List<Integer> pulses, Integer startMark, Integer startSpace,
-            Integer pulseThreshold, Integer spaceThreshold) {
+    private static List<Long> pulsesToWidthEncoded(List<Integer> pulses, Integer startMark) {
         List<Long> ret = new ArrayList<>();
         if (pulses.size() < 68) {
-            return null;
+            throw new IllegalArgumentException("Not enough pulses");
         }
 
-        if (pulseThreshold == null && spaceThreshold == null) {
-            return null;
+        while (pulses.size() >= 68 && (pulses.get(0) < (startMark * 0.75) || pulses.get(0) > (startMark * 1.25))) {
+            pulses.remove(0);
         }
 
-        if (startMark != null) {
-            while (pulses.size() >= 68 && (pulses.get(0) < (startMark * 0.75) || pulses.get(0) > (startMark * 1.25))) {
-                pulses.remove(0);
+        while (pulses.size() >= 68) {
+            if (pulses.get(0) < startMark * 0.75 || pulses.get(0) > startMark * 1.25) {
+                throw new IllegalArgumentException(
+                        "Pulse length is less than 3/4 startMark or more than 5/4 startMark");
             }
 
-            while (pulses.size() >= 68) {
-                if (pulses.get(0) < startMark * 0.75 || pulses.get(0) > startMark * 1.25) {
-                    return null;
-                }
+            // remove two first elements
+            pulses.remove(0);
+            pulses.remove(0);
 
-                if (startSpace != null
-                        && (pulses.get(1) < (startSpace * 0.75) || pulses.get(1) > (startSpace * 1.25))) {
-                    return null;
-                }
+            int res = 0;
+            long x = 0L;
+
+            for (int i = 31; i >= 0; i--) {
+                res = pulses.get(1) >= (Integer) 1125 ? 1 : 0;
+
+                x |= (long) (res) << i;
 
                 // remove two first elements
                 pulses.remove(0);
                 pulses.remove(0);
+            }
 
-                Integer res = 0;
-                long x = 0L;
-
-                for (int i = 31; i >= 0; i--) {
-                    Integer pulseMatch = null;
-                    Integer spaceMatch = null;
-
-                    if (pulseThreshold != null) {
-                        pulseMatch = pulses.get(0) >= pulseThreshold ? 1 : 0;
-                    }
-                    if (spaceThreshold != null) {
-                        spaceMatch = pulses.get(1) >= spaceThreshold ? 1 : 0;
-                    }
-
-                    if (pulseMatch != null && spaceMatch != null) {
-                        if (!pulseMatch.equals(spaceMatch)) {
-                            return null;
-                        }
-                        res = spaceMatch;
-                    } else if (pulseMatch == null) {
-                        res = spaceMatch;
-                    } else {
-                        res = pulseMatch;
-                    }
-
-                    if (res != null) {
-                        x |= (long) (res) << i;
-                    }
-
-                    // remove two first elements
-                    pulses.remove(0);
-                    pulses.remove(0);
-                }
-
-                if (!ret.contains(x)) {
-                    ret.add(x);
-                }
+            if (!ret.contains(x)) {
+                ret.add(x);
             }
         }
 
@@ -172,7 +140,7 @@ public class IrUtils {
         pulses.add(param.startSpace);
 
         for (int i = 31; i >= 0; i--) {
-            if ((data & (1 << i)) > 0L) {
+            if ((data & (1L << i)) > 0L) {
                 pulses.add(param.pulseOne);
                 pulses.add(param.spaceOne);
             } else {
@@ -185,11 +153,11 @@ public class IrUtils {
         return pulses;
     }
 
-    private static long mirrorBits(long data, int bits) {
-        int shift = bits - 1;
+    private static long mirrorBits(long data) {
+        int shift = 8 - 1;
         long out = 0;
 
-        for (int i = 0; i < bits; i++) {
+        for (int i = 0; i < 8; i++) {
             if ((data & (1L << i)) > 0L) {
                 out |= 1L << shift;
             }
@@ -200,16 +168,15 @@ public class IrUtils {
 
     private static List<String> pulsesToNec(List<Integer> pulses) {
         List<String> ret = new ArrayList<>();
-        List<Long> res = pulsesToWidthEncoded(pulses, 9000, null, null, 1125);
-        if (res == null || res.isEmpty()) {
-            logger.warn("[tuya:ir-controller] No ir key-code detected");
-            return null;
+        List<Long> res = pulsesToWidthEncoded(pulses, 9000);
+        if (res.isEmpty()) {
+            throw new IllegalArgumentException("[tuya:ir-controller] No ir key-code detected");
         }
         for (Long code : res) {
-            long addr = mirrorBits((code >> 24) & 0xFF, 8);
-            long addrNot = mirrorBits((code >> 16) & 0xFF, 8);
-            long data = mirrorBits((code >> 8) & 0xFF, 8);
-            long dataNot = mirrorBits(code & 0xFF, 8);
+            long addr = mirrorBits((code >> 24) & 0xFF);
+            long addrNot = mirrorBits((code >> 16) & 0xFF);
+            long data = mirrorBits((code >> 8) & 0xFF);
+            long dataNot = mirrorBits(code & 0xFF);
 
             if (addr != (addrNot ^ 0xFF)) {
                 addr = (addr << 8) | addrNot;
@@ -227,34 +194,8 @@ public class IrUtils {
         return ret;
     }
 
-    private static String bytesToHex(byte[] bytes) {
-        final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
-        char[] hexChars = new char[bytes.length * 2];
-        for (int j = 0; j < bytes.length; j++) {
-            int v = bytes[j] & 0xFF;
-            hexChars[j * 2] = HEX_ARRAY[v >>> 4];
-            hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
-        }
-        return new String(hexChars);
-    }
-
-    private static List<Long> necToPulses(long address, Long data) {
-        Long newAddress, newData;
-        if (data == null) {
-            newAddress = address;
-        } else {
-            if (address < 256) {
-                newAddress = mirrorBits(address, 8);
-                newAddress = (newAddress << 8) | (newAddress ^ 0xFF);
-            } else {
-                newAddress = (mirrorBits((address >> 8) & 0xFF, 8) << 8) | mirrorBits(address & 0xFF, 8);
-            }
-            newData = mirrorBits(data, 8);
-            newData = (newData << 8) | (newData & 0xFF);
-            newAddress = (newAddress << 16) | newData;
-        }
-
-        return widthEncodedToPulses(newAddress, new PulseParams());
+    private static List<Long> necToPulses(long address) {
+        return widthEncodedToPulses(address, new PulseParams());
     }
 
     private static String pulsesToBase64(List<Long> pulses) {
@@ -279,7 +220,7 @@ public class IrUtils {
      * @return the string
      */
     public static String necToBase64(long code) {
-        List<Long> pulses = necToPulses(code, null);
+        List<Long> pulses = necToPulses(code);
         return pulsesToBase64(pulses);
     }
 
@@ -290,26 +231,17 @@ public class IrUtils {
      * @return the string
      */
     public static String samsungToBase64(long code) {
-        List<Long> pulses = samsungToPulses(code, null);
+        List<Long> pulses = samsungToPulses(code);
         return pulsesToBase64(pulses);
     }
 
-    private static List<Long> samsungToPulses(long address, Long data) {
-        Long newAddress, newData;
-        if (data == null) {
-            newAddress = address;
-        } else {
-            newAddress = mirrorBits(address, 8);
-            newData = mirrorBits(data, 8);
-            newData = (newData << 8) | (newData & 0xFF);
-            newAddress = (newAddress << 24) + (newAddress << 16) + (newData << 8) + (newData ^ 0xFF);
-        }
-        return widthEncodedToPulses(newAddress, new PulseParams());
+    private static List<Long> samsungToPulses(long address) {
+        return widthEncodedToPulses(address, new PulseParams());
     }
 
     private static List<String> pulsesToSamsung(List<Integer> pulses) {
         List<String> ret = new ArrayList<>();
-        List<Long> res = pulsesToWidthEncoded(pulses, 4500, null, null, 1125);
+        List<Long> res = pulsesToWidthEncoded(pulses, 4500);
         for (Long code : res) {
             long addr = (code >> 24) & 0xFF;
             long addrNot = (code >> 16) & 0xFF;
@@ -320,8 +252,8 @@ public class IrUtils {
                     "{ \"type\": \"samsung\", \"uint32\": %d, \"address\": None, \"data\": None, \"hex\": \"%08X\" }",
                     code, code);
             if (addr == addrNot && data == (dataNot ^ 0xFF)) {
-                addr = mirrorBits(addr, 8);
-                data = mirrorBits(data, 8);
+                addr = mirrorBits(addr);
+                data = mirrorBits(data);
                 d = String.format(
                         "{ \"type\": \"samsung\", \"uint32\": %d, \"address\": %d, \"data\": %d, \"hex\": \"%08X\" }",
                         code, addr, data, code);

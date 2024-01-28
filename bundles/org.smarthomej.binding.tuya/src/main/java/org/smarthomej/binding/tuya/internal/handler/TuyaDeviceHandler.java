@@ -148,17 +148,16 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
     private void processChannelStatus(Integer dp, Object value) {
         String channelId = dpToChannelId.get(dp);
         if (channelId != null) {
-            ChannelConfiguration configuration = channelIdToConfiguration.get(channelId);
+            ChannelConfiguration channelConfiguration = channelIdToConfiguration.get(channelId);
             ChannelTypeUID channelTypeUID = channelIdToChannelTypeUID.get(channelId);
 
-            if (configuration == null || channelTypeUID == null) {
+            if (channelConfiguration == null || channelTypeUID == null) {
                 logger.warn("Could not find configuration or type for channel '{}' in thing '{}'", channelId,
                         thing.getUID());
                 return;
             }
 
-            ChannelConfiguration channelConfiguration = channelIdToConfiguration.get(channelId);
-            if (channelConfiguration != null && Boolean.FALSE.equals(deviceStatusCache.get(channelConfiguration.dp2))) {
+            if (Boolean.FALSE.equals(deviceStatusCache.get(channelConfiguration.dp2))) {
                 // skip update if the channel is off!
                 return;
             }
@@ -173,7 +172,8 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
                     return;
                 } else if (Double.class.isAssignableFrom(value.getClass())
                         && CHANNEL_TYPE_UID_DIMMER.equals(channelTypeUID)) {
-                    updateState(channelId, ConversionUtil.brightnessDecode((double) value, 0, configuration.max));
+                    updateState(channelId,
+                            ConversionUtil.brightnessDecode((double) value, 0, channelConfiguration.max));
                     return;
                 } else if (Double.class.isAssignableFrom(value.getClass())
                         && CHANNEL_TYPE_UID_NUMBER.equals(channelTypeUID)) {
@@ -186,11 +186,11 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
                     updateState(channelId, OnOffType.from((boolean) value));
                     return;
                 } else if (value instanceof String && CHANNEL_TYPE_UID_IR_CODE.equals(channelTypeUID)) {
-                    if (configuration.dp == 2) {
-                        String decoded = convertBase64Code(configuration, (String) value);
+                    if (channelConfiguration.dp == 2) {
+                        String decoded = convertBase64Code(channelConfiguration, (String) value);
                         logger.info("thing {} received ir code: {}", thing.getUID(), decoded);
                         updateState(channelId, new StringType(decoded));
-                        irStartLearning(configuration.activeListen);
+                        irStartLearning(channelConfiguration.activeListen);
                     }
                     return;
                 }
@@ -228,14 +228,9 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
             }
 
             // start learning code if thing is online and presents 'ir-code' channel
-            this.getThing().getChannels().stream()
-                    .filter(channel -> CHANNEL_TYPE_UID_IR_CODE.equals(channel.getChannelTypeUID())).findFirst()
-                    .ifPresent(channel -> {
-                        ChannelConfiguration config = channelIdToConfiguration.get(channel.getChannelTypeUID());
-                        if (config != null) {
-                            irStartLearning(config.activeListen);
-                        }
-                    });
+            channelIdToChannelTypeUID.entrySet().stream().filter(e -> CHANNEL_TYPE_UID_IR_CODE.equals(e.getValue()))
+                    .map(Map.Entry::getKey).findAny().map(channelIdToConfiguration::get)
+                    .ifPresent(irCodeChannelConfig -> irStartLearning(irCodeChannelConfig.activeListen));
         } else {
             updateStatus(ThingStatus.OFFLINE);
             ScheduledFuture<?> pollingJob = this.pollingJob;
@@ -250,7 +245,9 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
             if (tuyaDevice != null && !disposing && (reconnectFuture == null || reconnectFuture.isDone())) {
                 this.reconnectFuture = scheduler.schedule(tuyaDevice::connect, 5000, TimeUnit.MILLISECONDS);
             }
-            irStopLearning();
+            if (channelIdToChannelTypeUID.containsValue(CHANNEL_TYPE_UID_IR_CODE)) {
+                irStopLearning();
+            }
         }
     }
 
@@ -338,29 +335,34 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
             }
         } else if (CHANNEL_TYPE_UID_IR_CODE.equals(channelTypeUID)) {
             if (command instanceof StringType) {
-                if (configuration.irType.equals("base64")) {
-                    commandRequest.put(1, "study_key");
-                    commandRequest.put(7, command.toString());
-                } else if (configuration.irType.equals("tuya-head")) {
-                    if (configuration.irCode != null && !configuration.irCode.isEmpty()) {
-                        commandRequest.put(1, "send_ir");
-                        commandRequest.put(3, configuration.irCode);
-                        commandRequest.put(4, command.toString());
-                        commandRequest.put(10, configuration.irSendDelay);
-                        commandRequest.put(13, configuration.irCodeType);
-                    } else {
-                        logger.warn("irCode is not set for channel {}", channelUID);
+                switch (configuration.irType) {
+                    case "base64" -> {
+                        commandRequest.put(1, "study_key");
+                        commandRequest.put(7, command.toString());
                     }
-                } else if (configuration.irType.equals("nec")) {
-                    long code = convertHexCode(command.toString());
-                    String base64Code = IrUtils.necToBase64(code);
-                    commandRequest.put(1, "study_key");
-                    commandRequest.put(7, base64Code);
-                } else if (configuration.irType.equals("samsung")) {
-                    long code = convertHexCode(command.toString());
-                    String base64Code = IrUtils.samsungToBase64(code);
-                    commandRequest.put(1, "study_key");
-                    commandRequest.put(7, base64Code);
+                    case "tuya-head" -> {
+                        if (!configuration.irCode.isBlank()) {
+                            commandRequest.put(1, "send_ir");
+                            commandRequest.put(3, configuration.irCode);
+                            commandRequest.put(4, command.toString());
+                            commandRequest.put(10, configuration.irSendDelay);
+                            commandRequest.put(13, configuration.irCodeType);
+                        } else {
+                            logger.warn("irCode is not set for channel {}", channelUID);
+                        }
+                    }
+                    case "nec" -> {
+                        long code = convertHexCode(command.toString());
+                        String base64Code = IrUtils.necToBase64(code);
+                        commandRequest.put(1, "study_key");
+                        commandRequest.put(7, base64Code);
+                    }
+                    case "samsung" -> {
+                        long code = convertHexCode(command.toString());
+                        String base64Code = IrUtils.samsungToBase64(code);
+                        commandRequest.put(1, "study_key");
+                        commandRequest.put(7, base64Code);
+                    }
                 }
                 irStopLearning();
             }
@@ -599,7 +601,7 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
             } else {
                 if (encoded.length() > 68) {
                     decoded = IrUtils.base64ToNec(encoded);
-                    if (decoded == null || decoded.isEmpty()) {
+                    if (decoded.isEmpty()) {
                         decoded = IrUtils.base64ToSamsung(encoded);
                     }
                     IrCode code = Objects.requireNonNull(gson.fromJson(decoded, IrCode.class));
@@ -609,28 +611,19 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
                 }
             }
         } catch (JsonSyntaxException e) {
-            logger.error("Incorrect json response: {}", e.getMessage());
+            logger.warn("Incorrect json response: {}", e.getMessage());
             decoded = encoded;
-        } catch (NullPointerException e) {
-            logger.error("unable decode key code'{}', reason: {}", decoded, e.getMessage());
+        } catch (RuntimeException e) {
+            logger.warn("Unable decode key code'{}', reason: {}", decoded, e.getMessage());
         }
         return decoded;
-    }
-
-    private void finishStudyCode() {
-        Map<Integer, @Nullable Object> commandRequest = new HashMap<>();
-        commandRequest.put(1, "study_exit");
-        TuyaDevice tuyaDevice = this.tuyaDevice;
-        if (!commandRequest.isEmpty() && tuyaDevice != null) {
-            tuyaDevice.set(commandRequest);
-        }
     }
 
     private void repeatStudyCode() {
         Map<Integer, @Nullable Object> commandRequest = new HashMap<>();
         commandRequest.put(1, "study");
         TuyaDevice tuyaDevice = this.tuyaDevice;
-        if (!commandRequest.isEmpty() && tuyaDevice != null) {
+        if (tuyaDevice != null) {
             tuyaDevice.set(commandRequest);
         }
     }
@@ -644,7 +637,7 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
         }
     }
 
-    private void irStartLearning(Boolean available) {
+    private void irStartLearning(boolean available) {
         irStopLearning();
         if (available) {
             logger.debug("[tuya:ir-controller] start ir learning");
