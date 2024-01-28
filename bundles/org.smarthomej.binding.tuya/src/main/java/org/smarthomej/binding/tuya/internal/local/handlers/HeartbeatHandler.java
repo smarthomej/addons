@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.tuya.internal.local.CommandType;
 import org.smarthomej.binding.tuya.internal.local.MessageWrapper;
+import org.smarthomej.binding.tuya.internal.local.TuyaDevice;
 
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -37,18 +38,19 @@ import io.netty.handler.timeout.IdleStateEvent;
 @NonNullByDefault
 public class HeartbeatHandler extends ChannelDuplexHandler {
     private final Logger logger = LoggerFactory.getLogger(HeartbeatHandler.class);
-    private final String deviceId;
     private int heartBeatMissed = 0;
-
-    public HeartbeatHandler(String deviceId) {
-        this.deviceId = deviceId;
-    }
 
     @Override
     public void userEventTriggered(@NonNullByDefault({}) ChannelHandlerContext ctx, @NonNullByDefault({}) Object evt)
             throws Exception {
-        if (evt instanceof IdleStateEvent) {
-            IdleStateEvent e = (IdleStateEvent) evt;
+        if (!ctx.channel().hasAttr(TuyaDevice.DEVICE_ID_ATTR)) {
+            logger.warn("{}: Failed to retrieve deviceId from ChannelHandlerContext. This is a bug.",
+                    Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""));
+            return;
+        }
+        String deviceId = ctx.channel().attr(TuyaDevice.DEVICE_ID_ATTR).get();
+
+        if (evt instanceof IdleStateEvent e) {
             if (IdleState.READER_IDLE.equals(e.state())) {
                 logger.warn("{}{}: Did not receive a message from for {} seconds. Connection seems to be dead.",
                         deviceId, Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""),
@@ -75,8 +77,14 @@ public class HeartbeatHandler extends ChannelDuplexHandler {
     @Override
     public void channelRead(@NonNullByDefault({}) ChannelHandlerContext ctx, @NonNullByDefault({}) Object msg)
             throws Exception {
-        if (msg instanceof MessageWrapper<?>) {
-            MessageWrapper<?> m = (MessageWrapper<?>) msg;
+        if (!ctx.channel().hasAttr(TuyaDevice.DEVICE_ID_ATTR)) {
+            logger.warn("{}: Failed to retrieve deviceId from ChannelHandlerContext. This is a bug.",
+                    Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""));
+            return;
+        }
+        String deviceId = ctx.channel().attr(TuyaDevice.DEVICE_ID_ATTR).get();
+
+        if (msg instanceof MessageWrapper<?> m) {
             if (CommandType.HEART_BEAT.equals(m.commandType)) {
                 logger.trace("{}{}: Received pong", deviceId,
                         Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""));

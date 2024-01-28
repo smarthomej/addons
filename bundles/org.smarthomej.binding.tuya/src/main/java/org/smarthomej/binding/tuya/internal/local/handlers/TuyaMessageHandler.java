@@ -12,6 +12,8 @@
  */
 package org.smarthomej.binding.tuya.internal.local.handlers;
 
+import static org.smarthomej.binding.tuya.internal.local.TuyaDevice.SESSION_KEY_ATTR;
+
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
@@ -39,19 +41,21 @@ import io.netty.channel.ChannelHandlerContext;
 public class TuyaMessageHandler extends ChannelDuplexHandler {
     private final Logger logger = LoggerFactory.getLogger(TuyaMessageHandler.class);
 
-    private final String deviceId;
     private final DeviceStatusListener deviceStatusListener;
-    private final TuyaDevice.KeyStore keyStore;
 
-    public TuyaMessageHandler(String deviceId, TuyaDevice.KeyStore keyStore,
-            DeviceStatusListener deviceStatusListener) {
-        this.deviceId = deviceId;
-        this.keyStore = keyStore;
+    public TuyaMessageHandler(DeviceStatusListener deviceStatusListener) {
         this.deviceStatusListener = deviceStatusListener;
     }
 
     @Override
     public void channelActive(@NonNullByDefault({}) ChannelHandlerContext ctx) throws Exception {
+        if (!ctx.channel().hasAttr(TuyaDevice.DEVICE_ID_ATTR) || !ctx.channel().hasAttr(SESSION_KEY_ATTR)) {
+            logger.warn("{}: Failed to retrieve deviceId or sessionKey from ChannelHandlerContext. This is a bug.",
+                    Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""));
+            return;
+        }
+        String deviceId = ctx.channel().attr(TuyaDevice.DEVICE_ID_ATTR).get();
+
         logger.debug("{}{}: Connection established.", deviceId,
                 Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""));
         deviceStatusListener.connectionStatus(true);
@@ -59,6 +63,13 @@ public class TuyaMessageHandler extends ChannelDuplexHandler {
 
     @Override
     public void channelInactive(@NonNullByDefault({}) ChannelHandlerContext ctx) throws Exception {
+        if (!ctx.channel().hasAttr(TuyaDevice.DEVICE_ID_ATTR) || !ctx.channel().hasAttr(SESSION_KEY_ATTR)) {
+            logger.warn("{}: Failed to retrieve deviceId or sessionKey from ChannelHandlerContext. This is a bug.",
+                    Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""));
+            return;
+        }
+        String deviceId = ctx.channel().attr(TuyaDevice.DEVICE_ID_ATTR).get();
+
         logger.debug("{}{}: Connection terminated.", deviceId,
                 Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""));
         deviceStatusListener.connectionStatus(false);
@@ -68,8 +79,14 @@ public class TuyaMessageHandler extends ChannelDuplexHandler {
     @SuppressWarnings("unchecked")
     public void channelRead(@NonNullByDefault({}) ChannelHandlerContext ctx, @NonNullByDefault({}) Object msg)
             throws Exception {
-        if (msg instanceof MessageWrapper<?>) {
-            MessageWrapper<?> m = (MessageWrapper<?>) msg;
+        if (!ctx.channel().hasAttr(TuyaDevice.DEVICE_ID_ATTR) || !ctx.channel().hasAttr(SESSION_KEY_ATTR)) {
+            logger.warn("{}: Failed to retrieve deviceId or sessionKey from ChannelHandlerContext. This is a bug.",
+                    Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""));
+            return;
+        }
+        String deviceId = ctx.channel().attr(TuyaDevice.DEVICE_ID_ATTR).get();
+
+        if (msg instanceof MessageWrapper<?> m) {
             if (m.commandType == CommandType.DP_QUERY || m.commandType == CommandType.STATUS) {
                 Map<Integer, Object> stateMap = null;
                 if (m.content instanceof TcpStatusPayload) {
@@ -83,7 +100,15 @@ public class TuyaMessageHandler extends ChannelDuplexHandler {
             } else if (m.commandType == CommandType.DP_QUERY_NOT_SUPPORTED) {
                 deviceStatusListener.processDeviceStatus(Map.of());
             } else if (m.commandType == CommandType.SESS_KEY_NEG_RESPONSE) {
-                byte[] localKeyHmac = CryptoUtil.hmac(keyStore.getRandom(), keyStore.getDeviceKey());
+                if (!ctx.channel().hasAttr(TuyaDevice.SESSION_KEY_ATTR)
+                        || !ctx.channel().hasAttr(TuyaDevice.SESSION_RANDOM_ATTR)) {
+                    logger.warn("{}{}: Session key negotiation failed because device key or session random is not set.",
+                            deviceId, Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""));
+                    return;
+                }
+                byte[] sessionKey = ctx.channel().attr(TuyaDevice.SESSION_KEY_ATTR).get();
+                byte[] sessionRandom = ctx.channel().attr(TuyaDevice.SESSION_RANDOM_ATTR).get();
+                byte[] localKeyHmac = CryptoUtil.hmac(sessionRandom, sessionKey);
                 byte[] localKeyExpectedHmac = Arrays.copyOfRange((byte[]) m.content, 16, 16 + 32);
 
                 if (!Arrays.equals(localKeyHmac, localKeyExpectedHmac)) {
@@ -96,19 +121,18 @@ public class TuyaMessageHandler extends ChannelDuplexHandler {
                 }
 
                 byte[] remoteKey = Arrays.copyOf((byte[]) m.content, 16);
-                byte[] remoteKeyHmac = CryptoUtil.hmac(remoteKey, keyStore.getDeviceKey());
+                byte[] remoteKeyHmac = CryptoUtil.hmac(remoteKey, sessionKey);
                 MessageWrapper<?> response = new MessageWrapper<>(CommandType.SESS_KEY_NEG_FINISH, remoteKeyHmac);
 
                 ctx.channel().writeAndFlush(response);
 
-                byte[] sessionKey = CryptoUtil.generateSessionKey(keyStore.getRandom(), remoteKey,
-                        keyStore.getDeviceKey());
-                if (sessionKey == null) {
+                byte[] newSessionKey = CryptoUtil.generateSessionKey(sessionRandom, remoteKey, sessionKey);
+                if (newSessionKey == null) {
                     logger.warn("{}{}: Session key negotiation failed because session key is null.", deviceId,
                             Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""));
                     return;
                 }
-                keyStore.setSessionKey(sessionKey);
+                ctx.channel().attr(TuyaDevice.SESSION_KEY_ATTR).set(newSessionKey);
             }
         }
     }

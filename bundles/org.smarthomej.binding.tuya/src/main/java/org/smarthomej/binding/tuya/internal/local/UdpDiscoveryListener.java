@@ -74,19 +74,23 @@ public class UdpDiscoveryListener implements ChannelFutureListener {
                         protected void initChannel(DatagramChannel ch) throws Exception {
                             ChannelPipeline pipeline = ch.pipeline();
                             pipeline.addLast("udpDecoder", new DatagramToByteBufDecoder());
-                            pipeline.addLast("messageDecoder", new TuyaDecoder(gson, "udpListener",
-                                    new TuyaDevice.KeyStore(TUYA_UDP_KEY), ProtocolVersion.V3_1));
+                            pipeline.addLast("messageDecoder", new TuyaDecoder(gson));
                             pipeline.addLast("discoveryHandler",
                                     new DiscoveryMessageHandler(deviceInfos, deviceListeners));
-                            pipeline.addLast("userEventHandler", new UserEventHandler("udpListener"));
+                            pipeline.addLast("userEventHandler", new UserEventHandler());
                         }
                     });
 
             ChannelFuture futureEncrypted = b.bind(6667).addListener(this).sync();
             encryptedChannel = futureEncrypted.channel();
+            encryptedChannel.attr(TuyaDevice.DEVICE_ID_ATTR).set("udpListener");
+            encryptedChannel.attr(TuyaDevice.SESSION_KEY_ATTR).set(TUYA_UDP_KEY);
 
             ChannelFuture futureRaw = b.bind(6666).addListener(this).sync();
             rawChannel = futureRaw.channel();
+            rawChannel.attr(TuyaDevice.DEVICE_ID_ATTR).set("udpListener");
+            rawChannel.attr(TuyaDevice.SESSION_KEY_ATTR).set(TUYA_UDP_KEY);
+
         } catch (InterruptedException e) {
             throw new IllegalStateException(e);
         }
