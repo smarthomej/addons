@@ -248,7 +248,7 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
             // only re-connect if a device is present, we are not disposing the thing and either the reconnectFuture is
             // empty or already done
             if (tuyaDevice != null && !disposing && (reconnectFuture == null || reconnectFuture.isDone())) {
-                this.reconnectFuture = scheduler.schedule(tuyaDevice::connect, 5000, TimeUnit.MILLISECONDS);
+                this.reconnectFuture = scheduler.schedule(this::connectDevice, 5000, TimeUnit.MILLISECONDS);
             }
             irStopLearning();
         }
@@ -562,6 +562,17 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
         if (CHANNEL_TYPE_UID_IR_CODE.equals(channelTypeUID)) {
             irStartLearning(configuration.activeListen);
         }
+    }
+
+    private void connectDevice() {
+        TuyaDevice tuyaDevice = this.tuyaDevice;
+        if (tuyaDevice == null) {
+            logger.warn("Cannot connect {} because the device is not set.", thing.getUID());
+            return;
+        }
+        // clear the future here because timing issues can prevent the next attempt if we fail again
+        reconnectFuture = null;
+        tuyaDevice.connect();
     }
 
     private List<CommandOption> toCommandOptionList(List<String> options) {
