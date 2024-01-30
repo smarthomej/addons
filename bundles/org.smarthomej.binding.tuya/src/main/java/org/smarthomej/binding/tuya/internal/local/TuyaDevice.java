@@ -49,6 +49,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
+import io.netty.util.AttributeKey;
 
 /**
  * The {@link TuyaDevice} handles the device connection
@@ -57,22 +58,27 @@ import io.netty.handler.timeout.IdleStateHandler;
  */
 @NonNullByDefault
 public class TuyaDevice implements ChannelFutureListener {
+    public static final AttributeKey<String> DEVICE_ID_ATTR = AttributeKey.valueOf("deviceId");
+    public static final AttributeKey<ProtocolVersion> PROTOCOL_ATTR = AttributeKey.valueOf("protocol");
+    public static final AttributeKey<byte[]> SESSION_RANDOM_ATTR = AttributeKey.valueOf("sessionRandom");
+    public static final AttributeKey<byte[]> SESSION_KEY_ATTR = AttributeKey.valueOf("sessionKey");
+
     private final Logger logger = LoggerFactory.getLogger(TuyaDevice.class);
 
     private final Bootstrap bootstrap = new Bootstrap();
     private final DeviceStatusListener deviceStatusListener;
     private final String deviceId;
+    private final byte[] deviceKey;
 
     private final String address;
     private final ProtocolVersion protocolVersion;
-    private final KeyStore keyStore;
     private @Nullable Channel channel;
 
     public TuyaDevice(Gson gson, DeviceStatusListener deviceStatusListener, EventLoopGroup eventLoopGroup,
             String deviceId, byte[] deviceKey, String address, String protocolVersion) {
         this.address = address;
         this.deviceId = deviceId;
-        this.keyStore = new KeyStore(deviceKey);
+        this.deviceKey = deviceKey;
         this.deviceStatusListener = deviceStatusListener;
         this.protocolVersion = ProtocolVersion.fromString(protocolVersion);
         bootstrap.group(eventLoopGroup).channel(NioSocketChannel.class);
@@ -83,20 +89,17 @@ public class TuyaDevice implements ChannelFutureListener {
                 ChannelPipeline pipeline = ch.pipeline();
                 pipeline.addLast("idleStateHandler",
                         new IdleStateHandler(TCP_CONNECTION_TIMEOUT, TCP_CONNECTION_HEARTBEAT_INTERVAL, 0));
-                pipeline.addLast("messageEncoder",
-                        new TuyaEncoder(gson, deviceId, keyStore, TuyaDevice.this.protocolVersion));
-                pipeline.addLast("messageDecoder",
-                        new TuyaDecoder(gson, deviceId, keyStore, TuyaDevice.this.protocolVersion));
-                pipeline.addLast("heartbeatHandler", new HeartbeatHandler(deviceId));
-                pipeline.addLast("deviceHandler", new TuyaMessageHandler(deviceId, keyStore, deviceStatusListener));
-                pipeline.addLast("userEventHandler", new UserEventHandler(deviceId));
+                pipeline.addLast("messageEncoder", new TuyaEncoder(gson));
+                pipeline.addLast("messageDecoder", new TuyaDecoder(gson));
+                pipeline.addLast("heartbeatHandler", new HeartbeatHandler());
+                pipeline.addLast("deviceHandler", new TuyaMessageHandler(deviceStatusListener));
+                pipeline.addLast("userEventHandler", new UserEventHandler());
             }
         });
         connect();
     }
 
     public void connect() {
-        keyStore.reset(); // reset session key
         bootstrap.connect(address, 6668).addListener(this);
     }
 
@@ -147,12 +150,22 @@ public class TuyaDevice implements ChannelFutureListener {
     public void operationComplete(@NonNullByDefault({}) ChannelFuture channelFuture) throws Exception {
         if (channelFuture.isSuccess()) {
             Channel channel = channelFuture.channel();
-            this.channel = channel;
+            channel.attr(DEVICE_ID_ATTR).set(deviceId);
+            channel.attr(PROTOCOL_ATTR).set(protocolVersion);
+            // session key is device key before negotiation
+            channel.attr(SESSION_KEY_ATTR).set(deviceKey);
+
             if (protocolVersion == V3_4) {
+                byte[] sessionRandom = CryptoUtil.generateRandom(16);
+                channel.attr(SESSION_RANDOM_ATTR).set(sessionRandom);
+                this.channel = channel;
+
                 // handshake for session key required
-                MessageWrapper<?> m = new MessageWrapper<>(SESS_KEY_NEG_START, keyStore.getRandom());
+                MessageWrapper<?> m = new MessageWrapper<>(SESS_KEY_NEG_START, sessionRandom);
                 channel.writeAndFlush(m);
             } else {
+                this.channel = channel;
+
                 // no handshake for 3.1/3.3
                 requestStatus();
             }
@@ -162,39 +175,6 @@ public class TuyaDevice implements ChannelFutureListener {
                     channelFuture.cause().getMessage());
             this.channel = null;
             deviceStatusListener.connectionStatus(false);
-        }
-    }
-
-    public static class KeyStore {
-        private final byte[] deviceKey;
-        private byte[] sessionKey;
-        private byte[] random;
-
-        public KeyStore(byte[] deviceKey) {
-            this.deviceKey = deviceKey;
-            this.sessionKey = deviceKey;
-            this.random = CryptoUtil.generateRandom(16).clone();
-        }
-
-        public void reset() {
-            this.sessionKey = this.deviceKey;
-            this.random = CryptoUtil.generateRandom(16).clone();
-        }
-
-        public byte[] getDeviceKey() {
-            return sessionKey;
-        }
-
-        public byte[] getSessionKey() {
-            return sessionKey;
-        }
-
-        public void setSessionKey(byte[] sessionKey) {
-            this.sessionKey = sessionKey;
-        }
-
-        public byte[] getRandom() {
-            return random;
         }
     }
 }

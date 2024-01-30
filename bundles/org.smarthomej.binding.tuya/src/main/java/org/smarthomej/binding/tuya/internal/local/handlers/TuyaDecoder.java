@@ -20,6 +20,7 @@ import static org.smarthomej.binding.tuya.internal.local.CommandType.UDP;
 import static org.smarthomej.binding.tuya.internal.local.CommandType.UDP_NEW;
 import static org.smarthomej.binding.tuya.internal.local.ProtocolVersion.V3_3;
 import static org.smarthomej.binding.tuya.internal.local.ProtocolVersion.V3_4;
+import static org.smarthomej.binding.tuya.internal.local.TuyaDevice.*;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -35,7 +36,6 @@ import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.tuya.internal.local.CommandType;
 import org.smarthomej.binding.tuya.internal.local.MessageWrapper;
 import org.smarthomej.binding.tuya.internal.local.ProtocolVersion;
-import org.smarthomej.binding.tuya.internal.local.TuyaDevice;
 import org.smarthomej.binding.tuya.internal.local.dto.DiscoveryMessage;
 import org.smarthomej.binding.tuya.internal.local.dto.TcpStatusPayload;
 import org.smarthomej.binding.tuya.internal.util.CryptoUtil;
@@ -58,16 +58,10 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 public class TuyaDecoder extends ByteToMessageDecoder {
     private final Logger logger = LoggerFactory.getLogger(TuyaDecoder.class);
 
-    private final TuyaDevice.KeyStore keyStore;
-    private final ProtocolVersion version;
     private final Gson gson;
-    private final String deviceId;
 
-    public TuyaDecoder(Gson gson, String deviceId, TuyaDevice.KeyStore keyStore, ProtocolVersion version) {
+    public TuyaDecoder(Gson gson) {
         this.gson = gson;
-        this.keyStore = keyStore;
-        this.version = version;
-        this.deviceId = deviceId;
     }
 
     @Override
@@ -77,6 +71,17 @@ public class TuyaDecoder extends ByteToMessageDecoder {
             // minimum packet size is 16 bytes header + 8 bytes suffix
             return;
         }
+
+        if (!ctx.channel().hasAttr(DEVICE_ID_ATTR) || !ctx.channel().hasAttr(PROTOCOL_ATTR)
+                || !ctx.channel().hasAttr(SESSION_KEY_ATTR)) {
+            logger.warn(
+                    "{}: Failed to retrieve deviceId, protocol or sessionKey from ChannelHandlerContext. This is a bug.",
+                    Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""));
+            return;
+        }
+        String deviceId = ctx.channel().attr(DEVICE_ID_ATTR).get();
+        ProtocolVersion protocol = ctx.channel().attr(PROTOCOL_ATTR).get();
+        byte[] sessionKey = ctx.channel().attr(SESSION_KEY_ATTR).get();
 
         // we need to take a copy first so the buffer stays intact if we exit early
         ByteBuf inCopy = in.copy();
@@ -111,20 +116,20 @@ public class TuyaDecoder extends ByteToMessageDecoder {
         if ((returnCode & 0xffffff00) != 0) {
             // rewind if no return code is present
             buffer.position(buffer.position() - 4);
-            payload = version == V3_4 ? new byte[payloadLength - 32] : new byte[payloadLength - 8];
+            payload = protocol == V3_4 ? new byte[payloadLength - 32] : new byte[payloadLength - 8];
         } else {
-            payload = version == V3_4 ? new byte[payloadLength - 32 - 8] : new byte[payloadLength - 8 - 4];
+            payload = protocol == V3_4 ? new byte[payloadLength - 32 - 8] : new byte[payloadLength - 8 - 4];
         }
 
         buffer.get(payload);
 
-        if (version == V3_4 && commandType != UDP && commandType != UDP_NEW) {
+        if (protocol == V3_4 && commandType != UDP && commandType != UDP_NEW) {
             byte[] fullMessage = new byte[buffer.position()];
             buffer.position(0);
             buffer.get(fullMessage);
             byte[] expectedHmac = new byte[32];
             buffer.get(expectedHmac);
-            byte[] calculatedHmac = CryptoUtil.hmac(fullMessage, keyStore.getSessionKey());
+            byte[] calculatedHmac = CryptoUtil.hmac(fullMessage, sessionKey);
             if (!Arrays.equals(expectedHmac, calculatedHmac)) {
                 logger.warn("{}{}: Checksum failed for message: calculated {}, found {}", deviceId,
                         Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""),
@@ -150,8 +155,8 @@ public class TuyaDecoder extends ByteToMessageDecoder {
             return;
         }
 
-        if (Arrays.equals(Arrays.copyOfRange(payload, 0, version.getBytes().length), version.getBytes())) {
-            if (version == V3_3) {
+        if (Arrays.equals(Arrays.copyOfRange(payload, 0, protocol.getBytes().length), protocol.getBytes())) {
+            if (protocol == V3_3) {
                 // Remove 3.3 header
                 payload = Arrays.copyOfRange(payload, 15, payload.length);
             } else {
@@ -165,13 +170,14 @@ public class TuyaDecoder extends ByteToMessageDecoder {
             m = new MessageWrapper<>(commandType,
                     Objects.requireNonNull(gson.fromJson(new String(payload), DiscoveryMessage.class)));
         } else {
-            byte[] decodedMessage = version == V3_4 ? CryptoUtil.decryptAesEcb(payload, keyStore.getSessionKey(), true)
-                    : CryptoUtil.decryptAesEcb(payload, keyStore.getDeviceKey(), false);
+            byte[] decodedMessage = protocol == V3_4 ? CryptoUtil.decryptAesEcb(payload, sessionKey, true)
+                    : CryptoUtil.decryptAesEcb(payload, sessionKey, false);
             if (decodedMessage == null) {
                 return;
             }
-            if (Arrays.equals(Arrays.copyOfRange(decodedMessage, 0, version.getBytes().length), version.getBytes())) {
-                if (version == V3_4) {
+
+            if (Arrays.equals(Arrays.copyOfRange(decodedMessage, 0, protocol.getBytes().length), protocol.getBytes())) {
+                if (protocol == V3_4) {
                     // Remove 3.4 header
                     decodedMessage = Arrays.copyOfRange(decodedMessage, 15, decodedMessage.length);
                 }

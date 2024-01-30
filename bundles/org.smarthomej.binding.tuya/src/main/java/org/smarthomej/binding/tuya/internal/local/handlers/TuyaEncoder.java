@@ -20,6 +20,8 @@ import static org.smarthomej.binding.tuya.internal.local.CommandType.SESS_KEY_NE
 import static org.smarthomej.binding.tuya.internal.local.CommandType.SESS_KEY_NEG_START;
 import static org.smarthomej.binding.tuya.internal.local.ProtocolVersion.V3_3;
 import static org.smarthomej.binding.tuya.internal.local.ProtocolVersion.V3_4;
+import static org.smarthomej.binding.tuya.internal.local.TuyaDevice.*;
+import static org.smarthomej.binding.tuya.internal.local.TuyaDevice.SESSION_KEY_ATTR;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -37,7 +39,6 @@ import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.tuya.internal.local.CommandType;
 import org.smarthomej.binding.tuya.internal.local.MessageWrapper;
 import org.smarthomej.binding.tuya.internal.local.ProtocolVersion;
-import org.smarthomej.binding.tuya.internal.local.TuyaDevice;
 import org.smarthomej.binding.tuya.internal.util.CryptoUtil;
 
 import com.google.gson.Gson;
@@ -57,31 +58,36 @@ import io.netty.handler.codec.MessageToByteEncoder;
 public class TuyaEncoder extends MessageToByteEncoder<MessageWrapper<?>> {
     private final Logger logger = LoggerFactory.getLogger(TuyaEncoder.class);
 
-    private final TuyaDevice.KeyStore keyStore;
-    private final ProtocolVersion version;
-    private final String deviceId;
     private final Gson gson;
 
     private int sequenceNo = 0;
 
-    public TuyaEncoder(Gson gson, String deviceId, TuyaDevice.KeyStore keyStore, ProtocolVersion version) {
+    public TuyaEncoder(Gson gson) {
         this.gson = gson;
-        this.deviceId = deviceId;
-        this.keyStore = keyStore;
-        this.version = version;
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public void encode(@NonNullByDefault({}) ChannelHandlerContext ctx, MessageWrapper<?> msg,
             @NonNullByDefault({}) ByteBuf out) throws Exception {
+        if (!ctx.channel().hasAttr(DEVICE_ID_ATTR) || !ctx.channel().hasAttr(PROTOCOL_ATTR)
+                || !ctx.channel().hasAttr(SESSION_KEY_ATTR)) {
+            logger.warn(
+                    "{}: Failed to retrieve deviceId, protocol or sessionKey from ChannelHandlerContext. This is a bug.",
+                    Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""));
+            return;
+        }
+        String deviceId = ctx.channel().attr(DEVICE_ID_ATTR).get();
+        ProtocolVersion protocol = ctx.channel().attr(PROTOCOL_ATTR).get();
+        byte[] sessionKey = ctx.channel().attr(SESSION_KEY_ATTR).get();
+
         byte[] payloadBytes;
 
         // prepare payload
         if (msg.content == null || msg.content instanceof Map<?, ?>) {
             Map<String, Object> content = (Map<String, Object>) msg.content;
             Map<String, Object> payload = new HashMap<>();
-            if (version == V3_4) {
+            if (protocol == V3_4) {
                 payload.put("protocol", 5);
                 payload.put("t", System.currentTimeMillis() / 1000);
                 Map<String, Object> data = new HashMap<>();
@@ -119,8 +125,8 @@ public class TuyaEncoder extends MessageToByteEncoder<MessageWrapper<?>> {
             return;
         }
 
-        Optional<byte[]> bufferOptional = version == V3_4 ? encode34(msg.commandType, payloadBytes)
-                : encodePre34(msg.commandType, payloadBytes);
+        Optional<byte[]> bufferOptional = protocol == V3_4 ? encode34(msg.commandType, payloadBytes, sessionKey)
+                : encodePre34(msg.commandType, payloadBytes, sessionKey, protocol);
 
         bufferOptional.ifPresentOrElse(buffer -> {
             if (logger.isTraceEnabled()) {
@@ -132,11 +138,12 @@ public class TuyaEncoder extends MessageToByteEncoder<MessageWrapper<?>> {
         }, () -> logger.debug("{}{}: Encoding returned an empty buffer", deviceId, ctx.channel().remoteAddress()));
     }
 
-    private Optional<byte[]> encodePre34(CommandType commandType, byte[] payload) {
+    private Optional<byte[]> encodePre34(CommandType commandType, byte[] payload, byte[] deviceKey,
+            ProtocolVersion protocol) {
         byte[] payloadBytes = payload;
-        if (version == V3_3) {
+        if (protocol == V3_3) {
             // Always encrypted
-            payloadBytes = CryptoUtil.encryptAesEcb(payloadBytes, keyStore.getDeviceKey(), true);
+            payloadBytes = CryptoUtil.encryptAesEcb(payloadBytes, deviceKey, true);
             if (payloadBytes == null) {
                 return Optional.empty();
             }
@@ -151,16 +158,16 @@ public class TuyaEncoder extends MessageToByteEncoder<MessageWrapper<?>> {
             }
         } else if (CommandType.CONTROL.equals(commandType)) {
             // Protocol 3.1 and below, only encrypt data if necessary
-            byte[] encryptedPayload = CryptoUtil.encryptAesEcb(payloadBytes, keyStore.getDeviceKey(), true);
+            byte[] encryptedPayload = CryptoUtil.encryptAesEcb(payloadBytes, deviceKey, true);
             if (encryptedPayload == null) {
                 return Optional.empty();
             }
             String payloadStr = Base64.encode(encryptedPayload);
-            String hash = CryptoUtil.md5(
-                    "data=" + payloadStr + "||lpv=" + version.getString() + "||" + new String(keyStore.getDeviceKey()));
+            String hash = CryptoUtil
+                    .md5("data=" + payloadStr + "||lpv=" + protocol.getString() + "||" + new String(deviceKey));
 
             // Create byte buffer from hex data
-            payloadBytes = (version + hash.substring(8, 24) + payloadStr).getBytes(StandardCharsets.UTF_8);
+            payloadBytes = (protocol + hash.substring(8, 24) + payloadStr).getBytes(StandardCharsets.UTF_8);
         }
 
         // Allocate buffer with room for payload + 24 bytes for
@@ -186,7 +193,7 @@ public class TuyaEncoder extends MessageToByteEncoder<MessageWrapper<?>> {
         return Optional.of(buffer.array());
     }
 
-    private Optional<byte[]> encode34(CommandType commandType, byte[] payloadBytes) {
+    private Optional<byte[]> encode34(CommandType commandType, byte[] payloadBytes, byte[] sessionKey) {
         byte[] rawPayload = payloadBytes;
 
         if (commandType != DP_QUERY && commandType != HEART_BEAT && commandType != DP_QUERY_NEW
@@ -202,7 +209,7 @@ public class TuyaEncoder extends MessageToByteEncoder<MessageWrapper<?>> {
         Arrays.fill(padded, padding);
         System.arraycopy(rawPayload, 0, padded, 0, rawPayload.length);
 
-        byte[] encryptedPayload = CryptoUtil.encryptAesEcb(padded, keyStore.getSessionKey(), false);
+        byte[] encryptedPayload = CryptoUtil.encryptAesEcb(padded, sessionKey, false);
         if (encryptedPayload == null) {
             return Optional.empty();
         }
@@ -221,7 +228,7 @@ public class TuyaEncoder extends MessageToByteEncoder<MessageWrapper<?>> {
         // Calculate and add checksum
         byte[] checksumContent = new byte[encryptedPayload.length + 16];
         System.arraycopy(buffer.array(), 0, checksumContent, 0, encryptedPayload.length + 16);
-        byte[] checksum = CryptoUtil.hmac(checksumContent, this.keyStore.getSessionKey());
+        byte[] checksum = CryptoUtil.hmac(checksumContent, sessionKey);
         if (checksum == null) {
             return Optional.empty();
         }
