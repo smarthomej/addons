@@ -84,11 +84,13 @@ public class UdpDiscoveryListener implements ChannelFutureListener {
             ChannelFuture futureEncrypted = b.bind(6667).addListener(this).sync();
             encryptedChannel = futureEncrypted.channel();
             encryptedChannel.attr(TuyaDevice.DEVICE_ID_ATTR).set("udpListener");
+            encryptedChannel.attr(TuyaDevice.PROTOCOL_ATTR).set(ProtocolVersion.V3_1);
             encryptedChannel.attr(TuyaDevice.SESSION_KEY_ATTR).set(TUYA_UDP_KEY);
 
             ChannelFuture futureRaw = b.bind(6666).addListener(this).sync();
             rawChannel = futureRaw.channel();
             rawChannel.attr(TuyaDevice.DEVICE_ID_ATTR).set("udpListener");
+            rawChannel.attr(TuyaDevice.PROTOCOL_ATTR).set(ProtocolVersion.V3_1);
             rawChannel.attr(TuyaDevice.SESSION_KEY_ATTR).set(TUYA_UDP_KEY);
 
         } catch (InterruptedException e) {
