@@ -30,8 +30,6 @@ import java.util.List;
 import java.util.UUID;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -48,8 +46,6 @@ public class NotificationsForFireTVConnection {
     private String boundary;
     private HttpClient httpClient;
     private List<byte[]> byteArrays = new ArrayList<>();
-
-    private final Logger logger = LoggerFactory.getLogger(NotificationsForFireTVConnection.class);
 
     /**
      * This constructor initializes a new HTTP POST request with content
