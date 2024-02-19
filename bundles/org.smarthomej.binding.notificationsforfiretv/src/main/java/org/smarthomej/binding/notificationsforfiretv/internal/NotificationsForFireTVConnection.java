@@ -19,6 +19,7 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
@@ -29,6 +30,8 @@ import java.util.List;
 import java.util.UUID;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -45,6 +48,8 @@ public class NotificationsForFireTVConnection {
     private String boundary;
     private HttpClient httpClient;
     private List<byte[]> byteArrays = new ArrayList<>();
+
+    private final Logger logger = LoggerFactory.getLogger(NotificationsForFireTVConnection.class);
 
     /**
      * This constructor initializes a new HTTP POST request with content
@@ -103,9 +108,15 @@ public class NotificationsForFireTVConnection {
     public String send() throws IOException, InterruptedException {
         byteArrays.add(("--" + boundary + "--").getBytes(StandardCharsets.UTF_8));
 
+        int length = 0;
+        for (byte[] bytes : byteArrays) {
+            length += bytes.length;
+        }
+
+        BodyPublisher bodyPublisher = BodyPublishers.fromPublisher(BodyPublishers.ofByteArrays(byteArrays), length);
         HttpRequest httpRequest = HttpRequest.newBuilder()
-                .header("Content-Type", "multipart/form-data;boundary=" + boundary)
-                .POST(BodyPublishers.ofByteArrays(byteArrays)).uri(uri).build();
+                .header("Content-Type", "multipart/form-data;boundary=" + boundary).POST(bodyPublisher).uri(uri)
+                .build();
         HttpResponse<String> response = httpClient.send(httpRequest, BodyHandlers.ofString());
         if (response.statusCode() == HttpURLConnection.HTTP_OK) {
             return response.body();
