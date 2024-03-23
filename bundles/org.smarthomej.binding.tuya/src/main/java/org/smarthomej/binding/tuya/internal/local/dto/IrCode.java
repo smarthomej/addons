@@ -12,7 +12,7 @@
  */
 package org.smarthomej.binding.tuya.internal.local.dto;
 
-import org.eclipse.jdt.annotation.*;
+import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
  * The {@link IrCode} represents the IR code decoded messages sent by Tuya devices
