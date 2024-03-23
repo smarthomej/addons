@@ -15,7 +15,7 @@
   <name>SmartHome/J Add-ons :: Bundles :: HTTP Binding</name>
 
   <properties>
-    <jetty.version>9.4.20.v20190813</jetty.version>
+    <jetty.version>9.4.53.v20231009</jetty.version>
   </properties>
 
   <dependencies>
