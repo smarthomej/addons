@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<features name="org.smarthomej.transform.basicprofiles-${project.version}" xmlns="http://karaf.apache.org/xmlns/features/v1.4.0">
-	<feature name="smarthomej-transformation-basicprofiles" description="Basic Profiles" version="${project.version}">
-		<feature>openhab-runtime-base</feature>
-		<bundle start-level="75">mvn:org.smarthomej.addons.bundles/org.smarthomej.transform.basicprofiles/${project.version}</bundle>
-	</feature>
-</features>
