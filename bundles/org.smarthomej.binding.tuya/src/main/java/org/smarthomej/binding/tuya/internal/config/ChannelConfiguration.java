@@ -31,5 +31,5 @@ public class ChannelConfiguration {
     public int irSendDelay = 300;
     public int irCodeType = 0;
     public String irType = "";
-    public Boolean activeListen = Boolean.FALSE;
+    public boolean activeListen = false;
 }
