@@ -30,7 +30,6 @@
     <module>org.smarthomej.binding.tuya</module>
     <module>org.smarthomej.binding.viessmann</module>
     <!-- transformations -->
-    <module>org.smarthomej.transform.basicprofiles</module>
     <module>org.smarthomej.transform.chain</module>
     <module>org.smarthomej.transform.format</module>
     <module>org.smarthomej.transform.math</module>
