@@ -283,10 +283,9 @@ public class AndroidDebugBridgeDevice {
 
     private Optional<Boolean> isHDMIOnWithLogcat() throws InterruptedException, AndroidDebugBridgeDeviceException,
             AndroidDebugBridgeDeviceReadException, TimeoutException, ExecutionException {
-        String result = runAdbShell("logcat", "-d", "|", "grep", "hdmi", "|", "grep", "SWITCH_STATE=", "|", "tail",
-                "-1");
-        if (result.contains("SWITCH_STATE=")) {
-            return Optional.of(result.contains("SWITCH_STATE=1"));
+        String result = runAdbShell("logcat", "-d", "|", "grep", "'hdcp state'", "|", "tail", "-1");
+        if (result.contains("hdcp state:")) {
+            return Optional.of(result.contains("hdcp state: 1"));
         } else if (result.isEmpty()) {
             // IF THE DEVICE DO NOT SUPPORT THIS VALUE IN LOGCAT THE USER WILL NEVER KNOW THE CHANNEL WON'T WORK
             // FIND A BETTER SOLUTION
