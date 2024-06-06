@@ -27,11 +27,14 @@ import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.library.unit.Units;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.UnDefType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.amazonechocontrol.internal.connection.Connection;
 import org.smarthomej.binding.amazonechocontrol.internal.dto.smarthome.JsonSmartHomeCapability;
 import org.smarthomej.binding.amazonechocontrol.internal.dto.smarthome.JsonSmartHomeDevice;
 import org.smarthomej.binding.amazonechocontrol.internal.handler.SmartHomeDeviceHandler;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 /**
@@ -41,6 +44,7 @@ import com.google.gson.JsonObject;
  */
 @NonNullByDefault
 public class HandlerHumiditySensor extends AbstractInterfaceHandler {
+    private final Logger logger = LoggerFactory.getLogger(HandlerHumiditySensor.class);
     public static final String INTERFACE = "Alexa.HumiditySensor";
 
     private static final ChannelInfo HUMIDITY = new ChannelInfo("relativeHumidity", "humidity",
@@ -62,13 +66,18 @@ public class HandlerHumiditySensor extends AbstractInterfaceHandler {
     public void updateChannels(String interfaceName, List<JsonObject> stateList, UpdateChannelResult result) {
         QuantityType<Dimensionless> humidityValue = null;
         for (JsonObject state : stateList) {
-            if (HUMIDITY.propertyName.equals(state.get("name").getAsString())) {
-                JsonObject value = state.get("value").getAsJsonObject();
-                // For groups take the first
-                if (humidityValue == null) {
-                    BigDecimal humidity = value.get("value").getAsBigDecimal();
-                    humidityValue = new QuantityType<>(humidity, Units.PERCENT);
+            if (HUMIDITY.propertyName.equals(state.get("name").getAsString()) && humidityValue == null) {
+                JsonElement value = state.get("value");
+                BigDecimal humidity;
+                if (value.isJsonObject()) {
+                    humidity = value.getAsJsonObject().getAsBigDecimal();
+                } else if (value.isJsonPrimitive() && value.getAsJsonPrimitive().isNumber()) {
+                    humidity = value.getAsJsonPrimitive().getAsBigDecimal();
+                } else {
+                    logger.warn("Could not properly convert {}", state);
+                    continue;
                 }
+                humidityValue = new QuantityType<>(humidity, Units.PERCENT);
             }
         }
         smartHomeDeviceHandler.updateState(HUMIDITY.channelId, humidityValue == null ? UnDefType.UNDEF : humidityValue);

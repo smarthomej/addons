@@ -85,25 +85,27 @@ public class HandlerSecurityPanelController extends AbstractInterfaceHandler {
         Boolean fireAlarmValue = null;
         Boolean waterAlarmValue = null;
         for (JsonObject state : stateList) {
-            if (ARM_STATE.propertyName.equals(state.get("name").getAsString())) {
+            String propertyValue = state.get("value").getAsJsonObject().get("value").getAsString();
+            String propertyName = state.get("name").getAsString();
+            if (ARM_STATE.propertyName.equals(propertyName)) {
                 if (armStateValue == null) {
                     armStateValue = state.get("value").getAsString();
                 }
-            } else if (BURGLARY_ALARM.propertyName.equals(state.get("name").getAsString())) {
+            } else if (BURGLARY_ALARM.propertyName.equals(propertyName)) {
                 if (burglaryAlarmValue == null) {
-                    burglaryAlarmValue = "ALARM".equals(state.get("value").getAsString());
+                    burglaryAlarmValue = "ALARM".equals(propertyValue);
                 }
-            } else if (CARBON_MONOXIDE_ALARM.propertyName.equals(state.get("name").getAsString())) {
+            } else if (CARBON_MONOXIDE_ALARM.propertyName.equals(propertyName)) {
                 if (carbonMonoxideAlarmValue == null) {
-                    carbonMonoxideAlarmValue = "ALARM".equals(state.get("value").getAsString());
+                    carbonMonoxideAlarmValue = "ALARM".equals(propertyValue);
                 }
-            } else if (FIRE_ALARM.propertyName.equals(state.get("name").getAsString())) {
+            } else if (FIRE_ALARM.propertyName.equals(propertyName)) {
                 if (fireAlarmValue == null) {
-                    fireAlarmValue = "ALARM".equals(state.get("value").getAsString());
+                    fireAlarmValue = "ALARM".equals(propertyValue);
                 }
-            } else if (WATER_ALARM.propertyName.equals(state.get("name").getAsString())) {
+            } else if (WATER_ALARM.propertyName.equals(propertyName)) {
                 if (waterAlarmValue == null) {
-                    waterAlarmValue = "ALARM".equals(state.get("value").getAsString());
+                    waterAlarmValue = "ALARM".equals(propertyValue);
                 }
             }
         }
