@@ -177,3 +177,34 @@ Switch motionSensorFirstFloor {
     channel="deconz:colortemperaturelight:AAA:BBB:brightness" [profile="basic-profiles:time-range-command", inRangeValue=100, outOfRangeValue=15, start="08:00", end="23:00", restoreValue="PREVIOUS"]
 }
 ```
+
+## State Filter Profile
+
+This filter passes on state updates from a (binding) handler to the item if and only if all listed item state conditions
+are met (conditions are ANDed together).
+Option to instead pass different state update in case the conditions are not met.
+State values may be quoted to treat as `StringType`.
+
+Use case: Ignore values from a binding unless some other item(s) have a specific state.
+
+### Configuration
+
+| Configuration Parameter | Type | Description                                                                                                                                                                                       |
+|-------------------------|------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `conditions`            | text | Comma separated list of expressions on the format `ITEM_NAME OPERATOR ITEM_STATE`, ie `MyItem EQ OFF`. Use quotes around `ITEM_STATE` to treat value as string ie `'OFF'` and not `OnOffType.OFF` |
+| `mismatchState`         | text | Optional state to pass instead if conditions are NOT met. Use single quotes to treat as `StringType`. Defaults to `UNDEF`                                                                         |
+| `separator`             | text | Optional separator string to separate expressions when using multiple. Defaults to `,`                                                                                                            |
+
+Possible values for token `OPERATOR` in `conditions`:
+
+- `EQ` - Equals
+- `NEQ` - Not equals
+
+
+### Full Example
+
+```Java
+Number:Temperature airconTemperature{
+        channel="mybinding:mything:mychannel"[profile="basic-profiles:state-filter",conditions="airconPower_item EQ ON",mismatchState="UNDEF"]
+}
+```

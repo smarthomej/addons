@@ -10,19 +10,23 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.smarthomej.binding.tuya.internal.local.dto;
+package org.smarthomej.transform.basicprofiles.internal.config;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.core.types.UnDefType;
+import org.smarthomej.transform.basicprofiles.internal.profiles.StateFilterProfile;
 
 /**
- * The {@link IrCode} represents the IR code decoded messages sent by Tuya devices
+ * Configuration class for {@link StateFilterProfile}.
  *
- * @author Dmitry Pyatykh - Initial contribution
+ * @author Arne Seime - Initial contribution
  */
 @NonNullByDefault
-public class IrCode {
-    public String type = "";
-    public String hex = "";
-    public Integer address = 0;
-    public Integer data = 0;
+public class StateFilterProfileConfig {
+
+    public String conditions = "";
+
+    public String mismatchState = UnDefType.UNDEF.toString();
+
+    public String separator = ",";
 }
