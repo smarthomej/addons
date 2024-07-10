@@ -626,7 +626,8 @@ public class AccountHandler extends BaseBridgeHandler implements PushConnection.
                             return;
                         }
                         echoHandler.handlePushCommand(pushCommand.command, payload);
-                        if ("PUSH_EQUALIZER_STATE_CHANGE".equals(pushCommand.command)) {
+                        if ("PUSH_EQUALIZER_STATE_CHANGE".equals(pushCommand.command)
+                                || "PUSH_VOLUME_CHANGE".equals(pushCommand.command)) {
                             ScheduledFuture<?> refreshActivityJob = this.refreshActivityJob;
                             if (refreshActivityJob != null) {
                                 refreshActivityJob.cancel(false);
