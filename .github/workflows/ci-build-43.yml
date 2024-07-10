@@ -1,14 +1,14 @@
-name: CI 4.0.x
+name: CI 4.3.x
 
 on:
   push:
     branches:
-      - '4.0.x'
+      - '4.3.x'
     paths-ignore:
       - '.github/**/*.md'
   pull_request:
     branches:
-      - '4.0.x'
+      - '4.3.x'
     paths-ignore:
       - '.github/**/*.md'
   workflow_dispatch:
