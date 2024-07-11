@@ -10,7 +10,7 @@
 
   <groupId>org.smarthomej.addons</groupId>
   <artifactId>org.smarthomej.addons.reactor</artifactId>
-  <version>4.2.0</version>
+  <version>4.2.1-SNAPSHOT</version>
 
   <packaging>pom</packaging>
 
@@ -42,7 +42,7 @@
   <scm>
     <connection>scm:git:git@github.com:smarthomej/addons.git</connection>
     <developerConnection>scm:git:git@github.com:smarthomej/addons.git</developerConnection>
-    <tag>v4.2.0</tag>
+    <tag>HEAD</tag>
     <url>https://github.com/smarthomej/addons</url>
   </scm>
 
