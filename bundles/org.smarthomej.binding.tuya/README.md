@@ -122,6 +122,7 @@ It contains a comma-separated list of command options for this channel (e.g. `wh
 ### Type `ir-code`
 
 IR code types:
+
 + `Tuya DIY-mode` - use study codes from real remotes.
 
    Make a virtual remote control in DIY, learn virtual buttons.
@@ -139,6 +140,7 @@ IR code types:
 + `Samsung` - IR Code in Samsung format.
 
 **Additional options:**
+
 * `Active Listening` - Device will be always in learning mode.
   After send command with key code device stays in the learning mode
 * `DP Study Key` - **Advanced**. DP number for study key. Uses for receive key code in learning mode. Change it own your
@@ -150,11 +152,13 @@ If linked item received a command with `Key Code` (Code Library Parameter) then 
 #### How to use IR Code in NEC format.
 
 Example, from Tasmota you need to use **_Data_** parameter, it can be with or without **_0x_**
+
 ```json
 {"Time": "2023-07-05T18:17:42", "IrReceived": {"Protocol": "NEC", "Bits": 32, "Data": "0x10EFD02F"}}
 ```
 
 Another example, use **_hex_** parameter
+
 ```json
 { "type": "nec", "uint32": 284151855, "address": 8, "data": 11, "hex": "10EFD02F" }
 ```
