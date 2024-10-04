@@ -215,6 +215,7 @@ public class ViessmannApi {
         String response = executeGet(VIESSMANN_BASE_URL + "iot/v1/features/installations/" + installationId
                 + "/gateways/" + gatewaySerial + "/devices/" + deviceId + "/features/");
         if (response != null) {
+            response = response.replaceAll("\\n", "").replaceAll("\\r", "").replaceAll(" ", "");
             response = response.replace("enum", "enumValue");
             int i = response.indexOf("\"entries\":{\"type\":\"array\",\"value\"");
             while (i > 0) {
