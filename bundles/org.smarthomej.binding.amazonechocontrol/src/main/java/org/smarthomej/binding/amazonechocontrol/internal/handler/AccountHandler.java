@@ -27,8 +27,11 @@ import java.time.ZonedDateTime;
 import java.time.chrono.ChronoZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -140,6 +143,8 @@ public class AccountHandler extends BaseBridgeHandler implements PushConnection.
     private final PushConnection pushConnection;
     private boolean disposing = false;
     private @Nullable AccountTO accountInformation;
+
+    Set<String> deviceSerialNumbers = Collections.synchronizedSet(new LinkedHashSet<>());
 
     public AccountHandler(Bridge bridge, Storage<String> stateStorage, Gson gson, HttpClient httpClient,
             HTTP2Client http2Client, AmazonEchoControlCommandDescriptionProvider commandDescriptionProvider) {
@@ -593,7 +598,8 @@ public class AccountHandler extends BaseBridgeHandler implements PushConnection.
     public void onPushCommandReceived(PushCommandTO pushCommand) {
         logger.debug("Processing {}", pushCommand);
         String payload = pushCommand.payload;
-        switch (pushCommand.command) {
+        String command = pushCommand.command;
+        switch (command) {
             case "PUSH_ACTIVITY":
                 // currently unused, seems to be removed, log a warning if it re-appears
                 logger.warn("Activity detected: {}", pushCommand);
@@ -624,15 +630,15 @@ public class AccountHandler extends BaseBridgeHandler implements PushConnection.
                         if (echoHandler == null) {
                             return;
                         }
-                        echoHandler.handlePushCommand(pushCommand.command, payload);
-                        if ("PUSH_EQUALIZER_STATE_CHANGE".equals(pushCommand.command)
-                                || "PUSH_VOLUME_CHANGE".equals(pushCommand.command)) {
+                        echoHandler.handlePushCommand(command, payload);
+                        if ("PUSH_EQUALIZER_STATE_CHANGE".equals(command) || "PUSH_VOLUME_CHANGE".equals(command)) {
+                            deviceSerialNumbers.add(dopplerId.deviceSerialNumber);
                             ScheduledFuture<?> refreshActivityJob = this.refreshActivityJob;
                             if (refreshActivityJob != null) {
                                 refreshActivityJob.cancel(false);
                             }
                             this.refreshActivityJob = scheduler.schedule(
-                                    () -> handlePushActivity(dopplerId.deviceSerialNumber, pushCommand.timeStamp),
+                                    () -> handlePushActivity(deviceSerialNumbers, pushCommand.timeStamp),
                                     handlerConfig.activityRequestDelay, TimeUnit.SECONDS);
                         }
                     }
@@ -670,15 +676,24 @@ public class AccountHandler extends BaseBridgeHandler implements PushConnection.
         return connection.getActivities(startTimestamp, endTimestamp);
     }
 
-    private void handlePushActivity(String deviceSerialNumber, @Nullable Long timestamp) {
+    private void handlePushActivity(Set<String> deviceSerialNumbers, @Nullable Long timestamp) {
         List<CustomerHistoryRecordTO> activityRecords = getCustomerActivity(timestamp);
-        EchoHandler echoHandler = echoHandlers.get(deviceSerialNumber);
-        if (echoHandler == null) {
-            logger.warn("Could not find thing handler for serialnumber {}", deviceSerialNumber);
-            return;
+
+        Iterator<String> iterator = deviceSerialNumbers.iterator();
+        while (iterator.hasNext()) {
+            try {
+                String deviceSerialNumber = iterator.next();
+                EchoHandler echoHandler = echoHandlers.get(deviceSerialNumber);
+                if (echoHandler == null) {
+                    logger.warn("Could not find thing handler for serialnumber {}", deviceSerialNumber);
+                    return;
+                }
+                activityRecords.stream().filter(r -> r.recordKey.endsWith(deviceSerialNumber))
+                        .forEach(echoHandler::handlePushActivity);
+            } finally {
+                iterator.remove();
+            }
         }
-        activityRecords.stream().filter(r -> r.recordKey.endsWith(deviceSerialNumber))
-                .forEach(echoHandler::handlePushActivity);
     }
 
     private @Nullable SmartHomeBaseDevice findSmartHomeDeviceJson(SmartHomeDeviceHandler handler) {
