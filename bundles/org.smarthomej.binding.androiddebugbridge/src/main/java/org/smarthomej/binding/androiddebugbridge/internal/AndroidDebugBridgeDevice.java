@@ -28,7 +28,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
@@ -258,42 +257,19 @@ public class AndroidDebugBridgeDevice {
 
     public boolean isScreenOn() throws InterruptedException, AndroidDebugBridgeDeviceException,
             AndroidDebugBridgeDeviceReadException, TimeoutException, ExecutionException {
-        String result = runAdbShell("dumpsys", "power", "|", "grep", "'Display Power'");
-        String[] splitResult = result.split("=");
-        if (splitResult.length >= 2) {
-            return "ON".equals(splitResult[1]);
+        String result = runAdbShell("dumpsys", "display", "|", "grep", "mScreenState");
+        if (result.contains("mScreenState=")) {
+            return result.contains("mScreenState=ON");
         }
         throw new AndroidDebugBridgeDeviceReadException(SCREEN_STATE_CHANNEL, result);
     }
 
-    public Optional<Boolean> isHDMIOn() throws InterruptedException, AndroidDebugBridgeDeviceException,
+    public boolean isHdmiOn() throws InterruptedException, AndroidDebugBridgeDeviceException,
             AndroidDebugBridgeDeviceReadException, TimeoutException, ExecutionException {
-        if (channelFallbackMap.get(HDMI_STATE_CHANNEL) == FallbackModes.LOGCAT) {
-            return isHDMIOnWithLogcat();
+        String result = runAdbShell("dumpsys", "hdmi_control", "|", "grep", "mPowerStatus");
+        if (result.contains("mPowerStatus:")) {
+            return result.contains("mPowerStatus: 0");
         }
-        String result = runAdbShell("cat", "/sys/devices/virtual/switch/hdmi/state");
-        if ("0".equals(result) || "1".equals(result)) {
-            return Optional.of("1".equals(result));
-        } else {
-            LOGGER.debug("set fallback {} for {}", FallbackModes.LOGCAT, HDMI_STATE_CHANNEL);
-            channelFallbackMap.put(HDMI_STATE_CHANNEL, FallbackModes.LOGCAT);
-            return isHDMIOnWithLogcat();
-        }
-    }
-
-    private Optional<Boolean> isHDMIOnWithLogcat() throws InterruptedException, AndroidDebugBridgeDeviceException,
-            AndroidDebugBridgeDeviceReadException, TimeoutException, ExecutionException {
-        String result = runAdbShell("logcat", "-d", "|", "grep", "hdmi", "|", "grep", "SWITCH_STATE=", "|", "tail",
-                "-1");
-        if (result.contains("SWITCH_STATE=")) {
-            return Optional.of(result.contains("SWITCH_STATE=1"));
-        } else if (result.isEmpty()) {
-            // IF THE DEVICE DO NOT SUPPORT THIS VALUE IN LOGCAT THE USER WILL NEVER KNOW THE CHANNEL WON'T WORK
-            // FIND A BETTER SOLUTION
-            return Optional.empty();
-        }
-        LOGGER.debug("remove fallback for {}", HDMI_STATE_CHANNEL);
-        channelFallbackMap.remove(HDMI_STATE_CHANNEL);
         throw new AndroidDebugBridgeDeviceReadException(HDMI_STATE_CHANNEL, result);
     }
 
@@ -548,7 +524,6 @@ public class AndroidDebugBridgeDevice {
     private enum FallbackModes {
         MONKEY,
         MONKEY_LEANBACK_LAUNCHER,
-        DUMPSYS_ACTIVITY_RECENTS,
-        LOGCAT,
+        DUMPSYS_ACTIVITY_RECENTS
     }
 }
