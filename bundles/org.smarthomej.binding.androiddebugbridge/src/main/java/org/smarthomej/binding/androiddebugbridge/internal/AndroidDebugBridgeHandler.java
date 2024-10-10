@@ -214,13 +214,12 @@ public class AndroidDebugBridgeHandler extends BaseThingHandler {
                 break;
             case HDMI_STATE_CHANNEL:
                 if (command instanceof RefreshType) {
-                    adbConnection.isHDMIOn().ifPresent(hdmiState -> {
-                        boolean lastHDMIState = (boolean) channelLastStateMap.getOrDefault(HDMI_STATE_CHANNEL, false);
-                        if (hdmiState.equals(lastHDMIState)) {
-                            updateState(channelUID, OnOffType.from(hdmiState));
-                        }
-                        channelLastStateMap.put(HDMI_STATE_CHANNEL, hdmiState);
-                    });
+                    boolean hdmiState = adbConnection.isHdmiOn();
+                    boolean lastHdmiState = (boolean) channelLastStateMap.getOrDefault(HDMI_STATE_CHANNEL, false);
+                    if (hdmiState == lastHdmiState) {
+                        updateState(channelUID, OnOffType.from(hdmiState));
+                    }
+                    channelLastStateMap.put(HDMI_STATE_CHANNEL, hdmiState);
                 }
                 break;
         }
