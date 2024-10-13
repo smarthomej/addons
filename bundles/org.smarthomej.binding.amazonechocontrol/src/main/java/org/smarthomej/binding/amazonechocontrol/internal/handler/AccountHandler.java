@@ -27,11 +27,9 @@ import java.time.ZonedDateTime;
 import java.time.chrono.ChronoZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -118,6 +116,7 @@ public class AccountHandler extends BaseBridgeHandler implements PushConnection.
     private final Map<String, EchoHandler> echoHandlers = new ConcurrentHashMap<>();
     private final Set<SmartHomeDeviceHandler> smartHomeDeviceHandlers = new CopyOnWriteArraySet<>();
     private final Set<FlashBriefingProfileHandler> flashBriefingProfileHandlers = new CopyOnWriteArraySet<>();
+    private final Set<String> deviceSerialNumbers = new CopyOnWriteArraySet<>();
 
     private final Object synchronizeConnection = new Object();
     private Map<String, DeviceTO> serialNumberDeviceMapping = new HashMap<>();
@@ -143,8 +142,6 @@ public class AccountHandler extends BaseBridgeHandler implements PushConnection.
     private final PushConnection pushConnection;
     private boolean disposing = false;
     private @Nullable AccountTO accountInformation;
-
-    Set<String> deviceSerialNumbers = Collections.synchronizedSet(new LinkedHashSet<>());
 
     public AccountHandler(Bridge bridge, Storage<String> stateStorage, Gson gson, HttpClient httpClient,
             HTTP2Client http2Client, AmazonEchoControlCommandDescriptionProvider commandDescriptionProvider) {
