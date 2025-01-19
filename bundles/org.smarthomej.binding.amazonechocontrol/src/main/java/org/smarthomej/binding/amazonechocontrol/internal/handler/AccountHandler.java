@@ -674,9 +674,6 @@ public class AccountHandler extends BaseBridgeHandler implements PushConnection.
     }
 
     private void handlePushActivity(@Nullable Long timestamp) {
-        Set<String> deviceSerialNumbers = new HashSet<>();
-        pushActivityProcessingQueue.drainTo(deviceSerialNumbers);
-
         List<CustomerHistoryRecordTO> activityRecords = getCustomerActivity(timestamp);
 
         while (!pushActivityProcessingQueue.isEmpty()) {
