@@ -212,7 +212,7 @@ public class ViessmannApi {
     }
 
     public @Nullable FeaturesDTO getAllFeatures(String deviceId) throws ViessmannCommunicationException {
-        String response = executeGet(VIESSMANN_BASE_URL + "iot/v1/features/installations/" + installationId
+        String response = executeGet(VIESSMANN_BASE_URL + "iot/v2/features/installations/" + installationId
                 + "/gateways/" + gatewaySerial + "/devices/" + deviceId + "/features/");
         if (response != null) {
             response = response.replaceAll("\\n", "").replaceAll("\\r", "").replaceAll(" ", "");

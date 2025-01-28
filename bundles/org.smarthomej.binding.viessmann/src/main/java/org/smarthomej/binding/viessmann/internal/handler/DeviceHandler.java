@@ -399,6 +399,11 @@ public class DeviceHandler extends ViessmannThingHandler {
                             valueEntry = prop.max.value.toString();
                             viUnit = prop.max.unit;
                             break;
+                        case "phase":
+                            typeEntry = prop.phase.type;
+                            valueEntry = prop.phase.value;
+                            viUnit = "";
+                            break;
                         default:
                             break;
                     }
