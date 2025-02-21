@@ -1,6 +1,6 @@
 const fs = require('fs');
 
-const bundles = ['automation.javarule', 'binding.amazonechocontrol', 'binding.androiddebugbridge',
+const bundles = ['automation.javarule', 'binding.androiddebugbridge',
     'binding.deconz', 'binding.dmx', 'binding.http', 'binding.knx', 'binding.mail',
     'binding.notificationsforfiretv', 'binding.onewire', 'binding.snmp', 'binding.tcpudp', 'binding.telenot',
     'binding.tr064', 'binding.tuya', 'binding.viessmann', 'persistence.influxdb', 'transform.basicprofiles',
