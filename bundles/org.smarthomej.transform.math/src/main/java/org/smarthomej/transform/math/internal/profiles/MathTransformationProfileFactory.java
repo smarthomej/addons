@@ -84,7 +84,7 @@ public class MathTransformationProfileFactory implements ProfileFactory, Profile
 
     private final ItemRegistry itemRegistry;
     private final ProfileTypeI18nLocalizationService profileTypeI18nLocalizationService;
-    private final Bundle bundle;
+    private final @Nullable Bundle bundle;
 
     private @NonNullByDefault({}) TransformationService addTransformationService;
     private @NonNullByDefault({}) TransformationService multiplyTransformationService;
