@@ -20,6 +20,7 @@ import static org.smarthomej.binding.tuya.internal.local.CommandType.UDP;
 import static org.smarthomej.binding.tuya.internal.local.CommandType.UDP_NEW;
 import static org.smarthomej.binding.tuya.internal.local.ProtocolVersion.V3_3;
 import static org.smarthomej.binding.tuya.internal.local.ProtocolVersion.V3_4;
+import static org.smarthomej.binding.tuya.internal.local.ProtocolVersion.V3_5;
 import static org.smarthomej.binding.tuya.internal.local.TuyaDevice.*;
 
 import java.nio.ByteBuffer;
@@ -92,35 +93,57 @@ public class TuyaDecoder extends ByteToMessageDecoder {
         if (logger.isTraceEnabled()) {
             logger.trace("{}{}: Received encoded '{}'", deviceId,
                     Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""), HexUtils.bytesToHex(bytes));
+            logger.trace("{}{}: Protocol version '{}'", deviceId,
+                    Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""), protocol.getString());
         }
 
         ByteBuffer buffer = ByteBuffer.wrap(bytes);
         int prefix = buffer.getInt();
+
+        if (protocol == V3_5) {
+            // skip 2 unknown bytes in header
+            buffer.position(buffer.position() + 2);
+        }
+
         int sequenceNumber = buffer.getInt();
         CommandType commandType = CommandType.fromCode(buffer.getInt());
         int payloadLength = buffer.getInt();
 
         //
+        byte[] header = new byte[14];
+        if (protocol == V3_5) {
+            // get header for GCM AAD
+            System.arraycopy(buffer.array(), 4, header, 0, 14);
+        }
+
         if (buffer.limit() < payloadLength + 16) {
             // there are less bytes than needed, exit early
             logger.trace("Did not receive enough bytes from '{}', exiting early", deviceId);
             return;
         } else {
             // we have enough bytes, skip them from the input buffer and proceed processing
-            in.skipBytes(payloadLength + 16);
+            if (protocol == V3_5) {
+                in.skipBytes(payloadLength + 22);
+            } else {
+                in.skipBytes(payloadLength + 16);
+            }
         }
-
-        int returnCode = buffer.getInt();
 
         byte[] payload;
-        if ((returnCode & 0xffffff00) != 0) {
-            // rewind if no return code is present
-            buffer.position(buffer.position() - 4);
-            payload = protocol == V3_4 ? new byte[payloadLength - 32] : new byte[payloadLength - 8];
-        } else {
-            payload = protocol == V3_4 ? new byte[payloadLength - 32 - 8] : new byte[payloadLength - 8 - 4];
-        }
 
+        if (protocol == V3_5) {
+            payload = new byte[payloadLength];
+        } else {
+            int returnCode = buffer.getInt();
+
+            if ((returnCode & 0xffffff00) != 0) {
+                // rewind if no return code is present
+                buffer.position(buffer.position() - 4);
+                payload = protocol == V3_4 ? new byte[payloadLength - 32] : new byte[payloadLength - 8];
+            } else {
+                payload = protocol == V3_4 ? new byte[payloadLength - 32 - 8] : new byte[payloadLength - 8 - 4];
+            }
+        }
         buffer.get(payload);
 
         if (protocol == V3_4 && commandType != UDP && commandType != UDP_NEW) {
@@ -137,7 +160,7 @@ public class TuyaDecoder extends ByteToMessageDecoder {
                         HexUtils.bytesToHex(expectedHmac));
                 return;
             }
-        } else {
+        } else if (protocol != V3_5) {
             int crc = buffer.getInt();
             // header + payload without suffix and checksum
             int calculatedCrc = CryptoUtil.calculateChecksum(bytes, 0, 16 + payloadLength - 8);
@@ -149,7 +172,7 @@ public class TuyaDecoder extends ByteToMessageDecoder {
         }
 
         int suffix = buffer.getInt();
-        if (prefix != 0x000055aa || suffix != 0x0000aa55) {
+        if ((prefix != 0x000055aa || suffix != 0x0000aa55) && (prefix != 0x00006699 || suffix != 0x00009966)) {
             logger.warn("{}{}: Decoding failed: Prefix or suffix invalid.", deviceId,
                     Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""));
             return;
@@ -170,18 +193,23 @@ public class TuyaDecoder extends ByteToMessageDecoder {
             m = new MessageWrapper<>(commandType,
                     Objects.requireNonNull(gson.fromJson(new String(payload), DiscoveryMessage.class)));
         } else {
-            byte[] decodedMessage = protocol == V3_4 ? CryptoUtil.decryptAesEcb(payload, sessionKey, true)
-                    : CryptoUtil.decryptAesEcb(payload, sessionKey, false);
+            byte[] decodedMessage = protocol == V3_5 ? CryptoUtil.decryptAesGcm(payload, sessionKey, header, null) : protocol == V3_4 ? CryptoUtil.decryptAesEcb(payload, sessionKey, true) : CryptoUtil.decryptAesEcb(payload, sessionKey, false);
             if (decodedMessage == null) {
                 return;
             }
 
+            if (protocol == V3_5) {
+                // Remove return code
+                decodedMessage = Arrays.copyOfRange(decodedMessage, 4, decodedMessage.length);
+            }
+
             if (Arrays.equals(Arrays.copyOfRange(decodedMessage, 0, protocol.getBytes().length), protocol.getBytes())) {
-                if (protocol == V3_4) {
-                    // Remove 3.4 header
+                if (protocol == V3_4 || protocol == V3_5) {
+                    // Remove 3.4 or 3.5 header
                     decodedMessage = Arrays.copyOfRange(decodedMessage, 15, decodedMessage.length);
                 }
             }
+
             if (logger.isTraceEnabled()) {
                 logger.trace("{}{}: Decoded raw payload: {}", deviceId,
                         Objects.requireNonNullElse(ctx.channel().remoteAddress(), ""),

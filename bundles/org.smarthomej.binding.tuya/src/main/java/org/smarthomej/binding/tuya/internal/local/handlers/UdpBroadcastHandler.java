@@ -1,0 +1,52 @@
+/**
+ * Copyright (c) 2021-2023 Contributors to the SmartHome/J project
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ */
+package org.smarthomej.binding.tuya.internal.local.handlers;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelPromise;
+import io.netty.channel.socket.DatagramPacket;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelOutboundHandlerAdapter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.net.InetSocketAddress;
+
+/**
+ * The {@link UdpBroadcastHandler} is a Netty handler for create UDP broadcast message
+ *
+ * @author Andriy Yemets - Initial contribution
+ */
+public class UdpBroadcastHandler extends ChannelOutboundHandlerAdapter {
+
+    private final Logger logger = LoggerFactory.getLogger(UdpBroadcastHandler.class);
+
+    private final String broadcastAddress;
+    private final int broadcastPort;
+
+    public UdpBroadcastHandler(String broadcastAddress, int broadcastPort) {
+        this.broadcastAddress = broadcastAddress;
+        this.broadcastPort = broadcastPort;
+    }
+
+    @Override
+    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception{
+        if(msg instanceof ByteBuf) {
+            ByteBuf buf = (ByteBuf) msg;
+            DatagramPacket packet = new DatagramPacket(buf, new InetSocketAddress(broadcastAddress, broadcastPort));
+            ctx.write(packet, promise);
+        } else {
+            super.write(ctx, msg, promise);
+        }
+    }
+}

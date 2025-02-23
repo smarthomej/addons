@@ -45,6 +45,7 @@ import org.smarthomej.binding.tuya.internal.cloud.TuyaOpenAPI;
 import org.smarthomej.binding.tuya.internal.cloud.dto.DeviceListInfo;
 import org.smarthomej.binding.tuya.internal.cloud.dto.DeviceSchema;
 import org.smarthomej.binding.tuya.internal.handler.ProjectHandler;
+import org.smarthomej.binding.tuya.internal.local.UdpDiscoverySender;
 import org.smarthomej.binding.tuya.internal.util.SchemaDp;
 
 import com.google.gson.Gson;
@@ -65,6 +66,8 @@ public class TuyaDiscoveryService extends AbstractThingHandlerDiscoveryService<P
     private @NonNullByDefault({}) Storage<String> storage;
     private @Nullable ScheduledFuture<?> discoveryJob;
 
+    private final UdpDiscoverySender udpDiscoverySender = new UdpDiscoverySender();
+
     public TuyaDiscoveryService() {
         super(ProjectHandler.class, SUPPORTED_THING_TYPES, SEARCH_TIME);
     }
@@ -79,6 +82,8 @@ public class TuyaDiscoveryService extends AbstractThingHandlerDiscoveryService<P
         }
 
         processDeviceResponse(List.of(), api, 0);
+
+        scheduler.schedule(udpDiscoverySender::sendMessage, 5, TimeUnit.SECONDS);
     }
 
     private void processDeviceResponse(List<DeviceListInfo> deviceList, TuyaOpenAPI api, int page) {
