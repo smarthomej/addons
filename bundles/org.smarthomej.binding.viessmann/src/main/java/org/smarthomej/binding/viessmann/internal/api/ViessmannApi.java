@@ -206,7 +206,7 @@ public class ViessmannApi {
     }
 
     public @Nullable DeviceDTO getAllDevices() throws ViessmannCommunicationException {
-        String response = executeGet(VIESSMANN_BASE_URL + "iot/v1/equipment/installations/" + installationId
+        String response = executeGet(VIESSMANN_BASE_URL + "iot/v2/equipment/installations/" + installationId
                 + "/gateways/" + gatewaySerial + "/devices");
         return GSON.fromJson(response, DeviceDTO.class);
     }
@@ -235,7 +235,7 @@ public class ViessmannApi {
 
     private void setInstallationAndGatewayId() {
         try {
-            String response = executeGet(VIESSMANN_BASE_URL + "iot/v1/equipment/installations?includeGateways=true");
+            String response = executeGet(VIESSMANN_BASE_URL + "iot/v2/equipment/installations?includeGateways=true");
             InstallationDTO installation = GSON.fromJson(response, InstallationDTO.class);
             if (installation != null) {
                 List<Data> listData = installation.data;
