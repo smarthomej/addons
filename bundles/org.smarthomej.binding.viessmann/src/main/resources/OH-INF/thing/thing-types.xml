@@ -198,10 +198,17 @@
 	</channel-type>
 
 	<channel-type id="type-liter">
-		<item-type>Number:Time</item-type>
+		<item-type>Number:Volume</item-type>
 		<label>Liter</label>
 		<category>Number</category>
 		<state pattern="%d %unit%" readOnly="true"/>
+	</channel-type>
+
+	<channel-type id="type-literPerMinute">
+		<item-type>Number:VolumetricFlowRate</item-type>
+		<label>Liter per Minute</label>
+		<category>Number</category>
+		<state pattern="%.1f %unit%" readOnly="true"/>
 	</channel-type>
 
 	<channel-type id="type-string">

@@ -68,6 +68,7 @@ public class ViessmannBindingConstants {
             "hour", Units.HOUR.toString(), //
             "hours", Units.HOUR.toString(), //
             "liter", Units.LITRE.toString(), //
+            "liter/minute", Units.LITRE_PER_MINUTE.toString(), //
             "cubicMeter", SIUnits.CUBIC_METRE.toString());
 
     public static final Map<String, String> SUB_CHANNEL_TYPE_MAP = Map.of( //
