@@ -223,7 +223,7 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
             int pollingInterval = configuration.pollingInterval;
             TuyaDevice tuyaDevice = this.tuyaDevice;
             if (tuyaDevice != null && pollingInterval > 0) {
-                pollingJob = scheduler.scheduleWithFixedDelay(tuyaDevice::refreshStatus, pollingInterval,
+                pollingJob = scheduler.scheduleWithFixedDelay(tuyaDevice::requestStatus, pollingInterval,
                         pollingInterval, TimeUnit.SECONDS);
             }
 
