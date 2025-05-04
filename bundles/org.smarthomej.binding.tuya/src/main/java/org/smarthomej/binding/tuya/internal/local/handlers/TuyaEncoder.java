@@ -131,8 +131,11 @@ public class TuyaEncoder extends MessageToByteEncoder<MessageWrapper<?>> {
             return;
         }
 
-        Optional<byte[]> bufferOptional = protocol == V3_5 ? encode35(msg.commandType, payloadBytes, sessionKey) : protocol == V3_4 ? encode34(msg.commandType, payloadBytes, sessionKey)
-                : encodePre34(msg.commandType, payloadBytes, sessionKey, protocol);
+        Optional<byte[]> bufferOptional = switch (protocol) {
+            case V3_5 -> encode35(msg.commandType, payloadBytes, sessionKey);
+            case V3_4 -> encode34(msg.commandType, payloadBytes, sessionKey);
+            default -> encodePre34(msg.commandType, payloadBytes, sessionKey, protocol);
+        };
 
         bufferOptional.ifPresentOrElse(buffer -> {
             if (logger.isTraceEnabled()) {

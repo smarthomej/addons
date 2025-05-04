@@ -196,7 +196,11 @@ public class TuyaDecoder extends ByteToMessageDecoder {
             m = new MessageWrapper<>(commandType,
                     Objects.requireNonNull(gson.fromJson(new String(payload), DiscoveryMessage.class)));
         } else {
-            byte[] decodedMessage = protocol == V3_5 ? CryptoUtil.decryptAesGcm(payload, sessionKey, header, null) : protocol == V3_4 ? CryptoUtil.decryptAesEcb(payload, sessionKey, true) : CryptoUtil.decryptAesEcb(payload, sessionKey, false);
+            byte[] decodedMessage = switch (protocol) {
+                case V3_5 -> CryptoUtil.decryptAesGcm(payload, sessionKey, header, null);
+                case V3_4 -> CryptoUtil.decryptAesEcb(payload, sessionKey, true);
+                default -> CryptoUtil.decryptAesEcb(payload, sessionKey, false);
+            };
             if (decodedMessage == null) {
                 return;
             }
