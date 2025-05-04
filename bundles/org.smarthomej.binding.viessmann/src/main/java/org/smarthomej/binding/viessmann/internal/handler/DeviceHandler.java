@@ -254,7 +254,13 @@ public class DeviceHandler extends ViessmannThingHandler {
                             } else {
                                 typeEntry = prop.value.type;
                             }
-                            valueEntry = prop.value.value;
+                            if ("liter/hour".equals(viUnit)) {
+                                valueEntry = String.valueOf(Double.parseDouble(prop.value.value) / 60);
+                                viUnit = "liter/minute";
+                                typeEntry = "literPerMinute";
+                            } else {
+                                valueEntry = prop.value.value;
+                            }
                             break;
                         case "status":
                             typeEntry = prop.status.type;
@@ -399,6 +405,11 @@ public class DeviceHandler extends ViessmannThingHandler {
                             valueEntry = prop.max.value.toString();
                             viUnit = prop.max.unit;
                             break;
+                        case "phase":
+                            typeEntry = prop.phase.type;
+                            valueEntry = prop.phase.value;
+                            viUnit = "";
+                            break;
                         default:
                             break;
                     }
@@ -492,6 +503,7 @@ public class DeviceHandler extends ViessmannThingHandler {
                                 case "hours":
                                 case "kelvin":
                                 case "liter":
+                                case "literPerMinute":
                                     updateChannelState(msg.getChannelId(), msg.getValue(), unit);
                                     break;
                                 case "boolean":

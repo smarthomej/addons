@@ -41,6 +41,9 @@
 			<remove-channel id="temperature"
 				groupIds="heatingCircuits2OperatingProgramsComfort,heatingCircuits2OperatingProgramsEco,heatingCircuits2OperatingProgramsExternal,heatingCircuits2OperatingProgramsNormal,heatingCircuits2OperatingProgramsReduced"/>
 		</instruction-set>
+		<instruction-set targetVersion="4">
+			<remove-channel id="heatingSensorsVolumetricFlowReturn"/>
+		</instruction-set>
 	</thing-type>
 
 	<thing-type uid="viessmann:bridge">

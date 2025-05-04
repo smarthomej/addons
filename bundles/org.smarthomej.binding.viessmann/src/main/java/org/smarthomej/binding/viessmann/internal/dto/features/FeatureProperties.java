@@ -49,6 +49,7 @@ public class FeatureProperties {
     public FeatureInteger hoursLoadClassFive;
     public FeatureInteger min;
     public FeatureInteger max;
+    public FeatureString phase;
 
     public ArrayList<String> getUsedEntries() {
         ArrayList<String> list = new ArrayList<>();
@@ -136,6 +137,9 @@ public class FeatureProperties {
         }
         if (max != null) {
             list.add("max");
+        }
+        if (phase != null) {
+            list.add("phase");
         }
 
         return list;
