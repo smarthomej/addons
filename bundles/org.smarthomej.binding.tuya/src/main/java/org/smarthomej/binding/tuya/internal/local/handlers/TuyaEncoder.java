@@ -16,9 +16,9 @@ import static org.smarthomej.binding.tuya.internal.local.CommandType.DP_QUERY;
 import static org.smarthomej.binding.tuya.internal.local.CommandType.DP_QUERY_NEW;
 import static org.smarthomej.binding.tuya.internal.local.CommandType.DP_REFRESH;
 import static org.smarthomej.binding.tuya.internal.local.CommandType.HEART_BEAT;
+import static org.smarthomej.binding.tuya.internal.local.CommandType.REQ_DEVINFO;
 import static org.smarthomej.binding.tuya.internal.local.CommandType.SESS_KEY_NEG_FINISH;
 import static org.smarthomej.binding.tuya.internal.local.CommandType.SESS_KEY_NEG_START;
-import static org.smarthomej.binding.tuya.internal.local.CommandType.REQ_DEVINFO;
 import static org.smarthomej.binding.tuya.internal.local.ProtocolVersion.V3_3;
 import static org.smarthomej.binding.tuya.internal.local.ProtocolVersion.V3_4;
 import static org.smarthomej.binding.tuya.internal.local.ProtocolVersion.V3_5;
@@ -253,8 +253,8 @@ public class TuyaEncoder extends MessageToByteEncoder<MessageWrapper<?>> {
         byte[] rawPayload = payloadBytes;
 
         if (commandType != DP_QUERY && commandType != HEART_BEAT && commandType != DP_QUERY_NEW
-                && commandType != SESS_KEY_NEG_START && commandType != SESS_KEY_NEG_FINISH
-                && commandType != DP_REFRESH && commandType != REQ_DEVINFO) {
+                && commandType != SESS_KEY_NEG_START && commandType != SESS_KEY_NEG_FINISH && commandType != DP_REFRESH
+                && commandType != REQ_DEVINFO) {
             rawPayload = new byte[payloadBytes.length + 15];
             System.arraycopy("3.5".getBytes(StandardCharsets.UTF_8), 0, rawPayload, 0, 3);
             System.arraycopy(payloadBytes, 0, rawPayload, 15, payloadBytes.length);
@@ -265,7 +265,7 @@ public class TuyaEncoder extends MessageToByteEncoder<MessageWrapper<?>> {
         // Add prefix
         buffer.putInt(0x00006699);
         // Add unknown 2 bytes
-        buffer.putShort((short)0x0000);
+        buffer.putShort((short) 0x0000);
         // Add sequence number and command
         buffer.putInt(++sequenceNo);
         buffer.putInt(commandType.getCode());

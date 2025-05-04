@@ -12,14 +12,15 @@
  */
 package org.smarthomej.binding.tuya.internal.local.handlers;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelPromise;
-import io.netty.channel.socket.DatagramPacket;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelOutboundHandlerAdapter;
+import java.net.InetSocketAddress;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
-import java.net.InetSocketAddress;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelOutboundHandlerAdapter;
+import io.netty.channel.ChannelPromise;
+import io.netty.channel.socket.DatagramPacket;
 
 /**
  * The {@link UdpBroadcastHandler} is a Netty handler for create UDP broadcast message
@@ -38,8 +39,9 @@ public class UdpBroadcastHandler extends ChannelOutboundHandlerAdapter {
     }
 
     @Override
-    public void write(@NonNullByDefault({}) ChannelHandlerContext ctx, @NonNullByDefault({}) Object msg, @NonNullByDefault({}) ChannelPromise promise) throws Exception{
-        if(msg instanceof ByteBuf) {
+    public void write(@NonNullByDefault({}) ChannelHandlerContext ctx, @NonNullByDefault({}) Object msg,
+            @NonNullByDefault({}) ChannelPromise promise) throws Exception {
+        if (msg instanceof ByteBuf) {
             ByteBuf buf = (ByteBuf) msg;
             DatagramPacket packet = new DatagramPacket(buf, new InetSocketAddress(broadcastAddress, broadcastPort));
             ctx.write(packet, promise);

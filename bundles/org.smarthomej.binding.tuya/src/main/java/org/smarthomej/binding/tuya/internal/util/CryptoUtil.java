@@ -201,7 +201,8 @@ public class CryptoUtil {
      * @param nonce optional, the IV/nonce as array of bytes (12 bytes)
      * @return the decrypted message as String (or null if decryption failed)
      */
-    public static byte @Nullable [] decryptAesGcm(byte[] data, byte[] key, byte @Nullable [] headerData, byte @Nullable [] nonce) {
+    public static byte @Nullable [] decryptAesGcm(byte[] data, byte[] key, byte @Nullable [] headerData,
+            byte @Nullable [] nonce) {
         try {
             byte[] iv = new byte[GCM_IV_LENGTH];
             System.arraycopy(Objects.requireNonNullElse(nonce, data), 0, iv, 0, GCM_IV_LENGTH);
@@ -219,7 +220,6 @@ public class CryptoUtil {
         }
         return null;
     }
-
 
     /**
      * Decrypt an AES-ECB encoded message
@@ -259,8 +259,9 @@ public class CryptoUtil {
      * @param headerData optional, the header data as array of bytes (used as AAD)
      * @param nonce optional, the IV/nonce as array of bytes (12 bytes)
      * @return the encrypted message as array of bytes (or null if encryption failed)
-     */    
-    public static byte @Nullable [] encryptAesGcm(byte[] data, byte[] key, byte @Nullable [] headerData, byte @Nullable [] nonce) {
+     */
+    public static byte @Nullable [] encryptAesGcm(byte[] data, byte[] key, byte @Nullable [] headerData,
+            byte @Nullable [] nonce) {
         try {
             byte[] iv = new byte[GCM_IV_LENGTH];
             if (nonce != null) {
@@ -280,13 +281,14 @@ public class CryptoUtil {
             System.arraycopy(iv, 0, result, 0, GCM_IV_LENGTH);
             System.arraycopy(encryptedBytes, 0, result, GCM_IV_LENGTH, encryptedBytes.length);
             return result;
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException | InvalidAlgorithmParameterException e) {
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException
+                | BadPaddingException | InvalidAlgorithmParameterException e) {
             LOGGER.warn("Encryption of MQ failed: {}", e.getMessage());
         }
 
         return null;
     }
-    
+
     /**
      * Encrypt an AES-ECB encoded message
      *
@@ -344,7 +346,8 @@ public class CryptoUtil {
      * @param protocol the protocol version
      * @return the session key for these keys and protocol
      */
-    public static byte @Nullable [] generateSessionKey(byte[] localKey, byte[] remoteKey, byte[] deviceKey, ProtocolVersion protocol) {
+    public static byte @Nullable [] generateSessionKey(byte[] localKey, byte[] remoteKey, byte[] deviceKey,
+            ProtocolVersion protocol) {
         byte[] sessionKey = localKey.clone();
         for (int i = 0; i < sessionKey.length; i++) {
             sessionKey[i] = (byte) (sessionKey[i] ^ remoteKey[i]);

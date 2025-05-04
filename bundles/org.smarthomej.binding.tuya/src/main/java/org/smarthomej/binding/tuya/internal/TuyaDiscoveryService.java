@@ -174,7 +174,8 @@ public class TuyaDiscoveryService extends AbstractThingHandlerDiscoveryService<P
 
         ScheduledFuture<?> broadcastJob = this.broadcastJob;
         if (broadcastJob == null || broadcastJob.isDone() || broadcastJob.isCancelled()) {
-            this.broadcastJob = scheduler.scheduleWithFixedDelay(udpDiscoverySender::sendMessage, 5, 10, TimeUnit.SECONDS);
+            this.broadcastJob = scheduler.scheduleWithFixedDelay(udpDiscoverySender::sendMessage, 5, 10,
+                    TimeUnit.SECONDS);
         }
     }
 

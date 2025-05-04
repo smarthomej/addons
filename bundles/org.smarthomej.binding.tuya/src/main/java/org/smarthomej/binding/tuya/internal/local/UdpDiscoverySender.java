@@ -16,18 +16,6 @@ import static org.smarthomej.binding.tuya.internal.local.CommandType.REQ_DEVINFO
 
 import java.util.Map;
 
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.nio.NioDatagramChannel;
-import io.netty.channel.socket.DatagramChannel;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.bootstrap.Bootstrap;
-
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.util.HexUtils;
 import org.slf4j.Logger;
@@ -35,10 +23,21 @@ import org.slf4j.LoggerFactory;
 import org.smarthomej.binding.tuya.internal.local.handlers.TuyaEncoder;
 import org.smarthomej.binding.tuya.internal.local.handlers.UdpBroadcastHandler;
 import org.smarthomej.binding.tuya.internal.util.CryptoUtil;
+import org.smarthomej.binding.tuya.internal.util.NetworkUtil;
 
 import com.google.gson.Gson;
 
-import org.smarthomej.binding.tuya.internal.util.NetworkUtil;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.DatagramChannel;
+import io.netty.channel.socket.nio.NioDatagramChannel;
 
 /**
  * The {@link UdpDiscoverySender} sends device v3.5 discovery UDP broadcast message
@@ -69,7 +68,8 @@ public class UdpDiscoverySender {
                         @Override
                         protected void initChannel(DatagramChannel ch) throws Exception {
                             ChannelPipeline pipeline = ch.pipeline();
-                            pipeline.addLast("broadcastHandler", new UdpBroadcastHandler(broadcastAddress, broadcastPort));
+                            pipeline.addLast("broadcastHandler",
+                                    new UdpBroadcastHandler(broadcastAddress, broadcastPort));
                             pipeline.addLast("messageEncoder", new TuyaEncoder(gson));
                         }
                     });
@@ -80,7 +80,8 @@ public class UdpDiscoverySender {
             broadcastChannel.attr(TuyaDevice.PROTOCOL_ATTR).set(ProtocolVersion.V3_5);
             broadcastChannel.attr(TuyaDevice.SESSION_KEY_ATTR).set(TUYA_UDP_KEY);
 
-            MessageWrapper<?> m = new MessageWrapper<>(REQ_DEVINFO, Map.of("from", "app", "ip", NetworkUtil.getLocalIPAddress()));
+            MessageWrapper<?> m = new MessageWrapper<>(REQ_DEVINFO,
+                    Map.of("from", "app", "ip", NetworkUtil.getLocalIPAddress()));
             broadcastChannel.writeAndFlush(m).addListener(ChannelFutureListener.CLOSE);
         } catch (Exception e) {
             logger.error("Error during sending UDP Discovery message. {}", e.getMessage());
