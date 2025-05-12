@@ -575,7 +575,7 @@ public class Connection {
 
     public PlayerStateTO getPlayerState(DeviceTO device) throws ConnectionException {
         return requestBuilder.get(getAlexaServer() + "/api/np/player?deviceSerialNumber=" + device.serialNumber
-                + "&deviceType=" + device.deviceType + "&screenWidth=1440").syncSend(PlayerStateTO.class);
+                + "&deviceType=" + device.deviceType + "&screenWidth=1440").retry(false).syncSend(PlayerStateTO.class);
     }
 
     public List<MediaSessionTO> getMediaSessions(DeviceTO device) {
@@ -1457,7 +1457,7 @@ public class Connection {
         try {
             return Optional.of(requestBuilder
                     .get(getAlexaServer() + "/api/equalizer/" + device.serialNumber + "/" + device.deviceType)
-                    .syncSend(EqualizerTO.class));
+                    .retry(false).syncSend(EqualizerTO.class));
         } catch (ConnectionException e) {
             return Optional.empty();
         }
