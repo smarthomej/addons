@@ -603,7 +603,7 @@ public class TuyaDeviceHandler extends BaseThingHandler implements DeviceInfoSub
     }
 
     private List<CommandOption> toCommandOptionList(List<String> options) {
-        return options.stream().map(c -> new CommandOption(c, c)).collect(Collectors.toList());
+        return options.stream().map(c -> new CommandOption(c, StringUtils.capitalizeByWhitespace(c.replaceAll("_", " ")))).collect(Collectors.toList());
     }
 
     private void addSingleExpiringCache(Integer key, Object value) {
