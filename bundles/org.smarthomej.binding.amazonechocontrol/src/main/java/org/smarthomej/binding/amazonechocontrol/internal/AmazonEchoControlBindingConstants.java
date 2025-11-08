@@ -112,7 +112,7 @@ public class AmazonEchoControlBindingConstants {
     // Other
     public static final String FLASH_BRIEFING_COMMAND_PREFIX = "FlashBriefing.";
 
-    public static final String API_VERSION = "2.2.556530.0";
+    public static final String API_VERSION = "2.2.651540.0";
     public static final String DI_OS_VERSION = "16.6";
     public static final String DI_SDK_VERSION = "6.12.4";
 

@@ -15,6 +15,7 @@ package org.smarthomej.binding.amazonechocontrol.internal.connection;
 
 import static org.eclipse.jetty.http.HttpStatus.NO_CONTENT_204;
 import static org.eclipse.jetty.http.HttpStatus.OK_200;
+import static org.eclipse.jetty.http.HttpStatus.UNAUTHORIZED_401;
 import static org.smarthomej.binding.amazonechocontrol.internal.AmazonEchoControlBindingConstants.CAPABILITY_REGISTRATION;
 
 import java.io.IOException;
@@ -91,8 +92,6 @@ import org.smarthomej.binding.amazonechocontrol.internal.dto.response.Automation
 import org.smarthomej.binding.amazonechocontrol.internal.dto.response.AutomationTriggerTO;
 import org.smarthomej.binding.amazonechocontrol.internal.dto.response.BluetoothStateTO;
 import org.smarthomej.binding.amazonechocontrol.internal.dto.response.BluetoothStatesTO;
-import org.smarthomej.binding.amazonechocontrol.internal.dto.response.BootstrapAuthenticationTO;
-import org.smarthomej.binding.amazonechocontrol.internal.dto.response.BootstrapTO;
 import org.smarthomej.binding.amazonechocontrol.internal.dto.response.CustomerHistoryRecordTO;
 import org.smarthomej.binding.amazonechocontrol.internal.dto.response.CustomerHistoryRecordsTO;
 import org.smarthomej.binding.amazonechocontrol.internal.dto.response.DeviceListTO;
@@ -242,13 +241,16 @@ public class Connection {
 
     private boolean tryGetBootstrap() {
         try {
-            BootstrapTO result = requestBuilder.get(getAlexaServer() + "/api/bootstrap").retry(false).redirect(false)
-                    .syncSend(BootstrapTO.class);
-            BootstrapAuthenticationTO authentication = result.authentication;
-            if (authentication != null && authentication.authenticated) {
-                this.customerName = authentication.customerName;
-                this.loginData.setAccountCustomerId(authentication.customerId);
-                return authentication.authenticated;
+            HttpRequestBuilder.HttpResponse response = requestBuilder.get(getAlexaServer() + "/api/customer-status")
+                    .retry(false).redirect(false).syncSend();
+            if (response.statusCode() != UNAUTHORIZED_401) {
+                UsersMeTO usersMeResponse = requestBuilder
+                        .get("https://alexa.amazon.com/api/users/me?platform=ios&version="
+                                + AmazonEchoControlBindingConstants.API_VERSION)
+                        .syncSend(UsersMeTO.class);
+                this.customerName = usersMeResponse.fullName;
+                this.loginData.setAccountCustomerId(usersMeResponse.id);
+                return true;
             }
         } catch (ConnectionException e) {
             logger.debug("Bootstrapping failed", e);
